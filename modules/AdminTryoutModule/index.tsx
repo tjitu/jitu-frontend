@@ -19,7 +19,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Plus, Eye, Trophy } from "lucide-react";
+import { Plus, Eye, Trophy, Sparkles } from "lucide-react";
 import { stats } from "./const";
 import { AdminTryoutResponse, AdminTryoutStatsResponse } from "./interface";
 import { getAllTryouts, getTryoutStats } from "@/lib/api/AdminTryoutApi";
@@ -266,6 +266,16 @@ const AdminTryoutModule = () => {
                               title="Preview Tryout"
                             >
                               <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/admin/ai-generator?tryoutId=${tryout.id}`}>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 text-blue-600 border-blue-200 hover:bg-blue-50"
+                              title="Generate soal dengan AI"
+                            >
+                              <Sparkles className="h-4 w-4" />
                             </Button>
                           </Link>
                           {tryout.status === "FINISHED" ? (

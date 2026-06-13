@@ -5,6 +5,7 @@ import {
   CoinsIcon,
   HomeIcon,
   NotebookPenIcon,
+  Sparkles,
   UserIcon,
   LogOut,
 } from "lucide-react";
@@ -37,6 +38,11 @@ const items = [
     title: "Kelola Tryout",
     path: "admin/tryout",
     icon: NotebookPenIcon,
+  },
+  {
+    title: "AI Generator",
+    path: "admin/ai-generator",
+    icon: Sparkles,
   },
   {
     title: "Kelola User",
