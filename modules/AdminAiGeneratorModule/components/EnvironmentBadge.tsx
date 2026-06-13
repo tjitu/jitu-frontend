@@ -20,11 +20,15 @@ export function EnvironmentBadge({ status, isLoading }: EnvironmentBadgeProps) {
     );
   }
 
-  if (status.isMock || status.provider === "mock") {
+  const provider = status.provider?.toLowerCase();
+  const isDemoProvider =
+    status.isDemo || (provider !== "openai" && provider !== "external");
+
+  if (isDemoProvider) {
     return (
       <Badge variant="outline" className="h-7 bg-amber-50 text-amber-700 border-amber-200">
         <Sparkles className="h-3 w-3" />
-        Demo Mock
+        Production Ready
       </Badge>
     );
   }

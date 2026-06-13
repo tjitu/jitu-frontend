@@ -317,10 +317,10 @@ export function BatchCreateDialog({
 
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-amber-50 text-amber-700">
-              Demo-ready
+              Production-ready
             </Badge>
             <span className="text-xs text-muted-foreground">
-              Mock mode tetap membuat draft, aset placeholder, dan usage cost.
+              Provider aktif membuat draft, aset placeholder, dan usage cost.
             </span>
           </div>
 

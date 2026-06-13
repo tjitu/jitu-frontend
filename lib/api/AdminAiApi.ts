@@ -24,8 +24,8 @@ export type AiVideoStrategy = "SLIDES_TTS" | "AI_VIDEO";
 export interface AiStatus {
   status: string;
   provider?: string;
-  isMock?: boolean;
-  mockAssetMode?: string | null;
+  isDemo?: boolean;
+  demoAssetMode?: string | null;
   database?: string;
 }
 

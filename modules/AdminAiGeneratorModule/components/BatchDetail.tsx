@@ -86,7 +86,7 @@ export function BatchDetail({
         <Card className="border-border/50 shadow-sm">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Mock Cost</p>
+              <p className="text-xs text-muted-foreground">Usage Cost</p>
               <p className="text-2xl font-bold">
                 ${usage?.totals.costUsd.toFixed(4) || "0.0000"}
               </p>

@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { BACKEND_URL } from "./lib/api";
 
 const nextConfig: NextConfig = {
   images: {

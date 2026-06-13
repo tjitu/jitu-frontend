@@ -19,7 +19,6 @@ export default function AdminLayout({
   useEffect(() => {
     if (!isPending) {
       const user = session?.user as unknown as UserWithRole;
-      console.log("Current User Role:", user?.role); // DEBUG LOG
       if (!session) {
         router.push("/login");
       } else if (user?.role !== "ADMIN") {
