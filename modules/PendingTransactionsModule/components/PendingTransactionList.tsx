@@ -24,6 +24,7 @@ const PendingTransactionList = () => {
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [showContact, setShowContact] = useState(false);
   const [qrCode, setQrCode] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPendingTransactions() {
@@ -83,6 +84,11 @@ const PendingTransactionList = () => {
                     setIsModalLoading(false);
                     setTransactionId(data.id);
                     setQrCode(data.qris);
+                    if (data.metadata?.qr_code_url) {
+                      setQrCodeUrl(data.metadata.qr_code_url);
+                    } else {
+                      setQrCodeUrl(null);
+                    }
                     setShowContact(false);
                   })
                   .catch((e: Error) => {
@@ -134,6 +140,12 @@ const PendingTransactionList = () => {
         open={isModalOpened}
         onOpenChange={(state) => {
           setIsModalOpened(state);
+          if (!state) {
+            setTransactionId(null);
+            setQrCode("");
+            setQrCodeUrl(null);
+            setShowContact(false);
+          }
         }}
         modal
       >
@@ -153,7 +165,13 @@ const PendingTransactionList = () => {
               </h2>
               <div className="flex flex-col items-center gap-2 w-full">
                 <div className="flex justify-center items-center py-8 w-full border border-slate-200 rounded-lg bg-white">
-                  {qrCode ? (
+                  {qrCodeUrl ? (
+                    <img
+                      src={qrCodeUrl}
+                      alt="QRIS code"
+                      className="w-64 h-64"
+                    />
+                  ) : qrCode ? (
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
                         qrCode,

@@ -58,8 +58,8 @@ import { SubtestExam } from "./interface";
  * }
  */
 
-// Mock questions - using "Meong ipsum" as shown in the reference
-const generateMockQuestions = (count: number, startId: number = 1) => {
+// Sample questions using the reference placeholder copy
+const generateSampleQuestions = (count: number, startId: number = 1) => {
   return Array.from({ length: count }, (_, i) => ({
     id: startId + i,
     questionText: `Meong ipsum dolor sit amet, consectetur adipiscing elit. Meong felis sit amet felis pulvinar, tincidunt felis meong. Purrr meong curabitur tristique felis vel felis posuere, ac vulputate meong felis vehicula. Sed do meong eiusmod tempor incididunt ut labore et dolore meong magna aliqua.\n\nUt enim ad minim meong veniam, quis nostrud exercitation meong ullamco laboris nisi ut aliquip ex ea meong commodo consequat. Meong duis aute irure dolor in meong reprehenderit in voluptate velit esse meong cillum dolore eu fugiat nulla meong pariatur.`,
@@ -86,7 +86,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
       tryoutId,
       tryoutTitle,
       duration: 30,
-      questions: generateMockQuestions(30, 1),
+      questions: generateSampleQuestions(30, 1),
     },
     [`${tryoutId}-2`]: {
       subtestId: 2,
@@ -94,7 +94,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
       tryoutId,
       tryoutTitle,
       duration: 15,
-      questions: generateMockQuestions(20, 31),
+      questions: generateSampleQuestions(20, 31),
     },
     [`${tryoutId}-3`]: {
       subtestId: 3,
@@ -102,7 +102,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
       tryoutId,
       tryoutTitle,
       duration: 25,
-      questions: generateMockQuestions(20, 51),
+      questions: generateSampleQuestions(20, 51),
     },
     [`${tryoutId}-4`]: {
       subtestId: 4,
@@ -110,7 +110,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
       tryoutId,
       tryoutTitle,
       duration: 20,
-      questions: generateMockQuestions(20, 71),
+      questions: generateSampleQuestions(20, 71),
     },
     [`${tryoutId}-5`]: {
       subtestId: 5,
@@ -118,7 +118,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
       tryoutId,
       tryoutTitle,
       duration: 43,
-      questions: generateMockQuestions(30, 91),
+      questions: generateSampleQuestions(30, 91),
     },
     [`${tryoutId}-6`]: {
       subtestId: 6,
@@ -126,7 +126,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
       tryoutId,
       tryoutTitle,
       duration: 20,
-      questions: generateMockQuestions(20, 121),
+      questions: generateSampleQuestions(20, 121),
     },
     [`${tryoutId}-7`]: {
       subtestId: 7,
@@ -134,7 +134,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
       tryoutId,
       tryoutTitle,
       duration: 43,
-      questions: generateMockQuestions(20, 141),
+      questions: generateSampleQuestions(20, 141),
     },
   };
 };

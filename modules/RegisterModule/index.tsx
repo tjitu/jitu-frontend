@@ -68,6 +68,7 @@ const RegisterModule = () => {
               src="/jitu-logo.png"
               alt="title"
               fill
+              sizes="192px"
               className="object-contain"
               priority
             />

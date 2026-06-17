@@ -1,6 +1,6 @@
 import { ReferralCheckResult } from "./interface";
 
-// Mock referral codes for demonstration
+// Sample referral codes for demonstration
 export const validReferralCodes: { [key: string]: ReferralCheckResult } = {
   JITU2026: {
     exists: true,
