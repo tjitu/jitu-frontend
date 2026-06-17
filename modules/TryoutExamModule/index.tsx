@@ -70,6 +70,10 @@ type UiExamData = {
 };
 
 type AnswersMap = Record<string, string>;
+type TimerSync = {
+  endTimeMs: number;
+  serverOffsetMs: number;
+};
 
 const s = (v: unknown) => (v === null || v === undefined ? "" : String(v));
 
@@ -110,6 +114,7 @@ export default function TryoutExamModule() {
   const [answers, setAnswers] = useState<AnswersMap>({});
   const [markedQuestions, setMarkedQuestions] = useState<string[]>([]);
   const [timeRemainingSec, setTimeRemainingSec] = useState<number | null>(null);
+  const [timerSync, setTimerSync] = useState<TimerSync | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSyncedAnswers, setLastSyncedAnswers] = useState<
@@ -243,6 +248,7 @@ export default function TryoutExamModule() {
         // 1. PENTING: Reset timer ke null setiap ganti subtes
         // agar tidak memicu auto-finish dari nilai subtes sebelumnya
         setTimeRemainingSec(null);
+        setTimerSync(null);
 
         let effectiveAttemptId = attemptId || "";
 
@@ -296,7 +302,14 @@ export default function TryoutExamModule() {
         setMarkedQuestions([]);
 
         // 2. Set timer ke durasi default subtest ini sambil menunggu SSE terkoneksi
-        setTimeRemainingSec(mapped.durationMinutes * 60);
+        const defaultRemainingSeconds = mapped.durationMinutes * 60;
+        setTimeRemainingSec(defaultRemainingSeconds);
+        if (!isReviewMode && defaultRemainingSeconds > 0) {
+          setTimerSync({
+            endTimeMs: Date.now() + defaultRemainingSeconds * 1000,
+            serverOffsetMs: 0,
+          });
+        }
       } catch (e: any) {
         setError(e?.message || "Gagal memuat ujian");
       } finally {
@@ -445,13 +458,22 @@ export default function TryoutExamModule() {
       try {
         const raw =
           typeof evt.data === "string" ? JSON.parse(evt.data) : evt.data;
-        const remainingSeconds = Number(
-          raw?.remainingSeconds ?? raw?.data?.remainingSeconds
-        );
-        const status = raw?.status ?? raw?.data?.status;
+        const payload = raw?.data ?? raw;
+        const remainingSeconds = Number(payload?.remainingSeconds);
+        const endTimeMs = Date.parse(String(payload?.endTime ?? ""));
+        const serverTimeMs = Date.parse(String(payload?.serverTime ?? ""));
+        const status = payload?.status;
 
         if (Number.isFinite(remainingSeconds)) {
           setTimeRemainingSec(remainingSeconds);
+          setTimerSync({
+            endTimeMs: Number.isFinite(endTimeMs)
+              ? endTimeMs
+              : Date.now() + remainingSeconds * 1000,
+            serverOffsetMs: Number.isFinite(serverTimeMs)
+              ? serverTimeMs - Date.now()
+              : 0,
+          });
         }
 
         if (status === "SUBTEST_FINISHED") {
@@ -482,6 +504,26 @@ export default function TryoutExamModule() {
       }
     };
   }, [attemptId, isReviewMode, router, tryoutId, subtestId, subtestIndex, hasNextSubtest]);
+
+  useEffect(() => {
+    if (isReviewMode || !timerSync) return;
+
+    const tick = () => {
+      const serverNowMs = Date.now() + timerSync.serverOffsetMs;
+      const remainingSeconds = Math.max(
+        0,
+        Math.ceil((timerSync.endTimeMs - serverNowMs) / 1000)
+      );
+      setTimeRemainingSec(remainingSeconds);
+    };
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [isReviewMode, timerSync]);
 
   useEffect(() => {
     if (isReviewMode || !examData || loading) return;
