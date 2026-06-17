@@ -97,6 +97,7 @@ const Navbar = () => {
                         alt="logo"
                         width={48}
                         height={48}
+                        priority
                       />
                       <span className="text-2xl font-bold text-neutral-800">
                         JituPTN

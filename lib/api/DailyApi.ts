@@ -46,7 +46,7 @@ export const getDailyQuestion = async (): Promise<DailyQuestionResponse> => {
       return {
         alreadyAnswered: false,
         question: {
-          id: "mock-1",
+          id: "sample-1",
           type: "MULTIPLE_CHOICE",
           content:
             "Manakah di antara kalimat berikut yang merupakan kalimat efektif?",
@@ -121,7 +121,7 @@ export const submitAnswer = async (
   if (!response.ok) {
     // Temporary fallback until backend implements this endpoint
     if (response.status === 404) {
-      // Mock correct answer for option C (id: opt-3)
+      // Temporary sample answer for option C (id: opt-3)
       const isCorrect = answer === "opt-3";
       return {
         success: true,

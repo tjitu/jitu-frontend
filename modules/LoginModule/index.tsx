@@ -80,6 +80,7 @@ const LoginModule = () => {
               src="/jitu-logo.png"
               alt="logo"
               fill
+              sizes="192px"
               className="object-contain"
               priority
             />
