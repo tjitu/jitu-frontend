@@ -30,6 +30,33 @@ That means browser requests stay same-origin on Vercel while the rewrite forward
 
 After backend deploy, set the Vercel production env and redeploy.
 
+## GitHub Deploy
+
+Required GitHub repository secrets:
+
+```text
+VERCEL_TOKEN
+VERCEL_ORG_ID
+VERCEL_PROJECT_ID
+```
+
+Required Vercel production environment variables:
+
+```text
+NEXT_PUBLIC_FRONTEND_URL=https://YOUR_VERCEL_DOMAIN
+NEXT_PUBLIC_BACKEND_URL=https://YOUR_BACKEND_CLOUD_RUN_URL
+FRONTEND_URL=https://YOUR_VERCEL_DOMAIN
+BACKEND_URL=https://YOUR_BACKEND_CLOUD_RUN_URL
+```
+
+After the Vercel project is linked and production env is set, run:
+
+```text
+GitHub Actions -> Deploy Frontend to Vercel -> Run workflow
+```
+
+The workflow typechecks the Next app, pulls Vercel production settings, builds with Vercel CLI, and deploys the prebuilt production output.
+
 ## Backend CORS Pairing
 
 The backend Cloud Run env must include the Vercel domain:
