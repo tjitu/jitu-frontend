@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useSession } from "@/lib/auth-client";
+import MarketingNavbar from "@/components/elements/MarketingNavbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
   Target,
@@ -14,9 +13,7 @@ import {
   Trophy,
   Zap,
   CheckCircle2,
-  PlayCircle,
   ChevronRight,
-  Star,
   Plus,
   Minus,
   Quote,
@@ -24,81 +21,6 @@ import {
 import Link from "next/link";
 
 // --- Components ---
-
-const Navbar = () => {
-  const router = useRouter();
-  const { data: session } = useSession();
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100 py-3"
-          : "bg-white/50 backdrop-blur-sm py-5 border-b border-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <div
-          className="flex items-center gap-2 cursor-pointer group"
-          onClick={() => router.push("/")}
-        >
-          <div className="relative w-8 h-8">
-            <Image src={"/logo.png"} alt="Logo Jitu" layout="fill" />
-          </div>
-          <span className="text-xl font-bold text-gray-900 tracking-tight">
-            Jitu<span className="text-blue-600">PTN</span>
-          </span>
-        </div>
-
-        <div className="hidden md:flex items-center gap-8">
-          {["Fitur", "Testimoni", "FAQ"].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
-              className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              {item}
-            </a>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4">
-          {session ? (
-            <Button
-              onClick={() => router.push("/dashboard")}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6  shadow-sm"
-            >
-              Dashboard
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                onClick={() => router.push("/login")}
-                className="text-gray-700 hover:text-blue-600 font-medium hidden sm:flex"
-              >
-                Masuk
-              </Button>
-              <Button
-                onClick={() => router.push("/register")}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
-              >
-                Daftar Gratis
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </nav>
-  );
-};
 
 const HeroSection = () => {
   const router = useRouter();
@@ -164,12 +86,15 @@ const HeroSection = () => {
 
           {/* Visual Content */}
           <div className="flex-1 w-full relative group">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-[2rem] rotate-3 opacity-10 group-hover:rotate-6 transition-transform duration-500" />
-            <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white">
-              <img
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
-                alt="Students studying together"
-                className="w-full h-auto object-cover transform transition-transform duration-700 hover:scale-105"
+            <div className="relative mx-auto flex min-h-[460px] max-w-[520px] items-end justify-center overflow-visible sm:min-h-[560px] lg:min-h-[650px]">
+              <div className="absolute inset-x-8 bottom-0 top-16 rounded-[2rem] border border-white bg-gradient-to-br from-blue-50 via-white to-orange-50 shadow-2xl rotate-2 opacity-95 group-hover:rotate-3 transition-transform duration-500" />
+              <Image
+                src="/images/hero-student-cutout.png"
+                alt="Mahasiswa UI siap menghadapi target kampus impian"
+                width={846}
+                height={1600}
+                priority
+                className="relative z-10 h-[450px] w-auto object-contain drop-shadow-2xl transition-transform duration-700 group-hover:scale-[1.03] sm:h-[560px] lg:h-[650px]"
               />
             </div>
           </div>
@@ -374,7 +299,9 @@ const TestimonialsSection = () => {
               <CardContent className="p-8 space-y-6">
                 <Quote className="w-10 h-10 text-blue-200" />
                 <p className="text-gray-700 leading-relaxed italic">
-                  "{item.text}"
+                  <span>&quot;</span>
+                  {item.text}
+                  <span>&quot;</span>
                 </p>
                 <div className="flex items-center gap-4 pt-4 border-t border-gray-200/50">
                   <img
@@ -490,10 +417,13 @@ const Footer = () => (
       <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
         <div className="md:col-span-5 space-y-6">
           <div className="flex items-center gap-2">
-            <div className="relative w-8 h-8">
-              <Image src={"/logo.png"} alt="Logo Jitu" layout="fill" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">JituPTN</span>
+            <Image
+              src="/images/jitu-logo-light.png"
+              alt="Logo Jitu"
+              width={5672}
+              height={2279}
+              className="h-10 w-auto object-contain"
+            />
           </div>
           <p className="text-gray-500 leading-relaxed max-w-sm">
             Platform ed-tech yang berfokus membantu siswa Indonesia menembus PTN
@@ -574,7 +504,7 @@ const LandingPageModule = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900">
-      <Navbar />
+      <MarketingNavbar />
 
       <main>
         <HeroSection />

@@ -4,14 +4,12 @@ import {
   Users,
   Coins,
   ChevronRight,
-  Info,
   CheckCircle2,
-  Trophy,
   BookOpen,
   TrendingUp,
   Camera,
   Loader2,
-  Medal,
+  type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -29,9 +27,9 @@ import {
   Legend,
 } from "chart.js";
 import { subtests } from "./payload";
-import { ScoreData, Subtest } from "./interface";
+import { ScoreData } from "./interface";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { UserWithRole } from "@/lib/types";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -68,11 +66,11 @@ const StatCard = ({
 }: {
   title: string;
   value: string | number;
-  icon: any;
+  icon: LucideIcon;
   color: string;
   action?: React.ReactNode;
 }) => (
-  <Card className="border-none shadow-sm hover:shadow-md transition-all duration-300 bg-white">
+  <Card className="border-0 bg-white shadow-[0_14px_36px_-24px_rgba(15,23,42,0.35)] ring-1 ring-gray-100/70 transition-all duration-300 hover:shadow-[0_18px_42px_-24px_rgba(15,23,42,0.45)]">
     <CardContent className="p-6 flex items-center justify-between">
       <div>
         <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
@@ -177,8 +175,10 @@ const DashboardModule = () => {
 
       // Refresh data
       loadDashboardData();
-    } catch (err: any) {
-      setRegisterError(err.message);
+    } catch (err) {
+      setRegisterError(
+        err instanceof Error ? err.message : "Gagal mendaftar tryout",
+      );
     } finally {
       setRegisterLoading(false);
     }
@@ -203,7 +203,7 @@ const DashboardModule = () => {
 
       toast.success("Foto profil berhasil diperbarui!");
       window.location.reload(); // Refresh to update session/UI
-    } catch (err) {
+    } catch {
       toast.error("Gagal mengupload foto");
     } finally {
       setIsUploading(false);
@@ -397,7 +397,7 @@ const DashboardModule = () => {
 
         {/* Content Tabs */}
         <Tabs defaultValue="my-tryouts" className="w-full space-y-6">
-          <TabsList className="bg-white p-1 rounded-xl border border-gray-100 shadow-sm w-fit">
+          <TabsList className="bg-white p-1 rounded-xl border-0 shadow-sm ring-1 ring-gray-100/70 w-fit">
             <TabsTrigger
               value="my-tryouts"
               className="rounded-lg px-6 py-2.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 font-medium"
@@ -431,7 +431,7 @@ const DashboardModule = () => {
                 {myTryouts.map((tryout) => (
                   <Card
                     key={tryout.id}
-                    className="border-none shadow-sm hover:shadow-lg transition-all duration-300 bg-white group overflow-hidden"
+                    className="border-0 bg-white shadow-[0_14px_36px_-24px_rgba(15,23,42,0.35)] ring-1 ring-gray-100/70 transition-all duration-300 hover:shadow-lg group overflow-hidden"
                   >
                     <CardContent className="p-0 flex flex-col h-full">
                       <div className="p-6 flex-1">
@@ -496,7 +496,7 @@ const DashboardModule = () => {
                 ))}
               </div>
             ) : (
-              <Card className="border-dashed border-2 border-gray-200 bg-gray-50/50">
+              <Card className="border-0 bg-gray-50/50 shadow-sm ring-1 ring-gray-200/70">
                 <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <BookOpen className="w-8 h-8 text-gray-400" />
@@ -530,7 +530,7 @@ const DashboardModule = () => {
               {marketTryouts.map((tryout) => (
                 <Card
                   key={tryout.id}
-                  className="border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-white"
+                  className="border-0 bg-white shadow-[0_14px_36px_-24px_rgba(15,23,42,0.35)] ring-1 ring-gray-100/70 transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
                 >
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
@@ -587,7 +587,7 @@ const DashboardModule = () => {
             value="history"
             className="animate-in fade-in-50 duration-300"
           >
-            <Card className="border-none shadow-sm bg-white">
+            <Card className="border-0 bg-white shadow-[0_14px_36px_-24px_rgba(15,23,42,0.35)] ring-1 ring-gray-100/70">
               <CardContent className="p-6">
                 <div className="flex flex-wrap gap-2 mb-6">
                   <Badge
