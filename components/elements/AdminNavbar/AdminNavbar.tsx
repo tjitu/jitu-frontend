@@ -108,15 +108,13 @@ const AdminNavbar = () => {
                   <SidebarMenuItem className="mt-2 mb-6">
                     <SidebarMenuButton>
                       <Image
-                        src="/logo.png"
-                        alt="logo"
-                        width={48}
-                        height={48}
+                        src="/images/jitu-logo-light.png"
+                        alt="Logo Jitu"
+                        width={5672}
+                        height={2279}
                         priority
+                        className="h-12 w-auto max-w-[150px] object-contain group-data-[collapsible=icon]:max-w-12"
                       />
-                      <span className="text-2xl font-bold text-neutral-800">
-                        JituPTN
-                      </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   {items.map((item) => {

@@ -4,7 +4,6 @@ import {
   ShoppingBag,
   NotebookPen,
   Flame,
-  Settings,
   LogOut,
   User,
 } from "lucide-react";
@@ -53,8 +52,6 @@ const Navbar = () => {
   const router = useRouter();
   const { setOpen } = useSidebar();
 
-  const state =
-    items.find((item) => path.startsWith(`/${item.path}`)) ?? items[0];
   const hidden = ["/login", "/register", "/admin"];
   const isExamPage = path.includes("/exam/");
 
@@ -80,7 +77,7 @@ const Navbar = () => {
       {/* Desktop Sidebar */}
       <div className="hidden md:block h-full z-40">
         <Sidebar
-          className="h-full border-r border-gray-200"
+          className="h-full border-r-0 shadow-[8px_0_24px_-20px_rgba(15,23,42,0.35)]"
           collapsible="icon"
           onMouseOver={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
@@ -93,15 +90,13 @@ const Navbar = () => {
                   <SidebarMenuItem className="mt-2 mb-6">
                     <SidebarMenuButton className="hover:bg-transparent active:bg-transparent">
                       <Image
-                        src="/logo.png"
-                        alt="logo"
-                        width={48}
-                        height={48}
+                        src="/images/jitu-logo-light.png"
+                        alt="Logo Jitu"
+                        width={5672}
+                        height={2279}
                         priority
+                        className="h-12 w-auto max-w-[150px] object-contain group-data-[collapsible=icon]:max-w-12"
                       />
-                      <span className="text-2xl font-bold text-neutral-800">
-                        JituPTN
-                      </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
@@ -124,7 +119,7 @@ const Navbar = () => {
                             <div
                               className={`${
                                 isPath
-                                  ? "border-2 border-primary-300 bg-primary-100/30 text-primary-300"
+                                  ? "bg-primary-100/60 text-primary-300 shadow-sm"
                                   : ""
                               } w-12 flex justify-center items-center rounded-xl transition-all`}
                             >
