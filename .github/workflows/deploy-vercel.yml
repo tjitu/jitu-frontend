@@ -1,6 +1,9 @@
 name: Deploy Frontend to Vercel
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -17,6 +20,7 @@ jobs:
     timeout-minutes: 25
 
     env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -24,13 +28,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate Vercel credentials
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo "Missing VERCEL_TOKEN repository secret"; exit 1; }
+          test -n "$VERCEL_ORG_ID" || { echo "Missing VERCEL_ORG_ID repository secret"; exit 1; }
+          test -n "$VERCEL_PROJECT_ID" || { echo "Missing VERCEL_PROJECT_ID repository secret"; exit 1; }
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
-
-      - name: Enable pnpm
-        run: corepack enable
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -39,10 +53,10 @@ jobs:
         run: pnpm exec tsc --noEmit
 
       - name: Pull Vercel production config
-        run: pnpm dlx vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+        run: pnpm dlx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Build Vercel production output
-        run: pnpm dlx vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+        run: pnpm dlx vercel build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy Vercel production output
-        run: pnpm dlx vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+        run: pnpm dlx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
