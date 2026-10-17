@@ -21,7 +21,7 @@ const formatDateForInput = (isoString: string) => {
   const date = new Date(isoString);
   const pad = (n: number) => n.toString().padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
+    date.getDate(),
   )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
@@ -51,7 +51,7 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
     try {
       const subtestsData = await getSubtestsByTryout(tryoutId);
       setSubtests(
-        subtestsData.sort((a: Subtest, b: Subtest) => a.order - b.order)
+        subtestsData.sort((a: Subtest, b: Subtest) => a.order - b.order),
       );
     } catch (error) {
       console.error("Failed to fetch subtests:", error);
@@ -80,7 +80,7 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
         });
       } catch (error) {
         console.error("Failed to fetch tryout data:", error);
-        toast.error("Gagal memuat data tryout.");
+        toast.error("Data gagal dimuat. Muat ulang halaman.");
       } finally {
         setIsFetching(false);
       }
@@ -89,12 +89,12 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
     if (tryoutId) {
       fetchData();
     }
-  }, [tryoutId]);
+  }, [tryoutId, fetchSubtests]);
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -130,10 +130,10 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
       };
 
       await updateTryout(tryoutId, payload);
-      toast.success("Tryout berhasil diperbarui!");
+      toast.success("Perubahan tryout disimpan.");
     } catch (error) {
       console.error("Failed to update tryout:", error);
-      toast.error("Gagal memperbarui tryout.");
+      toast.error("Gagal menyimpan perubahan.");
     } finally {
       setIsLoading(false);
     }
@@ -145,39 +145,39 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
 
   if (isFetching) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-[60vh] items-center justify-center gap-3">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+          MEMUAT TRYOUT...
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-8 p-8 w-full max-w-4xl mx-auto animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b-2 border-blue-900">
         <div className="flex items-center gap-4">
-          <Link href={"/admin/tryout"}>
-            <Button variant="outline" size="icon">
+          <Button asChild variant="outline" size="icon">
+            <Link href="/admin/tryout">
               <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">
-              Edit Tryout
-            </h1>
-            <p className="text-muted-foreground">
-              Ubah informasi tryout dan kelola subtest.
+            </Link>
+          </Button>
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+              MANAJEMEN UJIAN
             </p>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+              Kelola tryout
+            </h1>
           </div>
         </div>
-        <Link href={`/admin/tryout/${tryoutId}/preview`}>
-          <Button
-            variant="outline"
-            className="gap-2 border-purple-200 text-purple-600 hover:bg-purple-50 font-semibold shadow-sm"
-          >
-            <Eye className="h-4 w-4" />
-            Preview Tryout
-          </Button>
-        </Link>
+        <Button asChild variant="outline">
+          <Link href={`/admin/tryout/${tryoutId}/preview`}>
+            <Eye className="h-4 w-4 mr-2" />
+            Pratinjau
+          </Link>
+        </Button>
       </div>
 
       <TryoutForm

@@ -5,8 +5,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BACKEND_URL } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -18,13 +16,14 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
-  ChevronLeft,
   Flag,
   Loader2,
   BookOpen,
   CheckCircle2,
   XCircle,
-  List,
+  Grid,
+  WifiOff,
+  X,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -66,10 +65,11 @@ type UiExamData = {
   subtestName: string;
   durationMinutes: number;
   questions: UiQuestion[];
-  allSubtests: UiSubtestInfo[]; // Data dinamis dari backend
+  allSubtests: UiSubtestInfo[];
 };
 
 type AnswersMap = Record<string, string>;
+type ReviewFilter = "ALL" | "WRONG" | "EMPTY" | "RAGU";
 
 const s = (v: unknown) => (v === null || v === undefined ? "" : String(v));
 
@@ -98,12 +98,12 @@ export default function TryoutExamModule() {
   const { data: session } = useSession();
 
   const [attemptId, setAttemptId] = useState<string | null>(
-    attemptIdFromQuery ? String(attemptIdFromQuery) : null
+    attemptIdFromQuery ? String(attemptIdFromQuery) : null,
   );
 
   const [examData, setExamData] = useState<UiExamData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [startingAttempt, setStartingAttempt] = useState(false);
+  const [, setStartingAttempt] = useState(false);
   const [error, setError] = useState("");
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -117,27 +117,47 @@ export default function TryoutExamModule() {
   >({});
   const [isSubmittingFinish, setIsSubmittingFinish] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("ALL");
+  const [isOnline, setIsOnline] = useState(true);
   const [fontSize, setFontSize] = useState(16);
   const questionContainerRef = useRef<HTMLDivElement>(null);
 
   const subtestIndex = useMemo(
     () => getSubtestIndex(String(subtestId)),
-    [subtestId]
+    [subtestId],
   );
-  
-  const hasNextSubtest = useMemo(() => {
+
+  const totalSubtestsCount = useMemo(() => {
     if (examData?.allSubtests && examData.allSubtests.length > 0) {
-      return subtestIndex < examData.allSubtests.length - 1;
+      return examData.allSubtests.length;
     }
-    return subtestIndex < SUBTEST_FLOW.length - 1;
-  }, [examData?.allSubtests, subtestIndex]);
+    return SUBTEST_FLOW.length;
+  }, [examData?.allSubtests]);
+
+  const hasNextSubtest = useMemo(() => {
+    return subtestIndex < totalSubtestsCount - 1;
+  }, [totalSubtestsCount, subtestIndex]);
 
   const nextSubtestParam = String(subtestIndex + 2);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setIsOnline(navigator.onLine);
+    const onOnline = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
 
   const startAttempt = async (): Promise<string> => {
     if (!tryoutId) throw new Error("Tryout ID tidak ditemukan.");
     const userId = session?.user?.id;
-    if (!userId) throw new Error("Kamu belum login / session belum siap.");
+    if (!userId) throw new Error("Sesi kamu habis. Masuk lagi untuk lanjut.");
 
     const res = await fetch(
       `${BACKEND_URL}/exam/${encodeURIComponent(tryoutId)}/start`,
@@ -146,12 +166,12 @@ export default function TryoutExamModule() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ userId }),
-      }
+      },
     );
 
     if (!res.ok) {
       const msg = await res.text().catch(() => "");
-      throw new Error(msg || "Gagal memulai attempt");
+      throw new Error(msg || "Gagal memulai attempt.");
     }
 
     const data = await res.json();
@@ -174,8 +194,8 @@ export default function TryoutExamModule() {
 
   useEffect(() => {
     if (questionContainerRef.current) {
-      // Fix potential ampersand encoding issues before rendering math
-      const contentElements = questionContainerRef.current.querySelectorAll(".prose, .option-text");
+      const contentElements =
+        questionContainerRef.current.querySelectorAll(".prose, .option-text");
       contentElements.forEach((el) => {
         if (el.innerHTML.includes("&amp;")) {
           el.innerHTML = el.innerHTML.replace(/&amp;/g, "&");
@@ -197,7 +217,7 @@ export default function TryoutExamModule() {
 
   const mapQuestionsPayloadToUi = (
     raw: any,
-    effectiveAttemptId: string
+    effectiveAttemptId: string,
   ): UiExamData => {
     const rawQuestions = Array.isArray(raw?.questions) ? raw.questions : [];
 
@@ -213,7 +233,7 @@ export default function TryoutExamModule() {
       return {
         id: s(q?.id),
         questionText: s(q?.questionText),
-        options: options,
+        options,
         type: s(q?.type),
         solution: s(q?.solution),
         correctAnswerId: s(q?.correctAnswerId),
@@ -239,9 +259,6 @@ export default function TryoutExamModule() {
       try {
         setLoading(true);
         setError("");
-
-        // 1. PENTING: Reset timer ke null setiap ganti subtes
-        // agar tidak memicu auto-finish dari nilai subtes sebelumnya
         setTimeRemainingSec(null);
 
         let effectiveAttemptId = attemptId || "";
@@ -256,11 +273,11 @@ export default function TryoutExamModule() {
         const currentUserId = session?.user?.id || "";
 
         const url = `${BACKEND_URL}/tryout/${encodeURIComponent(
-          tryoutId
+          tryoutId,
         )}/exam/${encodeURIComponent(
-          String(subtestId)
+          String(subtestId),
         )}?userId=${encodeURIComponent(
-          currentUserId
+          currentUserId,
         )}&attemptId=${encodeURIComponent(effectiveAttemptId)}`;
 
         const res = await fetch(url, {
@@ -275,7 +292,7 @@ export default function TryoutExamModule() {
 
         if (!res.ok) {
           const msg = await res.text().catch(() => "");
-          throw new Error(msg || "Gagal memuat data soal.");
+          throw new Error(msg || "Data gagal dimuat. Muat ulang halaman.");
         }
 
         const raw = await res.json();
@@ -294,18 +311,16 @@ export default function TryoutExamModule() {
 
         setLastSyncedAnswers({});
         setMarkedQuestions([]);
-
-        // 2. Set timer ke durasi default subtest ini sambil menunggu SSE terkoneksi
+        setReviewFilter("ALL");
         setTimeRemainingSec(mapped.durationMinutes * 60);
       } catch (e: any) {
-        setError(e?.message || "Gagal memuat ujian");
+        setError(e?.message || "Gagal memuat lembar ujian.");
       } finally {
         setLoading(false);
       }
     };
 
     load();
-    // 3. Dependency Array harus lengkap agar fungsi load berjalan ulang saat subtestId berubah
   }, [
     tryoutId,
     subtestId,
@@ -320,7 +335,7 @@ export default function TryoutExamModule() {
     attemptIdParam: string,
     questionId: string,
     value: string,
-    isText: boolean
+    isText: boolean,
   ) => {
     const payload: any = { questionId };
     if (isText) {
@@ -338,7 +353,7 @@ export default function TryoutExamModule() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(payload),
-      }
+      },
     );
     if (!res.ok) throw new Error("Gagal menyimpan jawaban");
   };
@@ -362,7 +377,7 @@ export default function TryoutExamModule() {
         effectiveAttemptId,
         qid,
         chosen,
-        isTextAnswer
+        isTextAnswer,
       );
       setLastSyncedAnswers((prev) => ({ ...prev, [qid]: chosen }));
     } catch (e) {
@@ -380,10 +395,7 @@ export default function TryoutExamModule() {
     setShowFinishConfirm(false);
 
     if (isTimeout) {
-      toast.error("Waktu habis! Jawaban tersimpan otomatis.", {
-        description: `Subtes ${examData.subtestName} telah berakhir.`,
-        duration: 5000,
-      });
+      toast.error("Waktu subtes habis. Jawaban tersimpan otomatis.");
     }
 
     try {
@@ -392,7 +404,7 @@ export default function TryoutExamModule() {
       if (hasNextSubtest) {
         const currentOrder = Number(subtestId);
         const nextSubtest = examData.allSubtests.find(
-          (s) => s.order === currentOrder + 1
+          (s) => s.order === currentOrder + 1,
         );
 
         const query = new URLSearchParams({
@@ -402,7 +414,7 @@ export default function TryoutExamModule() {
         });
 
         router.push(
-          `/tryout/${tryoutId}/break/${nextSubtestParam}?${query.toString()}`
+          `/tryout/${tryoutId}/break/${nextSubtestParam}?${query.toString()}`,
         );
       } else {
         await fetch(
@@ -410,13 +422,13 @@ export default function TryoutExamModule() {
           {
             method: "POST",
             credentials: "include",
-          }
+          },
         );
 
         router.replace(`/tryout/${tryoutId}`);
       }
     } catch (e: any) {
-      setError(e?.message || "Terjadi kesalahan saat menyelesaikan subtes");
+      setError(e?.message || "Gagal mengumpulkan subtes.");
       setIsSubmittingFinish(false);
     }
   };
@@ -424,11 +436,8 @@ export default function TryoutExamModule() {
   const sseRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    // Jika review mode atau tidak ada attempt, jangan jalankan SSE
     if (isReviewMode || !attemptId) return;
 
-    // --- SUBTEST TIMER SSE ---
-    // Tutup koneksi lama jika ada sebelum membuka yang baru
     if (sseRef.current) {
       sseRef.current.close();
       sseRef.current = null;
@@ -437,7 +446,7 @@ export default function TryoutExamModule() {
     const es = new EventSource(
       `${BACKEND_URL}/exam/${encodeURIComponent(attemptId)}/stream/${
         subtestIndex + 1
-      }`
+      }`,
     );
     sseRef.current = es;
 
@@ -446,7 +455,7 @@ export default function TryoutExamModule() {
         const raw =
           typeof evt.data === "string" ? JSON.parse(evt.data) : evt.data;
         const remainingSeconds = Number(
-          raw?.remainingSeconds ?? raw?.data?.remainingSeconds
+          raw?.remainingSeconds ?? raw?.data?.remainingSeconds,
         );
         const status = raw?.status ?? raw?.data?.status;
 
@@ -455,7 +464,6 @@ export default function TryoutExamModule() {
         }
 
         if (status === "SUBTEST_FINISHED") {
-          console.log("Waktu subtes habis, pindah otomatis atau break...");
           es.close();
           sseRef.current = null;
           finishCurrentSubtest(true);
@@ -471,7 +479,6 @@ export default function TryoutExamModule() {
     };
 
     es.onerror = () => {
-      console.error("SSE Connection Error. Reconnecting...");
       es.close();
     };
 
@@ -481,7 +488,15 @@ export default function TryoutExamModule() {
         sseRef.current = null;
       }
     };
-  }, [attemptId, isReviewMode, router, tryoutId, subtestId, subtestIndex, hasNextSubtest]);
+  }, [
+    attemptId,
+    isReviewMode,
+    router,
+    tryoutId,
+    subtestId,
+    subtestIndex,
+    hasNextSubtest,
+  ]);
 
   useEffect(() => {
     if (isReviewMode || !examData || loading) return;
@@ -506,7 +521,7 @@ export default function TryoutExamModule() {
       if (isLastQuestion) {
         if (hasNextSubtest) {
           router.push(
-            `/tryout/${tryoutId}/exam/${nextSubtestParam}?attemptId=${attemptId}&review=true`
+            `/tryout/${tryoutId}/exam/${nextSubtestParam}?attemptId=${attemptId}&review=true`,
           );
         } else {
           router.push(`/tryout/${tryoutId}`);
@@ -517,13 +532,12 @@ export default function TryoutExamModule() {
       return;
     }
 
-    // Normal Mode
     try {
       await saveCurrentQuestionIfDirty();
       const isLastQuestion =
         currentQuestionIndex === examData.questions.length - 1;
       if (isLastQuestion) {
-        finishCurrentSubtest();
+        setShowFinishConfirm(true);
       } else {
         setCurrentQuestionIndex((i) => i + 1);
       }
@@ -542,439 +556,638 @@ export default function TryoutExamModule() {
     router.replace(`/tryout/${tryoutId}`);
   };
 
-  // Tambahkan "| null" pada parameter seconds
   const formatTime = (seconds: number | null) => {
-    // Guard clause: jika null, kembalikan teks default
-    if (seconds === null) return "00 : 00 : 00";
+    if (seconds === null) return "00:00:00";
 
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${String(h).padStart(2, "0")} : ${String(m).padStart(
+    const sec = seconds % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(
       2,
-      "0"
-    )} : ${String(s).padStart(2, "0")}`;
+      "0",
+    )}:${String(sec).padStart(2, "0")}`;
   };
+
   const currentQuestion = examData?.questions[currentQuestionIndex];
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 flex-col gap-2">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-        <div className="text-gray-600 font-medium">Memuat...</div>
+      <div className="min-h-screen flex items-center justify-center bg-blue-50 flex-col gap-2">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+          MEMUAT SOAL...
+        </div>
       </div>
     );
   }
 
   if (error || !examData || !currentQuestion) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 gap-4 p-6">
-        <h3 className="text-lg font-bold text-gray-900">Gagal Memuat</h3>
-        <p className="text-gray-600 text-center max-w-xl">
-          {error || "Data tidak tersedia."}
-        </p>
-        <Button
-          variant="outline"
-          onClick={() => router.replace(`/tryout/${tryoutId}`)}
-        >
-          Kembali Dashboard
-        </Button>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 gap-4 p-6">
+        <div className="bg-white border-2 border-blue-900 p-8 max-w-md w-full text-center space-y-4 shadow-hard">
+          <h3 className="font-display text-xl font-bold text-blue-900">
+            Data gagal dimuat
+          </h3>
+          <p className="text-sm text-slate-600">
+            {error || "Soal tidak tersedia. Muat ulang halaman."}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => router.replace(`/tryout/${tryoutId}`)}
+          >
+            Kembali ke tryout
+          </Button>
+        </div>
       </div>
     );
   }
 
-  const answeredCount = Object.keys(answers).length;
-  const unansweredCount = examData.questions.length - answeredCount;
+  const totalQuestions = examData.questions.length;
+  const answeredCount = examData.questions.filter((q) => {
+    const val = answers[q.id];
+    return val !== undefined && val !== "";
+  }).length;
+  const unansweredCount = totalQuestions - answeredCount;
+  const raguCount = markedQuestions.length;
+  const isCurrentRagu = markedQuestions.includes(currentQuestion.id);
+  const isUnderFiveMin = (timeRemainingSec ?? 999) < 300;
 
+  const isQuestionCorrect = (q: UiQuestion) => {
+    const ua = answers[q.id];
+    if (!ua) return false;
+    if (q.correctAnswerId) return ua === q.correctAnswerId;
+    if (q.correctAnswerText) {
+      return (
+        ua.toLowerCase().trim() === q.correctAnswerText.toLowerCase().trim()
+      );
+    }
+    return false;
+  };
 
+  const matchesReviewFilter = (q: UiQuestion) => {
+    if (!isReviewMode || reviewFilter === "ALL") return true;
+    const ua = answers[q.id];
+    const answered = ua !== undefined && ua !== "";
+    if (reviewFilter === "EMPTY") return !answered;
+    if (reviewFilter === "WRONG") return answered && !isQuestionCorrect(q);
+    if (reviewFilter === "RAGU") return markedQuestions.includes(q.id);
+    return true;
+  };
 
-  return (
-    <div className="min-h-screen bg-gray-50 font-open-sans">
-      <div className="bg-white border-b border-gray-200 px-4 py-3 fixed top-0 left-0 right-0 z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={handleBackNavigation}
-              className="text-gray-600 hover:text-gray-900"
-              disabled={isSaving || isSubmittingFinish}
+  const renderNumberGrid = (closeOnSelect = false) => (
+    <div className="space-y-4">
+      {isReviewMode && (
+        <div className="grid grid-cols-4 gap-1 bg-blue-50 p-1 border-[1.5px] border-blue-900">
+          {(
+            [
+              { id: "ALL", label: "Semua" },
+              { id: "WRONG", label: "Salah" },
+              { id: "EMPTY", label: "Kosong" },
+              { id: "RAGU", label: "Ragu" },
+            ] as const
+          ).map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setReviewFilter(f.id)}
+              className={`py-1.5 font-mono text-[11px] uppercase tracking-[0.04em] transition-colors ${
+                reviewFilter === f.id
+                  ? "bg-blue-800 text-white font-medium"
+                  : "text-blue-900 hover:bg-blue-100"
+              }`}
             >
-              <ChevronLeft className="w-5 h-5" />
-              Kembali
-            </Button>
-            <div className="h-6 w-px bg-gray-300"></div>
-            <h1 className="text-lg font-bold text-gray-900 line-clamp-1">
-              {examData.tryoutTitle} - {examData.subtestName}
-              {isReviewMode && (
-                <span className="ml-2 text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-sm">
-                  (Mode Pembahasan)
-                </span>
-              )}
-            </h1>
-          </div>
+              {f.label}
+            </button>
+          ))}
         </div>
+      )}
+
+      <div className="grid grid-cols-5 gap-2">
+        {examData.questions.map((q, index) => {
+          const isCurrent = currentQuestionIndex === index;
+          const userAnswer = answers[q.id];
+          const isAnswered = userAnswer !== undefined && userAnswer !== "";
+          const isMarked = markedQuestions.includes(q.id);
+          const visibleInFilter = matchesReviewFilter(q);
+
+          let cellClass =
+            "bg-white border-slate-300 text-slate-700 hover:border-blue-500";
+
+          if (isReviewMode) {
+            if (!isAnswered) {
+              cellClass = "bg-white border-slate-300 text-slate-600";
+            } else if (isQuestionCorrect(q)) {
+              cellClass = "bg-[#15803D] border-blue-900 text-white";
+            } else {
+              cellClass = "bg-[#DC2626] border-blue-900 text-white";
+            }
+          } else {
+            if (isMarked) {
+              cellClass = "bg-signal border-blue-900 text-blue-900";
+            } else if (isAnswered) {
+              cellClass = "bg-blue-500 border-blue-700 text-white";
+            }
+          }
+
+          return (
+            <button
+              key={q.id}
+              type="button"
+              disabled={isSaving || isSubmittingFinish}
+              onClick={async () => {
+                if (!isReviewMode) await saveCurrentQuestionIfDirty();
+                setCurrentQuestionIndex(index);
+                if (closeOnSelect) setMobileSheetOpen(false);
+              }}
+              className={`w-[44px] h-[44px] border-[1.5px] font-mono text-sm font-medium flex items-center justify-center transition-colors ${cellClass} ${
+                isCurrent ? "ring-2 ring-blue-900 ring-offset-1" : ""
+              } ${!visibleInFilter ? "opacity-25" : ""}`}
+            >
+              {index + 1}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="pt-20 pb-8 px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-3 h-fit space-y-4">
-            <Card className="bg-white shadow-sm border-gray-200">
-              <CardContent className="p-6">
-                <div className="mb-6">
-                  <h2 className="font-bold text-gray-900 mb-1">
-                    {examData.subtestName}
-                  </h2>
-                  {!isReviewMode ? (
-                    <div
-                      className={`mt-4 p-4 rounded-xl border flex flex-col items-center justify-center ${
-                        (timeRemainingSec ?? 999) < 300
-                          ? "bg-red-50 border-red-200 text-red-900"
-                          : "bg-blue-50 border-blue-200 text-blue-900"
-                      }`}
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-1">
-                        Sisa Waktu
-                      </p>
-                      <div className="text-3xl font-mono font-bold">
-                        {formatTime(timeRemainingSec)}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-4">
-                      <p className="text-xs font-semibold uppercase text-gray-500 mb-2">
-                        Pindah Subtes:
-                      </p>
-                      <Select
-                        onValueChange={(value) => {
-                          router.push(
-                            `/tryout/${tryoutId}/exam/${value}?attemptId=${attemptId}&review=true`
-                          );
-                        }}
-                        value={String(subtestIndex + 1)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Pilih Subtes" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          {(examData?.allSubtests?.length ? examData.allSubtests : SUBTEST_FLOW.map((s, i) => ({ name: s, order: i + 1 }))).map((sub: any, idx) => (
-                            <SelectItem key={sub.id || idx} value={String(idx + 1)}>
-                              {sub.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
+      {/* Legend at bottom of panel (3 items: Dijawab, Ragu, Kosong) */}
+      {!isReviewMode ? (
+        <div className="pt-3 border-t border-blue-100 grid grid-cols-3 gap-2 font-mono text-[11px] text-slate-700">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 bg-blue-500 border border-blue-700 shrink-0" />
+            <span>Dijawab ({answeredCount})</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 bg-signal border border-blue-900 shrink-0" />
+            <span>Ragu ({raguCount})</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 bg-white border border-slate-300 shrink-0" />
+            <span>Kosong ({unansweredCount})</span>
+          </div>
+        </div>
+      ) : (
+        <div className="pt-3 border-t border-blue-100 grid grid-cols-3 gap-2 font-mono text-[11px] text-slate-700">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 bg-[#15803D] border border-blue-900 shrink-0" />
+            <span>Benar</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 bg-[#DC2626] border border-blue-900 shrink-0" />
+            <span>Salah</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 bg-white border border-slate-300 shrink-0" />
+            <span>Kosong</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
-                <div className="mb-6">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">
-                    Nomor Soal
-                  </p>
-                  <div className="grid grid-cols-5 gap-2">
-                    {examData.questions.map((q, index) => {
-                      const isCurrent = currentQuestionIndex === index;
-                      const userAnswer = answers[q.id];
-                      const isAnswered =
-                        userAnswer !== undefined && userAnswer !== "";
-
-                      let baseBtnClass =
-                        "bg-gray-100 text-gray-700 hover:bg-gray-200";
-
-                      if (isReviewMode) {
-                        const isCorrectAnswer =
-                          (q.correctAnswerId &&
-                            userAnswer === q.correctAnswerId) ||
-                          (q.correctAnswerText &&
-                            userAnswer?.toLowerCase().trim() ===
-                              q.correctAnswerText.toLowerCase().trim());
-
-                        if (isAnswered) {
-                          baseBtnClass = isCorrectAnswer
-                            ? "bg-green-100 text-green-800" // Jawaban user BENAR -> Hijau
-                            : "bg-red-100 text-red-800"; // Jawaban user SALAH -> Merah
-                        } else {
-                          // Unanswered in review mode, treat as incorrect
-                          baseBtnClass = "bg-red-100 text-red-800"; // Kosong
-                        }
-                      } else { // Exam mode
-                        const isMarked = markedQuestions.includes(q.id);
-                        if (isMarked)
-                          baseBtnClass = "bg-yellow-400 text-black";
-                        else if (isAnswered)
-                          baseBtnClass = "bg-blue-500 text-white hover:bg-blue-600";
-                      }
-
-                      // Apply current styling AFTER base color is determined
-                      let finalBtnClass = baseBtnClass;
-                      if (isCurrent) {
-                          finalBtnClass += " ring-2 ring-blue-500";
-                      }
-
-                      return (
-                        <button
-                          key={q.id}
-                          disabled={isSaving || isSubmittingFinish}
-                          onClick={async () => {
-                            if (!isReviewMode)
-                              await saveCurrentQuestionIfDirty();
-                            setCurrentQuestionIndex(index);
-                          }}
-                          className={`aspect-square rounded-lg font-semibold text-sm transition-all ${finalBtnClass}`}
-                        >
-                          {index + 1}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {!isReviewMode && (
-                  <Button
-                    onClick={() => finishCurrentSubtest()}
-                    disabled={isSaving || isSubmittingFinish}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-xl font-bold text-base shadow-sm"
-                  >
-                    {hasNextSubtest
-                      ? "Selesai & Lanjut Subtes"
-                      : "Selesai Ujian"}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+  return (
+    <div className="min-h-screen bg-blue-50 text-blue-900 flex flex-col">
+      {/* Sticky Top Bar (56px, blue-800 background, white text) */}
+      <header className="sticky top-0 z-30 h-14 bg-blue-800 text-white border-b-2 border-blue-900 px-3 sm:px-6">
+        <div className="max-w-[1200px] mx-auto h-full flex items-center justify-between gap-2">
+          {/* Left: Subtest name + Font size toggle */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            {isReviewMode && (
+              <button
+                type="button"
+                onClick={handleBackNavigation}
+                className="h-8 px-2.5 border border-blue-400 bg-blue-900 hover:bg-blue-700 text-white font-mono text-xs inline-flex items-center gap-1 shrink-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Kembali</span>
+              </button>
+            )}
+            <div className="truncate">
+              <span className="font-display font-bold text-sm sm:text-base text-white truncate">
+                {examData.subtestName}
+              </span>
+              <span className="hidden md:inline font-mono text-xs text-blue-200 ml-2">
+                · Subtes {subtestIndex + 1}/{totalSubtestsCount}
+              </span>
+            </div>
+            <div className="hidden sm:block ml-2">
+              <FontSizeControl
+                variant="dark"
+                fontSize={fontSize}
+                onIncrease={() => setFontSize((p) => Math.min(26, p + 2))}
+                onDecrease={() => setFontSize((p) => Math.max(13, p - 2))}
+              />
+            </div>
           </div>
 
-          <div className="lg:col-span-9">
-            <Card className="bg-white shadow-sm border-gray-200 min-h-[500px]">
-              <CardContent className="p-8">
-                <div className="mb-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      Soal No. {currentQuestionIndex + 1}
-                    </h3>
-                    <FontSizeControl
-                      fontSize={fontSize}
-                      onIncrease={() => setFontSize((p) => Math.min(32, p + 2))}
-                      onDecrease={() => setFontSize((p) => Math.max(12, p - 2))}
-                    />
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 transition-all duration-300 ease-out"
-                      style={{
-                        width: `${
-                          ((currentQuestionIndex + 1) /
-                            examData.questions.length) *
-                          100
-                        }%`,
-                      }}
-                    />
-                  </div>
-                </div>
+          {/* Center: Countdown timer in DM Mono (28px, white; turns signal #FACC15 under 5 minutes — never blinks) */}
+          {!isReviewMode ? (
+            <div
+              className={`font-mono text-xl sm:text-[28px] font-medium tracking-wider leading-none ${
+                isUnderFiveMin ? "text-signal" : "text-white"
+              }`}
+            >
+              {formatTime(timeRemainingSec)}
+            </div>
+          ) : (
+            <div className="font-mono text-xs uppercase tracking-[0.08em] bg-signal text-blue-900 px-2.5 py-1 border border-blue-900 font-medium">
+              MODE PEMBAHASAN
+            </div>
+          )}
 
-                <div ref={questionContainerRef}>
-                  <div className="mb-8 w-full overflow-x-auto pb-2 custom-scrollbar">
-                    <div 
-                      className="prose prose-lg max-w-none text-gray-800 whitespace-pre-wrap leading-relaxed"
+          {/* Right: "Kumpulkan" button (ghost white border; opens confirmation modal) or Review subtest switcher */}
+          <div className="flex items-center gap-2 shrink-0">
+            {!isReviewMode ? (
+              <button
+                type="button"
+                disabled={isSaving || isSubmittingFinish}
+                onClick={() => setShowFinishConfirm(true)}
+                className="h-9 px-3.5 border-[1.5px] border-white bg-transparent hover:bg-blue-700 text-white font-sans font-bold text-xs sm:text-sm transition-colors disabled:opacity-50"
+              >
+                Kumpulkan
+              </button>
+            ) : (
+              <div className="w-40 sm:w-52">
+                <Select
+                  onValueChange={(value) => {
+                    router.push(
+                      `/tryout/${tryoutId}/exam/${value}?attemptId=${attemptId}&review=true`,
+                    );
+                  }}
+                  value={String(subtestIndex + 1)}
+                >
+                  <SelectTrigger className="h-9 bg-blue-900 text-white border-blue-400 text-xs">
+                    <SelectValue placeholder="Pilih subtes" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {(examData?.allSubtests?.length
+                      ? examData.allSubtests
+                      : SUBTEST_FLOW.map((sName, i) => ({
+                          name: sName,
+                          order: i + 1,
+                        }))
+                    ).map((sub: any, idx) => (
+                      <SelectItem
+                        key={sub.id || idx}
+                        value={String(idx + 1)}
+                      >
+                        0{idx + 1} · {sub.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Offline Banner (writing.md Section 7) */}
+      {!isOnline && (
+        <div className="bg-amber-50 border-b-2 border-warn text-warn px-4 py-2 text-xs sm:text-sm font-medium flex items-center justify-center gap-2">
+          <WifiOff className="w-4 h-4 shrink-0" />
+          <span>
+            Koneksi putus. Jawaban tetap tersimpan di perangkat ini dan dikirim
+            otomatis saat online.
+          </span>
+        </div>
+      )}
+
+      {/* Main Body (max 960px exam container + 260px navigator on desktop) */}
+      <div className="flex-1 w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-6 pb-24">
+        <div className="flex flex-col lg:flex-row items-start gap-6">
+          {/* Left Column: Question + Options (flex-1, max 720px) */}
+          <div className="w-full lg:flex-1 lg:max-w-[720px] bg-white border-2 border-blue-900 p-5 sm:p-8">
+            {/* Question Number Badge + Mobile Font Size Control */}
+            <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b-[1.5px] border-blue-100">
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-800 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] font-medium">
+                  SOAL {currentQuestionIndex + 1} / {totalQuestions}
+                </span>
+                {isCurrentRagu && !isReviewMode && (
+                  <span className="bg-signal text-blue-900 border border-blue-900 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.06em] font-medium">
+                    RAGU-RAGU
+                  </span>
+                )}
+              </div>
+              <div className="sm:hidden">
+                <FontSizeControl
+                  variant="light"
+                  fontSize={fontSize}
+                  onIncrease={() => setFontSize((p) => Math.min(26, p + 2))}
+                  onDecrease={() => setFontSize((p) => Math.max(13, p - 2))}
+                />
+              </div>
+            </div>
+
+            <div ref={questionContainerRef}>
+              {/* Question Passage / Text Box */}
+              <div className="mb-6 bg-blue-50/70 border-[1.5px] border-blue-200 p-4 sm:p-5 overflow-x-auto max-h-[420px] overflow-y-auto">
+                <div
+                  className="prose max-w-[68ch] text-blue-900 whitespace-pre-wrap leading-[1.65]"
+                  style={{ fontSize: `${fontSize}px` }}
+                  dangerouslySetInnerHTML={{
+                    __html: currentQuestion.questionText,
+                  }}
+                />
+              </div>
+
+              {/* Options A–E */}
+              <div className="space-y-2.5 mb-6">
+                {currentQuestion.options.map((opt, idx) => {
+                  const userAnswerId = answers[currentQuestion.id];
+                  const isSelected = userAnswerId === opt.id;
+                  const isCorrectKey =
+                    currentQuestion.correctAnswerId === opt.id;
+                  const letter = String.fromCharCode(65 + idx);
+
+                  let rowClass =
+                    "bg-white border-[1.5px] border-blue-200 hover:bg-blue-100 hover:border-blue-500 text-blue-900";
+                  let badgeClass =
+                    "bg-blue-50 border-[1.5px] border-blue-200 text-blue-900";
+
+                  if (isReviewMode) {
+                    if (isCorrectKey) {
+                      rowClass =
+                        "bg-emerald-50 border-2 border-[#15803D] text-blue-900 font-semibold";
+                      badgeClass =
+                        "bg-[#15803D] border-[#15803D] text-white";
+                    } else if (isSelected && !isCorrectKey) {
+                      rowClass =
+                        "bg-red-50 border-2 border-[#DC2626] text-blue-900";
+                      badgeClass =
+                        "bg-[#DC2626] border-[#DC2626] text-white";
+                    } else {
+                      rowClass =
+                        "bg-white border-[1.5px] border-blue-100 text-slate-600 opacity-75";
+                    }
+                  } else if (isSelected) {
+                    rowClass =
+                      "bg-blue-200 border-2 border-blue-500 text-blue-900 font-medium";
+                    badgeClass = "bg-blue-500 border-blue-700 text-white";
+                  }
+
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleAnswerSelect(opt.id)}
+                      disabled={isReviewMode}
+                      className={`w-full min-h-[56px] px-4 py-3 text-left flex items-center gap-3.5 transition-colors ${rowClass}`}
+                    >
+                      <span
+                        className={`w-8 h-8 shrink-0 font-mono text-sm font-medium flex items-center justify-center ${badgeClass}`}
+                      >
+                        {letter}
+                      </span>
+                      <div
+                        className="flex-1 option-text leading-[1.55]"
+                        style={{ fontSize: `${fontSize}px` }}
+                        dangerouslySetInnerHTML={{ __html: opt.text }}
+                      />
+                      {isReviewMode && isCorrectKey && (
+                        <CheckCircle2 className="w-5 h-5 text-[#15803D] shrink-0" />
+                      )}
+                      {isReviewMode && isSelected && !isCorrectKey && (
+                        <XCircle className="w-5 h-5 text-[#DC2626] shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* Short-answer / Fill-in Question */}
+                {currentQuestion.options.length === 0 && (
+                  <div className="space-y-3">
+                    <label className="block font-mono text-xs uppercase tracking-[0.08em] text-slate-700">
+                      JAWABAN ISIAN SINGKAT
+                    </label>
+                    <input
+                      className={`w-full h-12 px-3.5 bg-white border-[1.5px] font-mono text-base outline-none ${
+                        isReviewMode
+                          ? isQuestionCorrect(currentQuestion)
+                            ? "border-[#15803D] bg-emerald-50 text-blue-900 font-medium"
+                            : "border-[#DC2626] bg-red-50 text-blue-900"
+                          : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                      }`}
+                      placeholder="Ketik jawaban singkat..."
                       style={{ fontSize: `${fontSize}px` }}
-                      dangerouslySetInnerHTML={{ __html: currentQuestion.questionText }}
+                      value={answers[currentQuestion.id] || ""}
+                      onChange={(e) => handleAnswerSelect(e.target.value)}
+                      disabled={isReviewMode}
                     />
-                  </div>
-
-                  <div className="space-y-3 mb-10">
-                    {currentQuestion.options.map((opt, idx) => {
-                      const userAnswerId = answers[currentQuestion.id];
-                      const isSelected = userAnswerId === opt.id;
-
-                      const isCorrectKey =
-                        currentQuestion.correctAnswerId === opt.id;
-
-                      let containerClass =
-                        "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50";
-                      let dotClass = "border-gray-300 bg-white";
-                      let textClass = "text-gray-700";
-
-                      if (isReviewMode) {
-                        if (isCorrectKey) {
-                          containerClass =
-                            "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-200";
-                          dotClass = "border-emerald-500 bg-emerald-500";
-                          textClass = "text-emerald-900 font-bold";
-                        } else if (isSelected && !isCorrectKey) {
-                          containerClass =
-                            "border-red-500 bg-red-50 ring-1 ring-red-200";
-                          dotClass = "border-red-500 bg-red-500";
-                          textClass =
-                            "text-red-900 font-medium line-through decoration-red-500/50";
-                        } else {
-                          containerClass = "border-gray-100 bg-white opacity-60";
-                        }
-                      } else if (isSelected) {
-                        containerClass =
-                          "border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-500";
-                        dotClass = "border-blue-500 bg-blue-500";
-                        textClass = "text-blue-900 font-medium";
-                      }
-
-                      return (
-                        <button
-                          key={opt.id}
-                          onClick={() => handleAnswerSelect(opt.id)}
-                          disabled={isReviewMode}
-                          className={`w-full text-left p-4 rounded-xl border-2 transition-all group ${containerClass} relative`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div
-                              className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 text-sm font-bold ${
-                                isSelected || isCorrectKey 
-                                  ? "border-transparent text-white " + (isReviewMode && isCorrectKey ? "bg-emerald-500" : isReviewMode && !isCorrectKey && isSelected ? "bg-red-500" : "bg-blue-500")
-                                  : "border-gray-300 text-gray-500 bg-white"
-                              }`}
-                            >
-                              {String.fromCharCode(65 + idx)}
-                            </div>
-                            <div 
-                              className={`text-base flex-1 option-text ${textClass}`}
-                              style={{ fontSize: `${fontSize}px` }}
-                              dangerouslySetInnerHTML={{ __html: opt.text }}
-                            />
-
-                            {isReviewMode && (
-                              <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                {isCorrectKey && (
-                                  <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-                                )}
-                                {isSelected && !isCorrectKey && (
-                                  <XCircle className="w-6 h-6 text-red-500" />
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-
-                    {currentQuestion.options.length === 0 && (
-                      <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                          <input
-                            className={`w-full p-3 border rounded-lg outline-none ${
-                              isReviewMode
-                                ? answers[currentQuestion.id]
-                                    ?.toLowerCase()
-                                    .trim() ===
-                                  currentQuestion.correctAnswerText
-                                    ?.toLowerCase()
-                                    .trim()
-                                  ? "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold"
-                                  : "border-red-500 bg-red-50 text-red-900"
-                                : "focus:ring-2 focus:ring-blue-500"
-                            }`}
-                            placeholder="Ketik jawaban Anda..."
-                            style={{ fontSize: `${fontSize}px` }}
-                            value={answers[currentQuestion.id] || ""}
-                            onChange={(e) => handleAnswerSelect(e.target.value)}
-                            disabled={isReviewMode}
-                          />
-                        </div>
-                        {isReviewMode && (
-                          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 text-sm font-medium flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Kunci Jawaban: {currentQuestion.correctAnswerText}
-                          </div>
-                        )}
+                    {isReviewMode && currentQuestion.correctAnswerText && (
+                      <div className="p-3 bg-emerald-50 border-[1.5px] border-[#15803D] font-mono text-xs text-[#15803D] flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        <span>
+                          KUNCI JAWABAN: {currentQuestion.correctAnswerText}
+                        </span>
                       </div>
                     )}
                   </div>
+                )}
+              </div>
 
-                  {isReviewMode && currentQuestion.solution && (
-                    <div className="mb-10 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                      <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-blue-500" />
-                        Pembahasan
-                      </h4>
-                      <div 
-                        className="prose prose-sm max-w-none text-slate-700"
-                        style={{ fontSize: `${fontSize}px` }}
-                      >
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {currentQuestion.solution}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-                  {!isReviewMode ? (
-                    <Button
-                      onClick={() => {
-                        const qid = currentQuestion.id;
-                        setMarkedQuestions((prev) =>
-                          prev.includes(qid)
-                            ? prev.filter((x) => x !== qid)
-                            : [...prev, qid]
-                        );
-                      }}
-                      variant="outline"
-                      disabled={isSaving || isSubmittingFinish}
-                      className={`gap-2 ${
-                        markedQuestions.includes(currentQuestion.id)
-                          ? "text-red-600 border-red-200 bg-red-50"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      <Flag className="w-4 h-4" />
-                      {markedQuestions.includes(currentQuestion.id)
-                        ? "Lepas Tanda"
-                        : "Tandai Soal"}
-                    </Button>
-                  ) : (
-                    <div />
-                  )}
-
-                  <div className="flex items-center gap-3 ml-auto">
-                    <Button
-                      onClick={handlePrevious}
-                      disabled={
-                        currentQuestionIndex === 0 ||
-                        isSaving ||
-                        isSubmittingFinish
-                      }
-                      variant="outline"
-                      className="gap-2"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      Sebelumnya
-                    </Button>
-                    <Button
-                      onClick={handleNext}
-                      disabled={isSaving || isSubmittingFinish}
-                      className="gap-2 bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]"
-                    >
-                      {currentQuestionIndex === examData.questions.length - 1
-                        ? isReviewMode
-                          ? hasNextSubtest
-                            ? "Lanjut Subtes (Review)"
-                            : "Selesai Review"
-                          : hasNextSubtest
-                          ? "Lanjut Subtes"
-                          : "Selesai"
-                        : "Selanjutnya"}
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
+              {/* Solution Box in Review Mode */}
+              {isReviewMode && currentQuestion.solution && (
+                <div className="mt-6 p-5 sm:p-6 bg-blue-50 border-2 border-blue-900">
+                  <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.08em] text-blue-700 font-medium pb-3 mb-3 border-b border-blue-200">
+                    <BookOpen className="w-4 h-4" />
+                    PEMBAHASAN LANGKAH DEMI LANGKAH
+                  </div>
+                  <div
+                    className="prose prose-sm max-w-[68ch] text-blue-900 leading-[1.65]"
+                    style={{ fontSize: `${fontSize}px` }}
+                  >
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {currentQuestion.solution}
+                    </ReactMarkdown>
                   </div>
                 </div>
-                {error && (
-                  <p className="mt-4 text-center text-sm text-red-600 bg-red-50 p-2 rounded-lg">
-                    {error}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+              )}
+            </div>
           </div>
+
+          {/* Right Column: 260px fixed Question Navigator on desktop */}
+          <aside className="hidden lg:block w-[260px] shrink-0 bg-white border-2 border-blue-900 p-4 sticky top-20">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-blue-100">
+              <span className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-blue-900">
+                NOMOR SOAL
+              </span>
+              <span className="font-mono text-xs text-slate-600">
+                {answeredCount}/{totalQuestions}
+              </span>
+            </div>
+            {renderNumberGrid(false)}
+          </aside>
         </div>
       </div>
+
+      {/* Mobile Number Grid Bottom Sheet */}
+      {mobileSheetOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden bg-blue-900/60 flex flex-col justify-end">
+          <div className="bg-white border-t-2 border-blue-900 p-5 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-blue-100">
+              <span className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-blue-900">
+                DAFTAR NOMOR SOAL ({answeredCount}/{totalQuestions})
+              </span>
+              <button
+                type="button"
+                onClick={() => setMobileSheetOpen(false)}
+                className="w-8 h-8 border border-blue-900 flex items-center justify-center text-blue-900"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {renderNumberGrid(true)}
+          </div>
+        </div>
+      )}
+
+      {/* Sticky Bottom Bar (64px, white, 2px top border blue-900) */}
+      <footer className="fixed bottom-0 left-0 right-0 z-30 h-16 bg-white border-t-2 border-blue-900 px-3 sm:px-6">
+        <div className="max-w-[1040px] mx-auto h-full flex items-center justify-between gap-2">
+          {/* Left: "← Sebelumnya" (secondary) */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrevious}
+            disabled={
+              currentQuestionIndex === 0 || isSaving || isSubmittingFinish
+            }
+          >
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            <span className="hidden sm:inline">Sebelumnya</span>
+          </Button>
+
+          {/* Center: "Tandai ragu" toggle + Save status ("Tersimpan" / "Menyimpan…") + Mobile "Nomor" trigger */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {!isReviewMode && (
+              <button
+                type="button"
+                disabled={isSaving || isSubmittingFinish}
+                onClick={() => {
+                  const qid = currentQuestion.id;
+                  setMarkedQuestions((prev) =>
+                    prev.includes(qid)
+                      ? prev.filter((x) => x !== qid)
+                      : [...prev, qid],
+                  );
+                }}
+                className={`h-9 px-3 border-2 border-blue-900 font-sans font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors ${
+                  isCurrentRagu
+                    ? "bg-signal text-blue-900"
+                    : "bg-white text-blue-900 hover:bg-blue-50"
+                }`}
+              >
+                <Flag className="w-3.5 h-3.5" />
+                <span>Tandai ragu</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setMobileSheetOpen(true)}
+              className="lg:hidden h-9 px-3 border-2 border-blue-900 bg-blue-50 text-blue-900 font-mono text-xs font-medium inline-flex items-center gap-1.5"
+            >
+              <Grid className="w-3.5 h-3.5" />
+              <span>Nomor</span>
+            </button>
+
+            {!isReviewMode && (
+              <span className="hidden md:inline-block font-mono text-xs text-slate-600">
+                {isSaving ? "Menyimpan…" : "Tersimpan"}
+              </span>
+            )}
+          </div>
+
+          {/* Right: "Berikutnya →" (blue-500 solid) */}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleNext}
+            disabled={isSaving || isSubmittingFinish}
+          >
+            <span>
+              {currentQuestionIndex === totalQuestions - 1
+                ? isReviewMode
+                  ? hasNextSubtest
+                    ? "Subtes berikutnya"
+                    : "Selesai bahas"
+                  : "Kumpulkan"
+                : "Berikutnya"}
+            </span>
+            <ArrowRight className="w-4 h-4 ml-1.5" />
+          </Button>
+        </div>
+      </footer>
+
+      {/* Confirmation Modal on "Kumpulkan" (writing.md Section 5.6) */}
+      <Dialog open={showFinishConfirm} onOpenChange={setShowFinishConfirm}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl font-bold text-blue-900">
+              Kumpulkan sekarang?
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-700 pt-1">
+              Masih ada{" "}
+              <span className="font-mono font-medium text-blue-900">
+                {unansweredCount}
+              </span>{" "}
+              soal kosong dan{" "}
+              <span className="font-mono font-medium text-blue-900">
+                {raguCount}
+              </span>{" "}
+              soal ragu-ragu.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="my-2 bg-blue-50 border-2 border-blue-900 p-4 grid grid-cols-3 gap-2 text-center font-mono">
+            <div>
+              <div className="text-[11px] text-slate-600 uppercase">
+                DIJAWAB
+              </div>
+              <div className="text-xl font-medium text-blue-900">
+                {answeredCount}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] text-slate-600 uppercase">KOSONG</div>
+              <div className="text-xl font-medium text-blue-900">
+                {unansweredCount}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] text-slate-600 uppercase">RAGU</div>
+              <div className="text-xl font-medium text-blue-900">
+                {raguCount}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowFinishConfirm(false)}
+              disabled={isSubmittingFinish}
+            >
+              Kembali ke soal
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => finishCurrentSubtest(false)}
+              disabled={isSubmittingFinish}
+            >
+              {isSubmittingFinish ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Mengumpulkan...
+                </>
+              ) : (
+                "Kumpulkan"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

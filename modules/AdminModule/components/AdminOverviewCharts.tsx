@@ -23,7 +23,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface ChartItem {
@@ -49,9 +49,10 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
         fill: true,
         label: "Pendapatan (Rp)",
         data: revenue.map((i) => i.value),
-        borderColor: "rgb(16, 185, 129)",
-        backgroundColor: "rgba(16, 185, 129, 0.1)",
-        tension: 0.4,
+        borderColor: "#1E40AF",
+        backgroundColor: "rgba(37, 99, 235, 0.12)",
+        tension: 0,
+        borderWidth: 2,
       },
     ],
   };
@@ -61,11 +62,12 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
     datasets: [
       {
         fill: true,
-        label: "User Baru",
+        label: "Peserta Baru",
         data: userGrowth.map((i) => i.value),
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
-        tension: 0.4,
+        borderColor: "#2563EB",
+        backgroundColor: "rgba(37, 99, 235, 0.12)",
+        tension: 0,
+        borderWidth: 2,
       },
     ],
   };
@@ -76,8 +78,8 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
       {
         label: "Aktivitas Harian",
         data: weeklyActivity.map((i) => i.value),
-        backgroundColor: "rgba(139, 92, 246, 0.6)",
-        borderRadius: 4,
+        backgroundColor: "#2563EB",
+        borderRadius: 0,
       },
     ],
   };
@@ -98,35 +100,29 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <Card className="border-border/50 shadow-sm">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase">
-            Tren Pendapatan (6 Bulan)
-          </CardTitle>
+          <CardTitle>Tren pendapatan (6 bulan)</CardTitle>
         </CardHeader>
-        <CardContent className="h-[250px]">
+        <CardContent className="h-[240px]">
           <Line data={revenueData} options={commonOptions} />
         </CardContent>
       </Card>
 
-      <Card className="border-border/50 shadow-sm">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase">
-            Pertumbuhan User (6 Bulan)
-          </CardTitle>
+          <CardTitle>Pertumbuhan peserta (6 bulan)</CardTitle>
         </CardHeader>
-        <CardContent className="h-[250px]">
+        <CardContent className="h-[240px]">
           <Line data={userGrowthData} options={commonOptions} />
         </CardContent>
       </Card>
 
-      <Card className="border-border/50 shadow-sm lg:col-span-2">
+      <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase">
-            Aktivitas User (7 Hari Terakhir)
-          </CardTitle>
+          <CardTitle>Aktivitas pengerjaan (7 hari terakhir)</CardTitle>
         </CardHeader>
-        <CardContent className="h-[250px]">
+        <CardContent className="h-[240px]">
           <Bar data={activityData} options={commonOptions} />
         </CardContent>
       </Card>

@@ -1,22 +1,28 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+import React, { useState, useEffect } from "react";
+import { Eye, EyeOff, AlertCircle, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { LoginData } from "./interface";
 import { signIn, useSession } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { UserWithRole } from "@/lib/types";
-import Link from "next/link";
 
+/**
+ * DESIGN.md Section 6.2 — Auth (Log in)
+ * Single 420px column, white card, centered.
+ * Inline per-field errors; password has show/hide. One signal CTA per screen.
+ */
 const LoginModule = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const router = useRouter();
   const { data: session, isPending } = useSession();
 
-  // Redirect jika sudah login
   useEffect(() => {
     if (!isPending && session) {
       if ((session.user as unknown as UserWithRole).role === "ADMIN") {
@@ -32,14 +38,30 @@ const LoginModule = () => {
     password: "",
   });
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof LoginData, value: string) => {
     setLoginData((prev) => ({
       ...prev,
       [field]: value,
     }));
+    setErrors((prev) => ({ ...prev, [field]: undefined, form: undefined }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    const nextErrors: { email?: string; password?: string } = {};
+    if (!loginData.email.trim()) {
+      nextErrors.email = "Masukkan alamat email akunmu.";
+    }
+    if (!loginData.password) {
+      nextErrors.password = "Masukkan kata sandi akunmu.";
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setLoading(true);
     await signIn.email(
       {
         email: loginData.email,
@@ -47,6 +69,7 @@ const LoginModule = () => {
       },
       {
         onSuccess: (ctx) => {
+          setLoading(false);
           const user = ctx.data.user as unknown as UserWithRole;
           if (user.role === "ADMIN") {
             router.push("/admin");
@@ -55,160 +78,191 @@ const LoginModule = () => {
           }
         },
         onError: (ctx) => {
-          toast.error(
-            ctx.error.message || "Gagal masuk. Cek email dan password.",
-          );
+          setLoading(false);
+          const msg =
+            ctx.error.message || "Email atau kata sandi salah. Cek lagi lalu coba masuk.";
+          setErrors({ form: msg });
+          toast.error(msg);
         },
-      },
+      }
     );
   };
 
   const handleGoogleLogin = async () => {
     await signIn.social({
       provider: "google",
-      callbackURL: `${process.env.NEXT_PUBLIC_FRONTEND_URL}` + "/dashboard",
+      callbackURL: `${window.location.origin}/dashboard`,
     });
   };
 
   return (
-    <div className="min-h-screen py-16 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo and Title */}
-        <div className="text-center mb-8">
-          <div className="relative h-12 mb-6">
+    <div className="min-h-screen bg-blue-50 text-blue-900 py-12 px-4 flex flex-col items-center justify-center">
+      <div className="w-full max-w-[420px] space-y-6">
+        {/* Top Brand Link */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            aria-label="Beranda Jitu"
+            className="min-h-[44px] inline-flex items-center gap-2.5 focus:outline-3 focus:outline-blue-500 focus:outline-offset-2"
+          >
             <Image
-              src="/jitu-logo.png"
-              alt="logo"
-              fill
-              sizes="192px"
-              className="object-contain"
+              src="/blue-jitu-logo.png"
+              alt="Logo Jitu"
+              width={48}
+              height={32}
               priority
+              className="h-8 w-auto object-contain"
             />
-          </div>
-
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            Siap Belajar Lagi?
-          </h2>
-          <p className="text-gray-500 text-sm">
-            Masuk dan temukan kemajuan yang sudah kamu raih.
-          </p>
+            <span className="font-display font-extrabold text-[24px] tracking-[-0.025em] text-blue-900 leading-none">
+              jitu<span className="text-blue-500">.</span>
+            </span>
+          </Link>
+          <span className="px-2 py-[3px] border-[1.5px] border-blue-900 bg-white font-mono text-[12px] uppercase tracking-[0.06em] text-blue-900">
+            MASUK AKUN
+          </span>
         </div>
 
-        {/* Login Form Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-8 border">
-          <div className="space-y-4">
+        {/* Single 420px White Card */}
+        <div className="bg-white border-2 border-blue-900 shadow-[10px_10px_0_var(--blue-500)]">
+          <div className="px-6 py-4 border-b-2 border-blue-900 bg-blue-800 text-white">
+            <h1 className="font-display font-extrabold text-[28px] leading-[1.05] tracking-[-0.025em]">
+              Masuk ke Jitu
+            </h1>
+            <p className="text-[14px] text-blue-200 mt-1">
+              Lanjutkan tryout atau buka pembahasan yang sudah kamu kerjakan.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-5" noValidate>
+            {errors.form && (
+              <div
+                role="alert"
+                className="p-3 border-2 border-warn bg-warn-100 text-warn text-[14px] flex items-start gap-2.5"
+              >
+                <AlertCircle className="w-5 h-5 stroke-[1.75] shrink-0 mt-0.5" aria-hidden="true" />
+                <span>{errors.form}</span>
+              </div>
+            )}
+
             {/* Email Input */}
-            <div>
+            <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="text-sm font-semibold text-primary-400 mb-2 block"
+                className="block text-[14px] font-semibold text-blue-900"
               >
                 Email
               </label>
-              <div className="relative mt-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Email Kamu"
-                  value={loginData.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <Input
+                id="email"
+                type="email"
+                placeholder="nama@sekolah.sch.id"
+                value={loginData.email}
+                aria-invalid={Boolean(errors.email)}
+                onChange={(e) => handleChange("email", e.target.value)}
+              />
+              {errors.email && (
+                <p className="text-[13px] text-warn flex items-center gap-1.5 pt-0.5">
+                  <AlertCircle className="w-4 h-4 stroke-[1.75] shrink-0" aria-hidden="true" />
+                  <span>{errors.email}</span>
+                </p>
+              )}
             </div>
 
-            {/* Password Input */}
-            <div>
-              <label
-                htmlFor="password"
-                className="text-sm font-semibold text-primary-400 mb-2 block"
-              >
-                Password
-              </label>
-              <div className="relative mt-1">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+            {/* Password Input with Show/Hide */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="block text-[14px] font-semibold text-blue-900"
+                >
+                  Kata sandi
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-[13px] font-semibold text-blue-500 hover:underline"
+                >
+                  Lupa kata sandi?
+                </Link>
+              </div>
+              <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
+                  placeholder="Minimal 8 karakter"
                   value={loginData.password}
+                  aria-invalid={Boolean(errors.password)}
                   onChange={(e) => handleChange("password", e.target.value)}
-                  className="pl-10"
+                  className="pr-12"
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-1 top-1 bottom-1 w-10 inline-flex items-center justify-center text-slate-700 hover:text-blue-900 cursor-pointer"
                 >
                   {showPassword ? (
-                    <EyeOff className="size-5" />
+                    <EyeOff className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
                   ) : (
-                    <Eye className="size-5" />
+                    <Eye className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-[13px] text-warn flex items-center gap-1.5 pt-0.5">
+                  <AlertCircle className="w-4 h-4 stroke-[1.75] shrink-0" aria-hidden="true" />
+                  <span>{errors.password}</span>
+                </p>
+              )}
             </div>
 
-            {/* Forgot Password */}
-
-            <div className="text-right">
-              <Link href={"/forgot-password"}>
-                <button
-                  type="button"
-                  className="text-sm text-primary-300 hover:underline"
-                >
-                  Lupa password?
-                </button>
-              </Link>
-            </div>
-
-            {/* Login Button */}
-            <Button
-              onClick={handleSubmit}
-              className="w-full font-bold py-6 rounded-xl"
+            {/* Primary Signal CTA (One signal CTA per screen) */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
             >
-              Masuk
-            </Button>
+              <span>{loading ? "Memproses…" : "Masuk"}</span>
+              {!loading && <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />}
+            </button>
 
             {/* Divider */}
-            <div className="relative my-6">
+            <div className="relative py-1">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-slate-300" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500 font-medium">
-                  Akses Cepat
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-white font-mono text-[11px] uppercase tracking-[0.06em] text-slate-700">
+                  ATAU
                 </span>
               </div>
             </div>
 
             {/* Google Login Button */}
-            <Button
+            <button
+              type="button"
               onClick={handleGoogleLogin}
-              variant={"outline"}
-              className="w-full py-6 rounded-xl gap-3 font-semibold border-gray-200 hover:bg-gray-50 transition-all"
+              className="w-full jitu-btn-secondary bg-white text-[14px] font-semibold inline-flex items-center justify-center gap-2.5 cursor-pointer"
             >
               <Image
                 src="/icons/google.svg"
-                alt="google"
-                width={20}
-                height={20}
+                alt=""
+                width={18}
+                height={18}
               />
-              Masuk dengan Google
-            </Button>
-          </div>
+              <span>Masuk dengan Google</span>
+            </button>
+          </form>
 
-          {/* Sign Up Link */}
-          <p className="text-center text-sm text-gray-600 mt-6">
+          {/* Footer Link */}
+          <div className="px-6 py-4 border-t border-slate-300 bg-blue-50 text-center text-[14px] text-slate-700">
             Belum punya akun?{" "}
-            <a
+            <Link
               href="/register"
-              className="text-primary font-bold hover:underline"
+              className="font-bold text-blue-500 hover:underline"
             >
-              Daftar Sekarang
-            </a>
-          </p>
+              Daftar gratis
+            </Link>
+          </div>
         </div>
       </div>
     </div>

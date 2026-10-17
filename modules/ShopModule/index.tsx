@@ -7,11 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   AlertCircleIcon,
-  Clock,
-  History,
   Loader2,
   Smartphone,
   Monitor,
@@ -23,6 +22,9 @@ import { useRouter } from "next/navigation";
 import TokenCard from "./components/TokenCard";
 import { contactInfos } from "./payload";
 import { BACKEND_URL } from "@/lib/api";
+import { getUserStats } from "@/lib/api/DashboardApi";
+import PendingTransactionList from "../PendingTransactionsModule/components/PendingTransactionList";
+import PastTransactionList from "../PastTransactionsModule/components/PastTransactionList";
 
 interface TokenPackage {
   id: string;
@@ -70,6 +72,9 @@ interface PendingPayment {
 const ShopModule = () => {
   const [packages, setPackages] = useState<TokenPackage[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(true);
+  const [userBalance, setUserBalance] = useState<number>(0);
+  const [pendingCount, setPendingCount] = useState<number>(0);
+
   const [isModalOpened, setIsModalOpened] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState<TokenPackage | null>(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
@@ -81,7 +86,6 @@ const ShopModule = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string>("pending");
 
-  // Pending payment states
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(
     null,
   );
@@ -92,16 +96,36 @@ const ShopModule = () => {
 
   const router = useRouter();
 
-  // Detect if user is on mobile
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent,
-        ),
-      );
+    setIsMobile(
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+      ),
+    );
+  }, []);
+
+  useEffect(() => {
+    const loadSummary = async () => {
+      try {
+        const stats = await getUserStats();
+        setUserBalance(stats.tokenBalance ?? 0);
+      } catch (e) {
+        console.error(e);
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/shop/pending`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list)) setPendingCount(list.length);
+        }
+      } catch (e) {
+        console.error(e);
+      }
     };
-    checkMobile();
+    loadSummary();
   }, []);
 
   // Poll payment status when transaction is created
@@ -121,28 +145,24 @@ const ShopModule = () => {
 
           if (data.status === "CONFIRMED") {
             clearInterval(pollInterval);
-            toast.success("Pembayaran Berhasil!", {
-              description: "Token telah ditambahkan ke akun kamu",
-            });
+            toast.success("Pembayaran diterima. Kuota bertambah.");
             setIsModalOpened(false);
-            // Refresh page to update token balance
             setTimeout(() => router.refresh(), 1000);
           } else if (
             data.status === "CANCELLED" ||
             data.status === "DECLINED"
           ) {
             clearInterval(pollInterval);
-            toast.error("Pembayaran Gagal", {
-              description: "Silahkan coba lagi atau hubungi customer service",
-            });
+            toast.error(
+              "Waktu bayar habis. Buat kode QRIS baru untuk lanjut.",
+            );
           }
         }
       } catch (error) {
         console.error("Error checking payment status:", error);
       }
-    }, 3000); // Check every 3 seconds
+    }, 3000);
 
-    // Stop polling after 15 minutes
     const timeout = setTimeout(
       () => clearInterval(pollInterval),
       15 * 60 * 1000,
@@ -160,13 +180,13 @@ const ShopModule = () => {
         const res = await fetch(`${BACKEND_URL}/shop/packages`);
         if (res.ok) {
           const data = await res.json();
-          setPackages(data);
+          setPackages(Array.isArray(data) ? data : []);
         } else {
-          toast.error("Gagal memuat paket token");
+          toast.error("Data paket kuota gagal dimuat.");
         }
       } catch (error) {
         console.error(error);
-        toast.error("Terjadi kesalahan jaringan");
+        toast.error("Koneksi terputus. Periksa jaringan kamu.");
       } finally {
         setLoadingPackages(false);
       }
@@ -175,7 +195,6 @@ const ShopModule = () => {
     fetchPackages();
   }, []);
 
-  // Check for pending payment
   const checkPendingPayment = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/shop/pending-payment`, {
@@ -192,26 +211,21 @@ const ShopModule = () => {
     return null;
   };
 
-  // Handle purchase button click
   const handlePurchaseClick = async (pkg: TokenPackage) => {
     setSelectedPkg(pkg);
     setCheckingPending(true);
 
-    // Check for pending payment first (BEFORE opening any modal)
     const pending = await checkPendingPayment();
     setCheckingPending(false);
 
     if (pending) {
-      // User has pending payment - show ONLY pending dialog
       setPendingPayment(pending);
       setShowPendingDialog(true);
     } else {
-      // No pending payment, show payment selection modal
       setIsModalOpened(true);
     }
   };
 
-  // Create new payment
   const handleCreatePayment = async () => {
     setIsModalLoading(true);
 
@@ -227,29 +241,21 @@ const ShopModule = () => {
       }
 
       const data: EWalletPaymentResponse = await res.json();
-      console.log("Payment data:", data);
-
       setPaymentData(data);
       setTransactionId(data.transactionId);
       setIsModalLoading(false);
       setShowContact(false);
 
-      // If mobile and deeplink available, redirect to GoPay app
       if (isMobile && data.deeplinkUrl) {
         toast.info("Membuka aplikasi GoPay...");
         window.location.href = data.deeplinkUrl;
       }
     } catch (e: Error | any) {
       setIsModalLoading(false);
-      toast.error("Gagal Membuat Transaksi", {
-        description:
-          e.message ||
-          "Terjadi kesalahan saat membuat transaksi. Silahkan coba lagi.",
-      });
+      toast.error(e.message || "Gagal membuat kode QRIS.");
     }
   };
 
-  // Cancel pending payment
   const handleCancelPayment = async () => {
     if (!pendingPayment) return;
 
@@ -265,33 +271,26 @@ const ShopModule = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to cancel payment");
+        throw new Error("Gagal membatalkan transaksi.");
       }
 
-      const result = await response.json();
-      toast.success("Pembayaran dibatalkan");
-
-      // Close pending dialog and clear pending payment
+      toast.success("Transaksi dibatalkan.");
       setShowPendingDialog(false);
       setPendingPayment(null);
-
-      // Now open payment modal for new purchase
       setIsModalOpened(true);
     } catch (error: any) {
-      toast.error(error.message || "Gagal membatalkan pembayaran");
+      toast.error(error.message || "Gagal membatalkan transaksi.");
     } finally {
       setCancellingPayment(false);
     }
   };
 
-  // Continue with pending payment
   const handleContinuePendingPayment = () => {
     if (!pendingPayment?.metadata) {
-      toast.error("Data pembayaran tidak lengkap");
+      toast.error("Data transaksi tidak lengkap.");
       return;
     }
 
-    // Set the payment data from pending payment
     setPaymentData({
       transactionId: pendingPayment.id,
       orderId: pendingPayment.orderId,
@@ -306,12 +305,9 @@ const ShopModule = () => {
     });
 
     setTransactionId(pendingPayment.id);
-
-    // Close pending dialog and show payment modal
     setShowPendingDialog(false);
     setIsModalOpened(true);
 
-    // If mobile and deeplink available, redirect
     if (isMobile && pendingPayment.metadata.deeplink_url) {
       window.location.href = pendingPayment.metadata.deeplink_url;
     }
@@ -321,109 +317,94 @@ const ShopModule = () => {
     if (!paymentData?.orderId) return;
 
     setIsCheckingStatus(true);
-    toast.info('Memeriksa status pembayaran di server...');
 
     try {
       const res = await fetch(
         `${BACKEND_URL}/shop/midtrans/check-status/${paymentData.orderId}`,
         {
-          method: 'POST',
-          credentials: 'include',
+          method: "POST",
+          credentials: "include",
         },
       );
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Gagal memeriksa status');
+        throw new Error(error.message || "Gagal memeriksa status.");
       }
 
       const data = await res.json();
 
-      // The polling mechanism will catch the 'CONFIRMED' status,
-      // so we only need to handle the case where it's still pending.
-      if (data.status === 'PENDING') {
-        toast.warning('Pembayaran Belum Terkonfirmasi', {
-          description:
-            'Status pembayaran kamu masih pending. Coba lagi dalam beberapa saat.',
-        });
-      } else if (data.status === 'CONFIRMED') {
-        // Let the poller handle the success message
+      if (data.status === "PENDING") {
+        toast.warning("Pembayaran belum masuk. Coba cek beberapa saat lagi.");
+      } else if (data.status === "CONFIRMED") {
+        // Handled by poller
       } else {
-        toast.error('Status Pembayaran Tidak Valid', {
-          description: `Status: ${data.status}. Hubungi customer service jika masalah berlanjut.`,
-        });
+        toast.error(
+          "Waktu bayar habis. Buat kode QRIS baru untuk lanjut.",
+        );
       }
     } catch (e: any) {
-      toast.error('Gagal Memeriksa Status', {
-        description:
-          e.message || 'Terjadi kesalahan. Silahkan coba lagi nanti.',
-      });
+      toast.error(e.message || "Gagal memeriksa status pembayaran.");
     } finally {
       setIsCheckingStatus(false);
     }
   };
 
-
   return (
-    <div className="min-h-screen pl-20 bg-gray-100 pt-24 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Header */}
-        <div className="pt-8 pb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-4xl font-bold text-gray-900">
-              Beli Token Try Out
-            </h1>
-          </div>
-          <p className="text-gray-600">
-            Pilih paket token yang sesuai dengan kebutuhan latihan kamu
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Summary Bar: Current Quota Balance (DM Mono 28px) */}
+      <div className="bg-blue-800 text-white border-2 border-blue-900 shadow-hard p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-200 mb-1">
+            BELI KUOTA TRYOUT · BAYAR SEKALI VIA QRIS
+          </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">
+            Paket kuota tanpa langganan
+          </h1>
+          <p className="text-sm text-blue-100 mt-1 max-w-[58ch]">
+            1 kuota membuka skor IRT, persentil nasional, dan pembahasan 155
+            soal untuk 1 tryout. Kuota tidak hangus sampai SNBT selesai.
           </p>
         </div>
 
-        {/* Info Banner */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
-              💡
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-1">Apa itu Token Try Out?</h3>
-              <p className="text-blue-100 text-sm">
-                1 Token = 1x Akses Try Out Premium. Token dapat digunakan kapan
-                saja dan tidak akan hangus. Semakin banyak token yang dibeli,
-                semakin hemat harga per tokennya!
-              </p>
-            </div>
+        <div className="bg-blue-900 border-2 border-white px-5 py-3.5 shrink-0">
+          <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200">
+            SALDO KUOTA KAMU
+          </div>
+          <div className="font-mono text-[28px] leading-tight font-medium text-signal">
+            {userBalance} kuota
           </div>
         </div>
+      </div>
 
-        {/* Token Packages */}
-        <section>
-          <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Paket Token Tersedia
-            </h2>
-            <p className="text-gray-600">
-              Pilih paket yang sesuai dengan intensitas belajar kamu
-            </p>
-          </div>
+      {/* Tabs: Beli Kuota | Menunggu (n) | Riwayat */}
+      <Tabs defaultValue="buy" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="buy">Beli Kuota</TabsTrigger>
+          <TabsTrigger value="pending">
+            Menunggu ({pendingCount})
+          </TabsTrigger>
+          <TabsTrigger value="history">Riwayat</TabsTrigger>
+        </TabsList>
 
+        <TabsContent value="buy">
           {loadingPackages ? (
-            <div className="text-center py-10">Memuat paket...</div>
+            <div className="bg-white border-2 border-blue-900 p-12 text-center font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+              MEMUAT PAKET KUOTA...
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-              {packages.map((pkg) => {
-                // Kalkulasi kosmetik untuk UI
-                const originalPrice = Math.round(pkg.price * 1.2); // Asumsi diskon 20%
-                const discount = 20;
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {packages.map((pkg, index) => {
+                const originalPrice = Math.round(pkg.price * 1.2);
                 const savings = originalPrice - pkg.price;
-                const pricePerToken = Math.round(pkg.price / pkg.tokenAmount);
-
-                // Tentukan warna berdasarkan jumlah token
-                let categoryBg = "from-blue-600 to-indigo-700";
-                if (pkg.tokenAmount >= 50)
-                  categoryBg = "from-purple-600 to-pink-600";
-                else if (pkg.tokenAmount >= 25)
-                  categoryBg = "from-emerald-600 to-teal-600";
+                const pricePerToken = Math.round(
+                  pkg.price / Math.max(1, pkg.tokenAmount),
+                );
+                const isRecommended =
+                  pkg.tokenAmount === 3 ||
+                  pkg.tokenAmount === 5 ||
+                  pkg.tokenAmount === 50 ||
+                  (packages.length >= 2 && index === 1);
 
                 return (
                   <TokenCard
@@ -431,16 +412,18 @@ const ShopModule = () => {
                     pkg={{
                       id: Number(pkg.id),
                       title: pkg.name,
-                      subtitle: "Akses Premium Tryout & Pembahasan",
+                      subtitle: "Skor IRT + pembahasan 155 soal",
                       tokenAmount: pkg.tokenAmount,
-                      originalPrice: originalPrice,
+                      originalPrice,
                       finalPrice: pkg.price,
-                      discount: discount,
-                      savings: savings,
+                      discount: 20,
+                      savings,
                       pricePerToken: String(pricePerToken),
-                      categoryBg: categoryBg,
-                      popular: pkg.tokenAmount === 50,
-                      badge: pkg.tokenAmount >= 50 ? "Best Value" : undefined,
+                      categoryBg: "",
+                      popular: isRecommended,
+                      badge: isRecommended
+                        ? "PALING BANYAK DIPILIH"
+                        : undefined,
                     }}
                     onPressBuy={() => handlePurchaseClick(pkg)}
                   />
@@ -448,19 +431,29 @@ const ShopModule = () => {
               })}
             </div>
           )}
-        </section>
-      </div>
+        </TabsContent>
+
+        <TabsContent value="pending">
+          <PendingTransactionList />
+        </TabsContent>
+
+        <TabsContent value="history">
+          <PastTransactionList />
+        </TabsContent>
+      </Tabs>
 
       {/* Loading Dialog while checking pending */}
       {checkingPending && (
         <Dialog open={checkingPending} onOpenChange={() => {}}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle className="sr-only">Checking Payment</DialogTitle>
+              <DialogTitle className="sr-only">Memeriksa transaksi</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col items-center justify-center py-6">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-500 mb-4" />
-              <div className="text-gray-600">Memeriksa pembayaran...</div>
+              <Loader2 className="w-7 h-7 animate-spin text-blue-600 mb-3" />
+              <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+                MEMERIKSA TRANSAKSI...
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -470,53 +463,38 @@ const ShopModule = () => {
       <Dialog open={showPendingDialog} onOpenChange={setShowPendingDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertCircleIcon className="w-5 h-5 text-yellow-600" />
-              Transaksi Pending Ditemukan
+            <DialogTitle className="font-display text-xl font-bold text-blue-900">
+              Ada pembayaran yang belum selesai
             </DialogTitle>
-            <DialogDescription>
-              Kamu memiliki transaksi yang belum selesai. Silahkan selesaikan
-              atau batalkan terlebih dahulu.
+            <DialogDescription className="text-sm text-slate-700">
+              Selesaikan pembayaran QRIS sebelumnya atau batalkan untuk membuat
+              kode baru.
             </DialogDescription>
           </DialogHeader>
 
           {pendingPayment && (
             <div className="space-y-4">
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  Pembayaran ini akan kadaluarsa dalam waktu dekat. Selesaikan
-                  sekarang atau batalkan untuk membuat pembayaran baru.
-                </p>
-              </div>
-
-              <div className="space-y-2 p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-2 p-4 bg-blue-50 border-2 border-blue-900 font-mono text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">Order ID:</span>
-                  <span className="font-mono text-xs">
-                    {pendingPayment.orderId}
+                  <span className="text-slate-600">ORDER ID</span>
+                  <span className="text-blue-900">{pendingPayment.orderId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">PAKET</span>
+                  <span className="font-sans font-semibold text-blue-900">
+                    {pendingPayment.tokenPackage.name} (
+                    {pendingPayment.tokenAmount} kuota)
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">Paket:</span>
-                  <span className="font-semibold text-sm">
-                    {pendingPayment.tokenPackage.name}
+                  <span className="text-slate-600">TOTAL BAYAR</span>
+                  <span className="font-medium text-blue-900">
+                    Rp{pendingPayment.amount.toLocaleString("id-ID")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">Jumlah:</span>
-                  <span className="font-semibold text-sm">
-                    Rp {pendingPayment.amount.toLocaleString("id-ID")}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">Token:</span>
-                  <span className="font-semibold text-sm">
-                    {pendingPayment.tokenAmount} tokens
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">Berlaku hingga:</span>
-                  <span className="text-xs text-red-600 font-medium">
+                  <span className="text-slate-600">BATAS WAKTU</span>
+                  <span className="text-danger font-medium">
                     {new Date(pendingPayment.expiresAt).toLocaleTimeString(
                       "id-ID",
                     )}
@@ -527,11 +505,10 @@ const ShopModule = () => {
               <div className="flex flex-col gap-2">
                 <Button
                   onClick={handleContinuePendingPayment}
+                  variant="default"
                   className="w-full"
-                  size="lg"
                 >
-                  <Smartphone className="w-4 h-4 mr-2" />
-                  Lanjutkan Pembayaran Ini
+                  Lanjutkan bayar
                 </Button>
 
                 <Button
@@ -539,7 +516,6 @@ const ShopModule = () => {
                   variant="destructive"
                   className="w-full"
                   disabled={cancellingPayment}
-                  size="lg"
                 >
                   {cancellingPayment ? (
                     <>
@@ -549,7 +525,7 @@ const ShopModule = () => {
                   ) : (
                     <>
                       <XCircle className="w-4 h-4 mr-2" />
-                      Batalkan Pembayaran Ini
+                      Batalkan transaksi
                     </>
                   )}
                 </Button>
@@ -567,7 +543,7 @@ const ShopModule = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Payment Modal */}
+      {/* QRIS Payment Modal */}
       <Dialog
         open={isModalOpened}
         onOpenChange={(state) => {
@@ -584,119 +560,110 @@ const ShopModule = () => {
         }}
         modal
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-[460px]">
           {!isModalLoading && !transactionId && (
             <>
               <DialogHeader>
-                <DialogTitle>Pilih Metode Pembayaran</DialogTitle>
-                <DialogDescription>
-                  Silahkan pilih metode pembayaran untuk menyelesaikan pembelian
-                  token kamu.
+                <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+                  PEMBAYARAN INSTAN
+                </div>
+                <DialogTitle className="font-display text-xl font-bold text-blue-900">
+                  Bayar {selectedPkg?.tokenAmount} kuota via QRIS
+                </DialogTitle>
+                <DialogDescription className="text-sm text-slate-700">
+                  Total tagihan{" "}
+                  <span className="font-mono font-medium text-blue-900">
+                    Rp{(selectedPkg?.price ?? 0).toLocaleString("id-ID")}
+                  </span>
+                  . Bisa dibayar pakai GoPay, OVO, DANA, ShopeePay, atau
+                  m-banking.
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-full max-w-md">
-                  <Button
-                    className="w-full h-auto py-4"
-                    variant="primary"
-                    onClick={handleCreatePayment}
-                  >
-                    <div className="flex items-center gap-3">
-                      {isMobile ? (
-                        <Smartphone className="w-5 h-5" />
-                      ) : (
-                        <Monitor className="w-5 h-5" />
-                      )}
-                      <div className="text-left">
-                        <div className="font-bold">GoPay / QRIS</div>
-                        <div className="text-xs opacity-90">
-                          {isMobile
-                            ? "Bayar langsung di aplikasi GoPay"
-                            : "Scan QR Code dengan aplikasi QRIS"}
-                        </div>
-                      </div>
-                    </div>
-                  </Button>
-                </div>
+              <div className="pt-2">
+                <Button
+                  className="w-full"
+                  variant="default"
+                  size="lg"
+                  onClick={handleCreatePayment}
+                >
+                  {isMobile ? (
+                    <Smartphone className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Monitor className="w-4 h-4 mr-2" />
+                  )}
+                  Buat kode QRIS
+                </Button>
               </div>
             </>
           )}
 
           {isModalLoading && (
             <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-500 mb-4" />
-              <div className="text-gray-600">Memproses transaksi...</div>
+              <Loader2 className="w-7 h-7 animate-spin text-blue-600 mb-3" />
+              <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+                MEMBUAT KODE QRIS...
+              </div>
             </div>
           )}
 
           {!isModalLoading && transactionId && !showContact && (
             <div className="flex flex-col items-center gap-4">
-              <h2 className="text-2xl font-bold mb-2">
-                {isMobile && paymentData?.deeplinkUrl
-                  ? "Pembayaran Dialihkan"
-                  : "Scan QR Code untuk Membayar"}
-              </h2>
-
-              {isMobile && paymentData?.deeplinkUrl ? (
-                <div className="text-center space-y-4">
-                  <p className="text-gray-600">
-                    Kamu akan diarahkan ke aplikasi GoPay untuk menyelesaikan
-                    pembayaran.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      if (paymentData?.deeplinkUrl) {
-                        window.location.href = paymentData.deeplinkUrl;
-                      }
-                    }}
-                    size="lg"
-                  >
-                    Buka Aplikasi GoPay
-                  </Button>
-                  <p className="text-sm text-gray-500">
-                    Atau scan QR code di bawah dengan aplikasi QRIS lainnya:
-                  </p>
+              <div className="text-center">
+                <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+                  ORDER #{paymentData?.orderId}
+                </p>
+                <h2 className="font-display text-xl font-bold text-blue-900 mt-1">
+                  Scan QRIS untuk bayar
+                </h2>
+                <div className="font-mono text-2xl font-medium text-blue-900 mt-1">
+                  Rp{(paymentData?.amount ?? selectedPkg?.price ?? 0).toLocaleString("id-ID")}
                 </div>
-              ) : null}
+              </div>
+
+              {isMobile && paymentData?.deeplinkUrl && (
+                <Button
+                  onClick={() => {
+                    if (paymentData?.deeplinkUrl) {
+                      window.location.href = paymentData.deeplinkUrl;
+                    }
+                  }}
+                  variant="default"
+                  className="w-full"
+                >
+                  Buka aplikasi GoPay
+                </Button>
+              )}
 
               {paymentData?.qrCodeUrl && (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex justify-center items-center p-4 border-2 border-gray-200 rounded-lg bg-white">
-                    <img
-                      src={paymentData.qrCodeUrl}
-                      alt="QR Code"
-                      className="w-64 h-64"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Scan dengan GoPay, Gojek, atau aplikasi QRIS lainnya
-                  </p>
+                <div className="p-4 border-2 border-blue-900 bg-white">
+                  <img
+                    src={paymentData.qrCodeUrl}
+                    alt="Kode QRIS"
+                    className="w-60 h-60 object-contain"
+                  />
                 </div>
               )}
 
-              {paymentStatus === "PENDING" && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Menunggu pembayaran...</span>
-                </div>
-              )}
-
-              <div className="text-center space-y-1">
-                <p className="text-xs text-gray-500">
-                  Order ID: {paymentData?.orderId}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Berlaku hingga:{" "}
+              <div className="w-full bg-blue-50 border-[1.5px] border-blue-900 p-3 flex items-center justify-between font-mono text-xs">
+                <span className="inline-flex items-center gap-2 text-blue-900">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                  {paymentStatus === "PENDING" || paymentStatus === "pending"
+                    ? "Menunggu pembayaran…"
+                    : paymentStatus}
+                </span>
+                <span className="text-slate-600">
+                  BATAS:{" "}
                   {paymentData?.expiryTime
                     ? new Date(paymentData.expiryTime).toLocaleTimeString(
                         "id-ID",
                       )
-                    : "15 menit"}
-                </p>
+                    : "15 MENIT"}
+                </span>
               </div>
 
               <Button
                 variant="outline"
+                className="w-full"
                 onClick={handleManualCheck}
                 disabled={isCheckingStatus}
               >
@@ -706,50 +673,45 @@ const ShopModule = () => {
                     Memeriksa...
                   </>
                 ) : (
-                  'Saya sudah melakukan pembayaran'
+                  "Cek status bayar"
                 )}
               </Button>
             </div>
           )}
 
           {!isModalLoading && transactionId && showContact && (
-            <div className="flex flex-col items-center">
-              <h2 className="text-2xl font-bold mb-4">Pembayaran Diproses</h2>
-              <div className="flex flex-col items-center gap-2">
-                <p className="text-center">
-                  Pembayaran kamu akan segera kami proses. Apabila dalam 1x24
-                  jam belum terverifikasi, silahkan hubungi kontak berikut:
-                </p>
-                {contactInfos.map((contact) => (
-                  <Alert key={contact.name} className="w-full max-w-md">
-                    <AlertCircleIcon className="h-5 w-5 shrink-0" />
-                    <div>
-                      <AlertTitle className="font-medium">
-                        {contact.name}
-                      </AlertTitle>
-                      <AlertDescription className="text-sm mt-2">
-                        {Object.entries(contact.contacts).map(
-                          ([method, info]) => (
-                            <div key={method}>
-                              <strong>{method}:</strong> {info || "-"}
-                            </div>
-                          ),
-                        )}
-                      </AlertDescription>
-                    </div>
-                  </Alert>
-                ))}
-                <p className="text-xs text-gray-500">
-                  Order ID: {paymentData?.orderId}
-                </p>
-              </div>
+            <div className="space-y-4">
+              <h2 className="font-display text-xl font-bold text-blue-900">
+                Pembayaran diproses
+              </h2>
+              <p className="text-sm text-slate-700">
+                Jika dalam 1x24 jam kuota belum masuk, hubungi kontak bantuan:
+              </p>
+              {contactInfos.map((contact) => (
+                <Alert key={contact.name}>
+                  <AlertCircleIcon className="h-4 w-4 shrink-0" />
+                  <div>
+                    <AlertTitle className="font-semibold">
+                      {contact.name}
+                    </AlertTitle>
+                    <AlertDescription className="text-xs font-mono mt-1">
+                      {Object.entries(contact.contacts).map(
+                        ([method, info]) => (
+                          <div key={method}>
+                            {method}: {info || "-"}
+                          </div>
+                        ),
+                      )}
+                    </AlertDescription>
+                  </div>
+                </Alert>
+              ))}
               <Button
-                className="mt-4"
-                onClick={() => {
-                  setShowContact(false);
-                }}
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowContact(false)}
               >
-                Tunjukkan kembali QR Code
+                Tampilkan QRIS
               </Button>
             </div>
           )}

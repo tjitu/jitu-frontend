@@ -35,7 +35,7 @@ const CreateTryoutModule = () => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -67,7 +67,7 @@ const CreateTryoutModule = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (createdTryoutId) return; // Prevent double submission if already created
+    if (createdTryoutId) return;
 
     setIsLoading(true);
 
@@ -81,22 +81,17 @@ const CreateTryoutModule = () => {
         scheduledEnd: new Date(formData.scheduledEnd).toISOString(),
       };
 
-      // 1. Create Tryout
       const tryout = await createTryout(payload);
 
       if (tryout && tryout.id) {
         setCreatedTryoutId(tryout.id);
-
-        // 2. Create Default Subtests
         await createUtbkSubtests(tryout.id);
-
-        // 3. Fetch Subtests to display
         await fetchSubtests(tryout.id);
-        toast.success("Tryout berhasil dibuat!");
+        toast.success("Tryout dan 7 subtes berhasil dibuat.");
       }
     } catch (error) {
       console.error("Failed to process tryout creation:", error);
-      toast.error("Gagal membuat tryout. Silakan coba lagi.");
+      toast.error("Gagal membuat tryout. Coba lagi.");
     } finally {
       setIsLoading(false);
     }
@@ -107,18 +102,18 @@ const CreateTryoutModule = () => {
   };
 
   return (
-    <div className="flex flex-col gap-8 p-8 w-full max-w-4xl mx-auto animate-in fade-in duration-500">
-      <div className="flex items-center gap-4">
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center gap-4 pb-5 border-b-2 border-blue-900">
         <Button variant="outline" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
-            Buat Tryout Baru
-          </h1>
-          <p className="text-muted-foreground">
-            Isi formulir di bawah ini untuk membuat tryout UTBK baru.
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+            MANAJEMEN UJIAN
           </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+            Buat tryout baru
+          </h1>
         </div>
       </div>
 

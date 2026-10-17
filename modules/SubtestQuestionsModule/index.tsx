@@ -45,7 +45,7 @@ const SubtestQuestionsModule: React.FC<SubtestQuestionsModuleProps> = ({
       setQuestions(data);
     } catch (error) {
       console.error(error);
-      toast.error("Gagal memuat daftar soal.");
+      toast.error("Daftar soal gagal dimuat.");
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +62,6 @@ const SubtestQuestionsModule: React.FC<SubtestQuestionsModuleProps> = ({
       setIsCreating(false);
       setEditingQuestion(null);
     } else {
-      // Navigate explicitly to the tryout edit page to ensure correct flow
       router.push(`/admin/tryout/${tryoutId}`);
     }
   };
@@ -71,14 +70,14 @@ const SubtestQuestionsModule: React.FC<SubtestQuestionsModuleProps> = ({
     try {
       if (editingQuestion) {
         await updateQuestion(editingQuestion.id, payload);
-        toast.success("Soal berhasil diperbarui!");
+        toast.success("Soal diperbarui.");
       } else {
         await createQuestion(subtestId, payload);
-        toast.success("Soal berhasil ditambahkan!");
+        toast.success("Soal ditambahkan.");
       }
       setIsCreating(false);
       setEditingQuestion(null);
-      fetchQuestions(); // Refresh list
+      fetchQuestions();
     } catch (error) {
       console.error(error);
       toast.error("Gagal menyimpan soal.");
@@ -88,7 +87,7 @@ const SubtestQuestionsModule: React.FC<SubtestQuestionsModuleProps> = ({
   const handleDelete = async (id: string) => {
     try {
       await deleteQuestion(id);
-      toast.success("Soal berhasil dihapus.");
+      toast.success("Soal dihapus.");
       fetchQuestions();
     } catch (error) {
       console.error(error);
@@ -97,40 +96,37 @@ const SubtestQuestionsModule: React.FC<SubtestQuestionsModuleProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-8 p-8 w-full max-w-7xl mx-auto animate-in fade-in duration-500">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={handleBack}>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 pb-5 border-b-2 border-blue-900">
+        <Button variant="outline" size="icon" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+            BANK SOAL SUBTES
+          </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
             {isCreating
               ? editingQuestion
-                ? "Edit Soal"
-                : "Tambah Soal"
-              : "Kelola Soal Subtest"}
+                ? "Ubah soal"
+                : "Tambah soal baru"
+              : "Kelola soal subtes"}
           </h1>
-          <p className="text-muted-foreground">
-            {isCreating
-              ? "Isi form di bawah untuk menyimpan soal."
-              : "Daftar soal untuk subtest ini. Tambahkan, edit, atau hapus soal."}
-          </p>
         </div>
       </div>
 
-      <Card className="border-border/50 shadow-sm">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Daftar Soal</CardTitle>
-            <CardDescription>Total: {questions.length} Soal</CardDescription>
+            <CardTitle>Daftar soal</CardTitle>
+            <CardDescription className="font-mono text-xs">
+              TOTAL: {questions.length} SOAL
+            </CardDescription>
           </div>
           {!isCreating && (
-            <Button
-              onClick={() => setIsCreating(true)}
-              className="font-semibold shadow-sm"
-            >
+            <Button onClick={() => setIsCreating(true)} variant="default">
               <Plus className="mr-2 h-4 w-4" />
-              Tambah Soal
+              Tambah soal
             </Button>
           )}
         </CardHeader>

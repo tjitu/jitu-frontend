@@ -18,16 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  ArrowLeft,
-  Loader2,
-  Trophy,
-  Users,
-  Star,
-  BarChart,
-  Download,
-} from "lucide-react";
+import { ArrowLeft, Loader2, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { StatCard } from "@/components/elements/Admin/StatCard";
 import {
@@ -58,13 +49,13 @@ const AdminTryoutResultModule: React.FC<AdminTryoutResultModuleProps> = ({
     try {
       const [statsData, lbData] = await Promise.all([
         getTryoutStats(tryoutId),
-        getLeaderboard(tryoutId, 1, 10), // Ambil top 10 untuk overview
+        getLeaderboard(tryoutId, 1, 10),
       ]);
       setStats(statsData);
       setLeaderboard(lbData.data);
     } catch (error) {
       console.error(error);
-      toast.error("Gagal memuat data hasil tryout.");
+      toast.error("Data hasil tryout gagal dimuat.");
     } finally {
       setIsLoading(false);
     }
@@ -76,34 +67,32 @@ const AdminTryoutResultModule: React.FC<AdminTryoutResultModuleProps> = ({
       const data = await exportResults(tryoutId);
 
       if (!data || data.length === 0) {
-        toast.error("Tidak ada data untuk diekspor");
+        toast.error("Belum ada data untuk diekspor.");
         return;
       }
 
-      // Convert JSON to CSV string
       const headers = Object.keys(data[0]).join(",");
       const rows = data.map((row: any) =>
         Object.values(row)
-          .map((value) => `"${value}"`) // Ensure values are quoted
-          .join(",")
+          .map((value) => `"${value}"`)
+          .join(","),
       );
-      const csvContent = [headers, ...rows].join("\n"); // Use \n for newline in CSV string
+      const csvContent = [headers, ...rows].join("\n");
 
-      // Create Blob and Download
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
-        `Hasil_Tryout_${stats?.title.replace(/\s+/g, "_")}.csv`
+        `Hasil_Tryout_${stats?.title.replace(/\s+/g, "_")}.csv`,
       );
       link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      toast.success("Data berhasil diekspor ke CSV");
+      toast.success("Data diekspor ke CSV.");
     } catch (error) {
       console.error(error);
       toast.error("Gagal mengekspor data.");
@@ -118,156 +107,120 @@ const AdminTryoutResultModule: React.FC<AdminTryoutResultModuleProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-[60vh] items-center justify-center gap-3">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+          MEMUAT HASIL TRYOUT...
+        </span>
       </div>
     );
   }
 
   if (!stats)
     return (
-      <div className="p-8 text-center text-red-500">Data tidak ditemukan</div>
+      <div className="p-8 bg-white border-2 border-blue-900 text-center text-danger font-medium">
+        Data tidak ditemukan.
+      </div>
     );
 
   return (
-    <div className="flex flex-col gap-8 p-8 w-full max-w-7xl mx-auto animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b-2 border-blue-900">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">
-              Hasil & Leaderboard
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+              REKAP NILAI &amp; PERINGKAT
+            </p>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+              {stats.title}
             </h1>
-            <p className="text-muted-foreground">{stats.title}</p>
           </div>
         </div>
         <Button
           onClick={handleExport}
           disabled={isExporting}
           variant="outline"
-          className="gap-2 font-semibold border-primary text-primary hover:bg-primary/5"
         >
           {isExporting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
           ) : (
-            <Download className="h-4 w-4" />
+            <Download className="h-4 w-4 mr-2" />
           )}
-          Export ke CSV
+          Ekspor CSV
         </Button>
       </div>
 
-      {/* Overview Stats */}
+      {/* 4-up Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="TOTAL PESERTA"
-          icon={Users}
-          color="text-blue-600"
-          bgColor="bg-blue-100"
-          value={stats.totalParticipants}
-        />
+        <StatCard label="TOTAL PESERTA" value={stats.totalParticipants} />
         <StatCard
           label="RATA-RATA SKOR"
-          icon={BarChart}
-          color="text-purple-600"
-          bgColor="bg-purple-100"
           value={Math.round(stats.averageScore)}
         />
         <StatCard
           label="SKOR TERTINGGI"
-          icon={Trophy}
-          color="text-yellow-600"
-          bgColor="bg-yellow-100"
           value={Math.round(stats.highestScore)}
         />
         <StatCard
           label="SKOR TERENDAH"
-          icon={Star}
-          color="text-white"
-          bgColor="bg-red-100"
           value={Math.round(stats.lowestScore)}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Distribution Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <ScoreDistributionChart distribution={stats.distribution} />
         </div>
 
-        {/* Right: Leaderboard Table */}
         <div className="lg:col-span-2">
-          <Card className="border-border/50 shadow-sm h-full">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Top 10 Peserta Terbaik</CardTitle>
-                <CardDescription>
-                  Peringkat berdasarkan skor tertinggi
-                </CardDescription>
-              </div>
-              <Trophy className="h-5 w-5 text-yellow-500" />
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>10 peserta nilai tertinggi</CardTitle>
+              <CardDescription>
+                Peringkat nasional berdasarkan skor IRT
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="w-[60px]">Rank</TableHead>
-                      <TableHead>Nama Peserta</TableHead>
-                      <TableHead>Target</TableHead>
-                      <TableHead className="text-right">Skor Akhir</TableHead>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[70px]">Rank</TableHead>
+                    <TableHead>Peserta</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead className="text-right">Skor IRT</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leaderboard.map((entry) => (
+                    <TableRow key={entry.user.email}>
+                      <TableCell className="font-mono text-xs font-medium">
+                        {entry.rank <= 3 ? (
+                          <Badge variant="signal">#{entry.rank}</Badge>
+                        ) : (
+                          `#${entry.rank}`
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-semibold text-blue-900 text-sm">
+                          {entry.user.name}
+                        </div>
+                        <div className="font-mono text-[11px] text-slate-600">
+                          {entry.user.email}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {entry.user.target || "-"}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm font-medium text-blue-900">
+                        {Math.round(entry.totalScore)}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leaderboard.map((entry) => (
-                      <TableRow key={entry.user.email}>
-                        <TableCell className="font-bold text-center">
-                          {entry.rank <= 3 ? (
-                            <Badge
-                              className={
-                                entry.rank === 1
-                                  ? "bg-yellow-500"
-                                  : entry.rank === 2
-                                  ? "bg-gray-400"
-                                  : "bg-amber-600"
-                              }
-                            >
-                              {entry.rank}
-                            </Badge>
-                          ) : (
-                            entry.rank
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={entry.user.image} />
-                              <AvatarFallback>
-                                {entry.user.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                              <span className="font-medium text-sm">
-                                {entry.user.name}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                {entry.user.email}
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          {entry.user.target || "-"}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-primary">
-                          {Math.round(entry.totalScore)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>

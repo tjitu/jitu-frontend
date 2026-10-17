@@ -1,29 +1,55 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BACKEND_URL } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  CheckCircle2,
-  ArrowRight,
-  PlayCircle,
-  Clock,
-  FileText,
-  Circle,
-  Loader2,
-} from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 
-// Hardcode the subtest flow as requested by the user
 const SUBTESTS = [
-    { name: "Penalaran Umum", abbr: "PU", order: 1 },
-    { name: "Pemahaman & Penalaran Umum", abbr: "PPU", order: 2 },
-    { name: "Pemahaman Bacaan & Menulis", abbr: "PBM", order: 3 },
-    { name: "Pengetahuan Kuantitatif", abbr: "PK", order: 4 },
-    { name: "Literasi Bahasa Indonesia", abbr: "LBI", order: 5 },
-    { name: "Literasi Bahasa Inggris", abbr: "LBE", order: 6 },
-    { name: "Penalaran Matematika", abbr: "PM", order: 7 },
+  { name: "Penalaran Umum", abbr: "PU", order: 1, questions: 30, duration: 30 },
+  {
+    name: "Pengetahuan & Pemahaman Umum",
+    abbr: "PPU",
+    order: 2,
+    questions: 20,
+    duration: 15,
+  },
+  {
+    name: "Pemahaman Bacaan & Menulis",
+    abbr: "PBM",
+    order: 3,
+    questions: 20,
+    duration: 25,
+  },
+  {
+    name: "Pengetahuan Kuantitatif",
+    abbr: "PK",
+    order: 4,
+    questions: 20,
+    duration: 20,
+  },
+  {
+    name: "Literasi Bahasa Indonesia",
+    abbr: "LBI",
+    order: 5,
+    questions: 30,
+    duration: 42.5,
+  },
+  {
+    name: "Literasi Bahasa Inggris",
+    abbr: "LBE",
+    order: 6,
+    questions: 20,
+    duration: 20,
+  },
+  {
+    name: "Penalaran Matematika",
+    abbr: "PM",
+    order: 7,
+    questions: 20,
+    duration: 42.5,
+  },
 ];
 
 const BREAK_DURATION_SEC = 30;
@@ -36,17 +62,20 @@ export default function BreakPage() {
   const tryoutId = params?.id;
   const nextSubtestId = params?.subtestId;
   const attemptId = searchParams.get("attemptId");
-  const prevSubtestName = searchParams.get("prevSubtestName") || "";
+  const prevSubtestName = searchParams.get("prevSubtestName") || "Subtes";
   const nextSubtestName =
     searchParams.get("nextSubtestName") || "Subtes Berikutnya";
 
-  const [breakTimeRemainingSec, setBreakTimeRemainingSec] = useState<number | null>(null);
+  const [breakTimeRemainingSec, setBreakTimeRemainingSec] = useState<
+    number | null
+  >(null);
 
-  // The 1-based order of the subtest that was just finished.
   const currentOrder = Number(nextSubtestId) - 1;
+  const nextSubtestMeta = SUBTESTS.find(
+    (s) => s.order === Number(nextSubtestId),
+  );
 
   const handleProceedToNext = useCallback(async () => {
-    // Panggil API start-subtest untuk mereset timer di backend
     await fetch(
       `${BACKEND_URL}/exam/${encodeURIComponent(attemptId || "")}/start-subtest`,
       {
@@ -54,23 +83,22 @@ export default function BreakPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ subtestOrder: Number(nextSubtestId) }),
-      }
+      },
     );
 
     router.push(
       `/tryout/${tryoutId}/exam/${nextSubtestId}?attemptId=${encodeURIComponent(
-        attemptId || ""
-      )}`
+        attemptId || "",
+      )}`,
     );
   }, [router, tryoutId, nextSubtestId, attemptId]);
 
-  // Timer logic using localStorage
   useEffect(() => {
     if (!attemptId) {
       router.replace(`/tryout/${tryoutId}`);
       return;
     }
-    
+
     const storageKey = `break_started_at_${attemptId}`;
     let startTimeIso = localStorage.getItem(storageKey);
 
@@ -78,13 +106,16 @@ export default function BreakPage() {
       startTimeIso = new Date().toISOString();
       localStorage.setItem(storageKey, startTimeIso);
     }
-    
+
     const startTime = new Date(startTimeIso);
 
     const timer = setInterval(() => {
       const elapsedSec = (new Date().getTime() - startTime.getTime()) / 1000;
-      const remaining = Math.max(0, Math.floor(BREAK_DURATION_SEC - elapsedSec));
-      
+      const remaining = Math.max(
+        0,
+        Math.floor(BREAK_DURATION_SEC - elapsedSec),
+      );
+
       setBreakTimeRemainingSec(remaining);
 
       if (remaining === 0) {
@@ -93,127 +124,124 @@ export default function BreakPage() {
       }
     }, 1000);
 
-    // Initial calculation to prevent 1-second flash of null
     const initialElapsed = (new Date().getTime() - startTime.getTime()) / 1000;
-    setBreakTimeRemainingSec(Math.max(0, Math.floor(BREAK_DURATION_SEC - initialElapsed)));
-
+    setBreakTimeRemainingSec(
+      Math.max(0, Math.floor(BREAK_DURATION_SEC - initialElapsed)),
+    );
 
     return () => {
-        clearInterval(timer);
+      clearInterval(timer);
     };
   }, [attemptId, tryoutId, router, handleProceedToNext]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 p-4 font-open-sans">
-      <Card className="max-w-4xl w-full shadow-xl border-gray-200 overflow-hidden flex flex-col md:flex-row relative">
-        {/* Left Side: Summary & Action */}
-        <CardContent className="p-8 md:w-3/5 flex flex-col justify-between border-r border-gray-100 min-h-[500px]">
+    <div className="min-h-screen flex items-center justify-center bg-blue-800 p-4">
+      <div className="max-w-3xl w-full bg-white border-2 border-blue-900 shadow-hard grid grid-cols-1 md:grid-cols-12">
+        {/* Left: Countdown & Next Subtest */}
+        <div className="p-6 sm:p-8 md:col-span-7 flex flex-col justify-between border-b-2 md:border-b-0 md:border-r-2 border-blue-900">
           <div>
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            <div className="inline-flex items-center gap-2 bg-emerald-50 border-[1.5px] border-success text-success px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] mb-4">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              SUBTES {currentOrder} SELESAI
             </div>
 
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Subtes Selesai!
-              </h2>
-              <p className="text-gray-600">
-                Kamu telah menyelesaikan subtes{" "}
-                <span className="font-semibold text-gray-900">
-                  {prevSubtestName}
-                </span>
-                .
-              </p>
-            </div>
+            <h1 className="font-display text-2xl font-bold text-blue-900 mb-1">
+              {prevSubtestName} selesai
+            </h1>
+            <p className="text-sm text-slate-600 mb-6">
+              Tarik napas sebentar. Subtes berikutnya akan dimulai otomatis
+              saat hitung mundur habis.
+            </p>
 
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-8 text-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-3 opacity-10">
-                <PlayCircle className="w-24 h-24 text-blue-600" />
+            <div className="bg-blue-800 text-white border-2 border-blue-900 p-5 mb-6">
+              <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-200">
+                MULAI OTOMATIS DALAM
               </div>
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">
-                WAKTU ISTIRAHAT
-              </p>
-              <div className="text-6xl font-bold text-blue-600 my-4">
-                {breakTimeRemainingSec ?? "-"}
+              <div className="font-mono text-5xl font-medium text-signal leading-none my-3">
+                00:
+                {String(breakTimeRemainingSec ?? BREAK_DURATION_SEC).padStart(
+                  2,
+                  "0",
+                )}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 flex items-center justify-center gap-2 relative z-10">
-                Subtes Selanjutnya: {nextSubtestName}
-                <ArrowRight className="w-5 h-5 text-gray-400" />
-              </h3>
+              <div className="pt-3 mt-3 border-t border-blue-600">
+                <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200">
+                  SUBTES {nextSubtestId}/7 BERIKUTNYA
+                </div>
+                <div className="font-display text-lg font-bold text-white mt-0.5">
+                  {nextSubtestName}
+                </div>
+                {nextSubtestMeta && (
+                  <div className="font-mono text-xs text-blue-200 mt-1">
+                    {nextSubtestMeta.questions} soal ·{" "}
+                    {nextSubtestMeta.duration} menit
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <Button onClick={() => {
+
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full"
+            onClick={() => {
               const storageKey = `break_started_at_${attemptId}`;
               localStorage.removeItem(storageKey);
               handleProceedToNext();
-          }}>Lanjut ke Subtes Berikutnya</Button>
-        </CardContent>
+            }}
+          >
+            Lanjut sekarang
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
 
-        {/* Right Side: Progress Stepper */}
-        <div className="bg-gray-50 p-8 md:w-2/5 flex flex-col max-h-[600px]">
-          <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
-            Progres Ujian
-          </h3>
+        {/* Right: 7 Subtests Progress */}
+        <div className="bg-blue-50 p-6 sm:p-8 md:col-span-5">
+          <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-900 font-medium mb-4">
+            PROGRES 7 SUBTES
+          </div>
+          <div className="space-y-2">
+            {SUBTESTS.map((sub) => {
+              const isFinished = sub.order <= currentOrder;
+              const isNext = sub.order === currentOrder + 1;
 
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="relative pl-10 border-l-2 border-gray-200 space-y-8">
-              {SUBTESTS.map((sub) => {
-                const isFinished = sub.order <= currentOrder;
-                const isNext = sub.order === currentOrder + 1;
-                const isFuture = sub.order > currentOrder + 1;
-
-                return (
-                  <div key={sub.order} className="relative pl-6">
-                    <div
-                      className={`absolute -left-[21px] top-1 w-10 h-10 rounded-full border-4 flex items-center justify-center transition-colors bg-white ${
-                        isFinished
-                          ? "border-blue-500 text-blue-600"
-                          : isNext
-                          ? "border-blue-500 text-blue-600"
-                          : "border-gray-300 text-gray-300"
-                      }`}
-                    >
-                      {isFinished ? (
-                        <CheckCircle2 className="w-5 h-5" />
-                      ) : isNext ? (
-                        <PlayCircle className="w-5 h-5 fill-blue-50" />
-                      ) : (
-                        <Circle className="w-5 h-5" />
-                      )}
+              return (
+                <div
+                  key={sub.order}
+                  className={`p-2.5 border-[1.5px] flex items-center justify-between gap-2 ${
+                    isNext
+                      ? "bg-white border-blue-900 shadow-hard-sm"
+                      : isFinished
+                        ? "bg-blue-100/60 border-blue-200 text-slate-600"
+                        : "bg-white/60 border-blue-200 text-slate-500"
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.06em]">
+                      0{sub.order} · {sub.abbr}
                     </div>
-
-                    <div
-                      className={`${isFuture ? "opacity-50" : "opacity-100"}`}
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5">
-                        Subtes {sub.order}
-                      </p>
-                      <h4
-                        className={`font-bold text-lg leading-tight ${
-                          isNext ? "text-blue-700" : "text-gray-900"
-                        }`}
-                      >
-                        {sub.name}
-                      </h4>
-
-                      {isNext && (
-                        <span className="inline-block mt-2 text-xs font-medium text-white bg-blue-600 px-2 py-0.5 rounded-full animate-pulse">
-                          Selanjutnya
-                        </span>
-                      )}
-                      {isFinished && (
-                        <span className="inline-block mt-2 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-                          Selesai
-                        </span>
-                      )}
+                    <div className="font-semibold text-xs text-blue-900 truncate">
+                      {sub.name}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                  <span
+                    className={`font-mono text-[10px] uppercase px-1.5 py-0.5 border shrink-0 ${
+                      isFinished
+                        ? "bg-emerald-50 border-success text-success"
+                        : isNext
+                          ? "bg-signal border-blue-900 text-blue-900 font-medium"
+                          : "bg-blue-50 border-blue-200 text-slate-500"
+                    }`}
+                  >
+                    {isFinished ? "SELESAI" : isNext ? "BERIKUT" : "NANTI"}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

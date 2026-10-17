@@ -1,18 +1,22 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
+/**
+ * DESIGN.md Section 5 — Textarea
+ * white, 2px ink border, 0 radius, focus 3px blue-500 outline, 2px offset.
+ */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea
       data-slot="textarea"
       className={cn(
-        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "flex field-sizing-content min-h-24 w-full rounded-none border-2 border-blue-900 bg-white px-3.5 py-2.5 text-[16px] text-blue-900 placeholder:text-slate-500 focus:outline-3 focus:outline-blue-500 focus:outline-offset-2 disabled:cursor-not-allowed disabled:bg-blue-100 disabled:text-slate-500 aria-invalid:border-warn",
         className
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Textarea }
+export { Textarea };

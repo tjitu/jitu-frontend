@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -16,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CheckCircle2, Lock, FileText, Pencil } from "lucide-react";
+import { Lock, FileText, Pencil } from "lucide-react";
 import { Subtest } from "@/lib/api/AdminTryoutApi";
 import Link from "next/link";
 import { EditSubtestDialog } from "./EditSubtestDialog";
@@ -34,92 +33,78 @@ export const SubtestList: React.FC<SubtestListProps> = ({
   handleFinish,
   onRefresh,
 }) => {
-  const [selectedSubtest, setSelectedSubtest] = React.useState<Subtest | null>(
-    null
-  );
+  const [selectedSubtest, setSelectedSubtest] =
+    React.useState<Subtest | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
   return (
-    <Card
-      className={`border-border/50 shadow-sm transition-all duration-500 ${
-        createdTryoutId
-          ? "translate-y-0 opacity-100"
-          : "translate-y-4 opacity-50 grayscale"
-      }`}
-    >
+    <Card className={createdTryoutId ? "opacity-100" : "opacity-60"}>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              Daftar Subtest UTBK
-              {!createdTryoutId && (
-                <Lock className="w-4 h-4 text-muted-foreground" />
-              )}
-            </CardTitle>
-            <CardDescription>
-              {createdTryoutId
-                ? "7 Subtest standar telah dibuat secara otomatis."
-                : "Subtest akan otomatis digenerate setelah data tryout disimpan."}
-            </CardDescription>
-          </div>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          Daftar 7 subtes SNBT
+          {!createdTryoutId && <Lock className="w-4 h-4 text-slate-500" />}
+        </CardTitle>
+        <CardDescription>
+          {createdTryoutId
+            ? "7 subtes standar SNBT telah dibuat otomatis."
+            : "Subtes akan dibuat otomatis setelah detail tryout disimpan."}
+        </CardDescription>
       </CardHeader>
       {createdTryoutId && (
-        <CardContent className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-[80px]">Order</TableHead>
-                  <TableHead>Nama Subtest</TableHead>
-                  <TableHead>Durasi (Menit)</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subtests.map((subtest) => (
-                  <TableRow key={subtest.id}>
-                    <TableCell className="font-medium">
-                      {subtest.order}
-                    </TableCell>
-                    <TableCell>{subtest.name}</TableCell>
-                    <TableCell>{subtest.durationMinutes} Menit</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-blue-600 hover:bg-blue-50"
-                          onClick={() => {
-                            setSelectedSubtest(subtest);
-                            setIsEditDialogOpen(true);
-                          }}
-                          title="Edit Durasi"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[80px]">Urutan</TableHead>
+                <TableHead>Nama Subtes</TableHead>
+                <TableHead>Durasi</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subtests.map((subtest) => (
+                <TableRow key={subtest.id}>
+                  <TableCell className="font-mono text-xs font-medium">
+                    0{subtest.order}
+                  </TableCell>
+                  <TableCell className="font-semibold text-blue-900">
+                    {subtest.name}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {subtest.durationMinutes} menit
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          setSelectedSubtest(subtest);
+                          setIsEditDialogOpen(true);
+                        }}
+                        title="Ubah durasi"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button asChild variant="outline" size="sm">
                         <Link
                           href={`/admin/tryout/${createdTryoutId}/s/${subtest.id}`}
                         >
-                          <Button variant="outline" size="sm" className="h-8">
-                            <FileText className="w-3.5 h-3.5 mr-2" />
-                            Kelola Soal
-                          </Button>
+                          <FileText className="w-3.5 h-3.5 mr-1.5" />
+                          Kelola soal
                         </Link>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           <div className="flex justify-end mt-6">
-            <Button
-              onClick={handleFinish}
-              className="font-semibold w-full md:w-auto"
-            >
-              Selesai & Kembali
+            <Button onClick={handleFinish} variant="primary">
+              Selesai &amp; kembali
             </Button>
           </div>
         </CardContent>

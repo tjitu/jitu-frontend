@@ -2,22 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
 import {
   Users,
   Search,
   Calendar,
-  Filter,
   ArrowRight,
   Loader2,
-  Coins,
+  Check,
+  Clock,
 } from "lucide-react";
-
-// Components
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -25,41 +20,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Config
 import { BACKEND_URL } from "@/lib/api";
 
-// Interface untuk data Tryout
 interface TryOutData {
   id: string;
   title: string;
   number: string;
   participants: number;
   badge: string;
-  solutionPrice: number; // 0 = Gratis
+  solutionPrice: number;
   isPublic: boolean;
   scheduledStart: string | null;
   scheduledEnd: string | null;
-  isRegistered?: boolean; // Add this line
+  isRegistered?: boolean;
 }
 
 const TryoutModule = () => {
   const router = useRouter();
-  const { data: session } = useSession();
 
-  // --- States ---
   const [tryouts, setTryouts] = useState<TryOutData[]>([]);
   const [filteredTryouts, setFilteredTryouts] = useState<TryOutData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filters
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "registered" | "not-registered">("all");
+  const [activeTab, setActiveTab] = useState<
+    "all" | "registered" | "not-registered"
+  >("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
-  // --- Effects ---
-
-  // 1. Fetch Data Tryout dari Backend
   useEffect(() => {
     const fetchTryouts = async () => {
       try {
@@ -73,19 +61,17 @@ const TryoutModule = () => {
         if (!res.ok) throw new Error("Gagal mengambil data tryout");
 
         const data = await res.json();
-
-        // Mapping response backend ke UI Frontend
-        const mappedData: TryOutData[] = data.map((item: any) => ({
+        const mappedData: TryOutData[] = data.map((item: any, idx: number) => ({
           id: item.id,
           title: item.title,
-          number: item.number || "?",
+          number: item.number || String(idx + 1).padStart(2, "0"),
           participants: item.participants || 0,
           badge: item.badge || "SNBT",
-          solutionPrice: item.solutionPrice || 0, // Fallback ke 0 jika tidak ada
+          solutionPrice: item.solutionPrice || 0,
           isPublic: item.isPublic ?? true,
           scheduledStart: item.scheduledStart,
           scheduledEnd: item.scheduledEnd,
-          isRegistered: item.isRegistered ?? false, // Add this line
+          isRegistered: item.isRegistered ?? false,
         }));
 
         setTryouts(mappedData);
@@ -100,18 +86,15 @@ const TryoutModule = () => {
     fetchTryouts();
   }, []);
 
-  // 2. Filter Logic
   useEffect(() => {
     let result = [...tryouts];
 
-    // Filter by Tab
     if (activeTab === "registered") {
       result = result.filter((t) => t.isRegistered);
     } else if (activeTab === "not-registered") {
       result = result.filter((t) => !t.isRegistered);
     }
 
-    // Filter by Search
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(
@@ -121,7 +104,6 @@ const TryoutModule = () => {
       );
     }
 
-    // Sort
     result.sort((a, b) => {
       const dateA = new Date(a.scheduledStart || 0).getTime();
       const dateB = new Date(b.scheduledStart || 0).getTime();
@@ -131,158 +113,181 @@ const TryoutModule = () => {
     setFilteredTryouts(result);
   }, [tryouts, activeTab, searchQuery, sortOrder]);
 
-  // --- Handlers ---
-
-  const handleTryoutClick = (id: string) => {
-    router.push(`/tryout/${id}`);
+  const formatSlotDate = (dateStr: string | null) => {
+    if (!dateStr) return "2 Nov 2026";
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
-  // --- Render ---
-
   return (
-    <div className="min-h-screen pl-20 bg-gray-50/50 pt-24 pb-20 font-open-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-              Daftar Tryout
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Temukan tryout terbaik untuk persiapan ujianmu.
-            </p>
+    <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {/* Page Header */}
+      <div className="border-b-2 border-blue-900 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
+            JADWAL SIMULASI UTBK-SNBT
           </div>
+          <h1 className="font-display font-extrabold text-[34px] sm:text-[44px] leading-[1.02] tracking-[-0.025em] text-blue-900">
+            Daftar jadwal tryout
+          </h1>
         </div>
-
-        {/* Filter & Search Bar */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
-            
-            {/* Tabs */}
-            <div className="flex p-1 bg-gray-100 rounded-xl w-full md:w-auto">
-                <button 
-                    onClick={() => setActiveTab("all")}
-                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === "all" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                    Semua
-                </button>
-                <button 
-                    onClick={() => setActiveTab("registered")}
-                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === "registered" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                    Terdaftar
-                </button>
-                <button 
-                    onClick={() => setActiveTab("not-registered")}
-                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === "not-registered" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                >
-                    Belum Terdaftar
-                </button>
-            </div>
-
-            {/* Search & Sort */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-                <div className="relative flex-1 md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input 
-                        placeholder="Cari judul tryout..." 
-                        className="pl-9 bg-gray-50 border-gray-200 focus:bg-white transition-all"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                <Select value={sortOrder} onValueChange={(val: any) => setSortOrder(val)}>
-                    <SelectTrigger className="w-[140px] bg-gray-50 border-gray-200">
-                        <div className="flex items-center gap-2 text-gray-600">
-                            <Filter className="w-4 h-4" />
-                            <SelectValue placeholder="Urutkan" />
-                        </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="newest">Terbaru</SelectItem>
-                        <SelectItem value="oldest">Terlama</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
-
-        {/* Content Grid */}
-        {isLoading ? (
-            <div className="flex justify-center items-center py-24">
-                <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-            </div>
-        ) : filteredTryouts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-2xl border border-dashed border-gray-200">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                    <Search className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">Tidak ada tryout ditemukan</h3>
-                <p className="text-gray-500 mt-1">Coba ubah kata kunci atau filter pencarianmu.</p>
-                <Button 
-                    variant="link" 
-                    className="mt-4 text-blue-600"
-                    onClick={() => {setSearchQuery(""); setActiveTab("all");}}
-                >
-                    Reset Filter
-                </Button>
-            </div>
-        ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTryouts.map((tryout) => {
-                    const isPaid = tryout.solutionPrice > 0;
-                    
-                    return (
-                        <Card 
-                            key={tryout.id} 
-                            className="group border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer bg-white overflow-hidden"
-                            onClick={() => handleTryoutClick(tryout.id)}
-                        >
-                            <CardContent className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
-                                        {tryout.badge}
-                                    </Badge>
-                                    
-                                    {isPaid ? (
-                                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0">
-                                            <Coins className="w-3 h-3 mr-1" />
-                                            {tryout.solutionPrice} Token
-                                        </Badge>
-                                    ) : (
-                                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-0">
-                                            GRATIS
-                                        </Badge>
-                                    )}
-                                </div>
-
-                                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
-                                    {tryout.title}
-                                </h3>
-
-                                <div className="space-y-2 mb-6">
-                                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                                        <Calendar className="w-4 h-4 text-gray-400" />
-                                        <span>
-                                            {tryout.scheduledStart ? new Date(tryout.scheduledStart).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' }) : "Jadwal Belum Tersedia"}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                                        <Users className="w-4 h-4 text-gray-400" />
-                                        <span>{tryout.participants.toLocaleString()} Peserta</span>
-                                    </div>
-                                </div>
-
-                                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg group-hover:shadow-md transition-all">
-                                    Lihat Detail
-                                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </div>
-        )}
+        <p className="text-[16px] text-slate-700 max-w-md">
+          Semua jadwal gratis dikerjakan. Kuota cuma dipakai saat kamu membuka pembahasan.
+        </p>
       </div>
+
+      {/* Filter & Search Bar */}
+      <div className="bg-white border-2 border-blue-900 p-4 flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+        {/* Tabs (DESIGN.md Section 5: 16px/600 text, 3px blue-500 underline for active) */}
+        <div
+          role="tablist"
+          aria-label="Filter status pendaftaran"
+          className="inline-flex border-2 border-blue-900 bg-blue-50 divide-x divide-slate-300"
+        >
+          {[
+            { id: "all", label: "Semua" },
+            { id: "registered", label: "Terdaftar" },
+            { id: "not-registered", label: "Belum terdaftar" },
+          ].map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`min-h-[44px] px-4 py-2 text-[15px] font-semibold transition-colors cursor-pointer ${
+                  active
+                    ? "bg-white text-blue-900 border-b-[3px] border-b-blue-500"
+                    : "text-slate-700 hover:bg-blue-100"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search & Sort */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 stroke-[1.75] text-slate-700" />
+            <Input
+              placeholder="Cari nama gelombang…"
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Select
+            value={sortOrder}
+            onValueChange={(val: "newest" | "oldest") => setSortOrder(val)}
+          >
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <SelectValue placeholder="Urutkan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Terbaru</SelectItem>
+              <SelectItem value="oldest">Terlama</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Slot Grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((n) => (
+            <div
+              key={n}
+              className="h-64 bg-blue-100 border-2 border-blue-900 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : filteredTryouts.length === 0 ? (
+        <div className="p-10 border-2 border-dashed border-slate-500 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <p className="text-[16px] text-slate-700">
+            Tidak ada jadwal tryout yang cocok dengan pencarianmu.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setSearchQuery("");
+              setActiveTab("all");
+            }}
+          >
+            Tampilkan semua
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTryouts.map((tryout, idx) => {
+            const numLabel =
+              tryout.title.match(/\d+/)?.[0]?.padStart(2, "0") ||
+              String(idx + 1).padStart(2, "0");
+
+            return (
+              <article
+                key={tryout.id}
+                onClick={() => router.push(`/tryout/${tryout.id}`)}
+                className="p-6 bg-white border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)] hover:bg-blue-50/40 transition-colors cursor-pointer flex flex-col justify-between gap-5"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900 tabular-nums">
+                      TRYOUT #{numLabel}
+                    </span>
+                    {tryout.isRegistered ? (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-[2px] border-[1.5px] border-blue-900 bg-blue-100 font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
+                        <Check className="w-3 h-3 stroke-[1.75]" />
+                        <span>Terdaftar</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-[2px] border-[1.5px] border-blue-900 bg-signal font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
+                        <Clock className="w-3 h-3 stroke-[1.75]" />
+                        <span>Gratis · Rp0</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 34px Display Date (DESIGN.md Section 7) */}
+                  <div className="font-display font-extrabold text-[34px] leading-[1.02] tracking-[-0.025em] text-blue-900 tabular-nums">
+                    {formatSlotDate(tryout.scheduledStart)}
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-300 space-y-1.5">
+                    <h2 className="text-[18px] font-bold text-blue-900 leading-snug">
+                      {tryout.title}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-3 font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 tabular-nums">
+                      <span className="inline-flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5 stroke-[1.75]" />
+                        <span>{tryout.participants.toLocaleString("id-ID")} peserta</span>
+                      </span>
+                      <span>·</span>
+                      <span>
+                        Pembahasan {tryout.solutionPrice || 1} kuota
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  variant={tryout.isRegistered ? "primary" : "outline"}
+                  className="w-full justify-between"
+                >
+                  <span>{tryout.isRegistered ? "Kerjakan" : "Lihat jadwal"}</span>
+                  <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                </Button>
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

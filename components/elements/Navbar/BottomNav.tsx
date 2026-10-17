@@ -15,56 +15,49 @@ interface BottomNavProps {
   className?: string;
 }
 
+/**
+ * DESIGN.md Section 6.3 — Phones: bottom tab bar, 56px tall (h-14)
+ */
 const BottomNav = ({ items, className }: BottomNavProps) => {
   const path = usePathname();
   const router = useRouter();
 
   return (
-    <div
+    <nav
+      aria-label="Navigasi bawah"
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 shadow-lg md:hidden pb-safe",
+        "fixed bottom-0 left-0 right-0 z-20 bg-white border-t-2 border-blue-900 md:hidden",
         className
       )}
     >
-      <div className="flex justify-around items-center h-16">
-        {items.map((item) => {
-          // Check active state
-          // For admin, paths might be "admin/" vs "admin/tryout"
-          // We need robust checking.
-          // Logic from Navbars: path.endsWith(item.path) or startsWith depending on context.
-          // Let's stick to a simple check that works for both if possible, or accept minor deviation.
-          // Navbar.tsx uses: path.endsWith(item.path)
-          // AdminNavbar.tsx uses: path.endsWith(item.path)
-          
-          // However, for root paths like "dashboard" vs "dashboard/sub", endsWith might fail or be too specific.
-          // Let's try to match loosely if exact match fails, but start with the existing logic.
-          const isActive = path.endsWith(item.path) || path === `/${item.path}`;
+      <div className="grid grid-cols-5 h-14 divide-x divide-slate-300">
+        {items.slice(0, 5).map((item) => {
+          const cleanPath = item.path.replace(/\/$/, "");
+          const isActive =
+            path === `/${cleanPath}` ||
+            (cleanPath !== "admin" && path.startsWith(`/${cleanPath}/`));
 
           return (
             <button
               key={item.title}
+              type="button"
               onClick={() => router.push(`/${item.path}`)}
               className={cn(
-                "flex flex-col items-center justify-center w-full h-full space-y-1",
+                "flex flex-col items-center justify-center w-full h-full gap-0.5 transition-colors cursor-pointer",
                 isActive
-                  ? "text-primary font-semibold"
-                  : "text-muted-foreground hover:text-primary transition-colors"
+                  ? "bg-blue-50 text-blue-500 font-bold border-t-[3px] border-t-blue-500"
+                  : "bg-white text-slate-700 hover:bg-blue-50 hover:text-blue-900"
               )}
             >
-              <div
-                className={cn(
-                  "p-1.5 rounded-xl transition-all",
-                  isActive ? "bg-primary/10" : "bg-transparent"
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-              </div>
-              <span className="text-[10px]">{item.title}</span>
+              <item.icon className="h-4 w-4 stroke-[1.75]" aria-hidden="true" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.04em] truncate max-w-full px-1">
+                {item.title}
+              </span>
             </button>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 };
 

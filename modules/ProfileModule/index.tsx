@@ -3,11 +3,7 @@
 import {
   User,
   LogOut,
-  TrendingUp,
   History,
-  Award,
-  Coins,
-  Flame,
   Settings,
   Edit3,
   Shield,
@@ -15,9 +11,7 @@ import {
   Target,
   Lock,
   KeyRound,
-  ChevronRight,
   CreditCard,
-  AlertCircleIcon,
   Camera,
   Loader2,
 } from "lucide-react";
@@ -26,7 +20,6 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { BACKEND_URL } from "@/lib/api";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import PendingTransactionList from "../PendingTransactionsModule/components/PendingTransactionList";
 import PastTransactionList from "../PastTransactionsModule/components/PastTransactionList";
 import { useRouter } from "next/navigation";
@@ -44,7 +38,6 @@ import { useSession, signOut, changePassword } from "@/lib/auth-client";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-// --- Tipe Data (Interface) ---
 interface Attempt {
   id: string;
   title: string;
@@ -64,12 +57,10 @@ export default function ProfileModule() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
 
-  // -- State Tabs --
   const [activeTab, setActiveTab] = useState<
     "overview" | "history" | "transactions" | "settings"
   >("overview");
 
-  // -- State Data --
   const [stats, setStats] = useState<ProfileStats>({
     lastScore: 0,
     averageScore: 0,
@@ -79,12 +70,10 @@ export default function ProfileModule() {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // -- State Edit Profile --
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({ name: "", target: "" });
 
-  // -- State Password --
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -93,14 +82,8 @@ export default function ProfileModule() {
     confirmPassword: "",
   });
 
-  // Cek apakah user punya password (jika login Google biasanya false)
-  // Better Auth biasanya tidak mengekspos `hasPassword` secara langsung di session user standard,
-  // tapi kita bisa asumsikan dari `auth.providers`.
-  // Untuk simplifikasi, kita anggap semua user punya akses set password.
-  // Tapi sebaiknya check session.user.hasPassword jika available di schema Anda.
   const hasPassword = (session?.user as any)?.hasPassword ?? false;
 
-  // -- Profile Upload State --
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -109,28 +92,27 @@ export default function ProfileModule() {
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("image", file);
+    const uploadData = new FormData();
+    uploadData.append("image", file);
 
     try {
       const res = await fetch(`${BACKEND_URL}/dashboard/profile`, {
         method: "PUT",
-        body: formData,
+        body: uploadData,
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error("Gagal mengupload foto");
+      if (!res.ok) throw new Error("Gagal mengunggah foto.");
 
-      toast.success("Foto profil berhasil diperbarui!");
-      window.location.reload(); 
-    } catch (err) {
-      toast.error("Gagal mengupload foto");
+      toast.success("Foto profil diperbarui.");
+      window.location.reload();
+    } catch {
+      toast.error("Gagal mengunggah foto.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // -- 1. Fetch Data Tambahan (Client Side Proxy) --
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!session) return;
@@ -146,14 +128,13 @@ export default function ProfileModule() {
           if (data.stats) setStats(data.stats);
           if (data.attempts) setAttempts(data.attempts);
 
-          // Update local form data
           setFormData({
             name: session.user.name || "",
             target: (session.user as any).target || "",
           });
         }
       } catch (error) {
-        console.error("Gagal memuat data profile:", error);
+        console.error("Gagal memuat data profil:", error);
       } finally {
         setIsLoadingData(false);
       }
@@ -162,11 +143,10 @@ export default function ProfileModule() {
     fetchProfileData();
   }, [session]);
 
-  // -- 2. Logic Auth --
   if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-[60vh] flex items-center justify-center font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+        MEMUAT PROFIL...
       </div>
     );
   }
@@ -177,10 +157,10 @@ export default function ProfileModule() {
   }
 
   const user = {
-    name: session.user?.name || "Siswa Jitu",
+    name: session.user?.name || "Peserta Jitu",
     email: session.user?.email || "",
     image: session.user?.image || null,
-    target: (session.user as any).target || "-",
+    target: (session.user as any).target || "Belum diatur",
     tokenBalance: (session.user as any).tokenBalance || 0,
   };
 
@@ -188,18 +168,17 @@ export default function ProfileModule() {
     await signOut({
       fetchOptions: {
         onSuccess: () => {
-          toast.success("Berhasil keluar akun");
+          toast.success("Kamu sudah keluar dari akun.");
           router.replace("/login");
         },
       },
     });
   };
 
-  // -- 3. Handler Edit Profile --
   const openEditModal = () => {
     setFormData({
       name: user.name,
-      target: user.target === "-" ? "" : user.target,
+      target: user.target === "Belum diatur" ? "" : user.target,
     });
     setIsEditOpen(true);
   };
@@ -215,14 +194,11 @@ export default function ProfileModule() {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error("Gagal menyimpan profil");
+      if (!res.ok) throw new Error("Gagal menyimpan profil.");
 
-      toast.success("Profil berhasil diperbarui!");
+      toast.success("Profil disimpan.");
       setIsEditOpen(false);
-
-      // Refresh halaman agar session terupdate (atau update session manual jika didukung)
       router.refresh();
-      // Workaround: Force reload to update session cookie immediately
       window.location.reload();
     } catch (error) {
       console.error(error);
@@ -232,7 +208,6 @@ export default function ProfileModule() {
     }
   };
 
-  // -- 4. Handler Password --
   const resetPasswordModal = () => {
     setIsPasswordOpen(false);
     setPasswordForm({
@@ -244,19 +219,19 @@ export default function ProfileModule() {
 
   const handlePasswordAction = async () => {
     if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
-      toast.error("Password baru wajib diisi");
+      toast.error("Password baru wajib diisi.");
       return;
     }
     if (hasPassword && !passwordForm.currentPassword) {
-      toast.error("Password saat ini wajib diisi");
+      toast.error("Password saat ini wajib diisi.");
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error("Password baru tidak cocok");
+      toast.error("Konfirmasi password tidak cocok.");
       return;
     }
     if (passwordForm.newPassword.length < 8) {
-      toast.error("Minimal 8 karakter");
+      toast.error("Password minimal 8 karakter.");
       return;
     }
 
@@ -271,7 +246,7 @@ export default function ProfileModule() {
           },
           {
             onSuccess: () => {
-              toast.success("Password berhasil diubah!");
+              toast.success("Password berhasil diubah.");
               resetPasswordModal();
             },
             onError: (ctx) => {
@@ -290,117 +265,116 @@ export default function ProfileModule() {
 
         if (!res.ok) {
           const errData = await res.json();
-          throw new Error(errData.message || "Gagal membuat password");
+          throw new Error(errData.message || "Gagal membuat password.");
         }
 
-        toast.success("Password berhasil dibuat! Silakan login ulang.");
+        toast.success("Password berhasil dibuat.");
         resetPasswordModal();
         router.refresh();
       }
     } catch (error: any) {
-      toast.error(error.message || "Terjadi kesalahan sistem");
+      toast.error(error.message || "Gagal menyimpan password.");
     } finally {
       setIsPasswordSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 font-sans text-slate-900">
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-8 md:flex md:items-center md:justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="relative group">
-              <div 
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-slate-50 shadow-sm overflow-hidden bg-slate-100 relative cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {user.image ? (
-                  <Image
-                    src={user.image}
-                    alt={user.name}
-                    fill
-                    className="object-cover rounded-full"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full text-slate-400">
-                    <User size={40} />
-                  </div>
-                )}
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Profile Sheet Header */}
+      <div className="bg-white border-2 border-blue-900 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-hard-sm">
+        <div className="flex items-start sm:items-center gap-5">
+          <div className="relative group shrink-0">
+            <div
+              className="w-20 h-20 border-2 border-blue-900 bg-blue-50 relative cursor-pointer overflow-hidden"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {user.image ? (
+                <Image
+                  src={user.image}
+                  alt={user.name}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full text-blue-700">
+                  <User size={32} />
+                </div>
+              )}
 
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full z-10">
-                    <Loader2 className="w-6 h-6 text-white animate-spin" />
-                  </div>
-                )}
+              {isUploading && (
+                <div className="absolute inset-0 bg-blue-900/60 flex items-center justify-center z-10">
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                </div>
+              )}
 
-                {!isUploading && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
-                )}
-              </div>
+              {!isUploading && (
+                <div className="absolute inset-0 bg-blue-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <Camera className="w-5 h-5 text-white" />
+                </div>
+              )}
+            </div>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
 
+            <button
+              type="button"
+              onClick={openEditModal}
+              className="absolute -bottom-1.5 -right-1.5 bg-signal p-1.5 border-[1.5px] border-blue-900 text-blue-900 hover:bg-amber-300 transition-colors cursor-pointer z-20"
+              title="Ubah profil"
+            >
+              <Edit3 size={12} />
+            </button>
+          </div>
+
+          <div>
+            <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-0.5">
+              PESERTA SNBT 2026
+            </div>
+            <h1 className="font-display text-2xl font-bold text-blue-900">
+              {user.name}
+            </h1>
+            <p className="font-mono text-xs text-slate-600 mb-3">
+              {user.email}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="default">
+                <Target size={12} className="mr-1.5" />
+                TARGET: {user.target}
+              </Badge>
               <button
-                onClick={openEditModal}
-                className="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow border border-slate-200 text-slate-600 hover:text-blue-600 transition-colors cursor-pointer z-20"
+                type="button"
+                onClick={() => router.push("/shop")}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-blue-900 bg-signal font-mono text-xs font-medium text-blue-900 uppercase"
               >
-                <Edit3 size={14} />
+                KUOTA: {user.tokenBalance}
               </button>
             </div>
-
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">{user.name}</h1>
-              <p className="text-slate-500 text-sm mb-2">{user.email}</p>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant="secondary"
-                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-                >
-                  Member Siswa
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="text-slate-600 border-slate-200 gap-1"
-                >
-                  <Target size={12} />
-                  {(session.user as any).target}
-                </Badge>
-                <div
-                  onClick={() => router.push("/shop")}
-                  className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 cursor-pointer hover:bg-amber-100 transition-colors"
-                >
-                  <Coins size={12} className="fill-amber-500 text-amber-500" />
-                  {user.tokenBalance} Token
-                </div>
-              </div>
-            </div>
           </div>
+        </div>
 
-          <div className="mt-6 md:mt-0 flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" onClick={() => router.push("/shop")}>
-              <Coins className="mr-2 h-4 w-4 text-amber-500" />
-              Isi Token
-            </Button>
-            <Button onClick={() => router.push("/tryout")}>
-              Mulai Tryout Baru
-            </Button>
-          </div>
+        <div className="flex flex-wrap gap-2.5">
+          <Button variant="outline" onClick={() => router.push("/shop")}>
+            Beli kuota
+          </Button>
+          <Button variant="default" onClick={() => router.push("/tryout")}>
+            Pilih tryout
+          </Button>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* SIDEBAR MENU */}
-        <div className="lg:col-span-3 space-y-6">
-          <nav className="flex flex-col space-y-1">
+      {/* Body Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Navigation */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="bg-white border-2 border-blue-900 divide-y divide-blue-100">
             <MenuButton
               active={activeTab === "overview"}
               onClick={() => setActiveTab("overview")}
@@ -411,125 +385,123 @@ export default function ProfileModule() {
               active={activeTab === "history"}
               onClick={() => setActiveTab("history")}
               icon={History}
-              label="Riwayat Tryout"
+              label="Riwayat tryout"
             />
             <MenuButton
               active={activeTab === "transactions"}
               onClick={() => setActiveTab("transactions")}
               icon={CreditCard}
-              label="Transaksi"
+              label="Transaksi kuota"
             />
             <MenuButton
               active={activeTab === "settings"}
               onClick={() => setActiveTab("settings")}
               icon={Settings}
-              label="Pengaturan"
+              label="Pengaturan akun"
             />
-          </nav>
+          </div>
 
-          <Card className="bg-slate-50 border-dashed border-slate-200 shadow-none">
-            <CardContent className="p-4">
-              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                Lainnya
-              </h4>
-              <div className="space-y-1">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-slate-600 hover:text-slate-900 hover:bg-white h-9 px-2"
-                  onClick={() =>
-                    window.open("https://wa.me/628123456789", "_blank")
-                  }
-                >
-                  <Shield className="mr-2 h-4 w-4 text-slate-400" />
-                  Hubungi Admin
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-2"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Keluar Akun
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-white border-2 border-blue-900 p-4 space-y-2">
+            <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-slate-500">
+              AKSI AKUN
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+              onClick={() =>
+                window.open("https://wa.me/628123456789", "_blank")
+              }
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Hubungi bantuan
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full justify-start"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Keluar akun
+            </Button>
+          </div>
         </div>
 
-        {/* CONTENT */}
+        {/* Main Content */}
         <div className="lg:col-span-9 space-y-6">
           {activeTab === "overview" && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <StatCard
-                  title="Skor Terakhir"
-                  value={stats.lastScore}
-                  icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
-                  trend="Update real-time"
-                />
-                <StatCard
-                  title="Rata-rata"
-                  value={stats.averageScore}
-                  icon={<Award className="h-5 w-5 text-purple-600" />}
-                  trend="Dari semua TO"
-                />
-                <StatCard
-                  title="Total Tryout"
-                  value={stats.totalTryout}
-                  icon={<Flame className="h-5 w-5 text-orange-600" />}
-                  trend="Terus tingkatkan!"
-                />
+                <div className="bg-white border-2 border-blue-900 p-5">
+                  <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+                    SKOR TERAKHIR
+                  </div>
+                  <div className="font-mono text-3xl font-medium text-blue-900">
+                    {stats.lastScore || "-"}
+                  </div>
+                </div>
+                <div className="bg-white border-2 border-blue-900 p-5">
+                  <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+                    RATA-RATA IRT
+                  </div>
+                  <div className="font-mono text-3xl font-medium text-blue-900">
+                    {stats.averageScore || "-"}
+                  </div>
+                </div>
+                <div className="bg-white border-2 border-blue-900 p-5">
+                  <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+                    TRYOUT SELESAI
+                  </div>
+                  <div className="font-mono text-3xl font-medium text-blue-900">
+                    {stats.totalTryout}
+                  </div>
+                </div>
               </div>
 
               {stats.totalTryout === 0 && (
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-6 text-white shadow-lg">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-xl font-bold mb-1">
-                        Belum ada riwayat belajar?
-                      </h3>
-                      <p className="text-blue-100 text-sm">
-                        Yuk kerjakan Tryout pertamamu untuk mengukur kemampuan!
-                      </p>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      onClick={() => router.push("/tryout")}
-                      className="whitespace-nowrap"
-                    >
-                      Coba Tryout Gratis
-                    </Button>
+                <div className="bg-blue-800 text-white border-2 border-blue-900 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-white">
+                      Belum ada tryout yang dikerjakan
+                    </h3>
+                    <p className="text-sm text-blue-100 mt-0.5">
+                      Coba 1 paket tryout gratis untuk lihat baseline skor IRT
+                      kamu.
+                    </p>
                   </div>
+                  <Button
+                    variant="default"
+                    onClick={() => router.push("/tryout")}
+                  >
+                    Coba tryout gratis
+                  </Button>
                 </div>
               )}
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-lg font-bold">
-                    Aktivitas Terakhir
-                  </CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Tryout terakhir</CardTitle>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveTab("history")}
-                    className="text-xs"
                   >
-                    Lihat Semua <ChevronRight className="ml-1 h-3 w-3" />
+                    Lihat semua
                   </Button>
                 </CardHeader>
                 <CardContent>
                   {attempts.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="divide-y divide-blue-100">
                       {attempts.slice(0, 3).map((attempt) => (
                         <HistoryItem key={attempt.id} attempt={attempt} />
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-slate-500 text-sm">
+                    <div className="text-center py-8 text-slate-600 text-sm">
                       {isLoadingData
                         ? "Memuat data..."
-                        : "Belum ada aktivitas."}
+                        : "Belum ada tryout yang selesai."}
                     </div>
                   )}
                 </CardContent>
@@ -540,29 +512,28 @@ export default function ProfileModule() {
           {activeTab === "history" && (
             <Card>
               <CardHeader>
-                <CardTitle>Riwayat Pengerjaan</CardTitle>
+                <CardTitle>Riwayat pengerjaan</CardTitle>
               </CardHeader>
               <CardContent>
                 {attempts.length > 0 ? (
-                  <div className="space-y-0 divide-y divide-slate-100">
+                  <div className="divide-y divide-blue-100">
                     {attempts.map((attempt) => (
                       <HistoryItem key={attempt.id} attempt={attempt} />
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="bg-slate-100 p-4 rounded-full mb-4">
-                      <History className="h-8 w-8 text-slate-400" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900">
-                      Belum Ada Riwayat
-                    </h3>
-                    <p className="text-slate-500 text-sm max-w-xs mt-1 mb-4">
-                      Kamu belum mengerjakan tryout apapun. Mulai sekarang untuk
-                      melihat progresmu.
+                  <div className="py-12 text-center space-y-3">
+                    <p className="font-mono text-xs uppercase tracking-[0.08em] text-slate-500">
+                      KOSONG
                     </p>
-                    <Button onClick={() => router.push("/tryout")}>
-                      Mulai Tryout
+                    <p className="text-sm text-slate-700">
+                      Belum ada tryout yang selesai.
+                    </p>
+                    <Button
+                      variant="default"
+                      onClick={() => router.push("/tryout")}
+                    >
+                      Pilih tryout
                     </Button>
                   </div>
                 )}
@@ -571,19 +542,16 @@ export default function ProfileModule() {
           )}
 
           {activeTab === "transactions" && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <AlertCircleIcon className="w-5 h-5 text-amber-500" />
-                  Menunggu Pembayaran
+                <h3 className="font-display text-lg font-bold text-blue-900 mb-3">
+                  Menunggu pembayaran
                 </h3>
                 <PendingTransactionList />
               </div>
-              <Separator />
               <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <History className="w-5 h-5 text-slate-500" />
-                  Riwayat Pembelian
+                <h3 className="font-display text-lg font-bold text-blue-900 mb-3">
+                  Riwayat pembelian
                 </h3>
                 <PastTransactionList />
               </div>
@@ -592,67 +560,41 @@ export default function ProfileModule() {
 
           {activeTab === "settings" && (
             <Card>
-              <CardHeader>
-                <CardTitle>Pengaturan Akun</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Pengaturan akun</CardTitle>
+                <Button variant="outline" size="sm" onClick={openEditModal}>
+                  <Edit3 className="w-3.5 h-3.5 mr-1.5" />
+                  Ubah profil
+                </Button>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Informasi Profil</h4>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={openEditModal}
-                      className="h-8"
-                    >
-                      <Edit3 className="w-3 h-3 mr-2" /> Edit Data
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-sm font-medium text-slate-700">
-                        Nama Lengkap
-                      </label>
-                      <div className="p-2 border rounded-md bg-slate-50 text-slate-600 text-sm">
-                        {user.name}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-sm font-medium text-slate-700">
-                        Target Kampus
-                      </label>
-                      <div className="p-2 border rounded-md bg-slate-50 text-slate-600 text-sm">
-                        {user.target}
-                      </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label>NAMA LENGKAP</Label>
+                    <div className="p-3 border-[1.5px] border-blue-200 bg-blue-50 text-blue-900 text-sm font-medium">
+                      {user.name}
                     </div>
                   </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">
-                      Email Terdaftar
-                    </label>
-                    <div className="p-2 border rounded-md bg-slate-50 text-slate-500 text-sm flex items-center justify-between">
-                      {user.email}
-                      <Badge
-                        variant="outline"
-                        className="text-green-600 bg-green-50 border-green-200"
-                      >
-                        Terverifikasi
-                      </Badge>
+                  <div>
+                    <Label>TARGET KAMPUS &amp; PRODI</Label>
+                    <div className="p-3 border-[1.5px] border-blue-200 bg-blue-50 text-blue-900 text-sm font-medium">
+                      {user.target}
                     </div>
                   </div>
                 </div>
 
-                <Separator />
-
                 <div>
-                  <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                    <Shield className="h-4 w-4" /> Keamanan
-                  </h4>
+                  <Label>EMAIL TERDAFTAR</Label>
+                  <div className="p-3 border-[1.5px] border-blue-200 bg-blue-50 text-blue-900 text-sm flex items-center justify-between">
+                    <span className="font-mono text-xs">{user.email}</span>
+                    <Badge variant="success">AKTIF</Badge>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-blue-100">
+                  <Label>KEAMANAN AKUN</Label>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-slate-600 hover:text-slate-900"
                     onClick={() => setIsPasswordOpen(true)}
                   >
                     {hasPassword ? (
@@ -660,7 +602,7 @@ export default function ProfileModule() {
                     ) : (
                       <KeyRound className="w-4 h-4 mr-2" />
                     )}
-                    {hasPassword ? "Ubah Password" : "Buat Password Akun"}
+                    {hasPassword ? "Ubah password" : "Buat password"}
                   </Button>
                 </div>
               </CardContent>
@@ -669,69 +611,69 @@ export default function ProfileModule() {
         </div>
       </div>
 
-      {/* --- Dialog Edit Profile --- */}
+      {/* Edit Profile Modal */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Profil</DialogTitle>
+            <DialogTitle>Ubah profil</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Nama Lengkap
-              </label>
+          <div className="grid gap-4 py-3">
+            <div>
+              <Label htmlFor="name">NAMA LENGKAP</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="Masukkan nama lengkap"
+                placeholder="Nama lengkap kamu"
               />
             </div>
-            <div className="grid gap-2">
-              <label htmlFor="target" className="text-sm font-medium">
-                Target Kampus/Jurusan
-              </label>
+            <div>
+              <Label htmlFor="target">TARGET KAMPUS / PRODI</Label>
               <Input
                 id="target"
                 value={formData.target}
                 onChange={(e) =>
                   setFormData({ ...formData, target: e.target.value })
                 }
-                placeholder="Contoh: Kedokteran UI 2026"
+                placeholder="Contoh: STEI ITB · Informatika"
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button variant="outline" type="button">
                 Batal
               </Button>
             </DialogClose>
-            <Button onClick={handleSaveProfile} disabled={isSaving}>
-              {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
+            <Button
+              variant="default"
+              onClick={handleSaveProfile}
+              disabled={isSaving}
+            >
+              {isSaving ? "Menyimpan..." : "Simpan"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* --- Dialog Password --- */}
+      {/* Change Password Modal */}
       <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {hasPassword ? "Ubah Password" : "Buat Password Baru"}
+              {hasPassword ? "Ubah password" : "Buat password baru"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-3">
             {hasPassword && (
-              <div className="grid gap-2">
-                <label className="text-sm font-medium">Password Saat Ini</label>
+              <div>
+                <Label>PASSWORD SAAT INI</Label>
                 <Input
                   type="password"
-                  placeholder="******"
+                  placeholder="••••••••"
                   value={passwordForm.currentPassword}
                   onChange={(e) =>
                     setPasswordForm({
@@ -743,8 +685,8 @@ export default function ProfileModule() {
               </div>
             )}
 
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Password Baru</label>
+            <div>
+              <Label>PASSWORD BARU</Label>
               <Input
                 type="password"
                 placeholder="Minimal 8 karakter"
@@ -758,13 +700,11 @@ export default function ProfileModule() {
               />
             </div>
 
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">
-                Konfirmasi Password Baru
-              </label>
+            <div>
+              <Label>ULANGI PASSWORD BARU</Label>
               <Input
                 type="password"
-                placeholder="Ulangi password baru"
+                placeholder="Ketik ulang password baru"
                 value={passwordForm.confirmPassword}
                 onChange={(e) =>
                   setPasswordForm({
@@ -774,28 +714,20 @@ export default function ProfileModule() {
                 }
               />
             </div>
-
-            {!hasPassword && (
-              <p className="text-xs text-slate-500 bg-blue-50 p-2 rounded border border-blue-100">
-                Karena Anda login menggunakan Google/Akun lain, Anda belum
-                memiliki password. Buat password sekarang agar bisa login
-                menggunakan Email & Password.
-              </p>
-            )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button variant="outline" type="button">
                 Batal
               </Button>
             </DialogClose>
-            <Button onClick={handlePasswordAction} disabled={isPasswordSaving}>
-              {isPasswordSaving
-                ? "Menyimpan..."
-                : hasPassword
-                  ? "Simpan Password"
-                  : "Buat Password"}
+            <Button
+              variant="default"
+              onClick={handlePasswordAction}
+              disabled={isPasswordSaving}
+            >
+              {isPasswordSaving ? "Menyimpan..." : "Simpan password"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -804,67 +736,47 @@ export default function ProfileModule() {
   );
 }
 
-// --- Sub-Components ---
-
 function MenuButton({ active, onClick, icon: Icon, label }: any) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors ${
         active
-          ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-200"
-          : "text-slate-600 hover:bg-white hover:text-slate-900"
+          ? "bg-blue-800 text-white"
+          : "bg-white text-blue-900 hover:bg-blue-50"
       }`}
     >
       <Icon
-        className={`h-4 w-4 ${active ? "text-blue-600" : "text-slate-400"}`}
+        className={`h-4 w-4 ${active ? "text-signal" : "text-blue-700"}`}
       />
-      {label}
+      <span>{label}</span>
     </button>
-  );
-}
-
-function StatCard({ title, value, icon, trend }: any) {
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-slate-500">{title}</span>
-          <div className="p-2 bg-slate-50 rounded-lg">{icon}</div>
-        </div>
-        <div className="text-2xl font-bold text-slate-900">{value}</div>
-        <p className="text-xs text-slate-400 mt-1">{trend}</p>
-      </CardContent>
-    </Card>
   );
 }
 
 function HistoryItem({ attempt }: { attempt: Attempt }) {
   const dateStr = new Date(attempt.date).toLocaleDateString("id-ID", {
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
   });
 
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group">
+    <div className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
       <div>
-        <h4 className="font-semibold text-slate-900 text-sm group-hover:text-blue-700 transition-colors">
-          {attempt.title}
-        </h4>
-        <p className="text-xs text-slate-500 mt-0.5">{dateStr}</p>
+        <h4 className="font-semibold text-blue-900 text-sm">{attempt.title}</h4>
+        <p className="font-mono text-xs text-slate-600 mt-0.5">{dateStr}</p>
       </div>
-      <div className="text-right">
-        <div className="text-lg font-bold text-slate-900">{attempt.score}</div>
-        <span
-          className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-            attempt.score >= 700
-              ? "bg-green-100 text-green-700"
-              : "bg-slate-100 text-slate-600"
-          }`}
-        >
-          {attempt.status}
-        </span>
+      <div className="text-right flex items-center gap-3">
+        <div>
+          <div className="font-mono text-lg font-medium text-blue-900">
+            {attempt.score}
+          </div>
+          <div className="font-mono text-[10px] uppercase text-slate-500">
+            {attempt.status}
+          </div>
+        </div>
       </div>
     </div>
   );

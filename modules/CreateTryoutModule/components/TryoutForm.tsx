@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -19,7 +20,7 @@ interface TryoutFormProps {
   handleChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => void;
   handleSwitchChange: (name: string, checked: boolean) => void;
   handleSubmit: (e: React.FormEvent) => void;
@@ -39,116 +40,99 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
 }) => {
   return (
     <Card
-      className={`border-border/50 shadow-sm transition-opacity duration-300 ${
-        !isEdit && createdTryoutId ? "opacity-75" : "opacity-100"
-      }`}
+      className={!isEdit && createdTryoutId ? "opacity-80" : "opacity-100"}
     >
       <CardHeader>
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start gap-4">
           <div>
             <CardTitle>
-              {isEdit ? "Edit Informasi Tryout" : "Informasi Tryout"}
+              {isEdit ? "Informasi tryout" : "Detail tryout baru"}
             </CardTitle>
             <CardDescription>
-              {isEdit
-                ? "Ubah detail tryout di bawah ini."
-                : "Masukkan detail lengkap mengenai tryout yang akan dibuat."}
+              Atur nama, jadwal pelaksanaan, dan kebutuhan kuota pembahasan.
             </CardDescription>
           </div>
           {!isEdit && createdTryoutId && (
-            <Badge
-              variant="outline"
-              className="bg-green-50 text-green-700 border-green-200"
-            >
+            <Badge variant="success">
               <CheckCircle2 className="w-3 h-3 mr-1" />
-              Tersimpan
+              TERSIMPAN
             </Badge>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <fieldset
             disabled={!isEdit && !!createdTryoutId}
-            className="space-y-6 group-disabled:opacity-50"
+            className="space-y-5 group-disabled:opacity-50"
           >
-            <div className="space-y-2">
-              <Label htmlFor="title">Nama Tryout</Label>
+            <div>
+              <Label htmlFor="title">NAMA TRYOUT</Label>
               <Input
                 id="title"
                 name="title"
-                placeholder="Contoh: Tryout Akbar SNBT 2026"
+                placeholder="Contoh: Tryout #15 · Simulasi SNBT 2026"
                 required
                 value={formData.title}
                 onChange={handleChange}
-                className="px-3"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi (Opsional)</Label>
-              <textarea
+            <div>
+              <Label htmlFor="description">DESKRIPSI</Label>
+              <Textarea
                 id="description"
                 name="description"
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Deskripsi singkat mengenai tryout ini..."
+                placeholder="Deskripsi singkat tryout..."
                 value={formData.description}
                 onChange={handleChange}
               />
             </div>
 
-            {/* Access Control Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base flex items-center gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="p-4 border-2 border-blue-900 bg-blue-50 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-blue-900 flex items-center gap-1.5">
                       {formData.isPublic ? (
-                        <Globe className="h-4 w-4 text-blue-500" />
+                        <Globe className="h-3.5 w-3.5 text-blue-600" />
                       ) : (
-                        <Lock className="h-4 w-4 text-orange-500" />
+                        <Lock className="h-3.5 w-3.5 text-warn" />
                       )}
-                      Akses Tryout
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
+                      AKSES TRYOUT
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5">
                       {formData.isPublic
-                        ? "Publik: Dapat diakses semua user."
-                        : "Privat: Butuh kode referral."}
+                        ? "Publik: terbuka untuk semua peserta"
+                        : "Privat: wajib kode akses"}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">
-                      {formData.isPublic ? "Publik" : "Privat"}
-                    </span>
-                    <Switch
-                      checked={formData.isPublic}
-                      onCheckedChange={(checked) =>
-                        handleSwitchChange("isPublic", checked)
-                      }
-                    />
-                  </div>
+                  <Switch
+                    checked={formData.isPublic}
+                    onCheckedChange={(checked) =>
+                      handleSwitchChange("isPublic", checked)
+                    }
+                  />
                 </div>
 
                 {!formData.isPublic && (
-                  <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Label htmlFor="referralCode" className="text-xs">
-                      Kode Referral / Akses
-                    </Label>
+                  <div className="pt-2">
+                    <Label htmlFor="referralCode">KODE AKSES</Label>
                     <Input
                       id="referralCode"
                       name="referralCode"
                       placeholder="CONTOH: AKSES-JITU"
                       value={formData.referralCode}
                       onChange={handleChange}
-                      className="mt-1 h-8 font-mono uppercase bg-white px-3"
+                      className="font-mono uppercase"
                       required={!formData.isPublic}
                     />
                   </div>
                 )}
               </div>
 
-              <div className="space-y-2 flex flex-col justify-end">
-                <Label htmlFor="solutionPrice">Harga Tryout (Token)</Label>
+              <div>
+                <Label htmlFor="solutionPrice">KUOTA PEMBAHASAN</Label>
                 <Input
                   id="solutionPrice"
                   name="solutionPrice"
@@ -157,42 +141,31 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
                   required
                   value={formData.solutionPrice}
                   onChange={handleChange}
-                  className="px-3"
+                  className="font-mono"
                 />
-                <p className="text-[0.8rem] text-muted-foreground">
-                  Masukkan 0 untuk gratis.
+                <p className="font-mono text-[11px] text-slate-600 mt-1">
+                  Isi 0 untuk tryout gratis.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="batch">Kategori (Batch)</Label>
-                <div className="relative">
-                  <select
-                    id="batch"
-                    name="batch"
-                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                    value={formData.batch}
-                    onChange={handleChange}
-                  >
-                    <option value="SNBT">SNBT</option>
-                    <option value="MANDIRI">MANDIRI</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <svg
-                      className="fill-current h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                    </svg>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <Label htmlFor="batch">KATEGORI BATCH</Label>
+                <select
+                  id="batch"
+                  name="batch"
+                  className="flex h-11 w-full border-[1.5px] border-slate-300 bg-white px-3.5 py-2 text-sm text-blue-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  value={formData.batch}
+                  onChange={handleChange}
+                >
+                  <option value="SNBT">SNBT</option>
+                  <option value="MANDIRI">MANDIRI</option>
+                </select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="releaseDate">Tanggal Rilis</Label>
+              <div>
+                <Label htmlFor="releaseDate">TANGGAL RILIS</Label>
                 <Input
                   id="releaseDate"
                   name="releaseDate"
@@ -200,14 +173,14 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
                   required
                   value={formData.releaseDate}
                   onChange={handleChange}
-                  className="px-3"
+                  className="font-mono"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="scheduledStart">Jadwal Mulai</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <Label htmlFor="scheduledStart">JADWAL MULAI</Label>
                 <Input
                   id="scheduledStart"
                   name="scheduledStart"
@@ -215,12 +188,12 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
                   required
                   value={formData.scheduledStart}
                   onChange={handleChange}
-                  className="px-3"
+                  className="font-mono"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="scheduledEnd">Jadwal Selesai</Label>
+              <div>
+                <Label htmlFor="scheduledEnd">JADWAL SELESAI</Label>
                 <Input
                   id="scheduledEnd"
                   name="scheduledEnd"
@@ -228,19 +201,15 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
                   required
                   value={formData.scheduledEnd}
                   onChange={handleChange}
-                  className="px-3"
+                  className="font-mono"
                 />
               </div>
             </div>
           </fieldset>
 
           {(!createdTryoutId || isEdit) && (
-            <div className="flex justify-end pt-4">
-              <Button
-                type="submit"
-                className="w-full md:w-auto font-semibold"
-                disabled={isLoading}
-              >
+            <div className="flex justify-end pt-2">
+              <Button type="submit" variant="default" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -249,7 +218,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    {isEdit ? "Simpan Perubahan" : "Simpan & Buat Subtest"}
+                    {isEdit ? "Simpan perubahan" : "Simpan & buat subtes"}
                   </>
                 )}
               </Button>

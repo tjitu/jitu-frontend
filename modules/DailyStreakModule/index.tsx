@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
-import { Flame, Trophy, Calendar, Target, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, BookOpen } from "lucide-react";
 import {
   getDailyQuestion,
   getUserStreak,
@@ -16,14 +17,14 @@ const DailyStreakModule = () => {
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [totalProblemsSolved, setTotalProblemsSolved] = useState(0);
-  const [currentProblem, setCurrentProblem] = useState<APIDailyQuestion | null>(
-    null
-  );
+  const [currentProblem, setCurrentProblem] =
+    useState<APIDailyQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadDailyData();
@@ -32,18 +33,16 @@ const DailyStreakModule = () => {
   const loadDailyData = async () => {
     try {
       setLoading(true);
-      
-      // Load streak data
+
       const streakData = await getUserStreak();
       setStreak(streakData.currentStreak);
       setBestStreak(streakData.bestStreak);
       setTotalProblemsSolved(streakData.totalProblemsSolved);
 
-      // Load today's question
       const questionData = await getDailyQuestion();
       setCurrentProblem(questionData.question);
       setIsAnswered(questionData.alreadyAnswered);
-      
+
       if (questionData.alreadyAnswered) {
         if (questionData.isCorrect !== undefined) {
           setIsCorrect(questionData.isCorrect);
@@ -51,13 +50,10 @@ const DailyStreakModule = () => {
         if (questionData.userAnswer) {
           setSelectedAnswer(questionData.userAnswer);
         }
-        // Fetch explanation if needed, but current API doesn't return it in getDailyQuestion for answered state.
-        // We might need to assume it's shown or handled elsewhere.
-        // For now, let's at least show the user's answer.
       }
     } catch (error) {
       console.error("Failed to load daily data:", error);
-      toast.error("Gagal memuat data harian");
+      toast.error("Data gagal dimuat. Muat ulang halaman.");
     } finally {
       setLoading(false);
     }
@@ -66,293 +62,284 @@ const DailyStreakModule = () => {
   const handleAnswerSubmit = async () => {
     if (!currentProblem || !selectedAnswer) return;
 
+    setSubmitting(true);
     try {
       const result = await submitAnswerApi(currentProblem.id, selectedAnswer);
-      
+
       if (result.success) {
         setIsCorrect(result.isCorrect || false);
         setIsAnswered(true);
         setExplanation(result.explanation || null);
-        
+
         if (result.newStreak !== undefined) {
           setStreak(result.newStreak);
           setBestStreak(Math.max(bestStreak, result.newStreak));
         }
-        
+
         if (result.isCorrect) {
           setTotalProblemsSolved(totalProblemsSolved + 1);
-          toast.success("Jawaban benar! Streak kamu bertambah! 🔥");
+          toast.success("Jawaban benar. Streak harian bertambah.");
         } else {
-          toast.error("Jawaban salah. Coba lagi besok!");
+          toast.error("Jawaban belum tepat. Cek pembahasan di bawah.");
         }
       } else {
-        toast.error(result.message || "Gagal mengirim jawaban");
+        toast.error(result.message || "Gagal mengirim jawaban.");
       }
     } catch (error) {
       console.error("Failed to submit answer:", error);
-      toast.error("Gagal mengirim jawaban");
+      toast.error("Gagal mengirim jawaban.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen pl-20 bg-gradient-to-br from-orange-50 via-pink-50 to-yellow-50 pt-24 pb-20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuat soal harian...</p>
-        </div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+          MEMUAT LATIHAN HARIAN...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pl-20 bg-gradient-to-br from-orange-50 via-pink-50 to-yellow-50 pt-24 pb-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Header */}
-        <div className="pt-8 pb-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Flame className="w-7 h-7 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900">Daily Streak</h1>
-          </div>
-          <p className="text-gray-600 text-lg">
-            Latih kemampuanmu setiap hari dan tingkatkan streak-mu! 🔥
+    <div className="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b-2 border-blue-900">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+            LATIHAN HARIAN · 1 SOAL TIAP HARI
+          </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+            Latihan harian SNBT
+          </h1>
+          <p className="text-sm text-slate-700 mt-1">
+            Jawab 1 soal pilihan tiap hari untuk jaga ritme pengerjaanmu.
           </p>
         </div>
+        <div className="bg-signal border-2 border-blue-900 px-3.5 py-2 font-mono text-xs font-medium text-blue-900 uppercase tracking-[0.06em]">
+          STREAK: {streak} HARI
+        </div>
+      </div>
 
-        {/* Streak Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-orange-500 to-pink-500 text-white border-0 shadow-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Flame className="w-8 h-8" />
-                <div>
-                  <p className="text-sm opacity-90">Current Streak</p>
-                  <p className="text-3xl font-bold">{streak} hari</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white border-0 shadow-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Trophy className="w-8 h-8" />
-                <div>
-                  <p className="text-sm opacity-90">Best Streak</p>
-                  <p className="text-3xl font-bold">{bestStreak} hari</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-pink-500 to-purple-500 text-white border-0 shadow-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Target className="w-8 h-8" />
-                <div>
-                  <p className="text-sm opacity-90">Problems Solved</p>
-                  <p className="text-3xl font-bold">{totalProblemsSolved}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* 3 Fact-Sheet Stat Boxes */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white border-2 border-blue-900 p-5">
+          <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+            STREAK AKTIF
+          </div>
+          <div className="font-mono text-3xl font-medium text-blue-900">
+            {streak} hari
+          </div>
         </div>
 
-        {/* Daily Problem */}
-        <Card className="bg-white rounded-2xl shadow-lg border-2 border-orange-100">
-          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-orange-50 to-pink-50">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Calendar className="w-6 h-6 text-orange-500" />
-                Soal Hari Ini
-              </CardTitle>
-              {isAnswered && (
-                <div
-                  className={`px-4 py-2 rounded-full font-semibold ${
-                    isCorrect
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {isCorrect ? "✓ Benar!" : "✗ Salah"}
-                </div>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="p-8">
-            {currentProblem ? (
-              <div className="space-y-6">
-                {/* Question Image */}
-                {currentProblem.imageUrl && (
-                  <div className="mb-4">
-                    <img
-                      src={currentProblem.imageUrl}
-                      alt="Question"
-                      className="max-w-full h-auto rounded-lg"
-                    />
-                  </div>
-                )}
+        <div className="bg-white border-2 border-blue-900 p-5">
+          <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+            REKOR TERBAIK
+          </div>
+          <div className="font-mono text-3xl font-medium text-blue-900">
+            {bestStreak} hari
+          </div>
+        </div>
 
-                {/* Narration */}
-                {currentProblem.narration && (
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
-                    <p className="text-gray-700 italic">
-                      {currentProblem.narration}
-                    </p>
-                  </div>
-                )}
+        <div className="bg-white border-2 border-blue-900 p-5">
+          <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+            SOAL TERJAWAB
+          </div>
+          <div className="font-mono text-3xl font-medium text-blue-900">
+            {totalProblemsSolved} soal
+          </div>
+        </div>
+      </div>
 
-                {/* Question */}
-                {currentProblem.content && (
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <p className="text-lg text-gray-900 leading-relaxed">
-                      {currentProblem.content}
-                    </p>
-                  </div>
-                )}
+      {/* Daily Question Sheet */}
+      <div className="bg-white border-2 border-blue-900 p-6 sm:p-8 shadow-hard-sm">
+        <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b-[1.5px] border-blue-100">
+          <div className="flex items-center gap-2">
+            <span className="bg-blue-800 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] font-medium">
+              SOAL HARI INI
+            </span>
+          </div>
+          {isAnswered && (
+            <Badge variant={isCorrect ? "success" : "danger"}>
+              {isCorrect ? "BENAR" : "SALAH"}
+            </Badge>
+          )}
+        </div>
 
-                {/* Question Content */}
-                <div className="space-y-6">
-                  {/* Options / Input */}
-                  {currentProblem.type === "ISIAN_SINGKAT" ? (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <input
-                          type="text"
-                          className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-lg"
-                          placeholder="Ketik jawaban Anda di sini..."
-                          value={selectedAnswer || ""}
-                          onChange={(e) => !isAnswered && setSelectedAnswer(e.target.value)}
-                          disabled={isAnswered}
-                        />
-                      </div>
-                      {isAnswered && (
-                        <div className={`p-3 rounded-lg text-sm font-medium flex items-center gap-2 ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {isCorrect ? <CheckCircle2 className="w-4 h-4"/> : null}
-                          {isCorrect ? "Jawaban Anda Benar!" : "Jawaban Anda Salah."}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {currentProblem.options.map((option, index) => {
-                        const isSelected = selectedAnswer === option.id;
-                        // ... existing logic for options
-                        const isCorrectAnswer = false; // Hidden
-                        const isWrongAnswer = isAnswered && isSelected && !isCorrect;
-                        const optionLabel = String.fromCharCode(65 + index);
-
-                        return (
-                          <button
-                            key={option.id}
-                            onClick={() =>
-                              !isAnswered && setSelectedAnswer(option.id)
-                            }
-                            disabled={isAnswered}
-                            className={`w-full text-left p-5 rounded-xl border-2 transition-all ${
-                              isCorrectAnswer
-                                ? "border-green-500 bg-green-50"
-                                : isWrongAnswer
-                                ? "border-red-500 bg-red-50"
-                                : isSelected
-                                ? "border-orange-500 bg-orange-50"
-                                : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50"
-                            } ${
-                              isAnswered
-                                ? "cursor-not-allowed"
-                                : "cursor-pointer hover:shadow-md"
-                            }`}
-                          >
-                            <div className="flex items-center gap-4">
-                              <div
-                                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                                  isCorrectAnswer
-                                    ? "bg-green-500 text-white"
-                                    : isWrongAnswer
-                                    ? "bg-red-500 text-white"
-                                    : isSelected
-                                    ? "bg-orange-500 text-white"
-                                    : "bg-gray-200 text-gray-700"
-                                }`}
-                              >
-                                {optionLabel}
-                              </div>
-                              <span className="text-base text-gray-900 flex-1">
-                                {option.content}
-                              </span>
-                              {isCorrectAnswer && (
-                                <CheckCircle2 className="w-6 h-6 text-green-500" />
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Submit Button */}
-                {!isAnswered && (
-                  <Button
-                    onClick={handleAnswerSubmit}
-                    disabled={!selectedAnswer}
-                    className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white py-6 rounded-xl text-lg font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Submit Jawaban
-                  </Button>
-                )}
-
-                {/* Explanation */}
-                {isAnswered && explanation && (
-                  <Card className="bg-blue-50 border-2 border-blue-200">
-                    <CardContent className="p-6">
-                      <h3 className="font-bold text-lg text-blue-900 mb-3">
-                        💡 Pembahasan
-                      </h3>
-                      <p className="text-gray-700 leading-relaxed">
-                        {explanation}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <p className="text-lg">Belum ada soal untuk hari ini</p>
+        {currentProblem ? (
+          <div className="space-y-6">
+            {currentProblem.imageUrl && (
+              <div className="border-[1.5px] border-blue-200 p-3 bg-blue-50">
+                <img
+                  src={currentProblem.imageUrl}
+                  alt="Ilustrasi soal"
+                  className="max-w-full h-auto"
+                />
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Calendar/History (Optional Enhancement) */}
-        <Card className="bg-white rounded-2xl shadow-lg border border-gray-200">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="text-xl font-bold text-gray-900">
-              Streak Calendar
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              {[...Array(30)].map((_, i) => (
+            {currentProblem.narration && (
+              <div className="bg-blue-50 border-[1.5px] border-blue-200 p-4 sm:p-5 text-blue-900 text-sm sm:text-base leading-[1.65] max-w-[68ch]">
+                {currentProblem.narration}
+              </div>
+            )}
+
+            {currentProblem.content && (
+              <div className="text-blue-900 text-base sm:text-[17px] leading-[1.65] max-w-[68ch] font-medium">
+                {currentProblem.content}
+              </div>
+            )}
+
+            {/* Answer Area */}
+            {currentProblem.type === "ISIAN_SINGKAT" ? (
+              <div className="space-y-3">
+                <label className="block font-mono text-xs uppercase tracking-[0.08em] text-slate-700">
+                  JAWABAN SINGKAT
+                </label>
+                <input
+                  type="text"
+                  className="w-full h-12 px-3.5 bg-white border-[1.5px] border-slate-300 font-mono text-base text-blue-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ketik jawaban kamu..."
+                  value={selectedAnswer || ""}
+                  onChange={(e) =>
+                    !isAnswered && setSelectedAnswer(e.target.value)
+                  }
+                  disabled={isAnswered}
+                />
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {currentProblem.options.map((option, index) => {
+                  const isSelected = selectedAnswer === option.id;
+                  const isWrongAnswer =
+                    isAnswered && isSelected && !isCorrect;
+                  const isRightAnswer =
+                    isAnswered && isSelected && isCorrect;
+                  const optionLabel = String.fromCharCode(65 + index);
+
+                  let rowClass =
+                    "bg-white border-[1.5px] border-blue-200 hover:bg-blue-100 hover:border-blue-500 text-blue-900";
+                  let badgeClass =
+                    "bg-blue-50 border-[1.5px] border-blue-200 text-blue-900";
+
+                  if (isRightAnswer) {
+                    rowClass =
+                      "bg-emerald-50 border-2 border-[#15803D] text-blue-900 font-semibold";
+                    badgeClass = "bg-[#15803D] border-[#15803D] text-white";
+                  } else if (isWrongAnswer) {
+                    rowClass =
+                      "bg-red-50 border-2 border-[#DC2626] text-blue-900";
+                    badgeClass = "bg-[#DC2626] border-[#DC2626] text-white";
+                  } else if (isSelected) {
+                    rowClass =
+                      "bg-blue-200 border-2 border-blue-500 text-blue-900 font-medium";
+                    badgeClass = "bg-blue-500 border-blue-700 text-white";
+                  }
+
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() =>
+                        !isAnswered && setSelectedAnswer(option.id)
+                      }
+                      disabled={isAnswered}
+                      className={`w-full min-h-[56px] px-4 py-3 text-left flex items-center gap-3.5 transition-colors ${rowClass}`}
+                    >
+                      <span
+                        className={`w-8 h-8 shrink-0 font-mono text-sm font-medium flex items-center justify-center ${badgeClass}`}
+                      >
+                        {optionLabel}
+                      </span>
+                      <span className="text-sm sm:text-base flex-1 leading-[1.55]">
+                        {option.content}
+                      </span>
+                      {isRightAnswer && (
+                        <CheckCircle2 className="w-5 h-5 text-[#15803D] shrink-0" />
+                      )}
+                      {isWrongAnswer && (
+                        <XCircle className="w-5 h-5 text-[#DC2626] shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {!isAnswered && (
+              <div className="pt-2">
+                <Button
+                  onClick={handleAnswerSubmit}
+                  disabled={!selectedAnswer || submitting}
+                  variant="default"
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Mengirim...
+                    </>
+                  ) : (
+                    "Kirim jawaban"
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {isAnswered && explanation && (
+              <div className="p-5 sm:p-6 bg-blue-50 border-2 border-blue-900">
+                <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.08em] text-blue-700 font-medium pb-3 mb-3 border-b border-blue-200">
+                  <BookOpen className="w-4 h-4" />
+                  PEMBAHASAN
+                </div>
+                <p className="text-sm sm:text-base text-blue-900 leading-[1.65] max-w-[68ch]">
+                  {explanation}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-12 text-center">
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-slate-500 mb-1">
+              BELUM TERSEDIA
+            </p>
+            <p className="text-sm text-slate-700">
+              Soal latihan hari ini belum diterbitkan. Cek lagi nanti.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 30-Day Streak Grid */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Kalender 30 hari</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 flex-wrap">
+            {[...Array(30)].map((_, i) => {
+              const active = i < streak;
+              return (
                 <div
                   key={i}
-                  className={`w-8 h-8 rounded ${
-                    i < streak
-                      ? "bg-gradient-to-br from-orange-500 to-pink-500"
-                      : "bg-gray-200"
+                  className={`w-9 h-9 border-[1.5px] font-mono text-xs flex items-center justify-center ${
+                    active
+                      ? "bg-blue-500 border-blue-900 text-white font-medium"
+                      : "bg-blue-50 border-blue-200 text-slate-500"
                   }`}
-                  title={`Day ${i + 1}`}
-                />
-              ))}
-            </div>
-            <p className="text-center text-gray-600 mt-4">
-              Keep your streak going! Come back tomorrow for a new challenge.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+                  title={`Hari ke-${i + 1}`}
+                >
+                  {i + 1}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

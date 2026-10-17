@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Coins, AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Check, Lock } from "lucide-react";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -32,44 +32,46 @@ export function RegisterModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-6 h-6 text-green-600" />
-            Konfirmasi Pendaftaran
-          </DialogTitle>
-          <DialogDescription className="pt-2">
-            Anda akan mendaftar untuk tryout:
-            <br />
-            <span className="font-bold text-gray-900 block mt-1 text-base">
-              {tryoutTitle}
-            </span>
+          <DialogTitle>Daftar tryout ini?</DialogTitle>
+          <DialogDescription>
+            Kamu akan mendaftar pada jadwal{" "}
+            <strong className="text-blue-900">{tryoutTitle}</strong>.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
-          <div className="bg-green-50 p-4 rounded-xl border border-green-100 text-center mb-3">
-            <p className="text-green-800 font-medium">
-              Pengerjaan Tryout ini <span className="font-bold">GRATIS</span>!
-            </p>
-            <p className="text-sm text-green-600 mt-1">
-              Anda bisa mengerjakan soal tanpa memotong token.
-            </p>
+        <div className="space-y-3 py-1">
+          <div className="p-3.5 border-2 border-blue-900 bg-blue-50 flex items-start gap-2.5 text-[14px] text-blue-900">
+            <Check className="w-5 h-5 stroke-[1.75] text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <div className="font-bold">Gratis dikerjakan (Rp0)</div>
+              <p className="text-slate-700 mt-0.5">
+                Jumlah benar, salah, dan kosong langsung keluar setelah kamu kumpulkan.
+              </p>
+            </div>
           </div>
 
           {isPaidSolution && (
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-sm text-blue-800 flex gap-2 items-start">
-              <Coins className="w-4 h-4 mt-0.5 shrink-0" />
-              <p>
-                Jika ingin melihat <strong>Pembahasan Lengkap</strong> setelah
-                selesai, dibutuhkan <strong>{tokenCost} Token</strong>.
-              </p>
+            <div className="p-3.5 border-2 border-blue-900 bg-signal-100 flex items-start gap-2.5 text-[14px] text-blue-900">
+              <Lock className="w-5 h-5 stroke-[1.75] text-signal-700 shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <div className="font-bold">
+                  Pembahasan · {tokenCost} kuota
+                </div>
+                <p className="text-slate-700 mt-0.5">
+                  Kuota baru dipakai kalau kamu memilih membuka skor IRT dan pembahasan.
+                </p>
+              </div>
             </div>
           )}
 
           {error && (
-            <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div
+              role="alert"
+              className="p-3 border-2 border-warn bg-warn-100 text-warn text-[14px] flex items-start gap-2"
+            >
+              <AlertCircle className="w-4 h-4 stroke-[1.75] mt-0.5 shrink-0" aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}
@@ -80,18 +82,11 @@ export function RegisterModal({
             Batal
           </Button>
           <Button
+            variant="signal"
             onClick={onConfirm}
             disabled={isLoading}
-            className="bg-green-600 hover:bg-green-700 text-white"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Memproses...
-              </>
-            ) : (
-              "Daftar Sekarang"
-            )}
+            {isLoading ? "Memproses…" : "Daftar gratis"}
           </Button>
         </DialogFooter>
       </DialogContent>

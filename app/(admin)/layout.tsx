@@ -1,13 +1,16 @@
 "use client";
 
 import AdminNavbar from "@/components/elements/AdminNavbar/AdminNavbar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { UserWithRole } from "@/lib/types";
 
+/**
+ * DESIGN.md Section 6.7 — Admin Layout
+ * Blue-800 sidebar (desktop) or top menu (phone). Dense and functional, same tokens.
+ */
 export default function AdminLayout({
   children,
 }: Readonly<{
@@ -29,25 +32,25 @@ export default function AdminLayout({
 
   if (isPending) {
     return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="h-screen w-full bg-blue-50 flex items-center justify-center gap-2 font-mono text-[14px] text-blue-900">
+        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+        <span>Memuat panel admin…</span>
       </div>
     );
   }
 
   const user = session?.user as unknown as UserWithRole;
 
-  // Jika session tidak ada atau role bukan admin, jangan render children (sedang redirect)
   if (!session || user?.role !== "ADMIN") {
     return null;
   }
 
   return (
-    <SidebarProvider defaultOpen={false}>
+    <div className="min-h-screen w-full bg-blue-50 text-blue-900 flex flex-col lg:flex-row">
       <AdminNavbar />
-      <SidebarInset className="flex flex-col transition-all duration-300 ease-in-out">
-        <main className="flex-1 font-open-sans p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
+        <div className="max-w-[1200px] mx-auto">{children}</div>
+      </main>
+    </div>
   );
 }

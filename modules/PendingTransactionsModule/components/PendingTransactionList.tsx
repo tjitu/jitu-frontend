@@ -1,16 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import {
-  AlertCircleIcon,
-  CoinsIcon,
-  Loader2,
-  DollarSign,
-  Clock,
-} from "lucide-react";
+import { AlertCircleIcon, Loader2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { contactInfos } from "../../ShopModule/payload";
 import { PendingTransaction, TransactionData } from "../interface";
@@ -36,13 +30,13 @@ const PendingTransactionList = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Gagal mengambil data transaksi pending.");
+          throw new Error("Data gagal dimuat. Muat ulang halaman.");
         }
 
         const data = await response.json();
-        setTransactions(data);
+        setTransactions(Array.isArray(data) ? data : []);
       } catch (error: any) {
-        toast.error(error.message || "Terjadi kesalahan tak terduga.");
+        toast.error(error.message || "Data gagal dimuat.");
       } finally {
         setIsLoading(false);
       }
@@ -52,19 +46,25 @@ const PendingTransactionList = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {isLoading ? (
-        <div className="flex items-center justify-center py-10">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+        <div className="flex items-center justify-center py-12 bg-white border-2 border-blue-900">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-600 mr-2" />
+          <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+            MEMUAT TRANSAKSI...
+          </span>
         </div>
       ) : transactions.length === 0 ? (
-        <div className="text-center text-gray-500 py-10 text-sm">
-          Tidak ada transaksi pending saat ini.
+        <div className="bg-white border-2 border-blue-900 p-10 text-center">
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-slate-500 mb-1">
+            KOSONG
+          </p>
+          <p className="text-sm text-slate-700">Belum ada transaksi.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {transactions.map((tx) => (
-            <Card
+            <div
               key={tx.id}
               onClick={() => {
                 setIsModalLoading(true);
@@ -91,47 +91,41 @@ const PendingTransactionList = () => {
                     }
                     setShowContact(false);
                   })
-                  .catch((e: Error) => {
+                  .catch(() => {
                     setIsModalLoading(false);
-                    toast.error("Gagal Mengambil Data Transaksi");
+                    toast.error("Gagal mengambil kode QRIS.");
                   });
               }}
-              className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-200 cursor-pointer"
+              className="bg-white border-2 border-blue-900 p-5 cursor-pointer hover:bg-blue-50 transition-colors flex flex-col justify-between gap-4"
             >
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-full">
-                    PENDING
-                  </span>
-                </div>
-
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-3 group-hover:text-blue-600 transition-colors line-clamp-1">
-                  {tx.packageName}
-                </h3>
-
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-xs font-medium text-slate-600">
-                      Rp{tx.totalPrice.toLocaleString("id")}
-                    </span>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-mono text-xs text-slate-500 uppercase mb-1">
+                    ID #{String(tx.id).slice(0, 8)}
                   </div>
-                  <div className="flex items-center gap-1 text-xs font-semibold text-slate-500">
-                    <CoinsIcon className="w-3 h-3" />
-                    {tx.amount} Token
-                  </div>
+                  <h3 className="font-display font-bold text-blue-900 text-base">
+                    {tx.packageName}
+                  </h3>
                 </div>
+                <Badge variant="warn">MENUNGGU</Badge>
+              </div>
 
-                <div className="flex items-center mt-2 text-[10px] text-slate-400">
-                  <Clock className="w-3 h-3 mr-1" />
+              <div className="pt-3 border-t border-blue-100 flex items-center justify-between font-mono text-xs">
+                <span className="text-blue-900 font-medium">
+                  Rp{Number(tx.totalPrice || 0).toLocaleString("id-ID")} ·{" "}
+                  {tx.amount} kuota
+                </span>
+                <span className="text-slate-600 inline-flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
                   {new Date(tx.createdAt).toLocaleString("id-ID", {
                     day: "2-digit",
                     month: "short",
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -149,75 +143,86 @@ const PendingTransactionList = () => {
         }}
         modal
       >
-        <DialogTitle className="hidden"></DialogTitle>
-        <DialogContent>
+        <DialogTitle className="sr-only">Pembayaran QRIS</DialogTitle>
+        <DialogContent className="sm:max-w-[440px]">
           {isModalLoading && (
             <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-500 mb-4" />
-              <div className="text-gray-600">Mengambil data transaksi...</div>
+              <Loader2 className="w-7 h-7 animate-spin text-blue-600 mb-3" />
+              <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+                MEMUAT QRIS...
+              </div>
             </div>
           )}
 
           {!isModalLoading && transactionId && !showContact && (
             <div className="flex flex-col items-center gap-4">
-              <h2 className="text-xl font-bold mb-2 text-center">
-                Selesaikan Pembayaran
-              </h2>
-              <div className="flex flex-col items-center gap-2 w-full">
-                <div className="flex justify-center items-center py-8 w-full border border-slate-200 rounded-lg bg-white">
-                  {qrCodeUrl ? (
-                    <img
-                      src={qrCodeUrl}
-                      alt="QRIS code"
-                      className="w-64 h-64"
-                    />
-                  ) : qrCode ? (
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-                        qrCode,
-                      )}`}
-                      alt="QRIS code"
-                      className="w-40 h-40"
-                    />
-                  ) : (
-                    <p className="text-sm text-gray-500">QRIS tidak tersedia</p>
-                  )}
-                </div>
-                <p className="text-[10px] text-gray-400 font-mono mt-2">
-                  ID: {transactionId}
+              <div className="text-center">
+                <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+                  PEMBAYARAN QRIS
                 </p>
+                <h2 className="font-display text-xl font-bold text-blue-900 mt-1">
+                  Scan QRIS untuk bayar
+                </h2>
               </div>
+
+              <div className="flex justify-center items-center p-4 w-full border-2 border-blue-900 bg-white">
+                {qrCodeUrl ? (
+                  <img
+                    src={qrCodeUrl}
+                    alt="Kode QRIS"
+                    className="w-60 h-60 object-contain"
+                  />
+                ) : qrCode ? (
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+                      qrCode,
+                    )}`}
+                    alt="Kode QRIS"
+                    className="w-48 h-48 object-contain"
+                  />
+                ) : (
+                  <p className="text-sm text-slate-600 py-12">
+                    Waktu bayar habis. Buat kode QRIS baru untuk lanjut.
+                  </p>
+                )}
+              </div>
+
+              <p className="font-mono text-xs text-slate-600">
+                ID TRANSAKSI: {transactionId}
+              </p>
+
               <Button
+                variant="default"
                 className="w-full"
-                onClick={() => {
-                  setShowContact(true);
-                }}
+                onClick={() => setShowContact(true)}
               >
-                Saya sudah membayar
+                Cek status bayar
               </Button>
             </div>
           )}
 
           {!isModalLoading && transactionId && showContact && (
-            <div className="flex flex-col items-center">
-              <h2 className="text-xl font-bold mb-4">Pembayaran Diproses</h2>
-              <div className="flex flex-col items-center gap-2 w-full">
-                <p className="text-center text-sm text-gray-600 mb-4">
-                  Pembayaran kamu akan segera kami proses. Apabila dalam 1x24
-                  jam belum masuk, hubungi:
-                </p>
+            <div className="space-y-4">
+              <h2 className="font-display text-xl font-bold text-blue-900">
+                Menunggu verifikasi
+              </h2>
+              <p className="text-sm text-slate-700">
+                Kuota otomatis masuk setelah pembayaran terkonfirmasi. Jika
+                belum masuk, hubungi kontak bantuan:
+              </p>
+              <div className="space-y-2">
                 {contactInfos.map((contact) => (
-                  <Alert key={contact.name} className="w-full">
+                  <Alert key={contact.name}>
                     <AlertCircleIcon className="h-4 w-4 shrink-0" />
                     <div>
-                      <AlertTitle className="font-medium text-sm">
+                      <AlertTitle className="font-semibold text-sm">
                         {contact.name}
                       </AlertTitle>
-                      <AlertDescription className="text-xs mt-1">
+                      <AlertDescription className="text-xs mt-1 font-mono">
                         {Object.entries(contact.contacts).map(
                           ([method, info]) => (
                             <div key={method}>
-                              <strong>{method}:</strong> {info || "-"}
+                              {method}: {info || "-"}
                             </div>
                           ),
                         )}
@@ -228,10 +233,8 @@ const PendingTransactionList = () => {
               </div>
               <Button
                 variant="outline"
-                className="mt-4 w-full"
-                onClick={() => {
-                  setShowContact(false);
-                }}
+                className="w-full"
+                onClick={() => setShowContact(false)}
               >
                 Kembali ke QRIS
               </Button>

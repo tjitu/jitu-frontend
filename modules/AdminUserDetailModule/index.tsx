@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
@@ -34,9 +34,8 @@ const AdminUserDetailModule: React.FC<AdminUserDetailModuleProps> = ({
   const [tryouts, setTryouts] = useState<TryOutAttempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Pagination states (simplified for now, can be expanded)
-  const [txPage, setTxPage] = useState(1);
-  const [tryoutPage, setTryoutPage] = useState(1);
+  const [txPage] = useState(1);
+  const [tryoutPage] = useState(1);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -44,7 +43,7 @@ const AdminUserDetailModule: React.FC<AdminUserDetailModuleProps> = ({
       setUser(data);
     } catch (error) {
       console.error(error);
-      toast.error("Gagal memuat detail user");
+      toast.error("Data peserta gagal dimuat.");
     }
   }, [userId]);
 
@@ -76,68 +75,81 @@ const AdminUserDetailModule: React.FC<AdminUserDetailModuleProps> = ({
   }, [fetchUser, fetchTransactions, fetchTryouts]);
 
   const handleResetAttempt = async (attemptId: string) => {
-    if (confirm("Reset pengerjaan ini? User harus mengerjakan ulang dari awal. Data jawaban akan dihapus permanen.")) {
+    if (
+      confirm(
+        "Reset pengerjaan ini? Peserta harus mengerjakan ulang dari awal. Data jawaban akan dihapus permanen.",
+      )
+    ) {
       try {
         await resetUserTryout(attemptId);
-        toast.success("Pengerjaan tryout berhasil direset");
-        fetchTryouts(); // Refresh list
+        toast.success("Pengerjaan tryout berhasil direset.");
+        fetchTryouts();
       } catch (error) {
         console.error(error);
-        toast.error("Gagal mereset pengerjaan tryout");
+        toast.error("Gagal mereset pengerjaan tryout.");
       }
     }
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center">Memuat data user...</div>;
+    return (
+      <div className="flex h-[50vh] items-center justify-center gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+          MEMUAT DETAIL PESERTA...
+        </span>
+      </div>
+    );
   }
 
   if (!user) {
-    return <div className="p-8 text-center text-red-500">User tidak ditemukan</div>;
+    return (
+      <div className="p-8 bg-white border-2 border-blue-900 text-center text-danger font-medium">
+        Peserta tidak ditemukan.
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-8 p-8 w-full max-w-7xl mx-auto animate-in fade-in duration-500">
-      <div className="flex items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 pb-5 border-b-2 border-blue-900">
         <Button variant="outline" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
-            Detail User
-          </h1>
-          <p className="text-muted-foreground">
-            Informasi lengkap dan riwayat aktivitas pengguna.
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+            DATA PENGGUNA
           </p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+            Detail peserta
+          </h1>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Column: User Info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-1">
           <UserInfoCard user={user} />
         </div>
 
-        {/* Right Column: Tabs (Transactions & Tryouts) */}
         <div className="md:col-span-2">
-          <Tabs defaultValue="tryouts" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="tryouts" className="w-full space-y-4">
+            <TabsList>
               <TabsTrigger value="tryouts">Riwayat Tryout</TabsTrigger>
               <TabsTrigger value="transactions">Riwayat Transaksi</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="tryouts" className="mt-4">
-              <UserTryoutsTable 
-                attempts={tryouts} 
-                isLoading={isLoading} 
-                onReset={handleResetAttempt} 
+
+            <TabsContent value="tryouts">
+              <UserTryoutsTable
+                attempts={tryouts}
+                isLoading={isLoading}
+                onReset={handleResetAttempt}
               />
             </TabsContent>
-            
-            <TabsContent value="transactions" className="mt-4">
-              <UserTransactionsTable 
-                transactions={transactions} 
-                isLoading={isLoading} 
+
+            <TabsContent value="transactions">
+              <UserTransactionsTable
+                transactions={transactions}
+                isLoading={isLoading}
               />
             </TabsContent>
           </Tabs>

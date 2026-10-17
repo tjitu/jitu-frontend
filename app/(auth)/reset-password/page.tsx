@@ -1,50 +1,60 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import React, { useState, Suspense } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Lock, Loader2, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token"); 
+  const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      toast.error("Password tidak cocok");
+    setErrorMsg(null);
+
+    if (password.length < 8) {
+      setErrorMsg("Kata sandi minimal 8 karakter.");
       return;
     }
-    if (password.length < 8) {
-      toast.error("Password minimal 8 karakter");
+    if (password !== confirmPassword) {
+      setErrorMsg("Kata sandi konfirmasi belum sama.");
       return;
     }
 
     setLoading(true);
     try {
-      await authClient.resetPassword({
-        newPassword: password,
-      }, {
-        onSuccess: () => {
-          toast.success("Password berhasil diubah! Silakan login.");
-          router.push("/login");
+      await authClient.resetPassword(
+        {
+          newPassword: password,
         },
-        onError: (ctx: any) => {
-          toast.error(ctx.error.message || "Link reset tidak valid atau kadaluarsa");
+        {
+          onSuccess: () => {
+            toast.success("Kata sandi berhasil diperbarui. Silakan masuk.");
+            router.push("/login");
+          },
+          onError: (ctx: { error?: { message?: string } }) => {
+            const msg =
+              ctx?.error?.message ||
+              "Tautan atur ulang sudah kedaluwarsa. Minta tautan baru.";
+            setErrorMsg(msg);
+            toast.error(msg);
+          },
         }
-      });
-    } catch (error) {
-      toast.error("Terjadi kesalahan");
+      );
+    } catch {
+      setErrorMsg("Gagal menyimpan kata sandi. Coba lagi.");
     } finally {
       setLoading(false);
     }
@@ -52,76 +62,143 @@ function ResetPasswordContent() {
 
   if (!token) {
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="text-center text-red-500 font-medium">
-                Token tidak valid atau hilang. Silakan request ulang.
-            </div>
+      <div className="p-6 space-y-4">
+        <div className="p-4 border-2 border-warn bg-warn-100 text-warn text-[14px] flex items-start gap-2.5">
+          <AlertCircle className="w-5 h-5 stroke-[1.75] shrink-0 mt-0.5" aria-hidden="true" />
+          <span>Tautan atur ulang tidak ditemukan atau sudah kedaluwarsa.</span>
         </div>
-    )
+        <Link
+          href="/forgot-password"
+          className="w-full jitu-btn-primary text-[15px] font-bold inline-flex items-center justify-center gap-2"
+        >
+          <span>Minta tautan baru</span>
+          <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
+        </Link>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Password Baru</label>
+    <form onSubmit={handleSubmit} className="p-6 space-y-4" noValidate>
+      {errorMsg && (
+        <div
+          role="alert"
+          className="p-3 border-2 border-warn bg-warn-100 text-warn text-[14px] flex items-start gap-2.5"
+        >
+          <AlertCircle className="w-5 h-5 stroke-[1.75] shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        <label
+          htmlFor="new-password"
+          className="block text-[14px] font-semibold text-blue-900"
+        >
+          Kata sandi baru
+        </label>
         <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-          <Input 
-            type={showPassword ? "text" : "password"} 
-            placeholder="Minimal 8 karakter" 
-            className="pl-10 pr-10"
+          <Input
+            id="new-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Minimal 8 karakter"
+            className="pr-12"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button 
+          <button
             type="button"
+            aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+            className="absolute right-1 top-1 bottom-1 w-10 inline-flex items-center justify-center text-slate-700 hover:text-blue-900 cursor-pointer"
           >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showPassword ? (
+              <EyeOff className="h-5 w-5 stroke-[1.75]" />
+            ) : (
+              <Eye className="h-5 w-5 stroke-[1.75]" />
+            )}
           </button>
         </div>
       </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Konfirmasi Password</label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-          <Input 
-            type={showPassword ? "text" : "password"} 
-            placeholder="Ulangi password baru" 
-            className="pl-10"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
+
+      <div className="space-y-1.5">
+        <label
+          htmlFor="confirm-new-password"
+          className="block text-[14px] font-semibold text-blue-900"
+        >
+          Ulangi kata sandi baru
+        </label>
+        <Input
+          id="confirm-new-password"
+          type={showPassword ? "text" : "password"}
+          placeholder="Ketik ulang kata sandi"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
       </div>
-      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
-        {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Simpan Password Baru"}
-      </Button>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+      >
+        <span>{loading ? "Memproses…" : "Simpan kata sandi"}</span>
+        {!loading && <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />}
+      </button>
     </form>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sans">
-      <Card className="w-full max-w-md shadow-lg border-0">
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl font-bold text-slate-900">
-            Reset Password
-          </CardTitle>
-          <CardDescription>
-            Masukkan password baru untuk akun Anda.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
+    <div className="min-h-screen bg-blue-50 text-blue-900 py-12 px-4 flex flex-col items-center justify-center">
+      <div className="w-full max-w-[420px] space-y-6">
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            aria-label="Beranda Jitu"
+            className="min-h-[44px] inline-flex items-center gap-2.5"
+          >
+            <Image
+              src="/blue-jitu-logo.png"
+              alt="Logo Jitu"
+              width={48}
+              height={32}
+              priority
+              className="h-8 w-auto object-contain"
+            />
+            <span className="font-display font-extrabold text-[24px] tracking-[-0.025em] text-blue-900 leading-none">
+              jitu<span className="text-blue-500">.</span>
+            </span>
+          </Link>
+          <span className="px-2 py-[3px] border-[1.5px] border-blue-900 bg-white font-mono text-[12px] uppercase tracking-[0.06em] text-blue-900">
+            KATA SANDI BARU
+          </span>
+        </div>
+
+        <div className="bg-white border-2 border-blue-900 shadow-[10px_10px_0_var(--blue-500)]">
+          <div className="px-6 py-4 border-b-2 border-blue-900 bg-blue-800 text-white">
+            <h1 className="font-display font-extrabold text-[28px] leading-[1.05] tracking-[-0.025em]">
+              Buat kata sandi baru
+            </h1>
+            <p className="text-[14px] text-blue-200 mt-1">
+              Kata sandi minimal 8 karakter.
+            </p>
+          </div>
+
+          <Suspense
+            fallback={
+              <div className="p-6 font-mono text-[14px] text-slate-700">
+                Memuat formulir…
+              </div>
+            }
+          >
             <ResetPasswordContent />
           </Suspense>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

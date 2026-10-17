@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CoinsIcon, Loader2, DollarSign, Clock } from "lucide-react";
+import { Loader2, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { PastTransaction } from "../interface";
 import { BACKEND_URL } from "@/lib/api";
 
@@ -20,13 +20,13 @@ const PastTransactionList = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Gagal mengambil data transaksi past.");
+          throw new Error("Data gagal dimuat. Muat ulang halaman.");
         }
 
         const data = await response.json();
-        setTransactions(data);
+        setTransactions(Array.isArray(data) ? data : []);
       } catch (error: any) {
-        toast.error(error.message || "Terjadi kesalahan tak terduga.");
+        toast.error(error.message || "Data gagal dimuat.");
       } finally {
         setIsLoading(false);
       }
@@ -36,68 +36,63 @@ const PastTransactionList = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {isLoading ? (
-        <div className="flex items-center justify-center py-10">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+        <div className="flex items-center justify-center py-12 bg-white border-2 border-blue-900">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-600 mr-2" />
+          <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+            MEMUAT RIWAYAT...
+          </span>
         </div>
       ) : transactions.length === 0 ? (
-        <div className="text-center text-gray-500 py-10 text-sm">
-          Tidak ada riwayat transaksi.
+        <div className="bg-white border-2 border-blue-900 p-10 text-center">
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-slate-500 mb-1">
+            KOSONG
+          </p>
+          <p className="text-sm text-slate-700">Belum ada transaksi.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {transactions.map((tx) => (
-            <Card
+            <div
               key={tx.id}
-              className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-200"
+              className="bg-white border-2 border-blue-900 p-5 flex flex-col justify-between gap-4"
             >
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    {tx.type === "PAID" ? (
-                      <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">
-                        BERHASIL
-                      </span>
-                    ) : tx.type === "CANCELLED" ? (
-                      <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded-full">
-                        DIBATALKAN
-                      </span>
-                    ) : (
-                      <span className="bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-1 rounded-full">
-                        {tx.type}
-                      </span>
-                    )}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-mono text-xs text-slate-500 uppercase mb-1">
+                    ID #{String(tx.id).slice(0, 8)}
                   </div>
+                  <h3 className="font-display font-bold text-blue-900 text-base">
+                    {tx.packageName}
+                  </h3>
                 </div>
+                {tx.type === "PAID" || tx.type === "CONFIRMED" ? (
+                  <Badge variant="success">LUNAS</Badge>
+                ) : tx.type === "CANCELLED" || tx.type === "DECLINED" ? (
+                  <Badge variant="danger">BATAL</Badge>
+                ) : (
+                  <Badge variant="default">{tx.type}</Badge>
+                )}
+              </div>
 
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-3 transition-colors line-clamp-1">
-                  {tx.packageName}
-                </h3>
-
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-xs font-medium text-slate-600">
-                      Rp{tx.totalPrice.toLocaleString("id")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs font-semibold text-slate-500">
-                    <CoinsIcon className="w-3 h-3" />
-                    {tx.amount} Token
-                  </div>
-                </div>
-
-                <div className="flex items-center mt-2 text-[10px] text-slate-400">
-                  <Clock className="w-3 h-3 mr-1" />
+              <div className="pt-3 border-t border-blue-100 flex items-center justify-between font-mono text-xs">
+                <span className="text-blue-900 font-medium">
+                  Rp{Number(tx.totalPrice || 0).toLocaleString("id-ID")} ·{" "}
+                  {tx.amount} kuota
+                </span>
+                <span className="text-slate-600 inline-flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
                   {new Date(tx.createdAt).toLocaleString("id-ID", {
                     day: "2-digit",
                     month: "short",
+                    year: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
           ))}
         </div>
       )}

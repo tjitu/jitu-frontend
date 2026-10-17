@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Bot, CircleAlert, Plus, RefreshCw, Sparkles } from "lucide-react";
+import { StatCard } from "@/components/elements/Admin/StatCard";
+import { CircleAlert, Plus, RefreshCw } from "lucide-react";
 import {
   AiBatch,
   AiDraft,
@@ -56,7 +56,7 @@ const AdminAiGeneratorModule = () => {
     } catch (error) {
       setStatus(null);
       setStatusError(
-        error instanceof Error ? error.message : "AI service tidak tersedia"
+        error instanceof Error ? error.message : "Layanan AI belum tersedia.",
       );
     } finally {
       setIsLoadingStatus(false);
@@ -71,7 +71,7 @@ const AdminAiGeneratorModule = () => {
       setSelectedBatch((current) => current || data[0] || null);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Gagal memuat batch AI"
+        error instanceof Error ? error.message : "Gagal memuat batch AI.",
       );
     } finally {
       setIsLoadingBatches(false);
@@ -90,7 +90,7 @@ const AdminAiGeneratorModule = () => {
       setUsage(usageData);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Gagal memuat detail batch"
+        error instanceof Error ? error.message : "Gagal memuat detail batch.",
       );
     } finally {
       setIsLoadingDrafts(false);
@@ -110,7 +110,7 @@ const AdminAiGeneratorModule = () => {
 
   useEffect(() => {
     setInitialTryoutId(
-      new URLSearchParams(window.location.search).get("tryoutId")
+      new URLSearchParams(window.location.search).get("tryoutId"),
     );
   }, []);
 
@@ -122,12 +122,12 @@ const AdminAiGeneratorModule = () => {
     () => ({
       total: batches.length,
       running: batches.filter((batch) =>
-        ["QUEUED", "RUNNING"].includes(batch.status)
+        ["QUEUED", "RUNNING"].includes(batch.status),
       ).length,
       completed: batches.filter((batch) => batch.status === "COMPLETED").length,
       published: batches.filter((batch) => batch.status === "PUBLISHED").length,
     }),
-    [batches]
+    [batches],
   );
 
   const refreshSelectedBatch = async () => {
@@ -138,54 +138,62 @@ const AdminAiGeneratorModule = () => {
   const handleStart = async (batch: AiBatch) => {
     try {
       const updated = await startAiBatch(batch.id);
-      toast.success("Batch AI mulai diproses");
+      toast.success("Batch AI mulai diproses.");
       setSelectedBatch(updated);
       await loadBatches();
       await loadBatchDetail(updated);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal start batch");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal memulai batch.",
+      );
     }
   };
 
   const handleCancel = async (batch: AiBatch) => {
     try {
       const updated = await cancelAiBatch(batch.id);
-      toast.success("Batch AI dibatalkan");
+      toast.success("Batch AI dibatalkan.");
       setSelectedBatch(updated);
       await loadBatches();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal cancel batch");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal membatalkan batch.",
+      );
     }
   };
 
   const handleApprove = async (draft: AiDraft) => {
     try {
       const updated = await approveAiDraft(draft.id);
-      toast.success("Draft disetujui");
+      toast.success("Draft disetujui.");
       updateDraftState(updated);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal approve draft");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal menyetujui draft.",
+      );
     }
   };
 
   const handleReject = async (draft: AiDraft) => {
     try {
       const updated = await rejectAiDraft(draft.id, "Rejected by admin QC");
-      toast.success("Draft ditolak");
+      toast.success("Draft ditolak.");
       updateDraftState(updated);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal reject draft");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal menolak draft.",
+      );
     }
   };
 
   const handleRegenerate = async (draft: AiDraft) => {
     try {
       const updated = await regenerateAiDraft(draft.id);
-      toast.success("Draft berhasil diregenerate");
+      toast.success("Draft dibuat ulang.");
       updateDraftState(updated);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Gagal regenerate draft"
+        error instanceof Error ? error.message : "Gagal membuat ulang draft.",
       );
     }
   };
@@ -194,11 +202,13 @@ const AdminAiGeneratorModule = () => {
     try {
       const response = await publishAiBatch(batch.id);
       toast.success(
-        `${response.importedQuestions || 0} soal masuk question bank`
+        `${response.importedQuestions || 0} soal diterbitkan ke bank soal.`,
       );
       await refreshSelectedBatch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal publish batch");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal menerbitkan batch.",
+      );
     }
   };
 
@@ -209,56 +219,62 @@ const AdminAiGeneratorModule = () => {
 
   const updateDraftState = (updated: AiDraft) => {
     setDrafts((current) =>
-      current.map((draft) => (draft.id === updated.id ? updated : draft))
+      current.map((draft) => (draft.id === updated.id ? updated : draft)),
     );
     setSelectedDraft((current) =>
-      current?.id === updated.id ? updated : current
+      current?.id === updated.id ? updated : current,
     );
   };
 
   const handleGenerateImage = async (draft: AiDraft) => {
     try {
       const updated = await generateAiDraftImage(draft.id);
-      toast.success("Placeholder image dibuat");
+      toast.success("Ilustrasi dibuat.");
       updateDraftState(updated);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal membuat image");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal membuat ilustrasi.",
+      );
     }
   };
 
   const handleGenerateVideo = async (draft: AiDraft) => {
     try {
       const updated = await generateAiDraftVideo(draft.id);
-      toast.success("Placeholder video dibuat");
+      toast.success("Video pembahasan dibuat.");
       updateDraftState(updated);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal membuat video");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal membuat video.",
+      );
     }
   };
 
   return (
-    <div className="flex flex-col gap-8 p-8 w-full max-w-7xl mx-auto animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="space-y-2">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b-2 border-blue-900">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+            GENERATOR BANK SOAL
+          </p>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">
-              AI Generator
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+              AI generator soal
             </h1>
             <EnvironmentBadge status={status} isLoading={isLoadingStatus} />
           </div>
-          <p className="text-muted-foreground">
-            Generate draft soal Tryout untuk proses QC sebelum dipublish ke
-            question bank utama.
+          <p className="text-sm text-slate-700 mt-1">
+            Buat dan kurasi draf soal SNBT sebelum diterbitkan ke bank soal.
           </p>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => refreshSelectedBatch()}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+            Muat ulang
           </Button>
-          <Button onClick={() => setIsCreateOpen(true)}>
+          <Button variant="default" onClick={() => setIsCreateOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Buat Batch
+            Buat batch
           </Button>
         </div>
       </div>
@@ -266,48 +282,16 @@ const AdminAiGeneratorModule = () => {
       {statusError && (
         <Alert variant="destructive">
           <CircleAlert className="h-4 w-4" />
-          <AlertTitle>AI service belum siap</AlertTitle>
+          <AlertTitle>Layanan AI belum siap</AlertTitle>
           <AlertDescription>{statusError}</AlertDescription>
         </Alert>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">Total Batch</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
-            </div>
-            <Bot className="h-8 w-8 text-blue-600" />
-          </CardContent>
-        </Card>
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">Running</p>
-              <p className="text-2xl font-bold">{stats.running}</p>
-            </div>
-            <RefreshCw className="h-8 w-8 text-amber-600" />
-          </CardContent>
-        </Card>
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">Completed</p>
-              <p className="text-2xl font-bold">{stats.completed}</p>
-            </div>
-            <Sparkles className="h-8 w-8 text-emerald-600" />
-          </CardContent>
-        </Card>
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">Published</p>
-              <p className="text-2xl font-bold">{stats.published}</p>
-            </div>
-            <Sparkles className="h-8 w-8 text-violet-600" />
-          </CardContent>
-        </Card>
+        <StatCard label="TOTAL BATCH" value={stats.total} />
+        <StatCard label="SEDANG BERJALAN" value={stats.running} />
+        <StatCard label="SELESAI" value={stats.completed} />
+        <StatCard label="DITERBITKAN" value={stats.published} />
       </div>
 
       <BatchTable

@@ -80,7 +80,7 @@ const AdminUserModule = () => {
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
-      toast.error("Gagal memuat data user.");
+      toast.error("Data gagal dimuat.");
     } finally {
       setIsLoading(false);
     }
@@ -89,21 +89,21 @@ const AdminUserModule = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchData();
-    }, 500); // Debounce search
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [fetchData]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus user ini?")) return;
+    if (!confirm("Hapus akun peserta ini secara permanen?")) return;
 
     try {
       await deleteUser(id);
-      toast.success("User berhasil dihapus");
-      fetchData(); // Refresh list
+      toast.success("Akun peserta dihapus.");
+      fetchData();
     } catch (error) {
       console.error(error);
-      toast.error("Gagal menghapus user");
+      toast.error("Gagal menghapus akun.");
     }
   };
 
@@ -113,195 +113,189 @@ const AdminUserModule = () => {
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "ADMIN":
-        return (
-          <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-purple-200 shadow-none">
-            Admin
-          </Badge>
-        );
-      case "USER":
-        return (
-          <Badge variant="outline" className="text-gray-600">
-            User
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{role}</Badge>;
-    }
-  };
-
   return (
-    <div className="flex flex-col gap-8 p-8 w-full max-w-7xl mx-auto animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
-            Kelola User
-          </h1>
-          <p className="text-muted-foreground">
-            Pantau dan kelola semua pengguna aplikasi.
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div className="pb-5 border-b-2 border-blue-900">
+        <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+          DATA PENGGUNA
+        </p>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+          Kelola peserta
+        </h1>
+        <p className="text-sm text-slate-700 mt-1">
+          Pantau akun peserta, target kampus, dan saldo kuota.
+        </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {getStatsConfig(
           stats.totalUser,
           stats.activeUser,
-          stats.totalAdmin
+          stats.totalAdmin,
         ).map((stat, index) => (
           <StatCard key={index} {...stat} isLoading={isLoading} />
         ))}
       </div>
 
-      {/* Search and Filter */}
-      <div className="flex flex-col md:flex-row gap-4 bg-white p-6 rounded-2xl">
+      {/* Search & Filter */}
+      <div className="bg-white border-2 border-blue-900 p-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <Input
-            placeholder="Cari nama atau email..."
+            placeholder="Cari nama atau email peserta..."
             className="pl-10"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              setPage(1); // Reset to page 1 on search
+              setPage(1);
             }}
           />
         </div>
-        <div className="w-full md:w-[200px]">
+        <div className="w-full sm:w-[200px]">
           <Select
             value={roleFilter}
             onValueChange={(value) => {
               setRoleFilter(value);
-              setPage(1); // Reset to page 1 on filter
+              setPage(1);
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Filter Role" />
+              <SelectValue placeholder="Filter peran" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">Semua Role</SelectItem>
+              <SelectItem value="ALL">Semua peran</SelectItem>
               <SelectItem value="ADMIN">Admin</SelectItem>
-              <SelectItem value="USER">User</SelectItem>
+              <SelectItem value="USER">Peserta</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* User Table */}
-      <Card className="border-border/50 shadow-sm">
+      <Card>
         <CardHeader>
-          <CardTitle>Daftar Pengguna</CardTitle>
+          <CardTitle>Daftar akun ({paginationMeta.total})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-[50px]">No</TableHead>
-                  <TableHead>Nama</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Token</TableHead>
-                  <TableHead>Tanggal Daftar</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]">No</TableHead>
+                <TableHead>Nama</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Target</TableHead>
+                <TableHead>Peran</TableHead>
+                <TableHead>Kuota</TableHead>
+                <TableHead>Terdaftar</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="h-24 text-center font-mono text-xs uppercase text-slate-500"
+                  >
+                    MEMUAT DATA...
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
-                      Memuat data...
+              ) : users.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="h-24 text-center text-slate-600"
+                  >
+                    Tidak ada peserta yang cocok.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user, index) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-mono text-xs text-slate-500">
+                      {(page - 1) * 10 + index + 1}
                     </TableCell>
-                  </TableRow>
-                ) : users.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      Belum ada user.
+                    <TableCell className="font-semibold text-blue-900">
+                      {user.name}
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  users.map((user, index) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium text-muted-foreground">
-                        {(page - 1) * 10 + index + 1}
-                      </TableCell>
-                      <TableCell className="font-medium">{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.target || "-"}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-bold">
-                          {user.tokenBalance}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(user.createdAt).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                    <TableCell className="font-mono text-xs">
+                      {user.email}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {user.target || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={user.role === "ADMIN" ? "primary" : "default"}
+                      >
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs font-medium text-blue-900">
+                      {user.tokenBalance} kuota
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {new Date(user.createdAt).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1.5">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Detail peserta"
+                        >
                           <Link href={`/admin/user/${user.id}`}>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
-                              title="Detail User"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <Eye className="h-3.5 w-3.5" />
                           </Link>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 border-yellow-200"
-                            title="Kelola Token"
-                            onClick={() => {
-                              setSelectedUserForToken(user);
-                              setIsTokenDialogOpen(true);
-                            }}
-                          >
-                            <Coins className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-indigo-200"
-                            title="Edit Profil"
-                            onClick={() => {
-                              setSelectedUserForEdit(user);
-                              setIsEditDialogOpen(true);
-                            }}
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleDelete(user.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Sesuaikan kuota"
+                          onClick={() => {
+                            setSelectedUserForToken(user);
+                            setIsTokenDialogOpen(true);
+                          }}
+                        >
+                          <Coins className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Ubah profil"
+                          onClick={() => {
+                            setSelectedUserForEdit(user);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Settings className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Hapus"
+                          onClick={() => handleDelete(user.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
 
-          {/* Pagination */}
           <div className="mt-4 flex justify-end">
             <Pagination>
               <PaginationContent>
@@ -340,7 +334,7 @@ const AdminUserModule = () => {
         userId={selectedUserForToken?.id || null}
         userName={selectedUserForToken?.name}
         onSuccess={() => {
-          fetchData(); // Refresh to show new token balance
+          fetchData();
           setSelectedUserForToken(null);
         }}
       />
@@ -350,7 +344,7 @@ const AdminUserModule = () => {
         onOpenChange={setIsEditDialogOpen}
         user={selectedUserForEdit}
         onSuccess={() => {
-          fetchData(); // Refresh to show new data
+          fetchData();
           setSelectedUserForEdit(null);
         }}
       />
