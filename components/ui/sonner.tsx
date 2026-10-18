@@ -23,26 +23,26 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "rounded-none border-2 border-blue-900 bg-white text-blue-900 shadow-[4px_4px_0_var(--blue-900)] font-sans text-[14px] font-medium px-4 py-3 flex items-center gap-2.5",
-          title: "font-semibold text-blue-900",
-          description: "text-slate-700 text-[13px]",
-          error: "bg-warn-100 text-warn border-warn",
-          warning: "bg-signal-100 text-signal-700 border-blue-900",
-          success: "bg-white text-blue-900 border-blue-900",
+            "rounded-none border border-slate-200 bg-white text-slate-900 shadow-md font-sans text-[14px] font-medium px-4 py-3 flex items-center gap-2.5",
+          title: "font-semibold text-slate-900",
+          description: "text-slate-600 text-[13px]",
+          error: "bg-red-50 text-red-900 border-red-200",
+          warning: "bg-amber-50 text-amber-900 border-amber-200",
+          success: "bg-white text-slate-900 border-slate-200",
         },
       }}
       icons={{
-        success: <Check className="size-4 stroke-[1.75] text-blue-600" />,
-        info: <Info className="size-4 stroke-[1.75] text-blue-500" />,
-        warning: <AlertTriangle className="size-4 stroke-[1.75] text-signal-700" />,
-        error: <X className="size-4 stroke-[1.75] text-warn" />,
-        loading: <Loader2 className="size-4 stroke-[1.75] animate-spin text-blue-500" />,
+        success: <Check className="size-4 stroke-[1.75] text-emerald-600" />,
+        info: <Info className="size-4 stroke-[1.75] text-blue-600" />,
+        warning: <AlertTriangle className="size-4 stroke-[1.75] text-amber-600" />,
+        error: <X className="size-4 stroke-[1.75] text-red-600" />,
+        loading: <Loader2 className="size-4 stroke-[1.75] animate-spin text-blue-600" />,
       }}
       style={
         {
           "--normal-bg": "#FFFFFF",
-          "--normal-text": "#0B1B3F",
-          "--normal-border": "#0B1B3F",
+          "--normal-text": "#0F172A",
+          "--normal-border": "#E2E8F0",
           "--border-radius": "0px",
         } as React.CSSProperties
       }

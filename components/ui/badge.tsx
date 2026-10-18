@@ -10,20 +10,20 @@ import { cn } from "@/lib/utils";
  * Free = signal, Locked = white + lock icon, Done = blue-100.
  */
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-none border-[1.5px] border-blue-900 px-2 py-[3px] font-mono text-[12px] uppercase tracking-[0.06em] font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3.5 gap-1.5 [&>svg]:pointer-events-none transition-colors overflow-hidden",
+  "inline-flex items-center justify-center rounded-none border px-2 py-[2px] font-mono text-[11px] uppercase tracking-[0.06em] font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3.5 gap-1.5 [&>svg]:pointer-events-none transition-colors overflow-hidden",
   {
     variants: {
       variant: {
-        default: "bg-blue-100 text-blue-900",
-        primary: "bg-blue-500 text-white",
-        secondary: "bg-blue-100 text-blue-900",
-        signal: "bg-signal text-blue-900",
-        success: "bg-emerald-50 text-[#15803D] border-[#15803D]",
-        warn: "bg-amber-50 text-[#B45309] border-[#B45309]",
-        danger: "bg-red-50 text-[#DC2626] border-[#DC2626]",
-        destructive: "bg-red-50 text-[#DC2626] border-[#DC2626]",
-        outline: "bg-white text-blue-900",
-        chips: "bg-blue-100 text-blue-900",
+        default: "bg-blue-50 text-blue-700 border-blue-200",
+        primary: "bg-blue-600 text-white border-blue-600",
+        secondary: "bg-slate-100 text-slate-700 border-slate-200",
+        signal: "bg-amber-50 text-amber-900 border-amber-300 font-semibold",
+        success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        warn: "bg-amber-50 text-amber-800 border-amber-200",
+        danger: "bg-red-50 text-red-700 border-red-200",
+        destructive: "bg-red-50 text-red-700 border-red-200",
+        outline: "bg-white text-slate-700 border-slate-300",
+        chips: "bg-blue-50 text-blue-700 border-blue-200",
       },
       size: {
         sm: "text-[11px] px-2 py-[2px]",

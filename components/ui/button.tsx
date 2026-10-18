@@ -14,31 +14,31 @@ import { cn } from "@/lib/utils";
  * - Disabled: blue-100 fill, slate-500 text, no shadow
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center cursor-pointer gap-2 rounded-none border-2 border-blue-900 whitespace-nowrap text-[14px] font-semibold transition-[transform,box-shadow,background-color,color] duration-120 ease-out disabled:pointer-events-none disabled:bg-blue-100 disabled:text-slate-500 disabled:border-slate-500 disabled:shadow-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-5 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:outline-3 focus-visible:outline-blue-500 focus-visible:outline-offset-2",
+  "inline-flex items-center justify-center cursor-pointer gap-2 rounded-none border whitespace-nowrap text-[14px] font-medium transition-colors duration-150 ease-out disabled:pointer-events-none disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 shrink-0 outline-none focus-visible:outline-2 focus-visible:outline-blue-600 focus-visible:outline-offset-2",
   {
     variants: {
       variant: {
         default:
-          "bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700",
+          "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm",
         primary:
-          "bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700",
+          "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm",
         signal:
-          "bg-signal text-blue-900 font-bold shadow-[4px_4px_0_var(--blue-900)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--blue-900)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none",
+          "bg-amber-400 text-blue-950 font-semibold border-amber-400 hover:bg-amber-300 active:bg-amber-500 shadow-sm",
         secondary:
-          "bg-signal text-blue-900 font-bold shadow-[4px_4px_0_var(--blue-900)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--blue-900)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none",
+          "bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100/80 active:bg-blue-200 shadow-sm",
         destructive:
-          "bg-warn text-white hover:opacity-95",
+          "bg-red-600 text-white border-red-600 hover:bg-red-700 active:bg-red-800 shadow-sm",
         outline:
-          "bg-white text-blue-900 hover:bg-blue-100",
+          "bg-white text-slate-800 border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100 shadow-sm",
         ghost:
-          "border-transparent bg-transparent text-blue-900 hover:bg-blue-100 hover:border-blue-900",
-        link: "border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline p-0 min-h-0 h-auto",
+          "border-transparent bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+        link: "border-transparent bg-transparent text-blue-600 underline-offset-4 hover:underline p-0 min-h-0 h-auto",
       },
       size: {
-        default: "min-h-[44px] px-[22px] py-[10px]",
-        sm: "min-h-[38px] px-3.5 py-1.5 text-[12px]",
-        lg: "min-h-[48px] px-6 py-3 text-[16px]",
-        icon: "min-h-[44px] min-w-[44px] p-2",
+        default: "min-h-[42px] px-4 py-2",
+        sm: "min-h-[36px] px-3 py-1 text-[13px]",
+        lg: "min-h-[48px] px-6 py-2.5 text-[15px]",
+        icon: "min-h-[40px] min-w-[40px] p-2",
       },
     },
     defaultVariants: {

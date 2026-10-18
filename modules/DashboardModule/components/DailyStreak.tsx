@@ -57,12 +57,12 @@ const DailyStreak = () => {
   };
 
   return (
-    <div className="bg-white border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)]">
-      <div className="px-5 py-3.5 border-b-2 border-blue-900 bg-blue-800 text-white flex items-center justify-between">
-        <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
+    <div className="bg-white border border-slate-200/90 shadow-xs">
+      <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
+        <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-slate-100">
           SOAL HARIAN
         </span>
-        <span className="inline-flex items-center gap-1.5 px-2 py-[2px] border border-slate-600 bg-blue-900 font-mono text-[12px] text-signal tabular-nums">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-slate-700 bg-slate-800 font-mono text-[12px] text-amber-400 tabular-nums">
           <Flame className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
           <span>{streak} hari</span>
         </span>
@@ -70,13 +70,13 @@ const DailyStreak = () => {
 
       <div className="p-5 space-y-4">
         {answeredToday && !showResult ? (
-          <div className="p-4 border-2 border-dashed border-slate-500 bg-blue-50 text-[14px] text-slate-700">
+          <div className="p-4 border border-dashed border-slate-300 bg-slate-50 text-[14px] text-slate-600">
             Soal harian hari ini sudah dikerjakan. Kembali besok untuk lanjutkan rentetan belajarmu.
           </div>
         ) : (
           currentProblem && (
             <div className="space-y-4">
-              <p className="text-[16px] font-semibold text-blue-900 leading-relaxed">
+              <p className="text-[15px] font-semibold text-slate-900 leading-relaxed">
                 {currentProblem.question}
               </p>
               <div className="space-y-2">
@@ -93,25 +93,25 @@ const DailyStreak = () => {
                       type="button"
                       disabled={showResult}
                       onClick={() => setSelectedAnswer(index)}
-                      className={`w-full min-h-[48px] p-3 border-2 text-left flex items-center gap-3 transition-colors cursor-pointer ${
+                      className={`w-full min-h-[46px] p-3 border text-left flex items-center gap-3 transition-colors cursor-pointer text-slate-800 ${
                         isCorrectOption
-                          ? "bg-blue-100 border-blue-600 text-blue-900"
+                          ? "bg-emerald-50/80 border-emerald-500 text-emerald-950 font-medium"
                           : isWrongSelected
-                            ? "bg-warn-100 border-warn text-warn"
+                            ? "bg-red-50/80 border-red-500 text-red-950 font-medium"
                             : isSelected
-                              ? "bg-blue-200 border-blue-500 text-blue-900"
-                              : "bg-white border-blue-900 text-blue-900 hover:bg-blue-50"
+                              ? "bg-blue-50/80 border-blue-600 text-blue-950 ring-1 ring-blue-600/30 font-medium"
+                              : "bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                       }`}
                     >
-                      <span className="w-7 h-7 border-[1.5px] border-blue-900 bg-white font-mono text-[12px] font-medium inline-flex items-center justify-center shrink-0">
+                      <span className="w-6 h-6 border border-slate-200 bg-slate-100 font-mono text-[12px] font-medium inline-flex items-center justify-center shrink-0 text-slate-700">
                         {letter}
                       </span>
                       <span className="text-[14px] flex-1">{option}</span>
                       {isCorrectOption && (
-                        <Check className="w-4 h-4 stroke-[1.75] text-blue-600 shrink-0" />
+                        <Check className="w-4 h-4 stroke-[1.75] text-emerald-600 shrink-0" />
                       )}
                       {isWrongSelected && (
-                        <X className="w-4 h-4 stroke-[1.75] text-warn shrink-0" />
+                        <X className="w-4 h-4 stroke-[1.75] text-red-600 shrink-0" />
                       )}
                     </button>
                   );
@@ -120,7 +120,7 @@ const DailyStreak = () => {
 
               {!showResult ? (
                 <Button
-                  variant="signal"
+                  variant="default"
                   onClick={handleAnswerSubmit}
                   className="w-full"
                   disabled={selectedAnswer === null}
@@ -129,20 +129,20 @@ const DailyStreak = () => {
                 </Button>
               ) : (
                 <div
-                  className={`p-3 border-2 border-blue-900 font-mono text-[13px] flex items-center gap-2 ${
+                  className={`p-3 border font-mono text-[13px] flex items-center gap-2 ${
                     selectedAnswer === currentProblem.answer
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-warn-100 text-warn"
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                      : "bg-red-50 border-red-300 text-red-900"
                   }`}
                 >
                   {selectedAnswer === currentProblem.answer ? (
                     <>
-                      <Check className="w-4 h-4 stroke-[1.75]" />
+                      <Check className="w-4 h-4 stroke-[1.75] text-emerald-600" />
                       <span>Jawaban benar. Rentetan bertambah.</span>
                     </>
                   ) : (
                     <>
-                      <X className="w-4 h-4 stroke-[1.75]" />
+                      <X className="w-4 h-4 stroke-[1.75] text-red-600" />
                       <span>Jawaban belum tepat. Coba lagi besok.</span>
                     </>
                   )}

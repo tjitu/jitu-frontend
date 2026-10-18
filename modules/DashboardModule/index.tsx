@@ -304,23 +304,23 @@ const DashboardModule = () => {
   return (
     <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-10">
       {/* 1. Student Identity Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-blue-900 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div className="flex items-center gap-4">
           <div className="relative group">
             <Avatar
-              className="w-14 h-14 border-2 border-blue-900 cursor-pointer"
+              className="w-14 h-14 border border-slate-200 shadow-xs cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               <AvatarImage src={session.user.image || ""} />
-              <AvatarFallback className="bg-blue-100 text-blue-900 font-mono text-[18px] font-medium">
+              <AvatarFallback className="bg-slate-100 text-slate-800 font-mono text-[16px] font-semibold">
                 {session.user.name.charAt(0).toUpperCase()}
               </AvatarFallback>
               {isUploading ? (
-                <div className="absolute inset-0 bg-blue-900/60 flex items-center justify-center rounded-full">
+                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center rounded-full">
                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                 </div>
               ) : (
-                <div className="absolute inset-0 bg-blue-900/60 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                   <Camera className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -335,52 +335,52 @@ const DashboardModule = () => {
           </div>
 
           <div>
-            <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
+            <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
               LEMBAR PESERTA · SNBT 2026
             </div>
-            <h1 className="font-display font-extrabold text-[28px] sm:text-[34px] leading-[1.05] tracking-[-0.025em] text-blue-900">
+            <h1 className="font-display font-bold text-[26px] sm:text-[30px] leading-tight tracking-tight text-slate-900">
               {session.user.name}
             </h1>
           </div>
         </div>
 
         {/* Summary Numbers Row */}
-        <div className="grid grid-cols-3 border-2 border-blue-900 bg-white divide-x divide-slate-300">
-          <div className="px-4 py-2.5">
-            <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-700">
+        <div className="grid grid-cols-3 border border-slate-200 bg-white divide-x divide-slate-100 shadow-xs">
+          <div className="px-5 py-3">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-medium">
               TERDAFTAR
             </div>
-            <div className="font-mono font-medium text-[22px] text-blue-900 tabular-nums">
+            <div className="font-mono font-bold text-[20px] text-slate-900 tabular-nums">
               {myTryouts.length}
             </div>
           </div>
-          <div className="px-4 py-2.5">
-            <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-700">
+          <div className="px-5 py-3">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-medium">
               SELESAI
             </div>
-            <div className="font-mono font-medium text-[22px] text-blue-900 tabular-nums">
+            <div className="font-mono font-bold text-[20px] text-slate-900 tabular-nums">
               {userStats?.totalFinished ?? 0}
             </div>
           </div>
-          <div className="px-4 py-2.5">
-            <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-700">
+          <div className="px-5 py-3">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-medium">
               RERATA IRT
             </div>
-            <div className="font-mono font-medium text-[22px] text-blue-500 tabular-nums">
+            <div className="font-mono font-bold text-[20px] text-blue-600 tabular-nums">
               {avgScore ?? "-"}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. TOP: Next Tryout — Large Slot Card + Single Signal CTA (DESIGN.md Section 6.3) */}
+      {/* 2. TOP: Next Tryout — Crisp Slot Card + Single Clean CTA */}
       <section aria-label="Tryout berikutnya">
         {featuredTryout ? (
-          <div className="bg-white border-2 border-blue-900 shadow-[10px_10px_0_var(--blue-500)] p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="bg-white border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-slate-300 transition-colors">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2 py-[3px] border-[1.5px] border-blue-900 bg-signal font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900 inline-flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
+                <span className="px-2.5 py-1 border border-amber-300 bg-amber-50 font-mono text-[11px] uppercase tracking-wider font-semibold text-amber-900 inline-flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 stroke-[2] text-amber-600" aria-hidden="true" />
                   <span>
                     {featuredTryout.isRegistered
                       ? featuredTryout.status === "IN_PROGRESS"
@@ -391,20 +391,20 @@ const DashboardModule = () => {
                       : "Jadwal terdekat"}
                   </span>
                 </span>
-                <span className="px-2 py-[3px] border-[1.5px] border-blue-900 bg-blue-50 font-mono text-[12px] uppercase tracking-[0.06em] text-blue-900">
+                <span className="px-2.5 py-1 border border-blue-200 bg-blue-50 font-mono text-[11px] uppercase tracking-wider font-medium text-blue-800">
                   GRATIS DIKERJAKAN · PEMBAHASAN {featuredTryout.solutionPrice || 1} KUOTA
                 </span>
               </div>
 
-              <div className="font-display font-extrabold text-[34px] sm:text-[44px] leading-[1.02] tracking-[-0.025em] text-blue-900 tabular-nums">
+              <div className="font-display font-extrabold text-[32px] sm:text-[40px] leading-tight tracking-tight text-slate-900 tabular-nums">
                 {formatSlotDate(featuredTryout.scheduledStart)}
               </div>
 
-              <h2 className="text-[20px] sm:text-[22px] font-bold text-blue-900">
+              <h2 className="text-[19px] sm:text-[21px] font-bold text-slate-900">
                 {featuredTryout.title}
               </h2>
 
-              <div className="flex flex-wrap items-center gap-4 font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
+              <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
                 <span className="inline-flex items-center gap-1.5">
                   <Users className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                   <span>{featuredTryout.participants} peserta</span>
@@ -414,37 +414,39 @@ const DashboardModule = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row lg:flex-col items-stretch gap-3 shrink-0 min-w-[220px]">
+            <div className="flex flex-col sm:flex-row lg:flex-col items-stretch gap-3 shrink-0 min-w-[200px]">
               {featuredTryout.isRegistered ? (
-                <button
-                  type="button"
+                <Button
+                  size="lg"
+                  variant="primary"
                   onClick={() => router.push(`/tryout/${featuredTryout.id}`)}
-                  className="jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-between gap-3 cursor-pointer"
+                  className="justify-between"
                 >
                   <span>
                     {featuredTryout.status === "FINISHED"
                       ? "Lihat hasil"
                       : "Kerjakan"}
                   </span>
-                  <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
-                </button>
+                  <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                </Button>
               ) : (
-                <button
-                  type="button"
+                <Button
+                  size="lg"
+                  variant="primary"
                   onClick={() =>
                     handleRegisterClick(featuredTryout as OngoingTryout)
                   }
-                  className="jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-between gap-3 cursor-pointer"
+                  className="justify-between"
                 >
                   <span>Daftar gratis</span>
-                  <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
-                </button>
+                  <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                </Button>
               )}
             </div>
           </div>
         ) : (
-          <div className="p-8 border-2 border-dashed border-slate-500 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-[16px] text-slate-700">
+          <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p className="text-[15px] text-slate-600">
               Belum ada tryout yang dikerjakan. Tryout #1 dibuka 2 Nov 2026.
             </p>
             <Button onClick={() => router.push("/tryout")}>Lihat jadwal</Button>
@@ -459,13 +461,13 @@ const DashboardModule = () => {
             <TabsList>
               <TabsTrigger value="my-tryouts">
                 <span>Tryout kamu</span>
-                <span className="px-1.5 py-[1px] border border-blue-900 bg-blue-100 font-mono text-[11px] tabular-nums">
+                <span className="px-1.5 py-[1px] border border-slate-200 bg-slate-100 font-mono text-[10px] tabular-nums text-slate-700">
                   {myTryouts.length}
                 </span>
               </TabsTrigger>
               <TabsTrigger value="explore" id="explore-trigger">
                 <span>Jadwal tersedia</span>
-                <span className="px-1.5 py-[1px] border border-blue-900 bg-blue-100 font-mono text-[11px] tabular-nums">
+                <span className="px-1.5 py-[1px] border border-slate-200 bg-slate-100 font-mono text-[10px] tabular-nums text-slate-700">
                   {marketTryouts.length}
                 </span>
               </TabsTrigger>
@@ -476,7 +478,7 @@ const DashboardModule = () => {
 
             <Link
               href="/tryout"
-              className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-500 hover:underline inline-flex items-center gap-1.5"
+              className="font-mono text-[11px] uppercase tracking-wider font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1.5"
             >
               <span>Buka semua jadwal</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
@@ -494,28 +496,28 @@ const DashboardModule = () => {
                   return (
                     <article
                       key={tryout.id}
-                      className={`p-6 border-2 border-blue-900 flex flex-col justify-between gap-4 ${
-                        isFinished ? "bg-blue-100" : "bg-white"
+                      className={`p-6 border border-slate-200 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 transition-colors ${
+                        isFinished ? "bg-slate-50/60" : "bg-white"
                       }`}
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900 tabular-nums">
+                          <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate-700 tabular-nums">
                             TRYOUT #{String(idx + 1).padStart(2, "0")}
                           </span>
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2 py-[2px] border-[1.5px] border-blue-900 font-mono text-[11px] uppercase tracking-[0.06em] font-medium ${
+                            className={`inline-flex items-center gap-1.5 px-2 py-[2px] border font-mono text-[10px] uppercase tracking-wider font-semibold ${
                               isFinished
-                                ? "bg-white text-blue-900"
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                                 : isProgress
-                                  ? "bg-signal text-blue-900"
-                                  : "bg-blue-50 text-blue-900"
+                                  ? "border-amber-200 bg-amber-50 text-amber-900"
+                                  : "border-blue-200 bg-blue-50 text-blue-800"
                             }`}
                           >
                             {isFinished ? (
-                              <Check className="w-3 h-3 stroke-[1.75]" />
+                              <Check className="w-3 h-3 stroke-[2]" />
                             ) : (
-                              <Clock className="w-3 h-3 stroke-[1.75]" />
+                              <Clock className="w-3 h-3 stroke-[2]" />
                             )}
                             <span>
                               {isFinished
@@ -527,15 +529,15 @@ const DashboardModule = () => {
                           </span>
                         </div>
 
-                        <div className="font-display font-extrabold text-[34px] leading-[1.02] tracking-[-0.025em] text-blue-900 tabular-nums">
+                        <div className="font-display font-extrabold text-[30px] leading-tight tracking-tight text-slate-900 tabular-nums">
                           {formatSlotDate(tryout.scheduledStart)}
                         </div>
 
-                        <div className="pt-2 border-t border-slate-300 space-y-1">
-                          <h3 className="text-[16px] font-bold text-blue-900 leading-snug">
+                        <div className="pt-3 border-t border-slate-100 space-y-1">
+                          <h3 className="text-[15px] font-bold text-slate-900 leading-snug">
                             {tryout.title}
                           </h3>
-                          <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 tabular-nums">
+                          <p className="font-mono text-[11px] uppercase tracking-wider text-slate-500 tabular-nums">
                             {tryout.participants} peserta · SNBT
                           </p>
                         </div>
@@ -553,15 +555,15 @@ const DashboardModule = () => {
                               ? "Lanjutkan"
                               : "Kerjakan"}
                         </span>
-                        <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                        <ArrowRight className="w-4 h-4 stroke-[2]" />
                       </Button>
                     </article>
                   );
                 })}
               </div>
             ) : (
-              <div className="p-8 border-2 border-dashed border-slate-500 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <p className="text-[16px] text-slate-700">
+              <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p className="text-[15px] text-slate-600">
                   Belum ada tryout yang dikerjakan. Tryout #1 dibuka 2 Nov 2026.
                 </p>
                 <Button
@@ -583,29 +585,29 @@ const DashboardModule = () => {
                 {marketTryouts.map((tryout, idx) => (
                   <article
                     key={tryout.id}
-                    className="p-6 bg-white border-2 border-blue-900 flex flex-col justify-between gap-4"
+                    className="p-6 bg-white border border-slate-200 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 transition-colors"
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900 tabular-nums">
+                        <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate-700 tabular-nums">
                           TRYOUT #
                           {tryout.title.match(/\d+/)?.[0]?.padStart(2, "0") ||
                             String(idx + 1).padStart(2, "0")}
                         </span>
-                        <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-blue-50 font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
+                        <span className="px-2 py-[2px] border border-blue-200 bg-blue-50 font-mono text-[10px] uppercase tracking-wider font-semibold text-blue-800">
                           Gratis · Rp0
                         </span>
                       </div>
 
-                      <div className="font-display font-extrabold text-[34px] leading-[1.02] tracking-[-0.025em] text-blue-900 tabular-nums">
+                      <div className="font-display font-extrabold text-[30px] leading-tight tracking-tight text-slate-900 tabular-nums">
                         {formatSlotDate(tryout.scheduledStart)}
                       </div>
 
-                      <div className="pt-2 border-t border-slate-300 space-y-1">
-                        <h3 className="text-[16px] font-bold text-blue-900 leading-snug">
+                      <div className="pt-3 border-t border-slate-100 space-y-1">
+                        <h3 className="text-[15px] font-bold text-slate-900 leading-snug">
                           {tryout.title}
                         </h3>
-                        <p className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 tabular-nums">
+                        <p className="font-mono text-[11px] uppercase tracking-wider text-slate-500 tabular-nums">
                           {tryout.participants} peserta · Pembahasan{" "}
                           {tryout.solutionPrice || 1} kuota
                         </p>
@@ -620,14 +622,14 @@ const DashboardModule = () => {
                       }
                     >
                       <span>Daftar gratis</span>
-                      <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                      <ArrowRight className="w-4 h-4 stroke-[2]" />
                     </Button>
                   </article>
                 ))}
               </div>
             ) : (
-              <div className="p-8 border-2 border-dashed border-slate-500 bg-white">
-                <p className="text-[16px] text-slate-700">
+              <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50">
+                <p className="text-[15px] text-slate-600">
                   Semua jadwal yang tersedia sudah terdaftar di akunmu.
                 </p>
               </div>
@@ -636,13 +638,13 @@ const DashboardModule = () => {
 
           {/* TAB 3: SCORE HISTORY */}
           <TabsContent value="history">
-            <div className="bg-white border-2 border-blue-900 p-6 space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-300 pb-4">
+            <div className="bg-white border border-slate-200 shadow-xs p-6 space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
                     PERKEMBANGAN NILAI IRT
                   </div>
-                  <h3 className="text-[18px] font-bold text-blue-900">
+                  <h3 className="text-[17px] font-bold text-slate-900">
                     Grafik skor per gelombang
                   </h3>
                 </div>
@@ -651,10 +653,10 @@ const DashboardModule = () => {
                   <button
                     type="button"
                     onClick={() => toggleSubtest("total")}
-                    className={`px-2.5 py-1 border-[1.5px] border-blue-900 font-mono text-[12px] uppercase tracking-[0.06em] cursor-pointer ${
+                    className={`px-3 py-1 border text-[11px] font-mono uppercase tracking-wider font-medium cursor-pointer transition-colors ${
                       activeSubtests.includes("total")
-                        ? "bg-blue-500 text-white"
-                        : "bg-white text-blue-900 hover:bg-blue-50"
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                     }`}
                   >
                     Total
@@ -664,10 +666,10 @@ const DashboardModule = () => {
                       key={subtest.id}
                       type="button"
                       onClick={() => toggleSubtest(subtest.id)}
-                      className={`px-2.5 py-1 border-[1.5px] border-blue-900 font-mono text-[12px] uppercase tracking-[0.06em] cursor-pointer ${
+                      className={`px-3 py-1 border text-[11px] font-mono uppercase tracking-wider font-medium cursor-pointer transition-colors ${
                         activeSubtests.includes(subtest.id)
-                          ? "bg-blue-500 text-white"
-                          : "bg-white text-blue-900 hover:bg-blue-50"
+                          ? "bg-slate-900 text-white border-slate-900"
+                          : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
                       {subtest.label}
@@ -680,9 +682,9 @@ const DashboardModule = () => {
                 {scoreHistory.length > 0 ? (
                   <Line data={chartData} options={chartOptions} />
                 ) : (
-                  <div className="h-full border-2 border-dashed border-slate-500 bg-blue-50 flex flex-col items-center justify-center p-6 text-center gap-3">
-                    <TrendingUp className="w-8 h-8 stroke-[1.75] text-slate-500" />
-                    <p className="text-[15px] text-slate-700">
+                  <div className="h-full border border-dashed border-slate-300 bg-slate-50/50 flex flex-col items-center justify-center p-6 text-center gap-3">
+                    <TrendingUp className="w-8 h-8 stroke-[1.75] text-slate-400" />
+                    <p className="text-[14px] text-slate-600">
                       Belum ada tryout yang dikerjakan. Grafik skor muncul setelah kamu menyelesaikan tryout.
                     </p>
                   </div>
@@ -693,18 +695,18 @@ const DashboardModule = () => {
         </Tabs>
       </section>
 
-      {/* 4. BOTTOM: Quota Balance & Buy Quota Strip (DESIGN.md Section 6.3) */}
-      <section className="bg-blue-800 text-white border-2 border-blue-900 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      {/* 4. BOTTOM: Quota Balance & Buy Quota Strip */}
+      <section className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
-          <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-300 flex items-center gap-2">
-            <Ticket className="w-4 h-4 stroke-[1.75] text-signal" aria-hidden="true" />
+          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <Ticket className="w-4 h-4 stroke-[2] text-amber-400" aria-hidden="true" />
             <span>SALDO KUOTA PEMBAHASAN</span>
           </div>
-          <div className="flex items-baseline gap-3">
-            <span className="font-display font-extrabold text-[34px] leading-none text-white tabular-nums">
+          <div className="flex flex-wrap items-baseline gap-3">
+            <span className="font-display font-extrabold text-[32px] leading-none text-white tabular-nums">
               {userStats?.tokenBalance ?? 0} kuota
             </span>
-            <span className="text-[14px] text-blue-200">
+            <span className="text-[13px] text-slate-400">
               (1 kuota = 1 pembahasan tryout · mulai Rp9.500)
             </span>
           </div>
@@ -714,17 +716,17 @@ const DashboardModule = () => {
           <Button
             variant="outline"
             onClick={() => router.push("/shop/past")}
-            className="bg-blue-900 text-white border-slate-600 hover:bg-blue-700"
+            className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white"
           >
             Riwayat transaksi
           </Button>
           <Button
             variant="primary"
             onClick={() => router.push("/shop")}
-            className="bg-blue-500 text-white border-white"
+            className="bg-blue-600 hover:bg-blue-500 text-white border-transparent"
           >
             <span>Beli kuota</span>
-            <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+            <ArrowRight className="w-4 h-4 stroke-[2]" />
           </Button>
         </div>
       </section>

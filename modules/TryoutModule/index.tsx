@@ -125,27 +125,27 @@ const TryoutModule = () => {
   return (
     <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
       {/* Page Header */}
-      <div className="border-b-2 border-blue-900 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-          <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
             JADWAL SIMULASI UTBK-SNBT
           </div>
-          <h1 className="font-display font-extrabold text-[34px] sm:text-[44px] leading-[1.02] tracking-[-0.025em] text-blue-900">
+          <h1 className="font-display font-bold text-[30px] sm:text-[36px] leading-tight tracking-tight text-slate-900">
             Daftar jadwal tryout
           </h1>
         </div>
-        <p className="text-[16px] text-slate-700 max-w-md">
+        <p className="text-[15px] text-slate-600 max-w-md">
           Semua jadwal gratis dikerjakan. Kuota cuma dipakai saat kamu membuka pembahasan.
         </p>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white border-2 border-blue-900 p-4 flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
-        {/* Tabs (DESIGN.md Section 5: 16px/600 text, 3px blue-500 underline for active) */}
+      <div className="bg-white border border-slate-200 shadow-xs p-4 flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+        {/* Segmented Filter */}
         <div
           role="tablist"
           aria-label="Filter status pendaftaran"
-          className="inline-flex border-2 border-blue-900 bg-blue-50 divide-x divide-slate-300"
+          className="inline-flex border border-slate-200 bg-slate-100/80 p-1 gap-1"
         >
           {[
             { id: "all", label: "Semua" },
@@ -160,10 +160,10 @@ const TryoutModule = () => {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`min-h-[44px] px-4 py-2 text-[15px] font-semibold transition-colors cursor-pointer ${
+                className={`min-h-[36px] px-3.5 py-1.5 text-[13px] font-medium transition-colors cursor-pointer ${
                   active
-                    ? "bg-white text-blue-900 border-b-[3px] border-b-blue-500"
-                    : "text-slate-700 hover:bg-blue-100"
+                    ? "bg-white text-slate-900 font-semibold shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 {tab.label}
@@ -175,10 +175,10 @@ const TryoutModule = () => {
         {/* Search & Sort */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 stroke-[1.75] text-slate-700" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 stroke-[1.75] text-slate-400" />
             <Input
               placeholder="Cari nama gelombang…"
-              className="pl-10"
+              className="pl-10 h-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -187,7 +187,7 @@ const TryoutModule = () => {
             value={sortOrder}
             onValueChange={(val: "newest" | "oldest") => setSortOrder(val)}
           >
-            <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectTrigger className="w-full sm:w-[150px] h-10">
               <SelectValue placeholder="Urutkan" />
             </SelectTrigger>
             <SelectContent>
@@ -204,13 +204,13 @@ const TryoutModule = () => {
           {[1, 2, 3].map((n) => (
             <div
               key={n}
-              className="h-64 bg-blue-100 border-2 border-blue-900 animate-pulse"
+              className="h-64 bg-slate-100 border border-slate-200 animate-pulse"
             />
           ))}
         </div>
       ) : filteredTryouts.length === 0 ? (
-        <div className="p-10 border-2 border-dashed border-slate-500 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <p className="text-[16px] text-slate-700">
+        <div className="p-10 border border-dashed border-slate-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <p className="text-[15px] text-slate-600">
             Tidak ada jadwal tryout yang cocok dengan pencarianmu.
           </p>
           <Button
@@ -234,36 +234,36 @@ const TryoutModule = () => {
               <article
                 key={tryout.id}
                 onClick={() => router.push(`/tryout/${tryout.id}`)}
-                className="p-6 bg-white border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)] hover:bg-blue-50/40 transition-colors cursor-pointer flex flex-col justify-between gap-5"
+                className="p-6 bg-white border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between gap-5"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900 tabular-nums">
+                    <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate-700 tabular-nums">
                       TRYOUT #{numLabel}
                     </span>
                     {tryout.isRegistered ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-[2px] border-[1.5px] border-blue-900 bg-blue-100 font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
-                        <Check className="w-3 h-3 stroke-[1.75]" />
+                      <span className="inline-flex items-center gap-1.5 px-2 py-[2px] border border-emerald-200 bg-emerald-50 font-mono text-[10px] uppercase tracking-wider font-semibold text-emerald-800">
+                        <Check className="w-3 h-3 stroke-[2]" />
                         <span>Terdaftar</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-[2px] border-[1.5px] border-blue-900 bg-signal font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
-                        <Clock className="w-3 h-3 stroke-[1.75]" />
+                      <span className="inline-flex items-center gap-1.5 px-2 py-[2px] border border-blue-200 bg-blue-50 font-mono text-[10px] uppercase tracking-wider font-semibold text-blue-800">
+                        <Clock className="w-3 h-3 stroke-[2]" />
                         <span>Gratis · Rp0</span>
                       </span>
                     )}
                   </div>
 
-                  {/* 34px Display Date (DESIGN.md Section 7) */}
-                  <div className="font-display font-extrabold text-[34px] leading-[1.02] tracking-[-0.025em] text-blue-900 tabular-nums">
+                  {/* 30px Display Date */}
+                  <div className="font-display font-extrabold text-[30px] leading-tight tracking-tight text-slate-900 tabular-nums">
                     {formatSlotDate(tryout.scheduledStart)}
                   </div>
 
-                  <div className="pt-2 border-t border-slate-300 space-y-1.5">
-                    <h2 className="text-[18px] font-bold text-blue-900 leading-snug">
+                  <div className="pt-3 border-t border-slate-100 space-y-1.5">
+                    <h2 className="text-[16px] font-bold text-slate-900 leading-snug">
                       {tryout.title}
                     </h2>
-                    <div className="flex flex-wrap items-center gap-3 font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 tabular-nums">
+                    <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-slate-500 tabular-nums">
                       <span className="inline-flex items-center gap-1">
                         <Users className="w-3.5 h-3.5 stroke-[1.75]" />
                         <span>{tryout.participants.toLocaleString("id-ID")} peserta</span>
@@ -281,7 +281,7 @@ const TryoutModule = () => {
                   className="w-full justify-between"
                 >
                   <span>{tryout.isRegistered ? "Kerjakan" : "Lihat jadwal"}</span>
-                  <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                  <ArrowRight className="w-4 h-4 stroke-[2]" />
                 </Button>
               </article>
             );

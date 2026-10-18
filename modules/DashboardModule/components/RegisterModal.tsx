@@ -42,24 +42,24 @@ export function RegisterModal({
         </DialogHeader>
 
         <div className="space-y-3 py-1">
-          <div className="p-3.5 border-2 border-blue-900 bg-blue-50 flex items-start gap-2.5 text-[14px] text-blue-900">
-            <Check className="w-5 h-5 stroke-[1.75] text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="p-3.5 border border-blue-200 bg-blue-50/60 flex items-start gap-2.5 text-[14px] text-blue-900">
+            <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
-              <div className="font-bold">Gratis dikerjakan (Rp0)</div>
-              <p className="text-slate-700 mt-0.5">
+              <div className="font-semibold text-slate-900">Gratis dikerjakan (Rp0)</div>
+              <p className="text-slate-600 mt-0.5 text-[13px]">
                 Jumlah benar, salah, dan kosong langsung keluar setelah kamu kumpulkan.
               </p>
             </div>
           </div>
 
           {isPaidSolution && (
-            <div className="p-3.5 border-2 border-blue-900 bg-signal-100 flex items-start gap-2.5 text-[14px] text-blue-900">
-              <Lock className="w-5 h-5 stroke-[1.75] text-signal-700 shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="p-3.5 border border-amber-200 bg-amber-50/60 flex items-start gap-2.5 text-[14px] text-amber-950">
+              <Lock className="w-5 h-5 stroke-[2] text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <div className="font-bold">
+                <div className="font-semibold text-amber-950">
                   Pembahasan · {tokenCost} kuota
                 </div>
-                <p className="text-slate-700 mt-0.5">
+                <p className="text-amber-800/80 mt-0.5 text-[13px]">
                   Kuota baru dipakai kalau kamu memilih membuka skor IRT dan pembahasan.
                 </p>
               </div>
@@ -69,9 +69,9 @@ export function RegisterModal({
           {error && (
             <div
               role="alert"
-              className="p-3 border-2 border-warn bg-warn-100 text-warn text-[14px] flex items-start gap-2"
+              className="p-3 border border-rose-200 bg-rose-50 text-rose-800 text-[13px] flex items-start gap-2"
             >
-              <AlertCircle className="w-4 h-4 stroke-[1.75] mt-0.5 shrink-0" aria-hidden="true" />
+              <AlertCircle className="w-4 h-4 stroke-[2] text-rose-600 mt-0.5 shrink-0" aria-hidden="true" />
               <span>{error}</span>
             </div>
           )}

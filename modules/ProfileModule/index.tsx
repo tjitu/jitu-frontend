@@ -282,11 +282,11 @@ export default function ProfileModule() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Top Profile Sheet Header */}
-      <div className="bg-white border-2 border-blue-900 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-hard-sm">
+      <div className="bg-white border border-slate-200 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
         <div className="flex items-start sm:items-center gap-5">
           <div className="relative group shrink-0">
             <div
-              className="w-20 h-20 border-2 border-blue-900 bg-blue-50 relative cursor-pointer overflow-hidden"
+              className="w-20 h-20 border border-slate-200 bg-slate-50 relative cursor-pointer overflow-hidden shadow-xs"
               onClick={() => fileInputRef.current?.click()}
             >
               {user.image ? (
@@ -298,19 +298,19 @@ export default function ProfileModule() {
                   unoptimized
                 />
               ) : (
-                <div className="flex items-center justify-center w-full h-full text-blue-700">
+                <div className="flex items-center justify-center w-full h-full text-slate-500">
                   <User size={32} />
                 </div>
               )}
 
               {isUploading && (
-                <div className="absolute inset-0 bg-blue-900/60 flex items-center justify-center z-10">
+                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center z-10">
                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                 </div>
               )}
 
               {!isUploading && (
-                <div className="absolute inset-0 bg-blue-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <Camera className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -327,7 +327,7 @@ export default function ProfileModule() {
             <button
               type="button"
               onClick={openEditModal}
-              className="absolute -bottom-1.5 -right-1.5 bg-signal p-1.5 border-[1.5px] border-blue-900 text-blue-900 hover:bg-amber-300 transition-colors cursor-pointer z-20"
+              className="absolute -bottom-1.5 -right-1.5 bg-amber-400 p-1.5 border border-slate-300 text-slate-900 hover:bg-amber-300 transition-colors cursor-pointer z-20 shadow-xs"
               title="Ubah profil"
             >
               <Edit3 size={12} />
@@ -335,13 +335,13 @@ export default function ProfileModule() {
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-0.5">
+            <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-0.5 font-medium">
               PESERTA SNBT 2026
             </div>
-            <h1 className="font-display text-2xl font-bold text-blue-900">
+            <h1 className="font-display text-2xl font-bold text-slate-900">
               {user.name}
             </h1>
-            <p className="font-mono text-xs text-slate-600 mb-3">
+            <p className="font-mono text-xs text-slate-500 mb-3">
               {user.email}
             </p>
             <div className="flex flex-wrap items-center gap-2">
@@ -352,7 +352,7 @@ export default function ProfileModule() {
               <button
                 type="button"
                 onClick={() => router.push("/shop")}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-blue-900 bg-signal font-mono text-xs font-medium text-blue-900 uppercase"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-amber-300 bg-amber-50 font-mono text-xs font-semibold text-amber-900 uppercase cursor-pointer hover:bg-amber-100 transition-colors"
               >
                 KUOTA: {user.tokenBalance}
               </button>
@@ -364,7 +364,7 @@ export default function ProfileModule() {
           <Button variant="outline" onClick={() => router.push("/shop")}>
             Beli kuota
           </Button>
-          <Button variant="default" onClick={() => router.push("/tryout")}>
+          <Button variant="primary" onClick={() => router.push("/tryout")}>
             Pilih tryout
           </Button>
         </div>
@@ -374,7 +374,7 @@ export default function ProfileModule() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Navigation */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white border-2 border-blue-900 divide-y divide-blue-100">
+          <div className="bg-white border border-slate-200 divide-y divide-slate-100 shadow-xs">
             <MenuButton
               active={activeTab === "overview"}
               onClick={() => setActiveTab("overview")}
@@ -401,8 +401,8 @@ export default function ProfileModule() {
             />
           </div>
 
-          <div className="bg-white border-2 border-blue-900 p-4 space-y-2">
-            <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-slate-500">
+          <div className="bg-white border border-slate-200 p-4 space-y-2 shadow-xs">
+            <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 font-medium">
               AKSI AKUN
             </div>
             <Button
@@ -433,45 +433,45 @@ export default function ProfileModule() {
           {activeTab === "overview" && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white border-2 border-blue-900 p-5">
-                  <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+                <div className="bg-white border border-slate-200 p-5 shadow-xs">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
                     SKOR TERAKHIR
                   </div>
-                  <div className="font-mono text-3xl font-medium text-blue-900">
+                  <div className="font-mono text-2xl font-bold text-slate-900">
                     {stats.lastScore || "-"}
                   </div>
                 </div>
-                <div className="bg-white border-2 border-blue-900 p-5">
-                  <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+                <div className="bg-white border border-slate-200 p-5 shadow-xs">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
                     RATA-RATA IRT
                   </div>
-                  <div className="font-mono text-3xl font-medium text-blue-900">
+                  <div className="font-mono text-2xl font-bold text-blue-600">
                     {stats.averageScore || "-"}
                   </div>
                 </div>
-                <div className="bg-white border-2 border-blue-900 p-5">
-                  <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+                <div className="bg-white border border-slate-200 p-5 shadow-xs">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
                     TRYOUT SELESAI
                   </div>
-                  <div className="font-mono text-3xl font-medium text-blue-900">
+                  <div className="font-mono text-2xl font-bold text-slate-900">
                     {stats.totalTryout}
                   </div>
                 </div>
               </div>
 
               {stats.totalTryout === 0 && (
-                <div className="bg-blue-800 text-white border-2 border-blue-900 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-slate-900 text-white border border-slate-800 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                   <div>
                     <h3 className="font-display text-lg font-bold text-white">
                       Belum ada tryout yang dikerjakan
                     </h3>
-                    <p className="text-sm text-blue-100 mt-0.5">
+                    <p className="text-sm text-slate-300 mt-0.5">
                       Coba 1 paket tryout gratis untuk lihat baseline skor IRT
                       kamu.
                     </p>
                   </div>
                   <Button
-                    variant="default"
+                    variant="primary"
                     onClick={() => router.push("/tryout")}
                   >
                     Coba tryout gratis
@@ -571,13 +571,13 @@ export default function ProfileModule() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label>NAMA LENGKAP</Label>
-                    <div className="p-3 border-[1.5px] border-blue-200 bg-blue-50 text-blue-900 text-sm font-medium">
+                    <div className="p-3 border border-slate-200 bg-slate-50 text-slate-800 text-sm font-medium">
                       {user.name}
                     </div>
                   </div>
                   <div>
                     <Label>TARGET KAMPUS &amp; PRODI</Label>
-                    <div className="p-3 border-[1.5px] border-blue-200 bg-blue-50 text-blue-900 text-sm font-medium">
+                    <div className="p-3 border border-slate-200 bg-slate-50 text-slate-800 text-sm font-medium">
                       {user.target}
                     </div>
                   </div>
@@ -585,13 +585,13 @@ export default function ProfileModule() {
 
                 <div>
                   <Label>EMAIL TERDAFTAR</Label>
-                  <div className="p-3 border-[1.5px] border-blue-200 bg-blue-50 text-blue-900 text-sm flex items-center justify-between">
+                  <div className="p-3 border border-slate-200 bg-slate-50 text-slate-800 text-sm flex items-center justify-between">
                     <span className="font-mono text-xs">{user.email}</span>
                     <Badge variant="success">AKTIF</Badge>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-blue-100">
+                <div className="pt-4 border-t border-slate-100">
                   <Label>KEAMANAN AKUN</Label>
                   <Button
                     variant="outline"
@@ -741,14 +741,14 @@ function MenuButton({ active, onClick, icon: Icon, label }: any) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors ${
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
         active
-          ? "bg-blue-800 text-white"
-          : "bg-white text-blue-900 hover:bg-blue-50"
+          ? "bg-slate-900 text-white font-semibold"
+          : "bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
       }`}
     >
       <Icon
-        className={`h-4 w-4 ${active ? "text-signal" : "text-blue-700"}`}
+        className={`h-4 w-4 ${active ? "text-amber-400" : "text-slate-400"}`}
       />
       <span>{label}</span>
     </button>

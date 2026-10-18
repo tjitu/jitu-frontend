@@ -66,17 +66,17 @@ export default function ForgotPasswordPage() {
               jitu<span className="text-blue-500">.</span>
             </span>
           </Link>
-          <span className="px-2 py-[3px] border-[1.5px] border-blue-900 bg-white font-mono text-[12px] uppercase tracking-[0.06em] text-blue-900">
+          <span className="px-2 py-[3px] border border-slate-300 bg-white font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 shadow-xs">
             PEMULIHAN AKUN
           </span>
         </div>
 
-        <div className="bg-white border-2 border-blue-900 shadow-[10px_10px_0_var(--blue-500)]">
-          <div className="px-6 py-4 border-b-2 border-blue-900 bg-blue-800 text-white">
-            <h1 className="font-display font-extrabold text-[28px] leading-[1.05] tracking-[-0.025em]">
+        <div className="bg-white border border-slate-200/90 shadow-lg">
+          <div className="px-6 py-5 border-b border-slate-200 bg-slate-900 text-white">
+            <h1 className="font-display font-extrabold text-[26px] leading-[1.05] tracking-[-0.025em]">
               Lupa kata sandi?
             </h1>
-            <p className="text-[14px] text-blue-200 mt-1">
+            <p className="text-[14px] text-slate-300 mt-1">
               Kami kirim tautan untuk membuat kata sandi baru ke emailmu.
             </p>
           </div>
@@ -85,16 +85,16 @@ export default function ForgotPasswordPage() {
             {errorMsg && (
               <div
                 role="alert"
-                className="p-3 border-2 border-warn bg-warn-100 text-warn text-[14px] flex items-start gap-2.5"
+                className="p-3 border border-red-300 bg-red-50 text-red-900 text-[14px] flex items-start gap-2.5 shadow-xs"
               >
-                <AlertCircle className="w-5 h-5 stroke-[1.75] shrink-0 mt-0.5" aria-hidden="true" />
+                <AlertCircle className="w-5 h-5 stroke-[1.75] shrink-0 mt-0.5 text-red-600" aria-hidden="true" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {sent && (
-              <div className="p-3 border-2 border-blue-900 bg-signal-100 text-blue-900 text-[14px] flex items-start gap-2.5">
-                <Check className="w-5 h-5 stroke-[1.75] text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="p-3 border border-emerald-300 bg-emerald-50 text-emerald-950 text-[14px] flex items-start gap-2.5 shadow-xs">
+                <Check className="w-5 h-5 stroke-[1.75] text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
                 <span>
                   Tautan sudah dikirim ke <strong>{email}</strong>. Cek kotak masuk atau folder spam.
                 </span>
@@ -104,7 +104,7 @@ export default function ForgotPasswordPage() {
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="block text-[14px] font-semibold text-blue-900"
+                className="block text-[14px] font-semibold text-slate-900"
               >
                 Email terdaftar
               </label>
@@ -121,17 +121,17 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium text-[15px] inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-xs transition-colors"
             >
               <span>{loading ? "Memproses…" : "Kirim tautan"}</span>
               {!loading && <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />}
             </button>
           </form>
 
-          <div className="px-6 py-4 border-t border-slate-300 bg-blue-50">
+          <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-[14px] font-semibold text-blue-900 hover:underline"
+              className="inline-flex items-center gap-2 text-[14px] font-medium text-slate-700 hover:text-slate-900 hover:underline"
             >
               <ArrowLeft className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
               <span>Kembali ke halaman masuk</span>

@@ -28,7 +28,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("bg-blue-50 [&_tr]:border-b-2 [&_tr]:border-blue-900", className)}
+      className={cn("bg-slate-50 border-b border-slate-200", className)}
       {...props}
     />
   );
@@ -38,7 +38,7 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
       data-slot="table-body"
-      className={cn("divide-y divide-slate-300 [&_tr:last-child]:border-0", className)}
+      className={cn("divide-y divide-slate-200 [&_tr:last-child]:border-0", className)}
       {...props}
     />
   );
@@ -49,7 +49,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "bg-blue-50 border-t-2 border-blue-900 font-medium [&>tr]:last:border-b-0",
+        "bg-slate-50 border-t border-slate-200 font-medium [&>tr]:last:border-b-0",
         className
       )}
       {...props}

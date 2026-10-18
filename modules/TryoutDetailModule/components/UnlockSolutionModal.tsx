@@ -72,43 +72,43 @@ export function UnlockSolutionModal({
         </DialogHeader>
 
         <div className="py-3">
-          <div className="bg-blue-50 p-4 border-2 border-blue-900 space-y-2.5 font-mono text-xs">
+          <div className="bg-slate-50 p-4 border border-slate-200 space-y-2.5 font-mono text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-slate-600 uppercase tracking-[0.06em]">
+              <span className="text-slate-500 uppercase tracking-wider">
                 TRYOUT
               </span>
-              <span className="font-sans font-semibold text-blue-900 text-right">
+              <span className="font-sans font-semibold text-slate-900 text-right">
                 {tryoutTitle}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-600 uppercase tracking-[0.06em]">
+              <span className="text-slate-500 uppercase tracking-wider">
                 KUOTA DIPAKAI
               </span>
-              <span className="font-medium text-blue-900">{cost} kuota</span>
+              <span className="font-medium text-slate-900">{cost} kuota</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-600 uppercase tracking-[0.06em]">
+              <span className="text-slate-500 uppercase tracking-wider">
                 SALDO SAAT INI
               </span>
-              <span className="font-medium text-blue-900">
+              <span className="font-medium text-slate-900">
                 {userBalance} kuota
               </span>
             </div>
-            <div className="h-[1.5px] bg-blue-200 my-1" />
+            <div className="h-px bg-slate-200 my-1" />
             <div className="flex justify-between items-center font-medium">
-              <span className="text-blue-900 uppercase tracking-[0.06em]">
+              <span className="text-slate-900 uppercase tracking-wider">
                 SISA KUOTA
               </span>
-              <span className={isSufficient ? "text-blue-700" : "text-danger"}>
+              <span className={isSufficient ? "text-blue-600 font-semibold" : "text-rose-600 font-semibold"}>
                 {userBalance - cost} kuota
               </span>
             </div>
           </div>
 
           {error && (
-            <div className="mt-3 p-3 bg-red-50 border-2 border-danger text-danger text-sm flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div className="mt-3 p-3 bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-600" />
               <span>{error}</span>
             </div>
           )}

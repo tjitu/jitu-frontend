@@ -352,26 +352,26 @@ const ShopModule = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Top Summary Bar: Current Quota Balance (DM Mono 28px) */}
-      <div className="bg-blue-800 text-white border-2 border-blue-900 shadow-hard p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Summary Bar: Current Quota Balance */}
+      <div className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-200 mb-1">
+          <p className="font-mono text-xs uppercase tracking-wider text-slate-400 mb-1">
             BELI KUOTA TRYOUT · BAYAR SEKALI VIA QRIS
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">
             Paket kuota tanpa langganan
           </h1>
-          <p className="text-sm text-blue-100 mt-1 max-w-[58ch]">
+          <p className="text-sm text-slate-300 mt-1 max-w-[58ch]">
             1 kuota membuka skor IRT, persentil nasional, dan pembahasan 155
             soal untuk 1 tryout. Kuota tidak hangus sampai SNBT selesai.
           </p>
         </div>
 
-        <div className="bg-blue-900 border-2 border-white px-5 py-3.5 shrink-0">
-          <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200">
+        <div className="bg-slate-800 border border-slate-700 px-5 py-3.5 shrink-0 shadow-xs">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400">
             SALDO KUOTA KAMU
           </div>
-          <div className="font-mono text-[28px] leading-tight font-medium text-signal">
+          <div className="font-mono text-[28px] leading-tight font-bold text-amber-400">
             {userBalance} kuota
           </div>
         </div>
@@ -389,7 +389,7 @@ const ShopModule = () => {
 
         <TabsContent value="buy">
           {loadingPackages ? (
-            <div className="bg-white border-2 border-blue-900 p-12 text-center font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
+            <div className="bg-white border border-slate-200 p-12 text-center font-mono text-xs uppercase tracking-wider text-slate-500">
               MEMUAT PAKET KUOTA...
             </div>
           ) : (

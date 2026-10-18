@@ -19,9 +19,9 @@ export const StatCard: React.FC<StatCardData> = ({
   isLoading = false,
 }) => {
   return (
-    <div className="bg-white border-2 border-blue-900 p-5 flex flex-col justify-between gap-2.5">
+    <div className="bg-white border border-slate-200/90 shadow-xs p-5 flex flex-col justify-between gap-2.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 font-medium">
+        <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-600 font-medium">
           {label}
         </span>
         {Icon && (
@@ -33,15 +33,15 @@ export const StatCard: React.FC<StatCardData> = ({
       </div>
 
       <div>
-        <div className="font-mono font-medium text-[32px] leading-none text-blue-900 tabular-nums">
+        <div className="font-mono font-medium text-[32px] leading-none text-slate-900 tabular-nums">
           {isLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
           ) : (
             value
           )}
         </div>
         {suffix && (
-          <p className="font-mono text-[12px] text-slate-600 mt-1.5">
+          <p className="font-mono text-[12px] text-slate-500 mt-1.5">
             {suffix}
           </p>
         )}

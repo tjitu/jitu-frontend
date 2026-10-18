@@ -342,10 +342,10 @@ const TryoutDetailModule = () => {
       </div>
 
       {/* Exam Sheet Header */}
-      <div className="bg-blue-800 text-white border-2 border-blue-900 shadow-hard p-6 sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-blue-600">
+      <div className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-800">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs uppercase tracking-[0.08em] bg-blue-900 text-blue-100 px-2.5 py-1 border border-blue-500">
+            <span className="font-mono text-xs uppercase tracking-wider bg-slate-800 text-slate-200 px-2.5 py-1 border border-slate-700">
               TRYOUT #{tryoutData.number}
             </span>
             <Badge variant="primary">{tryoutData.badge}</Badge>
@@ -355,7 +355,7 @@ const TryoutDetailModule = () => {
               <Badge variant="default">{cost} KUOTA</Badge>
             )}
           </div>
-          <span className="font-mono text-xs text-blue-200 uppercase tracking-[0.08em]">
+          <span className="font-mono text-xs text-slate-400 uppercase tracking-wider">
             {formatDate(tryoutData.startDate)} –{" "}
             {formatDate(tryoutData.endDate)}
           </span>
@@ -364,47 +364,47 @@ const TryoutDetailModule = () => {
         <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight mb-3">
           {tryoutData.title}
         </h1>
-        <p className="text-blue-100 text-sm sm:text-base max-w-[65ch] mb-6 leading-relaxed">
+        <p className="text-slate-300 text-sm sm:text-base max-w-[65ch] mb-6 leading-relaxed">
           {tryoutData.description}
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-blue-900/70 border border-blue-600 p-3.5">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200 mb-1">
+          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
+            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
               <Users className="w-3.5 h-3.5" />
               PESERTA
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-medium text-white">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-white">
               {Number(tryoutData.participants || 0).toLocaleString("id-ID")}
             </div>
           </div>
 
-          <div className="bg-blue-900/70 border border-blue-600 p-3.5">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200 mb-1">
+          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
+            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
               <FileText className="w-3.5 h-3.5" />
               SOAL
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-medium text-white">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-white">
               {totalQ} soal
             </div>
           </div>
 
-          <div className="bg-blue-900/70 border border-blue-600 p-3.5">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200 mb-1">
+          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
+            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
               <Clock className="w-3.5 h-3.5" />
               DURASI
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-medium text-white">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-white">
               {tryoutData.duration} menit
             </div>
           </div>
 
-          <div className="bg-blue-900/70 border border-blue-600 p-3.5">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200 mb-1">
+          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
+            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
               <Calendar className="w-3.5 h-3.5" />
               PEMBAHASAN
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-medium text-signal">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-amber-400">
               {tryoutData.isFree ? "Gratis" : `${cost} kuota`}
             </div>
           </div>
@@ -414,14 +414,14 @@ const TryoutDetailModule = () => {
       {/* SECTION 6.5: RESULTS & PAYWALL (WHEN FINISHED) */}
       {isFinished ? (
         <div className="space-y-6">
-          {/* 1. Free section (always visible): Raw score summary 3 boxes (Benar / Salah / Kosong) in DM Mono 36px */}
-          <div className="bg-white border-2 border-blue-900 p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b-[1.5px] border-blue-100">
+          {/* 1. Free section (always visible): Raw score summary 3 boxes */}
+          <div className="bg-white border border-slate-200 shadow-xs p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
               <div>
-                <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+                <p className="font-mono text-xs uppercase tracking-wider text-blue-600 font-semibold">
                   RINGKASAN PENGERJAAN · GRATIS
                 </p>
-                <h2 className="font-display text-xl font-bold text-blue-900">
+                <h2 className="font-display text-xl font-bold text-slate-900">
                   Rekap jawaban mentah
                 </h2>
               </div>
@@ -429,11 +429,11 @@ const TryoutDetailModule = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-blue-50 border-2 border-blue-900 p-5">
-                <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+              <div className="bg-slate-50/80 border border-slate-200 p-5 shadow-xs">
+                <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-1 font-medium">
                   BENAR
                 </div>
-                <div className="font-mono text-[36px] leading-none font-medium text-success">
+                <div className="font-mono text-[34px] leading-none font-bold text-emerald-600">
                   {correctCount}
                 </div>
                 <div className="font-mono text-xs text-slate-500 mt-2">
@@ -441,11 +441,11 @@ const TryoutDetailModule = () => {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border-2 border-blue-900 p-5">
-                <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+              <div className="bg-slate-50/80 border border-slate-200 p-5 shadow-xs">
+                <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-1 font-medium">
                   SALAH
                 </div>
-                <div className="font-mono text-[36px] leading-none font-medium text-danger">
+                <div className="font-mono text-[34px] leading-none font-bold text-rose-600">
                   {wrongCount}
                 </div>
                 <div className="font-mono text-xs text-slate-500 mt-2">
@@ -453,11 +453,11 @@ const TryoutDetailModule = () => {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border-2 border-blue-900 p-5">
-                <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600 mb-1">
+              <div className="bg-slate-50/80 border border-slate-200 p-5 shadow-xs">
+                <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-1 font-medium">
                   KOSONG
                 </div>
-                <div className="font-mono text-[36px] leading-none font-medium text-slate-700">
+                <div className="font-mono text-[34px] leading-none font-bold text-slate-700">
                   {emptyCount}
                 </div>
                 <div className="font-mono text-xs text-slate-500 mt-2">
@@ -469,39 +469,39 @@ const TryoutDetailModule = () => {
 
           {/* 2. Locked or Unlocked IRT + Subtest + Solution Section */}
           {!isUnlocked ? (
-            <div className="jitu-locked-stripes border-2 border-blue-900 p-6 sm:p-8 shadow-hard">
+            <div className="border border-slate-200 bg-slate-50/80 p-6 sm:p-8 shadow-xs">
               <div className="max-w-xl">
-                <div className="inline-flex items-center gap-2 bg-blue-900 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] mb-4">
-                  <Lock className="w-3.5 h-3.5 text-signal" />
+                <div className="inline-flex items-center gap-2 bg-slate-900 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-wider mb-4">
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
                   TERKUNCI · {cost} KUOTA
                 </div>
 
-                <h3 className="font-display text-2xl font-bold text-blue-900 mb-2">
+                <h3 className="font-display text-2xl font-bold text-slate-900 mb-2">
                   Buka skor IRT dan pembahasan lengkap
                 </h3>
-                <p className="text-sm text-slate-700 mb-5">
+                <p className="text-sm text-slate-600 mb-5">
                   Pakai {cost} kuota untuk membuka hasil lengkap Tryout #
                   {tryoutData.number}:
                 </p>
 
-                <ul className="space-y-2.5 mb-6 text-sm font-medium text-blue-900">
+                <ul className="space-y-2.5 mb-6 text-sm font-medium text-slate-700">
                   <li className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 bg-blue-600 shrink-0" />
+                    <span className="w-1.5 h-1.5 bg-blue-600 shrink-0" />
                     Skor IRT &amp; persentil nasional
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 bg-blue-600 shrink-0" />
+                    <span className="w-1.5 h-1.5 bg-blue-600 shrink-0" />
                     Nilai per {tryoutData.categories?.length || 7} subtes
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 bg-blue-600 shrink-0" />
+                    <span className="w-1.5 h-1.5 bg-blue-600 shrink-0" />
                     Pembahasan {totalQ} soal langkah demi langkah
                   </li>
                 </ul>
 
                 <div className="flex flex-wrap items-center gap-4">
                   <Button
-                    variant="default"
+                    variant="primary"
                     size="lg"
                     onClick={() => setUnlockModalOpen(true)}
                   >
@@ -511,12 +511,12 @@ const TryoutDetailModule = () => {
                   {userBalance < cost ? (
                     <Link
                       href="/shop"
-                      className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-blue-700 hover:text-blue-900 underline underline-offset-4"
+                      className="font-mono text-xs uppercase tracking-wider font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-4"
                     >
                       Beli kuota →
                     </Link>
                   ) : (
-                    <span className="font-mono text-xs text-slate-700">
+                    <span className="font-mono text-xs text-slate-600">
                       SALDO KAMU: {userBalance} KUOTA
                     </span>
                   )}
@@ -526,28 +526,28 @@ const TryoutDetailModule = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Big IRT Score Card */}
-              <div className="lg:col-span-5 bg-blue-800 text-white border-2 border-blue-900 p-6 sm:p-8 flex flex-col justify-between shadow-hard">
+              <div className="lg:col-span-5 bg-slate-900 text-white border border-slate-800 p-6 sm:p-8 flex flex-col justify-between shadow-sm">
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-4">
-                    <span className="font-mono text-xs uppercase tracking-[0.08em] text-blue-200">
+                    <span className="font-mono text-xs uppercase tracking-wider text-slate-400">
                       SKOR AKHIR IRT
                     </span>
-                    <span className="bg-signal text-blue-900 border border-blue-900 px-2.5 py-0.5 font-mono text-xs font-medium uppercase tracking-[0.06em]">
+                    <span className="bg-amber-400 text-slate-900 px-2.5 py-0.5 font-mono text-xs font-bold uppercase tracking-wider">
                       TOP {(100 - percentile).toFixed(1)}% NASIONAL
                     </span>
                   </div>
 
-                  <div className="font-mono text-[64px] leading-none font-medium text-white tracking-tight my-4">
+                  <div className="font-mono text-[56px] leading-none font-bold text-white tracking-tight my-4">
                     {finalScore}
                   </div>
 
-                  <p className="text-sm text-blue-100 leading-relaxed mb-6">
+                  <p className="text-sm text-slate-300 leading-relaxed mb-6">
                     Persentil nasional{" "}
-                    <span className="font-mono font-medium text-white">
+                    <span className="font-mono font-bold text-white">
                       {percentile}%
                     </span>{" "}
                     dari{" "}
-                    <span className="font-mono font-medium text-white">
+                    <span className="font-mono font-bold text-white">
                       {Number(tryoutData.participants || 0).toLocaleString(
                         "id-ID",
                       )}
@@ -557,10 +557,10 @@ const TryoutDetailModule = () => {
                 </div>
 
                 <Button
-                  variant="default"
+                  variant="primary"
                   size="lg"
                   onClick={handleStart}
-                  className="w-full"
+                  className="w-full justify-center"
                 >
                   <BookOpen className="w-4 h-4 mr-2" />
                   Lihat pembahasan
@@ -568,24 +568,23 @@ const TryoutDetailModule = () => {
               </div>
 
               {/* Subtest Breakdown: 7 horizontal bars */}
-              <div className="lg:col-span-7 bg-white border-2 border-blue-900 p-6 sm:p-8">
-                <div className="flex items-center justify-between pb-3 mb-5 border-b-[1.5px] border-blue-100">
+              <div className="lg:col-span-7 bg-white border border-slate-200 shadow-xs p-6 sm:p-8">
+                <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-100">
                   <div>
-                    <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+                    <p className="font-mono text-xs uppercase tracking-wider text-blue-600 font-semibold">
                       RINCIAN NILAI
                     </p>
-                    <h3 className="font-display text-lg font-bold text-blue-900">
+                    <h3 className="font-display text-lg font-bold text-slate-900">
                       Skor per subtes
                     </h3>
                   </div>
-                  <span className="font-mono text-xs text-slate-600 uppercase">
+                  <span className="font-mono text-xs text-slate-500 uppercase">
                     SKALA 0–1000
                   </span>
                 </div>
 
                 <div className="space-y-4">
                   {(tryoutData.categories || []).map((cat, idx) => {
-                    // Deterministic subtest score around finalScore
                     const offsets = [28, -15, 42, -30, 18, -8, 12];
                     const subScore = Math.min(
                       980,
@@ -605,20 +604,20 @@ const TryoutDetailModule = () => {
                           <button
                             type="button"
                             onClick={() => handleStartSubtest(idx + 1, true)}
-                            className="font-semibold text-blue-900 hover:text-blue-600 text-left flex items-center gap-2"
+                            className="font-semibold text-slate-900 hover:text-blue-600 text-left flex items-center gap-2"
                           >
-                            <span className="font-mono text-xs text-slate-500">
+                            <span className="font-mono text-xs text-slate-400">
                               0{idx + 1}
                             </span>
                             <span>{cat.name}</span>
                           </button>
-                          <span className="font-mono text-sm font-medium text-blue-900">
+                          <span className="font-mono text-sm font-semibold text-slate-900">
                             {subScore}
                           </span>
                         </div>
-                        <div className="h-3 w-full bg-blue-100 border border-blue-900 overflow-hidden">
+                        <div className="h-2.5 w-full bg-slate-100 border border-slate-200 overflow-hidden">
                           <div
-                            className="h-full bg-blue-500"
+                            className="h-full bg-blue-600"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -632,13 +631,13 @@ const TryoutDetailModule = () => {
         </div>
       ) : (
         /* REGISTRATION / START ACTION BAR (WHEN NOT YET FINISHED) */
-        <div className="bg-white border-2 border-blue-900 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard-sm">
+        <div className="bg-white border border-slate-200 shadow-xs p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div
-              className={`w-10 h-10 border-2 border-blue-900 flex items-center justify-center shrink-0 ${
+              className={`w-10 h-10 border border-slate-200 flex items-center justify-center shrink-0 ${
                 tryoutData.isRegistered
-                  ? "bg-emerald-100 text-success"
-                  : "bg-blue-100 text-blue-700"
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-blue-50 text-blue-600"
               }`}
             >
               {tryoutData.isRegistered ? (
@@ -648,14 +647,14 @@ const TryoutDetailModule = () => {
               )}
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-blue-900">
+              <h2 className="font-display text-lg font-bold text-slate-900">
                 {tryoutData.isRegistered
                   ? tryoutData.latestAttemptStatus === "IN_PROGRESS"
                     ? "Sedang dikerjakan"
                     : "Sudah terdaftar"
                   : "Belum terdaftar"}
               </h2>
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-slate-600">
                 {tryoutData.isRegistered
                   ? tryoutData.latestAttemptStatus === "IN_PROGRESS"
                     ? "Lanjutkan dari subtes terakhir. Jawaban kamu tersimpan otomatis."
@@ -670,7 +669,7 @@ const TryoutDetailModule = () => {
               <Button
                 onClick={handleStart}
                 disabled={isStartingAttempt}
-                variant="default"
+                variant="primary"
                 size="lg"
                 className="w-full sm:w-auto"
               >
@@ -687,7 +686,7 @@ const TryoutDetailModule = () => {
               <Button
                 onClick={handleRegister}
                 disabled={isRegistering || isStartingAttempt}
-                variant="default"
+                variant="primary"
                 size="lg"
                 className="w-full sm:w-auto"
               >
@@ -701,7 +700,7 @@ const TryoutDetailModule = () => {
       {/* Leaderboard if ended */}
       {leaderboardData && <Leaderboard leaderboardData={leaderboardData} />}
       {leaderboardError && (
-        <div className="p-4 bg-red-50 border-2 border-danger text-danger text-sm">
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-sm">
           {leaderboardError}
         </div>
       )}
@@ -712,21 +711,21 @@ const TryoutDetailModule = () => {
           <CardHeader>
             <CardTitle>Daftar subtes ({tryoutData.categories.length})</CardTitle>
           </CardHeader>
-          <CardContent className="divide-y divide-blue-100">
+          <CardContent className="divide-y divide-slate-100">
             {tryoutData.categories.map((category, index) => (
               <div
                 key={category.id || index}
                 className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 bg-blue-50 border-[1.5px] border-blue-900 font-mono text-xs font-medium text-blue-900 flex items-center justify-center shrink-0">
+                  <span className="w-8 h-8 bg-slate-100 border border-slate-200 font-mono text-xs font-semibold text-slate-800 flex items-center justify-center shrink-0">
                     0{index + 1}
                   </span>
                   <div>
-                    <h4 className="font-semibold text-blue-900 text-sm sm:text-base">
+                    <h4 className="font-semibold text-slate-900 text-sm sm:text-base">
                       {category.name}
                     </h4>
-                    <div className="font-mono text-xs text-slate-600">
+                    <div className="font-mono text-xs text-slate-500">
                       {category.questionCount} soal · {category.duration} menit
                     </div>
                   </div>

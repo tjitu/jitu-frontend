@@ -135,17 +135,17 @@ export default function BreakPage() {
   }, [attemptId, tryoutId, router, handleProceedToNext]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-800 p-4">
-      <div className="max-w-3xl w-full bg-white border-2 border-blue-900 shadow-hard grid grid-cols-1 md:grid-cols-12">
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
+      <div className="max-w-3xl w-full bg-white border border-slate-200 shadow-xl grid grid-cols-1 md:grid-cols-12">
         {/* Left: Countdown & Next Subtest */}
-        <div className="p-6 sm:p-8 md:col-span-7 flex flex-col justify-between border-b-2 md:border-b-0 md:border-r-2 border-blue-900">
+        <div className="p-6 sm:p-8 md:col-span-7 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-200">
           <div>
-            <div className="inline-flex items-center gap-2 bg-emerald-50 border-[1.5px] border-success text-success px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] mb-4">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-400 text-emerald-800 px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] mb-4">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               SUBTES {currentOrder} SELESAI
             </div>
 
-            <h1 className="font-display text-2xl font-bold text-blue-900 mb-1">
+            <h1 className="font-display text-2xl font-bold text-slate-900 mb-1">
               {prevSubtestName} selesai
             </h1>
             <p className="text-sm text-slate-600 mb-6">
@@ -153,26 +153,26 @@ export default function BreakPage() {
               saat hitung mundur habis.
             </p>
 
-            <div className="bg-blue-800 text-white border-2 border-blue-900 p-5 mb-6">
-              <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-200">
+            <div className="bg-slate-900 text-white border border-slate-800 p-5 mb-6 shadow-sm">
+              <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-400">
                 MULAI OTOMATIS DALAM
               </div>
-              <div className="font-mono text-5xl font-medium text-signal leading-none my-3">
+              <div className="font-mono text-5xl font-medium text-amber-400 leading-none my-3">
                 00:
                 {String(breakTimeRemainingSec ?? BREAK_DURATION_SEC).padStart(
                   2,
                   "0",
                 )}
               </div>
-              <div className="pt-3 mt-3 border-t border-blue-600">
-                <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-blue-200">
+              <div className="pt-3 mt-3 border-t border-slate-800">
+                <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-slate-400">
                   SUBTES {nextSubtestId}/7 BERIKUTNYA
                 </div>
                 <div className="font-display text-lg font-bold text-white mt-0.5">
                   {nextSubtestName}
                 </div>
                 {nextSubtestMeta && (
-                  <div className="font-mono text-xs text-blue-200 mt-1">
+                  <div className="font-mono text-xs text-slate-400 mt-1">
                     {nextSubtestMeta.questions} soal ·{" "}
                     {nextSubtestMeta.duration} menit
                   </div>
@@ -197,8 +197,8 @@ export default function BreakPage() {
         </div>
 
         {/* Right: 7 Subtests Progress */}
-        <div className="bg-blue-50 p-6 sm:p-8 md:col-span-5">
-          <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-900 font-medium mb-4">
+        <div className="bg-slate-50 p-6 sm:p-8 md:col-span-5">
+          <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-900 font-medium mb-4">
             PROGRES 7 SUBTES
           </div>
           <div className="space-y-2">
@@ -209,29 +209,29 @@ export default function BreakPage() {
               return (
                 <div
                   key={sub.order}
-                  className={`p-2.5 border-[1.5px] flex items-center justify-between gap-2 ${
+                  className={`p-2.5 border flex items-center justify-between gap-2 shadow-xs transition-colors ${
                     isNext
-                      ? "bg-white border-blue-900 shadow-hard-sm"
+                      ? "bg-white border-blue-600 ring-1 ring-blue-600/30 text-slate-900"
                       : isFinished
-                        ? "bg-blue-100/60 border-blue-200 text-slate-600"
-                        : "bg-white/60 border-blue-200 text-slate-500"
+                        ? "bg-emerald-50/50 border-emerald-200 text-slate-600"
+                        : "bg-white border-slate-200 text-slate-500"
                   }`}
                 >
                   <div className="min-w-0">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.06em]">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-slate-500">
                       0{sub.order} · {sub.abbr}
                     </div>
-                    <div className="font-semibold text-xs text-blue-900 truncate">
+                    <div className="font-semibold text-xs text-slate-900 truncate">
                       {sub.name}
                     </div>
                   </div>
                   <span
                     className={`font-mono text-[10px] uppercase px-1.5 py-0.5 border shrink-0 ${
                       isFinished
-                        ? "bg-emerald-50 border-success text-success"
+                        ? "bg-emerald-50 border-emerald-300 text-emerald-800"
                         : isNext
-                          ? "bg-signal border-blue-900 text-blue-900 font-medium"
-                          : "bg-blue-50 border-blue-200 text-slate-500"
+                          ? "bg-blue-600 border-blue-600 text-white font-medium"
+                          : "bg-slate-100 border-slate-200 text-slate-500"
                     }`}
                   >
                     {isFinished ? "SELESAI" : isNext ? "BERIKUT" : "NANTI"}

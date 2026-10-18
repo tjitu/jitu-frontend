@@ -66,7 +66,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-white text-blue-900 fixed bottom-0 left-0 right-0 sm:bottom-auto sm:top-[50%] sm:left-[50%] z-30 grid w-full sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] gap-5 rounded-none border-t-2 sm:border-2 border-blue-900 p-6 shadow-[10px_10px_0_var(--blue-500)] duration-200 outline-none",
+          "bg-white text-blue-900 fixed bottom-0 left-0 right-0 sm:bottom-auto sm:top-[50%] sm:left-[50%] z-30 grid w-full sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] gap-5 rounded-none border border-slate-200 p-6 shadow-2xl duration-200 outline-none",
           className
         )}
         {...props}
@@ -76,7 +76,7 @@ function DialogContent({
           <DialogPrimitive.Close
             data-slot="dialog-close"
             aria-label="Tutup dialog"
-            className="absolute top-4 right-4 min-h-[36px] min-w-[36px] inline-flex items-center justify-center border-2 border-blue-900 bg-white text-blue-900 hover:bg-blue-100 focus:outline-3 focus:outline-blue-500 focus:outline-offset-2 disabled:pointer-events-none cursor-pointer"
+            className="absolute top-4 right-4 min-h-[32px] min-w-[32px] inline-flex items-center justify-center border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors focus:outline-2 focus:outline-blue-600 disabled:pointer-events-none cursor-pointer"
           >
             <XIcon className="size-4 stroke-[1.75]" />
             <span className="sr-only">Tutup</span>

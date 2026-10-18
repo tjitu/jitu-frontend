@@ -583,9 +583,9 @@ export default function TryoutExamModule() {
 
   if (error || !examData || !currentQuestion) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 gap-4 p-6">
-        <div className="bg-white border-2 border-blue-900 p-8 max-w-md w-full text-center space-y-4 shadow-hard">
-          <h3 className="font-display text-xl font-bold text-blue-900">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4 p-6">
+        <div className="bg-white border border-slate-200 p-8 max-w-md w-full text-center space-y-4 shadow-sm">
+          <h3 className="font-display text-xl font-bold text-slate-900">
             Data gagal dimuat
           </h3>
           <p className="text-sm text-slate-600">
@@ -637,7 +637,7 @@ export default function TryoutExamModule() {
   const renderNumberGrid = (closeOnSelect = false) => (
     <div className="space-y-4">
       {isReviewMode && (
-        <div className="grid grid-cols-4 gap-1 bg-blue-50 p-1 border-[1.5px] border-blue-900">
+        <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 border border-slate-200">
           {(
             [
               { id: "ALL", label: "Semua" },
@@ -650,10 +650,10 @@ export default function TryoutExamModule() {
               key={f.id}
               type="button"
               onClick={() => setReviewFilter(f.id)}
-              className={`py-1.5 font-mono text-[11px] uppercase tracking-[0.04em] transition-colors ${
+              className={`py-1 font-mono text-[11px] uppercase tracking-wider transition-colors cursor-pointer ${
                 reviewFilter === f.id
-                  ? "bg-blue-800 text-white font-medium"
-                  : "text-blue-900 hover:bg-blue-100"
+                  ? "bg-slate-900 text-white font-semibold shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {f.label}
@@ -671,21 +671,21 @@ export default function TryoutExamModule() {
           const visibleInFilter = matchesReviewFilter(q);
 
           let cellClass =
-            "bg-white border-slate-300 text-slate-700 hover:border-blue-500";
+            "bg-white border-slate-200 text-slate-700 hover:border-slate-400";
 
           if (isReviewMode) {
             if (!isAnswered) {
-              cellClass = "bg-white border-slate-300 text-slate-600";
+              cellClass = "bg-white border-slate-200 text-slate-400";
             } else if (isQuestionCorrect(q)) {
-              cellClass = "bg-[#15803D] border-blue-900 text-white";
+              cellClass = "bg-emerald-600 border-emerald-600 text-white font-semibold";
             } else {
-              cellClass = "bg-[#DC2626] border-blue-900 text-white";
+              cellClass = "bg-rose-600 border-rose-600 text-white font-semibold";
             }
           } else {
             if (isMarked) {
-              cellClass = "bg-signal border-blue-900 text-blue-900";
+              cellClass = "bg-amber-100 border-amber-300 text-amber-950 font-bold";
             } else if (isAnswered) {
-              cellClass = "bg-blue-500 border-blue-700 text-white";
+              cellClass = "bg-blue-600 border-blue-600 text-white font-semibold";
             }
           }
 
@@ -699,8 +699,8 @@ export default function TryoutExamModule() {
                 setCurrentQuestionIndex(index);
                 if (closeOnSelect) setMobileSheetOpen(false);
               }}
-              className={`w-[44px] h-[44px] border-[1.5px] font-mono text-sm font-medium flex items-center justify-center transition-colors ${cellClass} ${
-                isCurrent ? "ring-2 ring-blue-900 ring-offset-1" : ""
+              className={`w-[42px] h-[42px] border font-mono text-sm font-medium flex items-center justify-center transition-colors cursor-pointer shadow-xs ${cellClass} ${
+                isCurrent ? "ring-2 ring-blue-600 ring-offset-1" : ""
               } ${!visibleInFilter ? "opacity-25" : ""}`}
             >
               {index + 1}
@@ -709,34 +709,34 @@ export default function TryoutExamModule() {
         })}
       </div>
 
-      {/* Legend at bottom of panel (3 items: Dijawab, Ragu, Kosong) */}
+      {/* Legend at bottom of panel */}
       {!isReviewMode ? (
-        <div className="pt-3 border-t border-blue-100 grid grid-cols-3 gap-2 font-mono text-[11px] text-slate-700">
+        <div className="pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 font-mono text-[10px] text-slate-600 uppercase tracking-wider">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 bg-blue-500 border border-blue-700 shrink-0" />
+            <span className="w-2.5 h-2.5 bg-blue-600 border border-blue-600 shrink-0" />
             <span>Dijawab ({answeredCount})</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 bg-signal border border-blue-900 shrink-0" />
+            <span className="w-2.5 h-2.5 bg-amber-100 border border-amber-300 shrink-0" />
             <span>Ragu ({raguCount})</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 bg-white border border-slate-300 shrink-0" />
+            <span className="w-2.5 h-2.5 bg-white border border-slate-300 shrink-0" />
             <span>Kosong ({unansweredCount})</span>
           </div>
         </div>
       ) : (
-        <div className="pt-3 border-t border-blue-100 grid grid-cols-3 gap-2 font-mono text-[11px] text-slate-700">
+        <div className="pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 font-mono text-[10px] text-slate-600 uppercase tracking-wider">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 bg-[#15803D] border border-blue-900 shrink-0" />
+            <span className="w-2.5 h-2.5 bg-emerald-600 border border-emerald-600 shrink-0" />
             <span>Benar</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 bg-[#DC2626] border border-blue-900 shrink-0" />
+            <span className="w-2.5 h-2.5 bg-rose-600 border border-rose-600 shrink-0" />
             <span>Salah</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 bg-white border border-slate-300 shrink-0" />
+            <span className="w-2.5 h-2.5 bg-white border border-slate-300 shrink-0" />
             <span>Kosong</span>
           </div>
         </div>
@@ -856,15 +856,15 @@ export default function TryoutExamModule() {
       <div className="flex-1 w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-6 pb-24">
         <div className="flex flex-col lg:flex-row items-start gap-6">
           {/* Left Column: Question + Options (flex-1, max 720px) */}
-          <div className="w-full lg:flex-1 lg:max-w-[720px] bg-white border-2 border-blue-900 p-5 sm:p-8">
+          <div className="w-full lg:flex-1 lg:max-w-[720px] bg-white border border-slate-200/90 shadow-xs p-5 sm:p-8">
             {/* Question Number Badge + Mobile Font Size Control */}
-            <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b-[1.5px] border-blue-100">
+            <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b border-slate-200">
               <div className="flex items-center gap-2">
-                <span className="bg-blue-800 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] font-medium">
+                <span className="bg-slate-900 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-[0.08em] font-medium">
                   SOAL {currentQuestionIndex + 1} / {totalQuestions}
                 </span>
                 {isCurrentRagu && !isReviewMode && (
-                  <span className="bg-signal text-blue-900 border border-blue-900 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.06em] font-medium">
+                  <span className="bg-amber-50 text-amber-900 border border-amber-300 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.06em] font-medium">
                     RAGU-RAGU
                   </span>
                 )}
@@ -881,9 +881,9 @@ export default function TryoutExamModule() {
 
             <div ref={questionContainerRef}>
               {/* Question Passage / Text Box */}
-              <div className="mb-6 bg-blue-50/70 border-[1.5px] border-blue-200 p-4 sm:p-5 overflow-x-auto max-h-[420px] overflow-y-auto">
+              <div className="mb-6 bg-slate-50/70 border border-slate-200/90 p-4 sm:p-5 overflow-x-auto max-h-[420px] overflow-y-auto">
                 <div
-                  className="prose max-w-[68ch] text-blue-900 whitespace-pre-wrap leading-[1.65]"
+                  className="prose max-w-[68ch] text-slate-900 whitespace-pre-wrap leading-[1.65]"
                   style={{ fontSize: `${fontSize}px` }}
                   dangerouslySetInnerHTML={{
                     __html: currentQuestion.questionText,
@@ -901,29 +901,29 @@ export default function TryoutExamModule() {
                   const letter = String.fromCharCode(65 + idx);
 
                   let rowClass =
-                    "bg-white border-[1.5px] border-blue-200 hover:bg-blue-100 hover:border-blue-500 text-blue-900";
+                    "bg-white border border-slate-200 hover:bg-slate-50/80 hover:border-slate-300 text-slate-900 shadow-xs";
                   let badgeClass =
-                    "bg-blue-50 border-[1.5px] border-blue-200 text-blue-900";
+                    "bg-slate-100 border border-slate-200 text-slate-700";
 
                   if (isReviewMode) {
                     if (isCorrectKey) {
                       rowClass =
-                        "bg-emerald-50 border-2 border-[#15803D] text-blue-900 font-semibold";
+                        "bg-emerald-50/70 border border-emerald-500 text-emerald-950 font-semibold shadow-xs";
                       badgeClass =
-                        "bg-[#15803D] border-[#15803D] text-white";
+                        "bg-emerald-600 border-emerald-600 text-white";
                     } else if (isSelected && !isCorrectKey) {
                       rowClass =
-                        "bg-red-50 border-2 border-[#DC2626] text-blue-900";
+                        "bg-red-50/70 border border-red-500 text-red-950 shadow-xs";
                       badgeClass =
-                        "bg-[#DC2626] border-[#DC2626] text-white";
+                        "bg-red-600 border-red-600 text-white";
                     } else {
                       rowClass =
-                        "bg-white border-[1.5px] border-blue-100 text-slate-600 opacity-75";
+                        "bg-white border border-slate-200 text-slate-500 opacity-60";
                     }
                   } else if (isSelected) {
                     rowClass =
-                      "bg-blue-200 border-2 border-blue-500 text-blue-900 font-medium";
-                    badgeClass = "bg-blue-500 border-blue-700 text-white";
+                      "bg-blue-50/80 border border-blue-600 text-blue-950 font-medium ring-1 ring-blue-600/30 shadow-xs";
+                    badgeClass = "bg-blue-600 border-blue-600 text-white";
                   }
 
                   return (
@@ -961,12 +961,12 @@ export default function TryoutExamModule() {
                       JAWABAN ISIAN SINGKAT
                     </label>
                     <input
-                      className={`w-full h-12 px-3.5 bg-white border-[1.5px] font-mono text-base outline-none ${
+                      className={`w-full h-12 px-3.5 bg-white border font-mono text-base outline-none transition-colors ${
                         isReviewMode
                           ? isQuestionCorrect(currentQuestion)
-                            ? "border-[#15803D] bg-emerald-50 text-blue-900 font-medium"
-                            : "border-[#DC2626] bg-red-50 text-blue-900"
-                          : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                            ? "border-emerald-500 bg-emerald-50/70 text-emerald-950 font-medium"
+                            : "border-red-500 bg-red-50/70 text-red-950"
+                          : "border-slate-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                       }`}
                       placeholder="Ketik jawaban singkat..."
                       style={{ fontSize: `${fontSize}px` }}
@@ -975,8 +975,8 @@ export default function TryoutExamModule() {
                       disabled={isReviewMode}
                     />
                     {isReviewMode && currentQuestion.correctAnswerText && (
-                      <div className="p-3 bg-emerald-50 border-[1.5px] border-[#15803D] font-mono text-xs text-[#15803D] flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <div className="p-3 bg-emerald-50/80 border border-emerald-400 font-mono text-xs text-emerald-900 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                         <span>
                           KUNCI JAWABAN: {currentQuestion.correctAnswerText}
                         </span>
@@ -988,13 +988,13 @@ export default function TryoutExamModule() {
 
               {/* Solution Box in Review Mode */}
               {isReviewMode && currentQuestion.solution && (
-                <div className="mt-6 p-5 sm:p-6 bg-blue-50 border-2 border-blue-900">
-                  <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.08em] text-blue-700 font-medium pb-3 mb-3 border-b border-blue-200">
+                <div className="mt-6 p-5 sm:p-6 bg-slate-50 border border-slate-200 shadow-xs">
+                  <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.08em] text-blue-700 font-medium pb-3 mb-3 border-b border-slate-200">
                     <BookOpen className="w-4 h-4" />
                     PEMBAHASAN LANGKAH DEMI LANGKAH
                   </div>
                   <div
-                    className="prose prose-sm max-w-[68ch] text-blue-900 leading-[1.65]"
+                    className="prose prose-sm max-w-[68ch] text-slate-800 leading-[1.65]"
                     style={{ fontSize: `${fontSize}px` }}
                   >
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -1007,12 +1007,12 @@ export default function TryoutExamModule() {
           </div>
 
           {/* Right Column: 260px fixed Question Navigator on desktop */}
-          <aside className="hidden lg:block w-[260px] shrink-0 bg-white border-2 border-blue-900 p-4 sticky top-20">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-blue-100">
-              <span className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-blue-900">
+          <aside className="hidden lg:block w-[260px] shrink-0 bg-white border border-slate-200 shadow-xs p-4 sticky top-20">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <span className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-slate-900">
                 NOMOR SOAL
               </span>
-              <span className="font-mono text-xs text-slate-600">
+              <span className="font-mono text-xs text-slate-500">
                 {answeredCount}/{totalQuestions}
               </span>
             </div>
@@ -1023,16 +1023,16 @@ export default function TryoutExamModule() {
 
       {/* Mobile Number Grid Bottom Sheet */}
       {mobileSheetOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden bg-blue-900/60 flex flex-col justify-end">
-          <div className="bg-white border-t-2 border-blue-900 p-5 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-blue-100">
-              <span className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-blue-900">
+        <div className="fixed inset-0 z-50 lg:hidden bg-slate-950/60 backdrop-blur-xs flex flex-col justify-end">
+          <div className="bg-white border-t border-slate-200 shadow-xl p-5 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+              <span className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-slate-900">
                 DAFTAR NOMOR SOAL ({answeredCount}/{totalQuestions})
               </span>
               <button
                 type="button"
                 onClick={() => setMobileSheetOpen(false)}
-                className="w-8 h-8 border border-blue-900 flex items-center justify-center text-blue-900"
+                className="w-8 h-8 border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1042,8 +1042,8 @@ export default function TryoutExamModule() {
         </div>
       )}
 
-      {/* Sticky Bottom Bar (64px, white, 2px top border blue-900) */}
-      <footer className="fixed bottom-0 left-0 right-0 z-30 h-16 bg-white border-t-2 border-blue-900 px-3 sm:px-6">
+      {/* Sticky Bottom Bar (64px, white, 1px top border slate-200) */}
+      <footer className="fixed bottom-0 left-0 right-0 z-30 h-16 bg-white/95 backdrop-blur-sm border-t border-slate-200 px-3 sm:px-6 shadow-sm">
         <div className="max-w-[1040px] mx-auto h-full flex items-center justify-between gap-2">
           {/* Left: "← Sebelumnya" (secondary) */}
           <Button
@@ -1072,10 +1072,10 @@ export default function TryoutExamModule() {
                       : [...prev, qid],
                   );
                 }}
-                className={`h-9 px-3 border-2 border-blue-900 font-sans font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors ${
+                className={`h-9 px-3 border font-sans font-medium text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors ${
                   isCurrentRagu
-                    ? "bg-signal text-blue-900"
-                    : "bg-white text-blue-900 hover:bg-blue-50"
+                    ? "bg-amber-100 border-amber-300 text-amber-900"
+                    : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"
                 }`}
               >
                 <Flag className="w-3.5 h-3.5" />
@@ -1086,22 +1086,22 @@ export default function TryoutExamModule() {
             <button
               type="button"
               onClick={() => setMobileSheetOpen(true)}
-              className="lg:hidden h-9 px-3 border-2 border-blue-900 bg-blue-50 text-blue-900 font-mono text-xs font-medium inline-flex items-center gap-1.5"
+              className="lg:hidden h-9 px-3 border border-slate-300 bg-slate-50 text-slate-800 font-mono text-xs font-medium inline-flex items-center gap-1.5 hover:bg-slate-100 transition-colors"
             >
               <Grid className="w-3.5 h-3.5" />
               <span>Nomor</span>
             </button>
 
             {!isReviewMode && (
-              <span className="hidden md:inline-block font-mono text-xs text-slate-600">
+              <span className="hidden md:inline-block font-mono text-xs text-slate-500">
                 {isSaving ? "Menyimpan…" : "Tersimpan"}
               </span>
             )}
           </div>
 
-          {/* Right: "Berikutnya →" (blue-500 solid) */}
+          {/* Right: "Berikutnya →" (blue-600 solid) */}
           <Button
-            variant="primary"
+            variant="default"
             size="sm"
             onClick={handleNext}
             disabled={isSaving || isSubmittingFinish}
@@ -1124,40 +1124,40 @@ export default function TryoutExamModule() {
       <Dialog open={showFinishConfirm} onOpenChange={setShowFinishConfirm}>
         <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl font-bold text-blue-900">
+            <DialogTitle className="font-display text-xl font-bold text-slate-900">
               Kumpulkan sekarang?
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-700 pt-1">
+            <DialogDescription className="text-sm text-slate-600 pt-1">
               Masih ada{" "}
-              <span className="font-mono font-medium text-blue-900">
+              <span className="font-mono font-medium text-slate-900">
                 {unansweredCount}
               </span>{" "}
               soal kosong dan{" "}
-              <span className="font-mono font-medium text-blue-900">
+              <span className="font-mono font-medium text-amber-700">
                 {raguCount}
               </span>{" "}
               soal ragu-ragu.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="my-2 bg-blue-50 border-2 border-blue-900 p-4 grid grid-cols-3 gap-2 text-center font-mono">
+          <div className="my-2 bg-slate-50 border border-slate-200 p-4 grid grid-cols-3 gap-2 text-center font-mono">
             <div>
-              <div className="text-[11px] text-slate-600 uppercase">
+              <div className="text-[11px] text-slate-500 uppercase">
                 DIJAWAB
               </div>
-              <div className="text-xl font-medium text-blue-900">
+              <div className="text-xl font-medium text-slate-900">
                 {answeredCount}
               </div>
             </div>
             <div>
-              <div className="text-[11px] text-slate-600 uppercase">KOSONG</div>
-              <div className="text-xl font-medium text-blue-900">
+              <div className="text-[11px] text-slate-500 uppercase">KOSONG</div>
+              <div className="text-xl font-medium text-slate-900">
                 {unansweredCount}
               </div>
             </div>
             <div>
-              <div className="text-[11px] text-slate-600 uppercase">RAGU</div>
-              <div className="text-xl font-medium text-blue-900">
+              <div className="text-[11px] text-slate-500 uppercase">RAGU</div>
+              <div className="text-xl font-medium text-amber-600">
                 {raguCount}
               </div>
             </div>
