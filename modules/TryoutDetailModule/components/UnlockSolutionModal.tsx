@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 
 interface UnlockSolutionModalProps {
   isOpen: boolean;
@@ -43,29 +44,29 @@ export function UnlockSolutionModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <div className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
-            <Lock className="w-3.5 h-3.5" />
-            KONFIRMASI KUOTA
+          <div className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+            <PixelCoin size={14} />
+            <span>KONFIRMASI COINS</span>
           </div>
           <DialogTitle className="font-display text-xl font-bold text-blue-900">
-            Pakai {cost} kuota untuk {label}?
+            Pakai {cost} {cost === 1 ? "coin" : "coins"} untuk {label}?
           </DialogTitle>
           <DialogDescription className="text-sm text-slate-700 pt-1">
             {isSufficient ? (
               <>
-                Sisa kuota jadi{" "}
+                Sisa coins jadi{" "}
                 <span className="font-mono font-medium text-blue-900">
-                  {remaining}
+                  {remaining} coins
                 </span>
                 . Ini tidak bisa dibatalkan.
               </>
             ) : (
               <>
-                Kuota kamu{" "}
+                Coins kamu{" "}
                 <span className="font-mono font-medium text-blue-900">
-                  {userBalance}
+                  {userBalance} coins
                 </span>
-                . Beli paket mulai Rp12.000 untuk buka hasil ini.
+                . Beli paket mulai Rp8.900 untuk buka hasil ini.
               </>
             )}
           </DialogDescription>
@@ -82,26 +83,27 @@ export function UnlockSolutionModal({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 uppercase tracking-wider">
-                KUOTA DIPAKAI
+              <span className="text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <PixelCoin size={12} />
+                <span>COINS DIPAKAI</span>
               </span>
-              <span className="font-medium text-slate-900">{cost} kuota</span>
+              <span className="font-medium text-slate-900">{cost} {cost === 1 ? "coin" : "coins"}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-500 uppercase tracking-wider">
                 SALDO SAAT INI
               </span>
               <span className="font-medium text-slate-900">
-                {userBalance} kuota
+                {userBalance} coins
               </span>
             </div>
             <div className="h-px bg-slate-200 my-1" />
             <div className="flex justify-between items-center font-medium">
               <span className="text-slate-900 uppercase tracking-wider">
-                SISA KUOTA
+                SISA COINS
               </span>
               <span className={isSufficient ? "text-blue-600 font-semibold" : "text-rose-600 font-semibold"}>
-                {userBalance - cost} kuota
+                {userBalance - cost} coins
               </span>
             </div>
           </div>
@@ -123,6 +125,7 @@ export function UnlockSolutionModal({
               onClick={onConfirm}
               disabled={isLoading}
               variant="default"
+              className="inline-flex items-center gap-1.5"
             >
               {isLoading ? (
                 <>
@@ -130,7 +133,10 @@ export function UnlockSolutionModal({
                   Memproses...
                 </>
               ) : (
-                `Pakai ${cost} kuota`
+                <>
+                  <PixelCoin size={14} />
+                  <span>Pakai {cost} {cost === 1 ? "coin" : "coins"}</span>
+                </>
               )}
             </Button>
           ) : (
@@ -141,7 +147,7 @@ export function UnlockSolutionModal({
               }}
               variant="default"
             >
-              Beli kuota
+              Beli coins
             </Button>
           )}
         </DialogFooter>
@@ -149,3 +155,5 @@ export function UnlockSolutionModal({
     </Dialog>
   );
 }
+
+export default UnlockSolutionModal;

@@ -98,7 +98,7 @@ const AdminPaymentModule = () => {
   const handleConfirm = async (id: string) => {
     if (
       !confirm(
-        "Konfirmasi pembayaran ini? Kuota akan otomatis ditambahkan ke akun peserta.",
+        "Konfirmasi pembayaran ini? Coins akan otomatis ditambahkan ke akun peserta.",
       )
     )
       return;
@@ -154,13 +154,13 @@ const AdminPaymentModule = () => {
     <div className="space-y-6">
       <div className="pb-5 border-b-2 border-blue-900">
         <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
-          KEUANGAN &amp; KUOTA
+          KEUANGAN &amp; COINS
         </p>
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
           Kelola pembayaran
         </h1>
         <p className="text-sm text-slate-700 mt-1">
-          Verifikasi transaksi QRIS dan pantau pendapatan paket kuota.
+          Verifikasi transaksi QRIS dan pantau pendapatan paket coins.
         </p>
       </div>
 
@@ -267,7 +267,7 @@ const AdminPaymentModule = () => {
                         {p.tokenPackage.name}
                       </div>
                       <div className="font-mono text-xs text-blue-600">
-                        {p.tokenAmount} kuota
+                        {p.tokenAmount} coins
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs font-medium text-blue-900">

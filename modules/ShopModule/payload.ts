@@ -4,7 +4,7 @@ export const tokenPackages: TokenPackage[] = [
   {
     id: 1,
     tokenAmount: 1,
-    title: "1 Koin",
+    title: "1 Coin",
     subtitle: "Skor IRT + pembahasan 1 tryout",
     originalPrice: 15000,
     discount: 0,
@@ -16,7 +16,7 @@ export const tokenPackages: TokenPackage[] = [
   {
     id: 2,
     tokenAmount: 3,
-    title: "3 Koin",
+    title: "3 Coins",
     subtitle: "Skor IRT + pembahasan 3 tryout",
     originalPrice: 45000,
     discount: 13,
@@ -28,7 +28,7 @@ export const tokenPackages: TokenPackage[] = [
   {
     id: 3,
     tokenAmount: 5,
-    title: "5 Koin",
+    title: "5 Coins",
     subtitle: "Paling populer untuk persiapan rutin",
     originalPrice: 75000,
     discount: 21,
@@ -42,7 +42,7 @@ export const tokenPackages: TokenPackage[] = [
   {
     id: 4,
     tokenAmount: 10,
-    title: "10 Koin",
+    title: "10 Coins",
     subtitle: "Harga per tryout paling hemat",
     originalPrice: 150000,
     discount: 41,
@@ -51,7 +51,7 @@ export const tokenPackages: TokenPackage[] = [
     pricePerToken: "8.900",
     categoryBg: "from-emerald-500 to-emerald-600",
     popular: false,
-    badge: "TERHEMAT",
+    badge: "PALING HEMAT",
   },
 ];
 

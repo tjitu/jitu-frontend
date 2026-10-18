@@ -156,7 +156,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
         ) : (
           <div className="min-h-[44px] px-3 py-2 border border-dashed border-slate-500 flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em]">
             <span>Ditutup</span>
-            <span>Buka · 1 kuota</span>
+            <span>Buka · 1 coin</span>
           </div>
         )}
       </div>

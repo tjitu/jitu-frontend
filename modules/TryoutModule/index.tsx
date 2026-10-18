@@ -135,7 +135,7 @@ const TryoutModule = () => {
           </h1>
         </div>
         <p className="text-[15px] text-slate-600 max-w-md">
-          Semua jadwal gratis dikerjakan. Kuota cuma dipakai saat kamu membuka pembahasan.
+          Semua jadwal gratis dikerjakan. Coins cuma dipakai saat kamu membuka pembahasan.
         </p>
       </div>
 
@@ -270,7 +270,7 @@ const TryoutModule = () => {
                       </span>
                       <span>·</span>
                       <span>
-                        Pembahasan {tryout.solutionPrice || 1} kuota
+                        Pembahasan {tryout.solutionPrice || 1} coins
                       </span>
                     </div>
                   </div>

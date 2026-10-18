@@ -20,6 +20,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 import {
   Dialog,
   DialogContent,
@@ -354,7 +355,8 @@ export default function ProfileModule() {
                 onClick={() => router.push("/shop")}
                 className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-amber-300 bg-amber-50 font-mono text-xs font-semibold text-amber-900 uppercase cursor-pointer hover:bg-amber-100 transition-colors"
               >
-                KUOTA: {user.tokenBalance}
+                <PixelCoin size={12} />
+                <span>COINS: {user.tokenBalance}</span>
               </button>
             </div>
           </div>
@@ -362,7 +364,7 @@ export default function ProfileModule() {
 
         <div className="flex flex-wrap gap-2.5">
           <Button variant="outline" onClick={() => router.push("/shop")}>
-            Beli kuota
+            Beli coins
           </Button>
           <Button variant="primary" onClick={() => router.push("/tryout")}>
             Pilih tryout
@@ -391,7 +393,7 @@ export default function ProfileModule() {
               active={activeTab === "transactions"}
               onClick={() => setActiveTab("transactions")}
               icon={CreditCard}
-              label="Transaksi kuota"
+              label="Transaksi coins"
             />
             <MenuButton
               active={activeTab === "settings"}

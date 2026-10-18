@@ -15,12 +15,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { BACKEND_URL } from "@/lib/api";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 import BottomNav from "./BottomNav";
 
 /**
  * DESIGN.md Section 6.3 — Student dashboard & app shell
  * - App header: "jitu." logo left; quota balance (mono chip) and avatar right.
- * - Phones: bottom tab bar (Beranda, Tryout, Riwayat/Kuota, Akun), 56px tall.
+ * - Phones: bottom tab bar (Beranda, Tryout, Coins, Akun), 56px tall.
  */
 const navItems = [
   {
@@ -39,7 +40,7 @@ const navItems = [
     icon: Flame,
   },
   {
-    title: "Beli kuota",
+    title: "Beli coins",
     path: "shop",
     icon: ShoppingBag,
   },
@@ -87,7 +88,7 @@ const Navbar = () => {
     { title: "Beranda", path: "dashboard", icon: Home },
     { title: "Tryout", path: "tryout", icon: NotebookPen },
     { title: "Latihan", path: "daily-streak", icon: Flame },
-    { title: "Kuota", path: "shop", icon: ShoppingBag },
+    { title: "Coins", path: "shop", icon: ShoppingBag },
     { title: "Akun", path: "profile", icon: User },
   ];
 
@@ -144,15 +145,15 @@ const Navbar = () => {
             </nav>
           </div>
 
-          {/* Right: Quota Balance (Mono Chip) + Profile Avatar + Logout */}
+          {/* Right: Coins Balance (Mono Chip) + Profile Avatar + Logout */}
           <div className="flex items-center gap-2.5">
             <Link
               href="/shop"
               className="min-h-[36px] px-3 py-1 border border-amber-300 bg-amber-50 text-amber-900 font-mono text-[11px] uppercase tracking-wider font-semibold inline-flex items-center gap-1.5 shadow-xs hover:bg-amber-100 transition-colors"
             >
-              <Ticket className="w-3.5 h-3.5 stroke-[2] text-amber-600" aria-hidden="true" />
+              <PixelCoin size={15} />
               <span className="tabular-nums">
-                {tokenBalance !== null ? `${tokenBalance} kuota` : "Kuota"}
+                {tokenBalance !== null ? `${tokenBalance} coins` : "Coins"}
               </span>
             </Link>
 

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Check, Lock } from "lucide-react";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -56,11 +57,12 @@ export function RegisterModal({
             <div className="p-3.5 border border-amber-200 bg-amber-50/60 flex items-start gap-2.5 text-[14px] text-amber-950">
               <Lock className="w-5 h-5 stroke-[2] text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <div className="font-semibold text-amber-950">
-                  Pembahasan · {tokenCost} kuota
+                <div className="font-semibold text-amber-950 flex items-center gap-1.5">
+                  <PixelCoin size={14} />
+                  <span>Pembahasan · {tokenCost} {tokenCost === 1 ? "coin" : "coins"}</span>
                 </div>
                 <p className="text-amber-800/80 mt-0.5 text-[13px]">
-                  Kuota baru dipakai kalau kamu memilih membuka skor IRT dan pembahasan.
+                  Coins baru dipakai kalau kamu memilih membuka skor IRT dan pembahasan.
                 </p>
               </div>
             </div>

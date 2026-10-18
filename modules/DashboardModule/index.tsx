@@ -16,6 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Line } from "react-chartjs-2";
 import {
@@ -391,8 +392,9 @@ const DashboardModule = () => {
                       : "Jadwal terdekat"}
                   </span>
                 </span>
-                <span className="px-2.5 py-1 border border-blue-200 bg-blue-50 font-mono text-[11px] uppercase tracking-wider font-medium text-blue-800">
-                  GRATIS DIKERJAKAN · PEMBAHASAN {featuredTryout.solutionPrice || 1} KUOTA
+                <span className="px-2.5 py-1 border border-blue-200 bg-blue-50 font-mono text-[11px] uppercase tracking-wider font-medium text-blue-800 flex items-center gap-1.5">
+                  <PixelCoin size={14} />
+                  <span>GRATIS DIKERJAKAN · PEMBAHASAN {featuredTryout.solutionPrice || 1} COINS</span>
                 </span>
               </div>
 
@@ -609,7 +611,7 @@ const DashboardModule = () => {
                         </h3>
                         <p className="font-mono text-[11px] uppercase tracking-wider text-slate-500 tabular-nums">
                           {tryout.participants} peserta · Pembahasan{" "}
-                          {tryout.solutionPrice || 1} kuota
+                          {tryout.solutionPrice || 1} coins
                         </p>
                       </div>
                     </div>
@@ -695,19 +697,19 @@ const DashboardModule = () => {
         </Tabs>
       </section>
 
-      {/* 4. BOTTOM: Quota Balance & Buy Quota Strip */}
+      {/* 4. BOTTOM: Coins Balance & Buy Coins Strip */}
       <section className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
           <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <Ticket className="w-4 h-4 stroke-[2] text-amber-400" aria-hidden="true" />
-            <span>SALDO KUOTA PEMBAHASAN</span>
+            <PixelCoin size={18} glow />
+            <span>SALDO COINS PEMBAHASAN</span>
           </div>
           <div className="flex flex-wrap items-baseline gap-3">
             <span className="font-display font-extrabold text-[32px] leading-none text-white tabular-nums">
-              {userStats?.tokenBalance ?? 0} kuota
+              {userStats?.tokenBalance ?? 0} coins
             </span>
             <span className="text-[13px] text-slate-400">
-              (1 kuota = 1 pembahasan tryout · mulai Rp9.500)
+              (1 coin = 1 pembahasan tryout · mulai Rp8.900)
             </span>
           </div>
         </div>
@@ -725,7 +727,7 @@ const DashboardModule = () => {
             onClick={() => router.push("/shop")}
             className="bg-blue-600 hover:bg-blue-500 text-white border-transparent"
           >
-            <span>Beli kuota</span>
+            <span>Beli coins</span>
             <ArrowRight className="w-4 h-4 stroke-[2]" />
           </Button>
         </div>

@@ -79,7 +79,7 @@ const PastTransactionList = () => {
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between font-mono text-xs">
                 <span className="text-slate-900 font-medium">
                   Rp{Number(tx.totalPrice || 0).toLocaleString("id-ID")} ·{" "}
-                  {tx.amount} kuota
+                  {tx.amount} coins
                 </span>
                 <span className="text-slate-500 inline-flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />

@@ -59,8 +59,8 @@ const AdminModule = () => {
       href: "/admin/payments",
     },
     {
-      label: "Atur paket kuota",
-      description: "Ubah nominal kuota dan harga paket QRIS",
+      label: "Atur paket coins",
+      description: "Ubah nominal coins dan harga paket QRIS",
       href: "/admin/packages",
     },
     {
@@ -91,7 +91,7 @@ const AdminModule = () => {
           Ringkasan operasional
         </h1>
         <p className="text-sm text-slate-700 mt-1">
-          Statistik peserta, sesi tryout aktif, dan transaksi kuota.
+          Statistik peserta, sesi tryout aktif, dan transaksi coins.
         </p>
       </div>
 

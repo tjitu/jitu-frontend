@@ -295,4 +295,5 @@ export function KuotaPixelIcon({
     </span>
   );
 }
+export { KuotaPixelIcon as CoinPixelIcon, KuotaPixelIcon as CoinsPixelIcon, KuotaPixelIcon as PixelCoinIcon };
 export default KuotaPixelIcon;

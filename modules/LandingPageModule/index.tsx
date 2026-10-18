@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
+import { PixelCoin, PixelCoinStack } from "@/components/ui/pixel-coin";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 6-7)  */
@@ -27,7 +28,7 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
     title: "Tryout #1 dibuka",
     displayDate: "2 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 kuota",
+    subtestInfo: "Pembahasan · 1 coin",
     state: "open",
     href: "/register",
   },
@@ -37,7 +38,7 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
     title: "Minggu ke-2",
     displayDate: "9 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 kuota",
+    subtestInfo: "Pembahasan · 1 coin",
     state: "upcoming",
     href: "/register",
   },
@@ -47,7 +48,7 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
     title: "Minggu ke-3",
     displayDate: "16 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 kuota",
+    subtestInfo: "Pembahasan · 1 coin",
     state: "upcoming",
     href: "/register",
   },
@@ -57,7 +58,7 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
     title: "Minggu ke-4",
     displayDate: "23 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 kuota",
+    subtestInfo: "Pembahasan · 1 coin",
     state: "upcoming",
     href: "/register",
   },
@@ -67,7 +68,7 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
     title: "Minggu ke-5",
     displayDate: "30 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 kuota",
+    subtestInfo: "Pembahasan · 1 coin",
     state: "upcoming",
     href: "/register",
   },
@@ -77,7 +78,7 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
     title: "Gelombang penutup",
     displayDate: "21 Apr 2027",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 kuota",
+    subtestInfo: "Pembahasan · 1 coin",
     state: "upcoming",
     href: "/register",
   },
@@ -89,6 +90,7 @@ interface QuotaPack {
   totalPrice: number;
   perTryout: number;
   note: string;
+  isPopular?: boolean;
   isBestValue?: boolean;
 }
 
@@ -98,28 +100,29 @@ const QUOTA_PACKS: QuotaPack[] = [
     quota: 1,
     totalPrice: 15000,
     perTryout: 15000,
-    note: "Rp15.000 untuk 1 kuota",
+    note: "Rp15.000 untuk 1 coin",
   },
   {
     id: "pack-3",
     quota: 3,
     totalPrice: 39000,
     perTryout: 13000,
-    note: "Rp39.000 untuk 3 kuota (Rp13.000 per tryout)",
+    note: "Rp39.000 untuk 3 coins (Rp13.000 per tryout)",
   },
   {
     id: "pack-5",
     quota: 5,
     totalPrice: 59000,
     perTryout: 11800,
-    note: "Rp59.000 untuk 5 kuota (Rp11.800 per tryout)",
+    note: "Rp59.000 untuk 5 coins (Rp11.800 per tryout)",
+    isPopular: true,
   },
   {
     id: "pack-10",
     quota: 10,
     totalPrice: 89000,
     perTryout: 8900,
-    note: "Rp89.000 untuk 10 kuota (Rp8.900 per tryout)",
+    note: "Rp89.000 untuk 10 coins (Rp8.900 per tryout)",
     isBestValue: true,
   },
 ];
@@ -176,7 +179,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
           {[
             { href: "#cara-kerja", label: "Cara kerja" },
             { href: "#jadwal", label: "Jadwal" },
-            { href: "#harga", label: "Biaya & kuota" },
+            { href: "#harga", label: "Biaya & coins" },
             { href: "#peserta", label: "Peserta" },
           ].map((item) => (
             <a
@@ -237,7 +240,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             {[
               { href: "#cara-kerja", label: "Cara kerja" },
               { href: "#jadwal", label: "Jadwal" },
-              { href: "#harga", label: "Biaya & kuota" },
+              { href: "#harga", label: "Biaya & coins" },
               { href: "#peserta", label: "Peserta" },
             ].map((item) => (
               <a
@@ -486,7 +489,7 @@ const LandingPageModule = () => {
 
                 {/* Hero support line: <= 25 words, colloquial, what it is -> cost -> when */}
                 <p className="text-[18px] text-slate-700 leading-[1.5] max-w-xl">
-                  Tryout SNBT tiap minggu mulai 2 Nov 2026. Jumlah benar, salah, dan kosong langsung keluar gratis. Skor IRT dan pembahasan dibuka pakai 1 kuota.
+                  Tryout SNBT tiap minggu mulai 2 Nov 2026. Jumlah benar, salah, dan kosong langsung keluar gratis. Skor IRT dan pembahasan dibuka pakai 1 coin.
                 </p>
 
                 {/* Primary Signal CTA (1-3 words, verb first) */}
@@ -521,8 +524,9 @@ const LandingPageModule = () => {
                     <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
                       SKOR IRT &amp; PEMBAHASAN
                     </div>
-                    <div className="font-mono font-medium text-[22px] text-blue-500 tabular-nums mt-0.5">
-                      1 kuota
+                    <div className="font-mono font-medium text-[22px] text-blue-500 tabular-nums mt-0.5 flex items-center gap-1.5">
+                      <PixelCoin size={20} />
+                      <span>1 coin</span>
                     </div>
                   </div>
                   <div className="p-3">
@@ -544,7 +548,7 @@ const LandingPageModule = () => {
           </div>
         </section>
 
-        {/* 3. Cara Kerja — 3-Step Flow + Tanpa Bayar vs Pakai Kuota */}
+        {/* 3. Cara Kerja — 3-Step Flow + Tanpa Bayar vs Pakai Coins */}
         <section
           id="cara-kerja"
           className="py-16 lg:py-24 bg-white border-b-2 border-blue-900"
@@ -558,7 +562,7 @@ const LandingPageModule = () => {
                 Gimana cara ikutnya?
               </h2>
               <p className="text-[18px] text-slate-700">
-                Simulasi tryout gratis dikerjakan. Kuota hanya dipakai kalau kamu butuh pembahasan dan evaluasi skor IRT.
+                Simulasi tryout gratis dikerjakan. Coins hanya dipakai kalau kamu butuh pembahasan dan evaluasi skor IRT.
               </p>
             </div>
 
@@ -596,12 +600,12 @@ const LandingPageModule = () => {
                   Buka pembahasan kalau butuh
                 </h3>
                 <p className="text-[15px] text-slate-700 leading-relaxed">
-                  Pakai 1 kuota untuk melihat skor IRT resmi dan pembahasan detail tiap butir soal. Kalau nilaimu sudah aman, kuotamu tetap utuh.
+                  Pakai 1 coin untuk melihat skor IRT resmi dan pembahasan detail tiap butir soal. Kalau nilaimu sudah aman, coins kamu tetap utuh.
                 </p>
               </div>
             </div>
 
-            {/* Comparison Box: Tanpa Bayar vs Pakai 1 Kuota */}
+            {/* Comparison Box: Tanpa Bayar vs Pakai 1 Coin */}
             <div className="grid grid-cols-1 md:grid-cols-2 border-2 border-blue-900 bg-white divide-y-2 md:divide-y-0 md:divide-x-2 divide-blue-900">
               {/* Tanpa Bayar (Rp0) */}
               <div className="p-6 sm:p-8 space-y-4 bg-white">
@@ -632,11 +636,12 @@ const LandingPageModule = () => {
                 </ul>
               </div>
 
-              {/* Pakai 1 Kuota */}
+              {/* Pakai 1 Coin */}
               <div className="p-6 sm:p-8 space-y-4 bg-blue-50">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-700 font-semibold">
-                    DENGAN 1 KUOTA
+                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-700 font-semibold flex items-center gap-1.5">
+                    <PixelCoin size={16} />
+                    <span>DENGAN 1 COIN</span>
                   </span>
                   <span className="px-2.5 py-1 border border-blue-900 bg-signal text-blue-900 font-mono text-[13px] font-bold">
                     Mulai Rp8.900
@@ -656,7 +661,7 @@ const LandingPageModule = () => {
                   </li>
                   <li className="flex items-start gap-2.5">
                     <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Kuota tidak pernah hangus, bebas dipakai kapan saja sampai 21 Apr 2027</span>
+                    <span>Coins tidak pernah hangus, bebas dipakai kapan saja sampai 21 Apr 2027</span>
                   </li>
                 </ul>
               </div>
@@ -708,12 +713,155 @@ const LandingPageModule = () => {
                 Bayarnya gimana?
               </h2>
               <p className="text-[18px] text-slate-700">
-                Tryout gratis. Kuota cuma buat pembahasan. Makin banyak kuota, makin murah per tryout.
+                Tryout gratis. Coins cuma buat pembahasan. Makin banyak coins, makin murah per tryout.
               </p>
             </div>
 
+            {/* Pixelated Art Banner Showcase */}
+            <div className="bg-[#0B1B3F] border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)] p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 text-white relative overflow-hidden">
+              <div className="space-y-3 z-10 max-w-xl">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-amber-400 text-blue-950 font-mono text-[11px] font-extrabold uppercase tracking-wider border border-amber-300">
+                  <PixelCoin size={16} glow />
+                  <span>16-BIT RETRO TOKEN SYSTEM</span>
+                </div>
+                <h3 className="font-display font-extrabold text-[24px] sm:text-[32px] leading-tight text-white">
+                  1 Coin = 1 Evaluasi Tryout Lengkap
+                </h3>
+                <p className="text-[15px] text-blue-100 leading-relaxed">
+                  Kerjakan simulasi mingguan secara gratis. Pakai 1 coin hanya ketika kamu ingin membuka skor IRT resmi & pembahasan 155 butir soal. Coins kamu tidak pernah hangus sampai 21 April 2027.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1 font-mono text-[12px] text-blue-200">
+                  <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
+                    ✓ Tanpa Langganan
+                  </span>
+                  <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
+                    ✓ QRIS Instan
+                  </span>
+                  <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
+                    ✓ Coins Tidak Hangus
+                  </span>
+                </div>
+              </div>
+
+              {/* Pixel Art Campus Illustration */}
+              <div className="relative shrink-0 w-full lg:w-[360px] h-[160px] sm:h-[180px] border-2 border-blue-700 bg-blue-950 overflow-hidden flex items-center justify-center">
+                <Image
+                  src="/campus-pixel-art.png"
+                  alt="Pixelated Campus Art"
+                  fill
+                  className="object-cover object-center rendering-pixelated opacity-90 select-none pointer-events-none"
+                  style={{ imageRendering: "pixelated" }}
+                  unoptimized
+                />
+                <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 bg-blue-950/90 border border-amber-400/80 px-2 py-0.5 shadow-xs">
+                  <PixelCoin size={14} glow />
+                  <span className="font-mono text-[10px] font-bold text-amber-300">
+                    JITU TOKEN
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Tier Pricing Cards with Pixelated Yellow Coin Icons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {QUOTA_PACKS.map((pack) => {
+                const isTenCoins = pack.quota === 10;
+                const isFiveCoins = pack.quota === 5;
+
+                return (
+                  <div
+                    key={pack.id}
+                    className={`relative bg-white border-2 flex flex-col justify-between transition-all ${
+                      isTenCoins
+                        ? "border-emerald-600 shadow-[4px_4px_0_#059669] ring-2 ring-emerald-500/20"
+                        : isFiveCoins
+                          ? "border-blue-600 shadow-[4px_4px_0_var(--blue-900)] ring-1 ring-blue-600/30"
+                          : "border-blue-900 shadow-[4px_4px_0_var(--blue-900)]"
+                    }`}
+                  >
+                    {/* Card Top Banner / Badge */}
+                    <div
+                      className={`px-4 py-2.5 border-b-2 flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em] ${
+                        isTenCoins
+                          ? "bg-emerald-700 text-white font-bold border-emerald-700"
+                          : isFiveCoins
+                            ? "bg-blue-600 text-white font-bold border-blue-600"
+                            : "bg-blue-50 text-blue-900 font-semibold border-blue-900"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <PixelCoin size={14} />
+                        <span>{pack.quota} {pack.quota === 1 ? "COIN" : "COINS"}</span>
+                      </span>
+                      {isTenCoins ? (
+                        <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold tracking-normal shadow-xs">
+                          🔥 PALING HEMAT
+                        </span>
+                      ) : isFiveCoins ? (
+                        <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold tracking-normal shadow-xs">
+                          ⭐ POPULER
+                        </span>
+                      ) : (
+                        <span className="text-[11px] opacity-80">{pack.quota}X TRYOUT</span>
+                      )}
+                    </div>
+
+                    {/* Card Body with Pixelated Yellow Coin Icon */}
+                    <div className="p-5 space-y-4">
+                      <div>
+                        <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-600 mb-1">
+                          JUMLAH COINS
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="font-display text-[26px] font-extrabold text-blue-900">
+                            {pack.quota} {pack.quota === 1 ? "Coin" : "Coins"}
+                          </div>
+                          <PixelCoinStack amount={pack.quota} size={36} />
+                        </div>
+                        <p className="text-[13px] text-slate-600 mt-2">
+                          Buka skor IRT &amp; pembahasan {pack.quota} tryout.
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t-2 border-dashed border-slate-200 space-y-1">
+                        <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-600">
+                          HARGA PAKET
+                        </div>
+                        <div className="font-mono text-[24px] font-bold text-blue-900 tabular-nums">
+                          {formatRupiah(pack.totalPrice)}
+                        </div>
+                        <div className={`font-mono text-[13px] font-semibold flex items-center gap-1.5 ${
+                          isTenCoins ? "text-emerald-700" : "text-blue-600"
+                        }`}>
+                          <PixelCoin size={14} />
+                          <span>{formatRupiah(pack.perTryout)} / tryout</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card CTA */}
+                    <div className="p-5 pt-0">
+                      <Link
+                        href={isLoggedIn ? "/dashboard/shop" : "/register"}
+                        className={`w-full py-2.5 px-4 font-mono text-[13px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-2 border-2 transition-all ${
+                          isTenCoins
+                            ? "bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700 shadow-[2px_2px_0_#065f46]"
+                            : isFiveCoins
+                              ? "bg-blue-600 text-white border-blue-900 hover:bg-blue-700 shadow-[2px_2px_0_var(--blue-900)]"
+                              : "bg-white text-blue-900 border-blue-900 hover:bg-blue-50 shadow-[2px_2px_0_var(--blue-900)]"
+                        }`}
+                      >
+                        <span>{isLoggedIn ? "Beli Coins" : "Pilih Paket"}</span>
+                        <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Left Column: Free vs 1 Kuota Table + Canonical Formula Block */}
+              {/* Left Column: Free vs 1 Coin Table + Canonical Formula Block */}
               <div className="lg:col-span-5 space-y-6">
                 {/* Free vs Paid Comparison Box */}
                 <div className="bg-white border-2 border-blue-900 divide-y-2 divide-blue-900">
@@ -736,12 +884,13 @@ const LandingPageModule = () => {
                       <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900">
                         SKOR IRT &amp; PEMBAHASAN
                       </span>
-                      <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-blue-500 text-white font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
-                        1 KUOTA
+                      <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-blue-500 text-white font-mono text-[12px] uppercase tracking-[0.06em] font-medium flex items-center gap-1">
+                        <PixelCoin size={14} />
+                        <span>1 COIN</span>
                       </span>
                     </div>
                     <p className="text-[16px] text-blue-900 pt-1">
-                      1 kuota membuka skor IRT dan pembahasan tiap soal untuk satu tryout. Kalau nilaimu sudah aman dan nggak butuh pembahasan, kuotamu utuh.
+                      1 coin membuka skor IRT dan pembahasan tiap soal untuk satu tryout. Kalau nilaimu sudah aman dan nggak butuh pembahasan, coins kamu utuh.
                     </p>
                   </div>
                 </div>
@@ -753,13 +902,13 @@ const LandingPageModule = () => {
                       HARGA PER TRYOUT
                     </div>
                     <div className="font-mono text-[16px] font-medium text-blue-900">
-                      harga paket ÷ jumlah kuota
+                      harga paket ÷ jumlah coins
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-blue-900/30 space-y-1">
                     <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      Contoh: 5 kuota
+                      Contoh: 5 coins
                     </div>
                     <div className="font-mono text-[16px] font-medium text-blue-900 tabular-nums">
                       Rp59.000 ÷ 5 = Rp11.800 per tryout
@@ -771,8 +920,9 @@ const LandingPageModule = () => {
               {/* Right Column: Price Table (WRITING.md Section 4 & 7) */}
               <div className="lg:col-span-7 bg-white border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)]">
                 <div className="px-5 py-4 border-b-2 border-blue-900 bg-blue-800 text-white flex items-center justify-between">
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
-                    HARGA PAKET KUOTA
+                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium flex items-center gap-1.5">
+                    <PixelCoin size={16} />
+                    <span>HARGA PAKET COINS</span>
                   </span>
                   <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-200">
                     MULAI RP8.900 PER TRYOUT
@@ -802,10 +952,11 @@ const LandingPageModule = () => {
                         >
                           <td className="py-4 px-5 font-mono font-medium text-[16px] text-blue-900 tabular-nums whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <span>{pack.quota} kuota</span>
+                              <PixelCoin size={18} />
+                              <span>{pack.quota} {pack.quota === 1 ? "coin" : "coins"}</span>
                               {pack.isBestValue && (
-                                <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-white font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
-                                  Rp8.900 / tryout
+                                <span className="px-2 py-[2px] border-[1.5px] border-emerald-800 bg-emerald-600 text-white font-mono text-[10px] font-bold uppercase tracking-[0.06em]">
+                                  🔥 PALING HEMAT
                                 </span>
                               )}
                             </div>
@@ -813,10 +964,10 @@ const LandingPageModule = () => {
                           <td className="py-4 px-5 text-[14px] text-blue-900">
                             {pack.note}
                           </td>
-                          <td className="py-4 px-5 text-right font-mono text-[14px] text-blue-900 tabular-nums whitespace-nowrap">
+                          <td className="py-4 px-5 text-right font-mono text-[14px] text-blue-900 tabular-nums whitespace-nowrap font-medium">
                             {formatRupiah(pack.perTryout)}
                           </td>
-                          <td className="py-4 px-5 text-right font-mono font-medium text-[18px] text-blue-900 tabular-nums whitespace-nowrap">
+                          <td className="py-4 px-5 text-right font-mono font-bold text-[18px] text-blue-900 tabular-nums whitespace-nowrap">
                             {formatRupiah(pack.totalPrice)}
                           </td>
                         </tr>
@@ -836,16 +987,17 @@ const LandingPageModule = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
+                          <PixelCoin size={18} />
                           <span className="font-mono font-medium text-[18px] text-blue-900 tabular-nums">
-                            {pack.quota} kuota
+                            {pack.quota} {pack.quota === 1 ? "coin" : "coins"}
                           </span>
                           {pack.isBestValue && (
-                            <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-white font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
-                              Rp8.900 / tryout
+                            <span className="px-2 py-[2px] border-[1.5px] border-emerald-800 bg-emerald-600 text-white font-mono text-[10px] font-bold uppercase tracking-[0.06em]">
+                              🔥 HEMAT
                             </span>
                           )}
                         </div>
-                        <span className="font-mono font-medium text-[18px] text-blue-900 tabular-nums">
+                        <span className="font-mono font-bold text-[18px] text-blue-900 tabular-nums">
                           {formatRupiah(pack.totalPrice)}
                         </span>
                       </div>
@@ -858,14 +1010,15 @@ const LandingPageModule = () => {
 
                 {/* Table Footer Action */}
                 <div className="p-5 border-t-2 border-blue-900 bg-blue-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                  <div className="text-[14px] text-slate-700">
-                    1 kuota untuk 1 tryout. Bisa dipakai di jadwal mana saja sampai 21 Apr 2027.
+                  <div className="text-[14px] text-slate-700 flex items-center gap-2">
+                    <PixelCoin size={16} />
+                    <span>1 coin untuk 1 tryout. Bisa dipakai di jadwal mana saja sampai 21 Apr 2027.</span>
                   </div>
                   <Link
                     href={isLoggedIn ? "/dashboard/shop" : "/register"}
                     className="jitu-btn-blue text-[14px] font-semibold inline-flex items-center justify-center gap-2 shrink-0"
                   >
-                    <span>{isLoggedIn ? "Beli kuota" : "Daftar gratis"}</span>
+                    <span>{isLoggedIn ? "Beli coins" : "Daftar gratis"}</span>
                     <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                   </Link>
                 </div>
@@ -1061,7 +1214,7 @@ const LandingPageModule = () => {
                   Jadwal tryout
                 </a>
                 <a href="#harga" className="text-white hover:underline min-h-[32px] inline-flex items-center">
-                  Biaya &amp; kuota
+                  Biaya &amp; coins
                 </a>
                 <a href="#peserta" className="text-white hover:underline min-h-[32px] inline-flex items-center">
                   Peserta
@@ -1079,7 +1232,7 @@ const LandingPageModule = () => {
           {/* Plain legal line, small, in normal language (WRITING.md Section 2) */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-mono text-[12px] text-blue-300">
             <span>© 2026 Jitu (jituptn.com).</span>
-            <span>1 kuota berlaku untuk 1 pembahasan tryout dan tidak bisa diuangkan kembali.</span>
+            <span>1 coin berlaku untuk 1 pembahasan tryout dan tidak bisa diuangkan kembali.</span>
           </div>
         </div>
       </footer>

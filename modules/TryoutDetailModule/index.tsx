@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 
 import {
   ArrowLeft,
@@ -352,7 +353,10 @@ const TryoutDetailModule = () => {
             {tryoutData.isFree ? (
               <Badge variant="signal">GRATIS</Badge>
             ) : (
-              <Badge variant="default">{cost} KUOTA</Badge>
+              <Badge variant="default" className="inline-flex items-center gap-1.5">
+                <PixelCoin size={12} />
+                <span>{cost} {cost === 1 ? "COIN" : "COINS"}</span>
+              </Badge>
             )}
           </div>
           <span className="font-mono text-xs text-slate-400 uppercase tracking-wider">
@@ -405,7 +409,7 @@ const TryoutDetailModule = () => {
               PEMBAHASAN
             </div>
             <div className="font-mono text-xl sm:text-2xl font-bold text-amber-400">
-              {tryoutData.isFree ? "Gratis" : `${cost} kuota`}
+              {tryoutData.isFree ? "Gratis" : `${cost} coins`}
             </div>
           </div>
         </div>
@@ -473,14 +477,17 @@ const TryoutDetailModule = () => {
               <div className="max-w-xl">
                 <div className="inline-flex items-center gap-2 bg-slate-900 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-wider mb-4">
                   <Lock className="w-3.5 h-3.5 text-amber-400" />
-                  TERKUNCI · {cost} KUOTA
+                  <span className="flex items-center gap-1.5">
+                    <PixelCoin size={12} />
+                    <span>TERKUNCI · {cost} {cost === 1 ? "COIN" : "COINS"}</span>
+                  </span>
                 </div>
 
                 <h3 className="font-display text-2xl font-bold text-slate-900 mb-2">
                   Buka skor IRT dan pembahasan lengkap
                 </h3>
                 <p className="text-sm text-slate-600 mb-5">
-                  Pakai {cost} kuota untuk membuka hasil lengkap Tryout #
+                  Pakai {cost} {cost === 1 ? "coin" : "coins"} untuk membuka hasil lengkap Tryout #
                   {tryoutData.number}:
                 </p>
 
@@ -504,8 +511,10 @@ const TryoutDetailModule = () => {
                     variant="primary"
                     size="lg"
                     onClick={() => setUnlockModalOpen(true)}
+                    className="inline-flex items-center gap-2"
                   >
-                    Buka · {cost} kuota
+                    <PixelCoin size={16} />
+                    <span>Buka · {cost} {cost === 1 ? "coin" : "coins"}</span>
                   </Button>
 
                   {userBalance < cost ? (
@@ -513,11 +522,12 @@ const TryoutDetailModule = () => {
                       href="/shop"
                       className="font-mono text-xs uppercase tracking-wider font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-4"
                     >
-                      Beli kuota →
+                      Beli coins →
                     </Link>
                   ) : (
-                    <span className="font-mono text-xs text-slate-600">
-                      SALDO KAMU: {userBalance} KUOTA
+                    <span className="font-mono text-xs text-slate-600 flex items-center gap-1.5">
+                      <PixelCoin size={12} />
+                      <span>SALDO KAMU: {userBalance} COINS</span>
                     </span>
                   )}
                 </div>

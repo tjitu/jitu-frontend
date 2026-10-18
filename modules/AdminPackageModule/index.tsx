@@ -40,7 +40,7 @@ const AdminPackageModule = () => {
       setPackages(data);
     } catch (error) {
       console.error(error);
-      toast.error("Data paket kuota gagal dimuat.");
+      toast.error("Data paket coins gagal dimuat.");
     } finally {
       setIsLoading(false);
     }
@@ -83,14 +83,14 @@ const AdminPackageModule = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b-2 border-blue-900">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
-            TOKO KUOTA
+            TOKO COINS
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
-            Kelola paket kuota
+            Kelola paket coins
           </h1>
           <p className="text-sm text-slate-700 mt-1">
-            Atur jumlah kuota dan harga paket QRIS yang tampil di halaman Beli
-            Kuota.
+            Atur jumlah coins dan harga paket QRIS yang tampil di halaman Beli
+            Coins.
           </p>
         </div>
         <Button
@@ -140,14 +140,14 @@ const AdminPackageModule = () => {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Daftar paket kuota</CardTitle>
+          <CardTitle>Daftar paket coins</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nama Paket</TableHead>
-                <TableHead>Jumlah Kuota</TableHead>
+                <TableHead>Jumlah Coins</TableHead>
                 <TableHead>Harga</TableHead>
                 <TableHead>Terjual</TableHead>
                 <TableHead>Status</TableHead>
@@ -170,7 +170,7 @@ const AdminPackageModule = () => {
                     colSpan={6}
                     className="h-24 text-center text-slate-600"
                   >
-                    Belum ada paket kuota.
+                    Belum ada paket coins.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -180,7 +180,7 @@ const AdminPackageModule = () => {
                       {p.name}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
-                      {p.tokenAmount} kuota
+                      {p.tokenAmount} coins
                     </TableCell>
                     <TableCell className="font-mono text-xs font-medium text-blue-900">
                       Rp{p.price.toLocaleString("id-ID")}

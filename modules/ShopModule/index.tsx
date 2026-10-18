@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import TokenCard from "./components/TokenCard";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 import { contactInfos, tokenPackages as fallbackTokenPackages } from "./payload";
 import { BACKEND_URL } from "@/lib/api";
 import { getUserStats } from "@/lib/api/DashboardApi";
@@ -145,7 +146,7 @@ const ShopModule = () => {
 
           if (data.status === "CONFIRMED") {
             clearInterval(pollInterval);
-            toast.success("Pembayaran diterima. Kuota bertambah.");
+            toast.success("Pembayaran diterima. Coins bertambah.");
             setIsModalOpened(false);
             setTimeout(() => router.refresh(), 1000);
           } else if (
@@ -377,35 +378,38 @@ const ShopModule = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Top Summary Bar: Current Quota Balance */}
+      {/* Top Summary Bar: Current Coin Balance */}
       <div className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-wider text-slate-400 mb-1">
-            BELI KUOTA TRYOUT · BAYAR SEKALI VIA QRIS
+            BELI COINS TRYOUT · BAYAR SEKALI VIA QRIS
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">
-            Paket kuota tanpa langganan
+            Paket coins tanpa langganan
           </h1>
           <p className="text-sm text-slate-300 mt-1 max-w-[58ch]">
-            1 kuota membuka skor IRT, persentil nasional, dan pembahasan 155
-            soal untuk 1 tryout. Kuota tidak hangus sampai SNBT selesai.
+            1 coin membuka skor IRT, persentil nasional, dan pembahasan 155
+            soal untuk 1 tryout. Coins tidak hangus sampai SNBT selesai.
           </p>
         </div>
 
         <div className="bg-slate-800 border border-slate-700 px-5 py-3.5 shrink-0 shadow-xs">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400">
-            SALDO KUOTA KAMU
+          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+            SALDO COINS KAMU
           </div>
-          <div className="font-mono text-[28px] leading-tight font-bold text-amber-400">
-            {userBalance} kuota
+          <div className="flex items-center gap-2">
+            <PixelCoin size={26} glow />
+            <div className="font-mono text-[28px] leading-tight font-bold text-amber-400">
+              {userBalance} coins
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs: Beli Kuota | Menunggu (n) | Riwayat */}
+      {/* Tabs: Beli Coins | Menunggu (n) | Riwayat */}
       <Tabs defaultValue="buy" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="buy">Beli Kuota</TabsTrigger>
+          <TabsTrigger value="buy">Beli Coins</TabsTrigger>
           <TabsTrigger value="pending">
             Menunggu ({pendingCount})
           </TabsTrigger>
@@ -415,7 +419,7 @@ const ShopModule = () => {
         <TabsContent value="buy">
           {loadingPackages ? (
             <div className="bg-white border border-slate-200 p-12 text-center font-mono text-xs uppercase tracking-wider text-slate-500">
-              MEMUAT PAKET KUOTA...
+              MEMUAT PAKET COINS...
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -433,16 +437,19 @@ const ShopModule = () => {
                 const isRecommended = pkg.tokenAmount === 5;
                 const isBestValue = pkg.tokenAmount === 10;
 
+                const displayTitle =
+                  pkg.name.toLowerCase().includes("coin") ||
+                  pkg.name.toLowerCase().includes("koin") ||
+                  pkg.name.toLowerCase().includes("kuota")
+                    ? pkg.name.replace(/kuota/gi, "Coins").replace(/koin/gi, "Coins")
+                    : `${pkg.tokenAmount} ${pkg.tokenAmount === 1 ? "Coin" : "Coins"}`;
+
                 return (
                   <TokenCard
                     key={pkg.id}
                     pkg={{
                       id: Number(pkg.id) || index + 1,
-                      title:
-                        pkg.name.toLowerCase().includes("koin") ||
-                        pkg.name.toLowerCase().includes("kuota")
-                          ? pkg.name
-                          : `${pkg.tokenAmount} Koin`,
+                      title: displayTitle,
                       subtitle: "Skor IRT + pembahasan lengkap",
                       tokenAmount: pkg.tokenAmount,
                       originalPrice,
@@ -461,7 +468,7 @@ const ShopModule = () => {
                       badge: isRecommended
                         ? "PALING BANYAK DIPILIH"
                         : isBestValue
-                          ? "TERHEMAT"
+                          ? "PALING HEMAT"
                           : undefined,
                     }}
                     onPressBuy={() => handlePurchaseClick(pkg)}
@@ -522,7 +529,7 @@ const ShopModule = () => {
                   <span className="text-slate-600">PAKET</span>
                   <span className="font-sans font-semibold text-blue-900">
                     {pendingPayment.tokenPackage.name} (
-                    {pendingPayment.tokenAmount} kuota)
+                    {pendingPayment.tokenAmount} coins)
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -607,7 +614,7 @@ const ShopModule = () => {
                   PEMBAYARAN INSTAN
                 </div>
                 <DialogTitle className="font-display text-xl font-bold text-blue-900">
-                  Bayar {selectedPkg?.tokenAmount} kuota via QRIS
+                  Bayar {selectedPkg?.tokenAmount} coins via QRIS
                 </DialogTitle>
                 <DialogDescription className="text-sm text-slate-700">
                   Total tagihan{" "}
@@ -724,7 +731,7 @@ const ShopModule = () => {
                 Pembayaran diproses
               </h2>
               <p className="text-sm text-slate-700">
-                Jika dalam 1x24 jam kuota belum masuk, hubungi kontak bantuan:
+                Jika dalam 1x24 jam coins belum masuk, hubungi kontak bantuan:
               </p>
               {contactInfos.map((contact) => (
                 <Alert key={contact.name}>
