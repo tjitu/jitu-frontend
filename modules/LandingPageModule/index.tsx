@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
-import { PixelCoin, PixelCoinStack } from "@/components/ui/pixel-coin";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 6-7)  */
@@ -789,10 +789,7 @@ const LandingPageModule = () => {
                             : "bg-blue-50 text-blue-900 font-semibold border-blue-900"
                       }`}
                     >
-                      <span className="flex items-center gap-1.5">
-                        <PixelCoin size={14} />
-                        <span>{pack.quota} {pack.quota === 1 ? "COIN" : "COINS"}</span>
-                      </span>
+                      <span>{pack.quota} {pack.quota === 1 ? "COIN" : "COINS"}</span>
                       {isTenCoins ? (
                         <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold tracking-normal shadow-xs">
                           🔥 PALING HEMAT
@@ -812,11 +809,11 @@ const LandingPageModule = () => {
                         <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-600 mb-1">
                           JUMLAH COINS
                         </div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <PixelCoin size={26} />
                           <div className="font-display text-[26px] font-extrabold text-blue-900">
                             {pack.quota} {pack.quota === 1 ? "Coin" : "Coins"}
                           </div>
-                          <PixelCoinStack amount={pack.quota} size={36} />
                         </div>
                         <p className="text-[13px] text-slate-600 mt-2">
                           Buka skor IRT &amp; pembahasan {pack.quota} tryout.
@@ -830,11 +827,10 @@ const LandingPageModule = () => {
                         <div className="font-mono text-[24px] font-bold text-blue-900 tabular-nums">
                           {formatRupiah(pack.totalPrice)}
                         </div>
-                        <div className={`font-mono text-[13px] font-semibold flex items-center gap-1.5 ${
+                        <div className={`font-mono text-[13px] font-semibold ${
                           isTenCoins ? "text-emerald-700" : "text-blue-600"
                         }`}>
-                          <PixelCoin size={14} />
-                          <span>{formatRupiah(pack.perTryout)} / tryout</span>
+                          {formatRupiah(pack.perTryout)} / tryout
                         </div>
                       </div>
                     </div>

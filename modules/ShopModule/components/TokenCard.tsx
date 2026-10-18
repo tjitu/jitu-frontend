@@ -1,6 +1,6 @@
 import { TokenPackage } from "../interface";
 import { Button } from "@/components/ui/button";
-import { PixelCoin, PixelCoinStack } from "@/components/ui/pixel-coin";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 
 const TokenCard = ({
   pkg,
@@ -53,11 +53,11 @@ const TokenCard = ({
             <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
               JUMLAH COINS
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <PixelCoin size={24} />
               <div className="font-display text-2xl font-bold text-slate-900">
                 {pkg.tokenAmount} {pkg.tokenAmount === 1 ? "Coin" : "Coins"}
               </div>
-              <PixelCoinStack amount={pkg.tokenAmount} size={36} />
             </div>
             <p className="text-xs text-slate-500 mt-2">
               Buka skor IRT &amp; pembahasan untuk {pkg.tokenAmount} tryout.
@@ -73,11 +73,8 @@ const TokenCard = ({
               Rp{pkg.finalPrice.toLocaleString("id-ID")}
             </div>
             {pkg.pricePerToken && (
-              <div className="font-mono text-xs text-blue-600 mt-1 font-medium flex items-center gap-1.5">
-                <PixelCoin size={14} />
-                <span>
-                  Rp{Number(String(pkg.pricePerToken).replace(/\./g, "")).toLocaleString("id-ID")} / tryout
-                </span>
+              <div className="font-mono text-xs text-blue-600 mt-1 font-medium">
+                Rp{Number(String(pkg.pricePerToken).replace(/\./g, "")).toLocaleString("id-ID")} / tryout
               </div>
             )}
           </div>
