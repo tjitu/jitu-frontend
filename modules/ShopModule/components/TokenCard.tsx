@@ -61,7 +61,7 @@ const TokenCard = ({
             </div>
             {pkg.pricePerToken && (
               <div className="font-mono text-xs text-blue-600 mt-1 font-medium">
-                Rp{Number(pkg.pricePerToken).toLocaleString("id-ID")} / tryout
+                Rp{Number(String(pkg.pricePerToken).replace(/\./g, "")).toLocaleString("id-ID")} / tryout
               </div>
             )}
           </div>

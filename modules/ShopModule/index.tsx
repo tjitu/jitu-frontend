@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import TokenCard from "./components/TokenCard";
-import { contactInfos } from "./payload";
+import { contactInfos, tokenPackages as fallbackTokenPackages } from "./payload";
 import { BACKEND_URL } from "@/lib/api";
 import { getUserStats } from "@/lib/api/DashboardApi";
 import PendingTransactionList from "../PendingTransactionsModule/components/PendingTransactionList";
@@ -180,13 +180,38 @@ const ShopModule = () => {
         const res = await fetch(`${BACKEND_URL}/shop/packages`);
         if (res.ok) {
           const data = await res.json();
-          setPackages(Array.isArray(data) ? data : []);
+          if (Array.isArray(data) && data.length > 0) {
+            setPackages(data);
+          } else {
+            setPackages(
+              fallbackTokenPackages.map((p) => ({
+                id: String(p.id),
+                name: p.title,
+                tokenAmount: p.tokenAmount,
+                price: p.finalPrice,
+              })),
+            );
+          }
         } else {
-          toast.error("Data paket kuota gagal dimuat.");
+          setPackages(
+            fallbackTokenPackages.map((p) => ({
+              id: String(p.id),
+              name: p.title,
+              tokenAmount: p.tokenAmount,
+              price: p.finalPrice,
+            })),
+          );
         }
       } catch (error) {
         console.error(error);
-        toast.error("Koneksi terputus. Periksa jaringan kamu.");
+        setPackages(
+          fallbackTokenPackages.map((p) => ({
+            id: String(p.id),
+            name: p.title,
+            tokenAmount: p.tokenAmount,
+            price: p.finalPrice,
+          })),
+        );
       } finally {
         setLoadingPackages(false);
       }
@@ -393,37 +418,51 @@ const ShopModule = () => {
               MEMUAT PAKET KUOTA...
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {packages.map((pkg, index) => {
-                const originalPrice = Math.round(pkg.price * 1.2);
+                const basePerToken = 15000;
+                const standardPrice = basePerToken * pkg.tokenAmount;
+                const originalPrice = Math.max(
+                  standardPrice,
+                  Math.round(pkg.price * 1.2),
+                );
                 const savings = originalPrice - pkg.price;
                 const pricePerToken = Math.round(
                   pkg.price / Math.max(1, pkg.tokenAmount),
                 );
-                const isRecommended =
-                  pkg.tokenAmount === 3 ||
-                  pkg.tokenAmount === 5 ||
-                  pkg.tokenAmount === 50 ||
-                  (packages.length >= 2 && index === 1);
+                const isRecommended = pkg.tokenAmount === 5;
+                const isBestValue = pkg.tokenAmount === 10;
 
                 return (
                   <TokenCard
                     key={pkg.id}
                     pkg={{
-                      id: Number(pkg.id),
-                      title: pkg.name,
-                      subtitle: "Skor IRT + pembahasan 155 soal",
+                      id: Number(pkg.id) || index + 1,
+                      title:
+                        pkg.name.toLowerCase().includes("koin") ||
+                        pkg.name.toLowerCase().includes("kuota")
+                          ? pkg.name
+                          : `${pkg.tokenAmount} Koin`,
+                      subtitle: "Skor IRT + pembahasan lengkap",
                       tokenAmount: pkg.tokenAmount,
                       originalPrice,
                       finalPrice: pkg.price,
-                      discount: 20,
+                      discount:
+                        originalPrice > pkg.price
+                          ? Math.round(
+                              ((originalPrice - pkg.price) / originalPrice) *
+                                100,
+                            )
+                          : 0,
                       savings,
                       pricePerToken: String(pricePerToken),
                       categoryBg: "",
                       popular: isRecommended,
                       badge: isRecommended
                         ? "PALING BANYAK DIPILIH"
-                        : undefined,
+                        : isBestValue
+                          ? "TERHEMAT"
+                          : undefined,
                     }}
                     onPressBuy={() => handlePurchaseClick(pkg)}
                   />

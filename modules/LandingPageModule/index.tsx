@@ -103,23 +103,23 @@ const QUOTA_PACKS: QuotaPack[] = [
   {
     id: "pack-3",
     quota: 3,
-    totalPrice: 35000,
-    perTryout: 11667,
-    note: "Rp35.000 untuk 3 kuota (Rp11.667 per tryout)",
+    totalPrice: 39000,
+    perTryout: 13000,
+    note: "Rp39.000 untuk 3 kuota (Rp13.000 per tryout)",
   },
   {
     id: "pack-5",
     quota: 5,
-    totalPrice: 55000,
-    perTryout: 11000,
-    note: "Rp55.000 untuk 5 kuota (Rp11.000 per tryout)",
+    totalPrice: 59000,
+    perTryout: 11800,
+    note: "Rp59.000 untuk 5 kuota (Rp11.800 per tryout)",
   },
   {
     id: "pack-10",
     quota: 10,
-    totalPrice: 95000,
-    perTryout: 9500,
-    note: "Rp95.000 untuk 10 kuota (Rp9.500 per tryout)",
+    totalPrice: 89000,
+    perTryout: 8900,
+    note: "Rp89.000 untuk 10 kuota (Rp8.900 per tryout)",
     isBestValue: true,
   },
 ];
@@ -530,7 +530,7 @@ const LandingPageModule = () => {
                       MULAI DARI
                     </div>
                     <div className="font-mono font-medium text-[22px] text-blue-900 tabular-nums mt-0.5">
-                      Rp9.500
+                      Rp8.900
                     </div>
                   </div>
                 </div>
@@ -639,7 +639,7 @@ const LandingPageModule = () => {
                     DENGAN 1 KUOTA
                   </span>
                   <span className="px-2.5 py-1 border border-blue-900 bg-signal text-blue-900 font-mono text-[13px] font-bold">
-                    Mulai Rp9.500
+                    Mulai Rp8.900
                   </span>
                 </div>
                 <h4 className="font-display text-[22px] font-bold text-blue-900">
@@ -701,7 +701,7 @@ const LandingPageModule = () => {
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-12">
             <div className="max-w-2xl space-y-2">
               <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                MULAI RP9.500 PER TRYOUT
+                MULAI RP8.900 PER TRYOUT
               </div>
               {/* H2: Reader's question, answered by the next line (WRITING.md Section 2 & 6) */}
               <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-blue-900">
@@ -762,7 +762,7 @@ const LandingPageModule = () => {
                       Contoh: 5 kuota
                     </div>
                     <div className="font-mono text-[16px] font-medium text-blue-900 tabular-nums">
-                      Rp55.000 ÷ 5 = Rp11.000 per tryout
+                      Rp59.000 ÷ 5 = Rp11.800 per tryout
                     </div>
                   </div>
                 </div>
@@ -775,7 +775,7 @@ const LandingPageModule = () => {
                     HARGA PAKET KUOTA
                   </span>
                   <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-200">
-                    MULAI RP9.500 PER TRYOUT
+                    MULAI RP8.900 PER TRYOUT
                   </span>
                 </div>
 
@@ -805,7 +805,7 @@ const LandingPageModule = () => {
                               <span>{pack.quota} kuota</span>
                               {pack.isBestValue && (
                                 <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-white font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
-                                  Rp9.500 / tryout
+                                  Rp8.900 / tryout
                                 </span>
                               )}
                             </div>
@@ -841,7 +841,7 @@ const LandingPageModule = () => {
                           </span>
                           {pack.isBestValue && (
                             <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-white font-mono text-[11px] uppercase tracking-[0.06em] text-blue-900">
-                              Rp9.500 / tryout
+                              Rp8.900 / tryout
                             </span>
                           )}
                         </div>
@@ -1027,7 +1027,7 @@ const LandingPageModule = () => {
                 </span>
               </div>
               <p className="text-[14px] text-blue-200 max-w-sm leading-relaxed">
-                Tryout SNBT tiap minggu mulai 2 Nov 2026 sampai 21 Apr 2027. Gratis dikerjakan. Pembahasan dan skor IRT mulai Rp9.500 per tryout.
+                Tryout SNBT tiap minggu mulai 2 Nov 2026 sampai 21 Apr 2027. Gratis dikerjakan. Pembahasan dan skor IRT mulai Rp8.900 per tryout.
               </p>
               <div className="font-mono text-[12px] text-blue-300">
                 jituptn.com
