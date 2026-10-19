@@ -28,7 +28,7 @@ const dmMono = DM_Mono({
 export const metadata: Metadata = {
   title: "Jitu · Tryout SNBT Gratis, Pembahasan Mulai Rp8.900",
   description:
-    "Tryout SNBT tiap minggu mulai 2 Nov 2026. Gratis dikerjakan. Skor IRT dan pembahasan tiap soal dibuka pakai 1 coin, mulai Rp8.900 per tryout.",
+    "Tryout SNBT tiap minggu mulai 2 Nov 2026. Gratis dikerjakan, pembahasan dan skor IRT mulai Rp8.900 per tryout.",
   icons: {
     icon: [
       { url: "/icon.png", type: "image/png" },

@@ -356,7 +356,7 @@ export default function ProfileModule() {
                 className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-amber-300 bg-amber-50 font-mono text-xs font-semibold text-amber-900 uppercase cursor-pointer hover:bg-amber-100 transition-colors"
               >
                 <PixelCoin size={12} />
-                <span>COINS: {user.tokenBalance}</span>
+                <span>COIN: {user.tokenBalance}</span>
               </button>
             </div>
           </div>
@@ -364,7 +364,7 @@ export default function ProfileModule() {
 
         <div className="flex flex-wrap gap-2.5">
           <Button variant="outline" onClick={() => router.push("/shop")}>
-            Beli coins
+            Beli coin
           </Button>
           <Button variant="primary" onClick={() => router.push("/tryout")}>
             Pilih tryout
@@ -393,7 +393,7 @@ export default function ProfileModule() {
               active={activeTab === "transactions"}
               onClick={() => setActiveTab("transactions")}
               icon={CreditCard}
-              label="Transaksi coins"
+              label="Transaksi coin"
             />
             <MenuButton
               active={activeTab === "settings"}

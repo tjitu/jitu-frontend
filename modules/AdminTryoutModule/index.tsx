@@ -141,7 +141,7 @@ const AdminTryoutModule = () => {
                 <TableHead>Nama Tryout</TableHead>
                 <TableHead>Akses</TableHead>
                 <TableHead>Referral</TableHead>
-                <TableHead>Coins</TableHead>
+                <TableHead>Coin</TableHead>
                 <TableHead>Rilis</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
@@ -187,7 +187,7 @@ const AdminTryoutModule = () => {
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {tryout.solutionPrice > 0
-                        ? `${tryout.solutionPrice} coins`
+                        ? `${tryout.solutionPrice} coin`
                         : "Gratis"}
                     </TableCell>
                     <TableCell className="font-mono text-xs whitespace-nowrap">

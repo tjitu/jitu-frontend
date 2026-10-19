@@ -146,7 +146,7 @@ const ShopModule = () => {
 
           if (data.status === "CONFIRMED") {
             clearInterval(pollInterval);
-            toast.success("Pembayaran diterima. Coins bertambah.");
+            toast.success("Pembayaran berhasil. Coin sudah masuk ke akunmu.");
             setIsModalOpened(false);
             setTimeout(() => router.refresh(), 1000);
           } else if (
@@ -382,34 +382,34 @@ const ShopModule = () => {
       <div className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-wider text-slate-400 mb-1">
-            BELI COINS TRYOUT · BAYAR SEKALI VIA QRIS
+            BELI COIN TRYOUT · BAYAR SEKALI VIA QRIS
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">
-            Paket coins tanpa langganan
+            Paket coin tanpa langganan
           </h1>
           <p className="text-sm text-slate-300 mt-1 max-w-[58ch]">
-            1 coin membuka skor IRT, persentil nasional, dan pembahasan 155
-            soal untuk 1 tryout. Coins tidak hangus sampai SNBT selesai.
+            1 coin membuka skor IRT dan pembahasan 155 soal untuk 1 tryout.
+            Berlaku sampai 21 Apr 2027.
           </p>
         </div>
 
         <div className="bg-slate-800 border border-slate-700 px-5 py-3.5 shrink-0 shadow-xs">
           <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
-            SALDO COINS KAMU
+            SALDO COIN KAMU
           </div>
           <div className="flex items-center gap-2">
             <PixelCoin size={26} glow />
             <div className="font-mono text-[28px] leading-tight font-bold text-amber-400">
-              {userBalance} coins
+              {userBalance} coin
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs: Beli Coins | Menunggu (n) | Riwayat */}
+      {/* Tabs: Beli Coin | Menunggu (n) | Riwayat */}
       <Tabs defaultValue="buy" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="buy">Beli Coins</TabsTrigger>
+          <TabsTrigger value="buy">Beli Coin</TabsTrigger>
           <TabsTrigger value="pending">
             Menunggu ({pendingCount})
           </TabsTrigger>
@@ -419,7 +419,7 @@ const ShopModule = () => {
         <TabsContent value="buy">
           {loadingPackages ? (
             <div className="bg-white border border-slate-200 p-12 text-center font-mono text-xs uppercase tracking-wider text-slate-500">
-              MEMUAT PAKET COINS...
+              MEMUAT PAKET COIN...
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -434,15 +434,17 @@ const ShopModule = () => {
                 const pricePerToken = Math.round(
                   pkg.price / Math.max(1, pkg.tokenAmount),
                 );
-                const isRecommended = pkg.tokenAmount === 5;
                 const isBestValue = pkg.tokenAmount === 10;
 
                 const displayTitle =
                   pkg.name.toLowerCase().includes("coin") ||
                   pkg.name.toLowerCase().includes("koin") ||
                   pkg.name.toLowerCase().includes("kuota")
-                    ? pkg.name.replace(/kuota/gi, "Coins").replace(/koin/gi, "Coins")
-                    : `${pkg.tokenAmount} ${pkg.tokenAmount === 1 ? "Coin" : "Coins"}`;
+                    ? pkg.name
+                        .replace(/kuota/gi, "coin")
+                        .replace(/koin/gi, "coin")
+                        .replace(/coins/gi, "coin")
+                    : `${pkg.tokenAmount} coin`;
 
                 return (
                   <TokenCard
@@ -464,12 +466,8 @@ const ShopModule = () => {
                       savings,
                       pricePerToken: String(pricePerToken),
                       categoryBg: "",
-                      popular: isRecommended,
-                      badge: isRecommended
-                        ? "PALING BANYAK DIPILIH"
-                        : isBestValue
-                          ? "PALING HEMAT"
-                          : undefined,
+                      popular: false,
+                      badge: isBestValue ? "Paling hemat" : undefined,
                     }}
                     onPressBuy={() => handlePurchaseClick(pkg)}
                   />
@@ -529,7 +527,7 @@ const ShopModule = () => {
                   <span className="text-slate-600">PAKET</span>
                   <span className="font-sans font-semibold text-blue-900">
                     {pendingPayment.tokenPackage.name} (
-                    {pendingPayment.tokenAmount} coins)
+                    {pendingPayment.tokenAmount} coin)
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -614,7 +612,7 @@ const ShopModule = () => {
                   PEMBAYARAN INSTAN
                 </div>
                 <DialogTitle className="font-display text-xl font-bold text-blue-900">
-                  Bayar {selectedPkg?.tokenAmount} coins via QRIS
+                  Bayar {selectedPkg?.tokenAmount} coin via QRIS
                 </DialogTitle>
                 <DialogDescription className="text-sm text-slate-700">
                   Total tagihan{" "}
@@ -731,7 +729,7 @@ const ShopModule = () => {
                 Pembayaran diproses
               </h2>
               <p className="text-sm text-slate-700">
-                Jika dalam 1x24 jam coins belum masuk, hubungi kontak bantuan:
+                Jika dalam 1x24 jam coin belum masuk, hubungi kontak bantuan:
               </p>
               {contactInfos.map((contact) => (
                 <Alert key={contact.name}>

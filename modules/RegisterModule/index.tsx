@@ -84,7 +84,13 @@ const RegisterModule = () => {
         },
         onError: (ctx) => {
           setLoading(false);
-          const msg = ctx.error.message || "Gagal membuat akun. Coba lagi.";
+          const raw = ctx.error.message || "";
+          const msg =
+            raw.toLowerCase().includes("exist") ||
+            raw.toLowerCase().includes("already") ||
+            raw.toLowerCase().includes("terdaftar")
+              ? "Email ini udah terdaftar. Coba masuk."
+              : raw || "Gagal membuat akun. Coba lagi.";
           setErrors({ form: msg });
           toast.error(msg);
         },
@@ -133,7 +139,7 @@ const RegisterModule = () => {
               Buat akun peserta
             </h1>
             <p className="text-[14px] text-blue-200 mt-1">
-              Semua jadwal tryout gratis dikerjakan. Tanpa biaya pendaftaran.
+              Daftar dulu, gratis. Pas jadwalnya buka, tinggal kerjain.
             </p>
           </div>
 

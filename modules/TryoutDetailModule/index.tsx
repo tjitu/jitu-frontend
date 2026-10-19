@@ -355,7 +355,7 @@ const TryoutDetailModule = () => {
             ) : (
               <Badge variant="default" className="inline-flex items-center gap-1.5">
                 <PixelCoin size={12} />
-                <span>{cost} {cost === 1 ? "COIN" : "COINS"}</span>
+                <span>{cost} COIN</span>
               </Badge>
             )}
           </div>
@@ -409,7 +409,7 @@ const TryoutDetailModule = () => {
               PEMBAHASAN
             </div>
             <div className="font-mono text-xl sm:text-2xl font-bold text-amber-400">
-              {tryoutData.isFree ? "Gratis" : `${cost} coins`}
+              {tryoutData.isFree ? "Gratis" : `${cost} coin`}
             </div>
           </div>
         </div>
@@ -479,16 +479,15 @@ const TryoutDetailModule = () => {
                   <Lock className="w-3.5 h-3.5 text-amber-400" />
                   <span className="flex items-center gap-1.5">
                     <PixelCoin size={12} />
-                    <span>TERKUNCI · {cost} {cost === 1 ? "COIN" : "COINS"}</span>
+                    <span>TERKUNCI · {cost} COIN</span>
                   </span>
                 </div>
 
                 <h3 className="font-display text-2xl font-bold text-slate-900 mb-2">
-                  Buka skor IRT dan pembahasan lengkap
+                  Mau tahu salahnya di mana?
                 </h3>
                 <p className="text-sm text-slate-600 mb-5">
-                  Pakai {cost} {cost === 1 ? "coin" : "coins"} untuk membuka hasil lengkap Tryout #
-                  {tryoutData.number}:
+                  Pakai {cost} coin buat lihat skor IRT dan pembahasan lengkap {tryoutData.title}:
                 </p>
 
                 <ul className="space-y-2.5 mb-6 text-sm font-medium text-slate-700">
@@ -514,7 +513,7 @@ const TryoutDetailModule = () => {
                     className="inline-flex items-center gap-2"
                   >
                     <PixelCoin size={16} />
-                    <span>Buka · {cost} {cost === 1 ? "coin" : "coins"}</span>
+                    <span>Buka pembahasan · {cost} coin</span>
                   </Button>
 
                   {userBalance < cost ? (
@@ -522,12 +521,12 @@ const TryoutDetailModule = () => {
                       href="/shop"
                       className="font-mono text-xs uppercase tracking-wider font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-4"
                     >
-                      Beli coins →
+                      Beli coin →
                     </Link>
                   ) : (
                     <span className="font-mono text-xs text-slate-600 flex items-center gap-1.5">
                       <PixelCoin size={12} />
-                      <span>SALDO KAMU: {userBalance} COINS</span>
+                      <span>SALDO KAMU: {userBalance} COIN</span>
                     </span>
                   )}
                 </div>
@@ -700,7 +699,7 @@ const TryoutDetailModule = () => {
                 size="lg"
                 className="w-full sm:w-auto"
               >
-                Daftar tryout
+                Daftar gratis
               </Button>
             )}
           </div>

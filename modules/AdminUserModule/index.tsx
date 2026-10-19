@@ -123,7 +123,7 @@ const AdminUserModule = () => {
           Kelola peserta
         </h1>
         <p className="text-sm text-slate-700 mt-1">
-          Pantau akun peserta, target kampus, dan saldo coins.
+          Pantau akun peserta, target kampus, dan saldo coin.
         </p>
       </div>
 
@@ -186,7 +186,7 @@ const AdminUserModule = () => {
                 <TableHead>Email</TableHead>
                 <TableHead>Target</TableHead>
                 <TableHead>Peran</TableHead>
-                <TableHead>Coins</TableHead>
+                <TableHead>Coin</TableHead>
                 <TableHead>Terdaftar</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
@@ -233,7 +233,7 @@ const AdminUserModule = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono text-xs font-medium text-blue-900">
-                      {user.tokenBalance} coins
+                      {user.tokenBalance} coin
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {new Date(user.createdAt).toLocaleDateString("id-ID", {
@@ -259,7 +259,7 @@ const AdminUserModule = () => {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          title="Sesuaikan coins"
+                          title="Sesuaikan coin"
                           onClick={() => {
                             setSelectedUserForToken(user);
                             setIsTokenDialogOpen(true);

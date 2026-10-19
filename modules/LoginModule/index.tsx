@@ -80,7 +80,7 @@ const LoginModule = () => {
         onError: (ctx) => {
           setLoading(false);
           const msg =
-            ctx.error.message || "Email atau kata sandi salah. Cek lagi lalu coba masuk.";
+            ctx.error.message || "Email atau kata sandi salah.";
           setErrors({ form: msg });
           toast.error(msg);
         },

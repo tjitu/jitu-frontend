@@ -118,9 +118,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                       variant="ghost"
                       className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => {
-                        if (
-                          confirm("Apakah anda yakin ingin menghapus soal ini?")
-                        ) {
+                        if (confirm("Hapus soal ini?")) {
                           onDelete(q.id);
                         }
                       }}

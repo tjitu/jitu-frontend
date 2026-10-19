@@ -21,7 +21,7 @@ import BottomNav from "./BottomNav";
 /**
  * DESIGN.md Section 6.3 — Student dashboard & app shell
  * - App header: "jitu." logo left; quota balance (mono chip) and avatar right.
- * - Phones: bottom tab bar (Beranda, Tryout, Coins, Akun), 56px tall.
+ * - Phones: bottom tab bar (Beranda, Tryout, Coin, Akun), 56px tall.
  */
 const navItems = [
   {
@@ -40,7 +40,7 @@ const navItems = [
     icon: Flame,
   },
   {
-    title: "Beli coins",
+    title: "Beli coin",
     path: "shop",
     icon: ShoppingBag,
   },
@@ -88,7 +88,7 @@ const Navbar = () => {
     { title: "Beranda", path: "dashboard", icon: Home },
     { title: "Tryout", path: "tryout", icon: NotebookPen },
     { title: "Latihan", path: "daily-streak", icon: Flame },
-    { title: "Coins", path: "shop", icon: ShoppingBag },
+    { title: "Coin", path: "shop", icon: ShoppingBag },
     { title: "Akun", path: "profile", icon: User },
   ];
 
@@ -145,7 +145,7 @@ const Navbar = () => {
             </nav>
           </div>
 
-          {/* Right: Coins Balance (Mono Chip) + Profile Avatar + Logout */}
+          {/* Right: Coin Balance (Mono Chip) + Profile Avatar + Logout */}
           <div className="flex items-center gap-2.5">
             <Link
               href="/shop"
@@ -153,7 +153,7 @@ const Navbar = () => {
             >
               <PixelCoin size={15} />
               <span className="tabular-nums">
-                {tokenBalance !== null ? `${tokenBalance} coins` : "Coins"}
+                {tokenBalance !== null ? `${tokenBalance} coin` : "Coin"}
               </span>
             </Link>
 

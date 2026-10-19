@@ -46,27 +46,25 @@ export function UnlockSolutionModal({
         <DialogHeader>
           <div className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
             <PixelCoin size={14} />
-            <span>KONFIRMASI COINS</span>
+            <span>KONFIRMASI COIN</span>
           </div>
           <DialogTitle className="font-display text-xl font-bold text-blue-900">
-            Pakai {cost} {cost === 1 ? "coin" : "coins"} untuk {label}?
+            Pakai {cost} coin untuk {label}?
           </DialogTitle>
           <DialogDescription className="text-sm text-slate-700 pt-1">
             {isSufficient ? (
               <>
-                Sisa coins jadi{" "}
+                Sisa coin kamu jadi{" "}
                 <span className="font-mono font-medium text-blue-900">
-                  {remaining} coins
+                  {remaining} coin
                 </span>
-                . Ini tidak bisa dibatalkan.
+                . Ini nggak bisa dibatalkan.
               </>
             ) : (
               <>
-                Coins kamu{" "}
-                <span className="font-mono font-medium text-blue-900">
-                  {userBalance} coins
-                </span>
-                . Beli paket mulai Rp8.900 untuk buka hasil ini.
+                {userBalance === 0
+                  ? "Coin kamu habis. Beli coin dulu buat buka pembahasan."
+                  : `Coin kamu cuma ${userBalance} coin. Beli coin dulu buat buka pembahasan.`}
               </>
             )}
           </DialogDescription>
@@ -85,25 +83,25 @@ export function UnlockSolutionModal({
             <div className="flex justify-between items-center">
               <span className="text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <PixelCoin size={12} />
-                <span>COINS DIPAKAI</span>
+                <span>COIN DIPAKAI</span>
               </span>
-              <span className="font-medium text-slate-900">{cost} {cost === 1 ? "coin" : "coins"}</span>
+              <span className="font-medium text-slate-900">{cost} coin</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-500 uppercase tracking-wider">
                 SALDO SAAT INI
               </span>
               <span className="font-medium text-slate-900">
-                {userBalance} coins
+                {userBalance} coin
               </span>
             </div>
             <div className="h-px bg-slate-200 my-1" />
             <div className="flex justify-between items-center font-medium">
               <span className="text-slate-900 uppercase tracking-wider">
-                SISA COINS
+                SISA COIN
               </span>
               <span className={isSufficient ? "text-blue-600 font-semibold" : "text-rose-600 font-semibold"}>
-                {userBalance - cost} coins
+                {Math.max(0, userBalance - cost)} coin
               </span>
             </div>
           </div>
@@ -118,7 +116,7 @@ export function UnlockSolutionModal({
 
         <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Batal
+            Nanti dulu
           </Button>
           {isSufficient ? (
             <Button
@@ -135,7 +133,7 @@ export function UnlockSolutionModal({
               ) : (
                 <>
                   <PixelCoin size={14} />
-                  <span>Pakai {cost} {cost === 1 ? "coin" : "coins"}</span>
+                  <span>Pakai {cost} coin</span>
                 </>
               )}
             </Button>
@@ -147,7 +145,7 @@ export function UnlockSolutionModal({
               }}
               variant="default"
             >
-              Beli coins
+              Beli coin
             </Button>
           )}
         </DialogFooter>

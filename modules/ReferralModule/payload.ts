@@ -4,32 +4,29 @@ import { ReferralCheckResult } from "./interface";
 export const validReferralCodes: { [key: string]: ReferralCheckResult } = {
   JITU2026: {
     exists: true,
-    message: "Kode referral valid!",
+    message: "Kode referral valid.",
     ownerName: "Hakim Nizami",
     benefits: [
-      "Diskon 20% untuk paket Bundle",
-      "Bonus 5x Try Out Premium",
-      "Akses gratis materi belajar selama 1 bulan",
+      "Bonus 5 coin untuk pembahasan tryout",
+      "Diskon 20% pembelian paket coin",
     ],
   },
   UTBK2026: {
     exists: true,
-    message: "Kode referral valid!",
+    message: "Kode referral valid.",
     ownerName: "Ahmad Fauzi",
     benefits: [
-      "Diskon 15% untuk paket Try Out",
-      "Bonus 3x Try Out Premium",
-      "Akses gratis materi belajar selama 2 minggu",
+      "Bonus 3 coin untuk pembahasan tryout",
+      "Diskon 15% pembelian paket coin",
     ],
   },
   SNBT2026: {
     exists: true,
-    message: "Kode referral valid!",
+    message: "Kode referral valid.",
     ownerName: "Sarah Wijaya",
     benefits: [
-      "Diskon 25% untuk paket Belajar",
-      "Bonus 10x Try Out Premium",
-      "Akses gratis materi belajar selama 2 bulan",
+      "Bonus 10 coin untuk pembahasan tryout",
+      "Diskon 25% pembelian paket coin",
     ],
   },
 };

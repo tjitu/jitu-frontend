@@ -113,7 +113,7 @@ const PendingTransactionList = () => {
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between font-mono text-xs">
                 <span className="text-slate-900 font-medium">
                   Rp{Number(tx.totalPrice || 0).toLocaleString("id-ID")} ·{" "}
-                  {tx.amount} coins
+                  {tx.amount} coin
                 </span>
                 <span className="text-slate-500 inline-flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
@@ -207,7 +207,7 @@ const PendingTransactionList = () => {
                 Menunggu verifikasi
               </h2>
               <p className="text-sm text-slate-700">
-                Coins otomatis masuk setelah pembayaran terkonfirmasi. Jika
+                Coin otomatis masuk setelah pembayaran terkonfirmasi. Jika
                 belum masuk, hubungi kontak bantuan:
               </p>
               <div className="space-y-2">

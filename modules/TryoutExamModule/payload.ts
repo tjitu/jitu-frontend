@@ -35,11 +35,11 @@ import { SubtestExam } from "./interface";
  * - Premis 2: Semua B adalah C
  *
  * **Langkah 2:** Analisis setiap opsi
- * - **Opsi A (✓):** **BENAR** - Kesimpulan valid dari silogisme
- * - **Opsi B (❌):** Bertentangan dengan premis
- * - **Opsi C (❌):** Salah arah kesimpulan
- * - **Opsi D (❌):** Bertentangan dengan premis
- * - **Opsi E (❌):** Kesimpulan dapat ditarik
+ * - **Opsi A:** **Benar** - Kesimpulan valid dari silogisme
+ * - **Opsi B:** Salah - Bertentangan dengan premis
+ * - **Opsi C:** Salah - Salah arah kesimpulan
+ * - **Opsi D:** Salah - Bertentangan dengan premis
+ * - **Opsi E:** Salah - Kesimpulan dapat ditarik
  *
  * ### Jawaban yang Benar
  * **Jawaban: A - Semua A adalah C**
@@ -47,7 +47,7 @@ import { SubtestExam } from "./interface";
  * ### Penjelasan Detail
  * Dalam logika silogisme, jika A⊆B dan B⊆C, maka A⊆C (transitif).
  *
- * > 💡 **Tips:** Untuk soal logika, buat diagram Venn untuk visualisasi!
+ * > **Tips:** Untuk soal logika, buat diagram Venn untuk visualisasi!
  *
  * ### Konsep Penting yang Perlu Diingat
  * - Sifat transitif dalam himpunan
@@ -71,9 +71,9 @@ const generateSampleQuestions = (count: number, startId: number = 1) => {
       "Meong ipsum",
     ],
     correctAnswer: Math.floor(Math.random() * 5), // Random correct answer for demo
-    solution: `## Pembahasan Soal ${
+    solution: `### Pembahasan Soal #${
       startId + i
-    }\n\n### Analisis Soal\nSoal ini menguji pemahaman tentang **konsep dasar meong ipsum**. Untuk menjawab soal ini, kita perlu memahami:\n\n1. Konsep utama dari meong ipsum dolor sit amet\n2. Hubungan antara felis pulvinar dan tincidunt felis\n3. Penerapan meong curabitur dalam konteks soal\n\n### Langkah Penyelesaian\n\n**Langkah 1:** Identifikasi kata kunci dalam soal\n- Meong felis sit amet\n- Felis pulvinar\n- Tincidunt felis meong\n\n**Langkah 2:** Analisis setiap opsi jawaban\n- **Opsi A (❌):** Tidak sesuai karena tidak mempertimbangkan aspek meong curabitur\n- **Opsi B (❌):** Kurang tepat karena mengabaikan felis vehicula\n- **Opsi C (✓):** **BENAR** - Opsi ini paling tepat karena mencakup semua aspek penting\n- **Opsi D (❌):** Salah interpretasi tentang eiusmod tempor\n- **Opsi E (❌):** Tidak relevan dengan konteks soal\n\n### Jawaban yang Benar\n**Jawaban: C**\n\n### Penjelasan Detail\nOpsi C adalah jawaban yang paling tepat karena:\n\n1. **Konsep Meong Ipsum**: Memahami bahwa meong ipsum dolor sit amet adalah fondasi dari pemahaman materi ini\n2. **Analisis Kontekstual**: Dalam konteks soal, felis pulvinar memiliki hubungan langsung dengan tincidunt felis meong\n3. **Penerapan Praktis**: Meong curabitur tristique menunjukkan aplikasi dari konsep yang diuji\n\n> 💡 **Tips:** Untuk soal sejenis, selalu perhatikan hubungan antara meong felis dan aspek lainnya dalam konteks yang diberikan.\n\n### Konsep Penting yang Perlu Diingat\n- Meong ipsum ≠ Lorem ipsum biasa\n- Felis pulvinar selalu terkait dengan tincidunt\n- Dalam soal UTBK, konteks sangat penting untuk menentukan jawaban yang tepat`,
+    }\n\n### Analisis Soal\nSoal ini menguji pemahaman materi. Untuk menjawab soal ini, kita perlu memahami konsep utama dan hubungan antar premis.\n\n### Langkah Penyelesaian\n\n**Langkah 1:** Identifikasi kata kunci dalam soal\n\n**Langkah 2:** Analisis setiap opsi jawaban\n- **Opsi A:** Salah - Tidak sesuai dengan premis\n- **Opsi B:** Salah - Kurang tepat\n- **Opsi C:** **Benar** - Opsi ini paling tepat karena mencakup semua aspek penting\n- **Opsi D:** Salah - Salah interpretasi\n- **Opsi E:** Salah - Tidak relevan dengan konteks soal\n\n### Jawaban yang Benar\n**Jawaban: C**\n\n### Penjelasan Detail\nOpsi C adalah jawaban yang paling tepat berdasarkan konsep yang diuji.\n\n> **Tips:** Untuk soal sejenis, selalu perhatikan hubungan antar premis dalam konteks yang diberikan.`,
   }));
 };
 
@@ -98,7 +98,7 @@ const generateTryoutSubtests = (tryoutId: number, tryoutTitle: string) => {
     },
     [`${tryoutId}-3`]: {
       subtestId: 3,
-      subtestName: "Kemampuan Memahami Bacaan dan Menulis",
+      subtestName: "Pemahaman Bacaan dan Menulis",
       tryoutId,
       tryoutTitle,
       duration: 25,

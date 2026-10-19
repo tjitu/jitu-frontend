@@ -41,7 +41,7 @@ const ReferralModule = () => {
           Klaim kode referral
         </h1>
         <p className="text-sm text-slate-700 mt-1">
-          Masukkan kode referral dari teman atau sekolah untuk cek bonus coins.
+          Masukkan kode referral dari teman atau sekolah untuk cek bonus coin.
         </p>
       </div>
 

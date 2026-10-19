@@ -39,7 +39,7 @@ export const TokenAdjustmentDialog: React.FC<TokenAdjustmentDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !amount || !description) {
-      toast.error("Mohon isi jumlah token dan keterangan");
+      toast.error("Isi jumlah coin dan keterangan.");
       return;
     }
 
@@ -50,14 +50,14 @@ export const TokenAdjustmentDialog: React.FC<TokenAdjustmentDialogProps> = ({
         description,
       };
       await manualTokenAdjustment(userId, payload);
-      toast.success("Berhasil mengubah saldo token user");
+      toast.success("Saldo coin berhasil diubah.");
       onSuccess();
       onOpenChange(false);
       setAmount("");
       setDescription("");
     } catch (error) {
       console.error(error);
-      toast.error("Gagal mengubah saldo token");
+      toast.error("Gagal mengubah saldo coin.");
     } finally {
       setIsLoading(false);
     }
@@ -69,32 +69,32 @@ export const TokenAdjustmentDialog: React.FC<TokenAdjustmentDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-yellow-500" />
-            Kelola Token Manual
+            Kelola coin manual
           </DialogTitle>
           <DialogDescription>
-            Ubah saldo token untuk user <strong>{userName}</strong>. Gunakan
+            Ubah saldo coin untuk peserta <strong>{userName}</strong>. Gunakan
             angka negatif untuk mengurangi saldo.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="amount">Jumlah Token</Label>
+            <Label htmlFor="amount">Jumlah Coin</Label>
             <Input
               id="amount"
               type="number"
-              placeholder="Contoh: 100 atau -50"
+              placeholder="Contoh: 10 atau -5"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              (+) Tambah Saldo, (-) Kurangi Saldo
+              (+) Tambah saldo, (-) Kurangi saldo
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Keterangan (Wajib)</Label>
+            <Label htmlFor="description">Keterangan (wajib)</Label>
             <Input
               id="description"
-              placeholder="Contoh: Bonus Giveaway, Koreksi Sistem..."
+              placeholder="Contoh: Bonus referral, koreksi saldo..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -109,7 +109,7 @@ export const TokenAdjustmentDialog: React.FC<TokenAdjustmentDialogProps> = ({
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Simpan Perubahan
+              Simpan perubahan
             </Button>
           </DialogFooter>
         </form>

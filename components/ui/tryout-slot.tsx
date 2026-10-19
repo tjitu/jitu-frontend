@@ -79,7 +79,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
     return (
       <span className="inline-flex items-center gap-1.5 px-2 py-[3px] border-[1.5px] border-blue-900 bg-blue-50 text-blue-900 font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
         <Calendar className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
-        <span>Terjadwal</span>
+        <span>Segera</span>
       </span>
     );
   };
@@ -156,7 +156,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
         ) : (
           <div className="min-h-[44px] px-3 py-2 border border-dashed border-slate-500 flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em]">
             <span>Ditutup</span>
-            <span>Buka · 1 coin</span>
+            <span>Buka pembahasan · 1 coin</span>
           </div>
         )}
       </div>

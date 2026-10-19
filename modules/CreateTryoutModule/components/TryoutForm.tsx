@@ -49,7 +49,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
               {isEdit ? "Informasi tryout" : "Detail tryout baru"}
             </CardTitle>
             <CardDescription>
-              Atur nama, jadwal pelaksanaan, dan kebutuhan coins pembahasan.
+              Atur nama, jadwal pelaksanaan, dan kebutuhan coin pembahasan.
             </CardDescription>
           </div>
           {!isEdit && createdTryoutId && (
@@ -132,7 +132,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="solutionPrice">COINS PEMBAHASAN</Label>
+                <Label htmlFor="solutionPrice">COIN PEMBAHASAN</Label>
                 <Input
                   id="solutionPrice"
                   name="solutionPrice"

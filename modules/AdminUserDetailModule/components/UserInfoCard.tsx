@@ -43,9 +43,9 @@ export const UserInfoCard: React.FC<UserInfoCardProps> = ({ user }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Coins className="h-4 w-4 text-yellow-500" />
-              Token Balance
+              Saldo Coin
             </div>
-            <span className="font-bold text-yellow-600">{user.tokenBalance}</span>
+            <span className="font-bold text-yellow-600 font-mono">{user.tokenBalance} coin</span>
           </div>
 
           <div className="flex items-center justify-between">

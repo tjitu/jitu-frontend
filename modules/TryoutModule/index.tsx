@@ -128,14 +128,14 @@ const TryoutModule = () => {
       <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
           <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
-            JADWAL SIMULASI UTBK-SNBT
+            JADWAL TRYOUT SNBT
           </div>
           <h1 className="font-display font-bold text-[30px] sm:text-[36px] leading-tight tracking-tight text-slate-900">
             Daftar jadwal tryout
           </h1>
         </div>
         <p className="text-[15px] text-slate-600 max-w-md">
-          Semua jadwal gratis dikerjakan. Coins cuma dipakai saat kamu membuka pembahasan.
+          Semua tryout gratis dikerjakan. Coin cuma kepakai kalau kamu mau buka skor IRT dan pembahasan.
         </p>
       </div>
 
@@ -177,7 +177,7 @@ const TryoutModule = () => {
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 stroke-[1.75] text-slate-400" />
             <Input
-              placeholder="Cari nama gelombang…"
+              placeholder="Cari nama tryout…"
               className="pl-10 h-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -270,7 +270,7 @@ const TryoutModule = () => {
                       </span>
                       <span>·</span>
                       <span>
-                        Pembahasan {tryout.solutionPrice || 1} coins
+                        Pembahasan {tryout.solutionPrice || 1} coin
                       </span>
                     </div>
                   </div>

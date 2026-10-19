@@ -25,60 +25,60 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
   {
     id: "to-01",
     number: 1,
-    title: "Tryout #1 dibuka",
+    title: "Tryout #1",
     displayDate: "2 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 coin",
+    subtestInfo: "Pembahasan 1 coin",
     state: "open",
     href: "/register",
   },
   {
     id: "to-02",
     number: 2,
-    title: "Minggu ke-2",
+    title: "Tryout #2",
     displayDate: "9 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 coin",
+    subtestInfo: "Pembahasan 1 coin",
     state: "upcoming",
     href: "/register",
   },
   {
     id: "to-03",
     number: 3,
-    title: "Minggu ke-3",
+    title: "Tryout #3",
     displayDate: "16 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 coin",
+    subtestInfo: "Pembahasan 1 coin",
     state: "upcoming",
     href: "/register",
   },
   {
     id: "to-04",
     number: 4,
-    title: "Minggu ke-4",
+    title: "Tryout #4",
     displayDate: "23 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 coin",
+    subtestInfo: "Pembahasan 1 coin",
     state: "upcoming",
     href: "/register",
   },
   {
     id: "to-05",
     number: 5,
-    title: "Minggu ke-5",
+    title: "Tryout #5",
     displayDate: "30 Nov 2026",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 coin",
+    subtestInfo: "Pembahasan 1 coin",
     state: "upcoming",
     href: "/register",
   },
   {
     id: "to-last",
     number: 6,
-    title: "Gelombang penutup",
+    title: "Tryout terakhir",
     displayDate: "21 Apr 2027",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan · 1 coin",
+    subtestInfo: "Pembahasan 1 coin",
     state: "upcoming",
     href: "/register",
   },
@@ -107,22 +107,21 @@ const QUOTA_PACKS: QuotaPack[] = [
     quota: 3,
     totalPrice: 39000,
     perTryout: 13000,
-    note: "Rp39.000 untuk 3 coins (Rp13.000 per tryout)",
+    note: "Rp39.000 untuk 3 coin (Rp13.000 per tryout)",
   },
   {
     id: "pack-5",
     quota: 5,
     totalPrice: 59000,
     perTryout: 11800,
-    note: "Rp59.000 untuk 5 coins (Rp11.800 per tryout)",
-    isPopular: true,
+    note: "Rp59.000 untuk 5 coin (Rp11.800 per tryout)",
   },
   {
     id: "pack-10",
     quota: 10,
     totalPrice: 89000,
     perTryout: 8900,
-    note: "Rp89.000 untuk 10 coins (Rp8.900 per tryout)",
+    note: "Rp89.000 untuk 10 coin (Rp8.900 per tryout)",
     isBestValue: true,
   },
 ];
@@ -179,7 +178,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
           {[
             { href: "#cara-kerja", label: "Cara kerja" },
             { href: "#jadwal", label: "Jadwal" },
-            { href: "#harga", label: "Biaya & coins" },
+            { href: "#harga", label: "Harga" },
             { href: "#peserta", label: "Peserta" },
           ].map((item) => (
             <a
@@ -240,7 +239,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             {[
               { href: "#cara-kerja", label: "Cara kerja" },
               { href: "#jadwal", label: "Jadwal" },
-              { href: "#harga", label: "Biaya & coins" },
+              { href: "#harga", label: "Harga" },
               { href: "#peserta", label: "Peserta" },
             ].map((item) => (
               <a
@@ -478,18 +477,14 @@ const LandingPageModule = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
               {/* Left Column: Hero Copy (WRITING.md Sections 2, 4, 6) */}
               <div className="lg:col-span-5 xl:col-span-5 space-y-6 relative z-20">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 border-[1.5px] border-blue-900 bg-white font-mono text-[12px] tracking-[0.04em] text-blue-900 font-medium">
-                  <span>#RaihKampusImpian 🥇</span>
-                </div>
-
-                {/* H1: <= 10 words, inverted headline (WRITING.md Section 2 & 6) */}
+                {/* H1: <= 12 words, inverted headline (WRITING.md Section 2, 4, 6) */}
                 <h1 className="font-display font-extrabold text-[44px] sm:text-[56px] xl:text-[68px] leading-[1.02] tracking-[-0.025em] text-blue-900">
                   Kerjakan gratis. Bayar kalau mau tahu salahnya di mana.
                 </h1>
 
-                {/* Hero support line: <= 25 words, colloquial, what it is -> cost -> when */}
+                {/* Hero support line: <= 30 words, colloquial, what it is -> cost -> when */}
                 <p className="text-[18px] text-slate-700 leading-[1.5] max-w-xl">
-                  Tryout SNBT tiap minggu mulai 2 Nov 2026. Jumlah benar, salah, dan kosong langsung keluar gratis. Skor IRT dan pembahasan dibuka pakai 1 coin.
+                  Tryout SNBT tiap minggu, mulai 2 Nov 2026. Selesai ngerjain, kamu langsung tahu benar, salah, dan kosongnya. Skor IRT dan pembahasan dibuka pakai 1 coin.
                 </p>
 
                 {/* Primary Signal CTA (1-3 words, verb first) */}
@@ -519,7 +514,7 @@ const LandingPageModule = () => {
           </div>
         </section>
 
-        {/* 3. Cara Kerja — 3-Step Flow + Tanpa Bayar vs Pakai Coins */}
+        {/* 3. Cara Kerja — 3-Step Flow + Tanpa Bayar vs Pakai 1 Coin */}
         <section
           id="cara-kerja"
           className="py-16 lg:py-24 bg-white border-b-2 border-blue-900"
@@ -533,7 +528,7 @@ const LandingPageModule = () => {
                 Gimana cara ikutnya?
               </h2>
               <p className="text-[18px] text-slate-700">
-                Simulasi tryout gratis dikerjakan. Coins hanya dipakai kalau kamu butuh pembahasan dan evaluasi skor IRT.
+                Tryout-nya gratis. Coin cuma kepakai kalau kamu mau lihat skor IRT dan pembahasan.
               </p>
             </div>
 
@@ -544,10 +539,10 @@ const LandingPageModule = () => {
                   01
                 </div>
                 <h3 className="font-display text-[20px] font-bold text-blue-900">
-                  Daftar &amp; kerjakan gratis
+                  Daftar, lalu kerjakan
                 </h3>
                 <p className="text-[15px] text-slate-700 leading-relaxed">
-                  Bikin akun gratis tanpa syarat kartu kredit. Pilih jadwal tryout mingguan mulai 2 Nov 2026 dan kerjakan 7 subtes SNBT dengan batas waktu riil.
+                  Bikin akun gratis, pilih jadwal tryout, terus kerjain 7 subtes SNBT dengan batas waktu.
                 </p>
               </div>
 
@@ -556,10 +551,10 @@ const LandingPageModule = () => {
                   02
                 </div>
                 <h3 className="font-display text-[20px] font-bold text-blue-900">
-                  Skor keluar seketika
+                  Skor langsung keluar
                 </h3>
                 <p className="text-[15px] text-slate-700 leading-relaxed">
-                  Begitu selesai mengumpulkan jawaban, rekap jumlah benar, salah, dan kosong langsung tampil di layar secara cuma-cuma.
+                  Habis kumpulin jawaban, jumlah benar, salah, dan kosongmu langsung muncul. Gratis.
                 </p>
               </div>
 
@@ -568,41 +563,41 @@ const LandingPageModule = () => {
                   03
                 </div>
                 <h3 className="font-display text-[20px] font-bold text-blue-900">
-                  Buka pembahasan kalau butuh
+                  Buka pembahasan kalau perlu
                 </h3>
                 <p className="text-[15px] text-slate-700 leading-relaxed">
-                  Pakai 1 coin untuk melihat skor IRT resmi dan pembahasan detail tiap butir soal. Kalau nilaimu sudah aman, coins kamu tetap utuh.
+                  Pakai 1 coin buat lihat skor IRT dan pembahasan tiap soal. Kalau nilaimu udah aman, coin-mu tetap utuh.
                 </p>
               </div>
             </div>
 
-            {/* Comparison Box: Tanpa Bayar vs Pakai 1 Coin */}
+            {/* Comparison Box: Gratis vs Pakai 1 Coin */}
             <div className="grid grid-cols-1 md:grid-cols-2 border-2 border-blue-900 bg-white divide-y-2 md:divide-y-0 md:divide-x-2 divide-blue-900">
-              {/* Tanpa Bayar (Rp0) */}
+              {/* Gratis (Rp0) */}
               <div className="p-6 sm:p-8 space-y-4 bg-white">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 font-semibold">
-                    TANPA BAYAR
+                    GRATIS
                   </span>
                   <span className="px-2.5 py-1 border border-blue-900 bg-blue-100 font-mono text-[13px] font-bold text-blue-900">
                     Rp0
                   </span>
                 </div>
                 <h4 className="font-display text-[22px] font-bold text-blue-900">
-                  Simulasi tryout mingguan
+                  Tryout mingguan
                 </h4>
                 <ul className="space-y-3 text-[15px] text-slate-700">
                   <li className="flex items-start gap-2.5">
                     <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Ikut tryout mingguan sesuai jadwal mulai 2 Nov 2026</span>
+                    <span>Tryout mingguan mulai 2 Nov 2026</span>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Lengkap 7 subtes standar SNBT (TPS dan Literasi)</span>
+                    <span>7 subtes SNBT, TPS dan Literasi</span>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Hasil instan: jumlah benar, salah, dan kosong langsung keluar</span>
+                    <span>Jumlah benar, salah, dan kosong langsung keluar</span>
                   </li>
                 </ul>
               </div>
@@ -612,19 +607,19 @@ const LandingPageModule = () => {
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-700 font-semibold flex items-center gap-1.5">
                     <PixelCoin size={16} />
-                    <span>DENGAN 1 COIN</span>
+                    <span>PAKAI 1 COIN</span>
                   </span>
                   <span className="px-2.5 py-1 border border-blue-900 bg-signal text-blue-900 font-mono text-[13px] font-bold">
                     Mulai Rp8.900
                   </span>
                 </div>
                 <h4 className="font-display text-[22px] font-bold text-blue-900">
-                  Semua yang gratis, ditambah evaluasi penuh
+                  Semua yang gratis, plus:
                 </h4>
                 <ul className="space-y-3 text-[15px] text-blue-900">
                   <li className="flex items-start gap-2.5">
                     <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Skor IRT total dan rincian nilai tiap 7 subtes</span>
+                    <span>Skor IRT total dan per subtes</span>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
@@ -632,7 +627,7 @@ const LandingPageModule = () => {
                   </li>
                   <li className="flex items-start gap-2.5">
                     <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Coins tidak pernah hangus, bebas dipakai kapan saja sampai 21 Apr 2027</span>
+                    <span>Coin dipakai di tryout mana aja, berlaku sampai 21 Apr 2027</span>
                   </li>
                 </ul>
               </div>
@@ -684,32 +679,28 @@ const LandingPageModule = () => {
                 Bayarnya gimana?
               </h2>
               <p className="text-[18px] text-slate-700">
-                Tryout gratis. Coins cuma buat pembahasan. Makin banyak coins, makin murah per tryout.
+                Tryout gratis. Coin cuma buat pembahasan. Makin banyak coin, makin murah per tryout.
               </p>
             </div>
 
             {/* Pixelated Art Banner Showcase */}
             <div className="bg-[#0B1B3F] border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)] p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 text-white relative overflow-hidden">
               <div className="space-y-3 z-10 max-w-xl">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-amber-400 text-blue-950 font-mono text-[11px] font-extrabold uppercase tracking-wider border border-amber-300">
-                  <PixelCoin size={16} glow />
-                  <span>16-BIT RETRO TOKEN SYSTEM</span>
-                </div>
                 <h3 className="font-display font-extrabold text-[24px] sm:text-[32px] leading-tight text-white">
-                  1 Coin = 1 Evaluasi Tryout Lengkap
+                  1 coin = 1 pembahasan tryout
                 </h3>
                 <p className="text-[15px] text-blue-100 leading-relaxed">
-                  Kerjakan simulasi mingguan secara gratis. Pakai 1 coin hanya ketika kamu ingin membuka skor IRT resmi & pembahasan 155 butir soal. Coins kamu tidak pernah hangus sampai 21 April 2027.
+                  Skor IRT dan pembahasan 155 soal. Berlaku sampai 21 Apr 2027. Bayar pakai QRIS, tanpa langganan.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1 font-mono text-[12px] text-blue-200">
                   <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    ✓ Tanpa Langganan
+                    Tanpa langganan
                   </span>
                   <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    ✓ QRIS Instan
+                    QRIS
                   </span>
                   <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    ✓ Coins Tidak Hangus
+                    Berlaku sampai 21 Apr 2027
                   </span>
                 </div>
               </div>
@@ -724,53 +715,38 @@ const LandingPageModule = () => {
                   style={{ imageRendering: "pixelated" }}
                   unoptimized
                 />
-                <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 bg-blue-950/90 border border-amber-400/80 px-2 py-0.5 shadow-xs">
-                  <PixelCoin size={14} glow />
-                  <span className="font-mono text-[10px] font-bold text-amber-300">
-                    JITU TOKEN
-                  </span>
-                </div>
               </div>
             </div>
 
             {/* 4 Tier Pricing Cards with Pixelated Yellow Coin Icons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {QUOTA_PACKS.map((pack) => {
-                const isTenCoins = pack.quota === 10;
-                const isFiveCoins = pack.quota === 5;
+                const isTenCoin = pack.quota === 10;
 
                 return (
                   <div
                     key={pack.id}
                     className={`relative bg-white border-2 flex flex-col justify-between transition-all ${
-                      isTenCoins
+                      isTenCoin
                         ? "border-emerald-600 shadow-[4px_4px_0_#059669] ring-2 ring-emerald-500/20"
-                        : isFiveCoins
-                          ? "border-blue-600 shadow-[4px_4px_0_var(--blue-900)] ring-1 ring-blue-600/30"
-                          : "border-blue-900 shadow-[4px_4px_0_var(--blue-900)]"
+                        : "border-blue-900 shadow-[4px_4px_0_var(--blue-900)]"
                     }`}
                   >
                     {/* Card Top Banner / Badge */}
                     <div
                       className={`px-4 py-2.5 border-b-2 flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em] ${
-                        isTenCoins
+                        isTenCoin
                           ? "bg-emerald-700 text-white font-bold border-emerald-700"
-                          : isFiveCoins
-                            ? "bg-blue-600 text-white font-bold border-blue-600"
-                            : "bg-blue-50 text-blue-900 font-semibold border-blue-900"
+                          : "bg-blue-50 text-blue-900 font-semibold border-blue-900"
                       }`}
                     >
-                      <span>{pack.quota} {pack.quota === 1 ? "COIN" : "COINS"}</span>
-                      {isTenCoins ? (
+                      <span>{pack.quota} coin</span>
+                      {isTenCoin ? (
                         <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold tracking-normal shadow-xs">
-                          🔥 PALING HEMAT
-                        </span>
-                      ) : isFiveCoins ? (
-                        <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold tracking-normal shadow-xs">
-                          ⭐ POPULER
+                          Paling hemat
                         </span>
                       ) : (
-                        <span className="text-[11px] opacity-80">{pack.quota}X TRYOUT</span>
+                        <span className="text-[11px] opacity-80">{pack.quota}x tryout</span>
                       )}
                     </div>
 
@@ -778,16 +754,16 @@ const LandingPageModule = () => {
                     <div className="p-5 space-y-4">
                       <div>
                         <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-600 mb-1">
-                          JUMLAH COINS
+                          JUMLAH COIN
                         </div>
                         <div className="flex items-center gap-2.5">
                           <PixelCoin size={26} />
                           <div className="font-display text-[26px] font-extrabold text-blue-900">
-                            {pack.quota} {pack.quota === 1 ? "Coin" : "Coins"}
+                            {pack.quota} coin
                           </div>
                         </div>
                         <p className="text-[13px] text-slate-600 mt-2">
-                          Buka skor IRT &amp; pembahasan {pack.quota} tryout.
+                          Buka skor IRT dan pembahasan {pack.quota} tryout.
                         </p>
                       </div>
 
@@ -799,7 +775,7 @@ const LandingPageModule = () => {
                           {formatRupiah(pack.totalPrice)}
                         </div>
                         <div className={`font-mono text-[13px] font-semibold ${
-                          isTenCoins ? "text-emerald-700" : "text-blue-600"
+                          isTenCoin ? "text-emerald-700" : "text-blue-600"
                         }`}>
                           {formatRupiah(pack.perTryout)} / tryout
                         </div>
@@ -811,14 +787,12 @@ const LandingPageModule = () => {
                       <Link
                         href={isLoggedIn ? "/dashboard/shop" : "/register"}
                         className={`w-full py-2.5 px-4 font-mono text-[13px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-2 border-2 transition-all ${
-                          isTenCoins
+                          isTenCoin
                             ? "bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700 shadow-[2px_2px_0_#065f46]"
-                            : isFiveCoins
-                              ? "bg-blue-600 text-white border-blue-900 hover:bg-blue-700 shadow-[2px_2px_0_var(--blue-900)]"
-                              : "bg-white text-blue-900 border-blue-900 hover:bg-blue-50 shadow-[2px_2px_0_var(--blue-900)]"
+                            : "bg-white text-blue-900 border-blue-900 hover:bg-blue-50 shadow-[2px_2px_0_var(--blue-900)]"
                         }`}
                       >
-                        <span>{isLoggedIn ? "Beli Coins" : "Pilih Paket"}</span>
+                        <span>Pilih paket</span>
                         <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
                       </Link>
                     </div>
@@ -857,25 +831,25 @@ const LandingPageModule = () => {
                       </span>
                     </div>
                     <p className="text-[16px] text-blue-900 pt-1">
-                      1 coin membuka skor IRT dan pembahasan tiap soal untuk satu tryout. Kalau nilaimu sudah aman dan nggak butuh pembahasan, coins kamu utuh.
+                      1 coin membuka skor IRT dan pembahasan tiap soal untuk satu tryout. Kalau nilaimu sudah aman dan nggak butuh pembahasan, coin-mu tetap utuh.
                     </p>
                   </div>
                 </div>
 
-                {/* Canonical Formula + Worked Example Block (WRITING.md Section 2 & 6) */}
+                {/* Canonical Formula + Worked Example Block (WRITING.md Section 7) */}
                 <div className="p-5 border-2 border-blue-900 bg-signal-100 text-blue-900 space-y-3">
                   <div className="space-y-1">
                     <div className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-signal-700">
                       HARGA PER TRYOUT
                     </div>
                     <div className="font-mono text-[16px] font-medium text-blue-900">
-                      harga paket ÷ jumlah coins
+                      Harga per tryout = harga paket ÷ jumlah coin
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-blue-900/30 space-y-1">
                     <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      Contoh: 5 coins
+                      Contoh: 5 coin
                     </div>
                     <div className="font-mono text-[16px] font-medium text-blue-900 tabular-nums">
                       Rp59.000 ÷ 5 = Rp11.800 per tryout
@@ -889,7 +863,7 @@ const LandingPageModule = () => {
                 <div className="px-5 py-4 border-b-2 border-blue-900 bg-blue-800 text-white flex items-center justify-between">
                   <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium flex items-center gap-1.5">
                     <PixelCoin size={16} />
-                    <span>HARGA PAKET COINS</span>
+                    <span>HARGA PAKET COIN</span>
                   </span>
                   <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-200">
                     MULAI RP8.900 PER TRYOUT
@@ -920,10 +894,10 @@ const LandingPageModule = () => {
                           <td className="py-4 px-5 font-mono font-medium text-[16px] text-blue-900 tabular-nums whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <PixelCoin size={18} />
-                              <span>{pack.quota} {pack.quota === 1 ? "coin" : "coins"}</span>
+                              <span>{pack.quota} coin</span>
                               {pack.isBestValue && (
                                 <span className="px-2 py-[2px] border-[1.5px] border-emerald-800 bg-emerald-600 text-white font-mono text-[10px] font-bold uppercase tracking-[0.06em]">
-                                  🔥 PALING HEMAT
+                                  Paling hemat
                                 </span>
                               )}
                             </div>
@@ -956,11 +930,11 @@ const LandingPageModule = () => {
                         <div className="flex items-center gap-2">
                           <PixelCoin size={18} />
                           <span className="font-mono font-medium text-[18px] text-blue-900 tabular-nums">
-                            {pack.quota} {pack.quota === 1 ? "coin" : "coins"}
+                            {pack.quota} coin
                           </span>
                           {pack.isBestValue && (
                             <span className="px-2 py-[2px] border-[1.5px] border-emerald-800 bg-emerald-600 text-white font-mono text-[10px] font-bold uppercase tracking-[0.06em]">
-                              🔥 HEMAT
+                              Paling hemat
                             </span>
                           )}
                         </div>
@@ -979,13 +953,13 @@ const LandingPageModule = () => {
                 <div className="p-5 border-t-2 border-blue-900 bg-blue-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                   <div className="text-[14px] text-slate-700 flex items-center gap-2">
                     <PixelCoin size={16} />
-                    <span>1 coin untuk 1 tryout. Bisa dipakai di jadwal mana saja sampai 21 Apr 2027.</span>
+                    <span>1 coin buat 1 pembahasan tryout. Coin yang udah dibeli nggak bisa diuangkan lagi.</span>
                   </div>
                   <Link
                     href={isLoggedIn ? "/dashboard/shop" : "/register"}
                     className="jitu-btn-blue text-[14px] font-semibold inline-flex items-center justify-center gap-2 shrink-0"
                   >
-                    <span>{isLoggedIn ? "Beli coins" : "Daftar gratis"}</span>
+                    <span>{isLoggedIn ? "Beli coin" : "Daftar gratis"}</span>
                     <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                   </Link>
                 </div>
@@ -994,7 +968,7 @@ const LandingPageModule = () => {
           </div>
         </section>
 
-        {/* 5. Social Proof — 300+ siswa, 14 sekolah, [BRACKETED PLACEHOLDERS] (WRITING.md Section 7) */}
+        {/* 5. Peserta — 300+ siswa, 14 sekolah (WRITING.md Section 7) */}
         <section
           id="peserta"
           className="py-16 lg:py-24 bg-white border-b-2 border-blue-900"
@@ -1004,7 +978,7 @@ const LandingPageModule = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
               <div className="lg:col-span-6 space-y-2">
                 <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                  PESERTA TRYOUT
+                  PESERTA
                 </div>
                 {/* H2: <= 8 words, sentence case, fact sheet numbers */}
                 <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-blue-900">
@@ -1013,94 +987,92 @@ const LandingPageModule = () => {
               </div>
               {/* Section intro: <= 2 sentences */}
               <p className="lg:col-span-6 text-[18px] text-slate-700 leading-relaxed">
-                Dipakai siswa SMA di Jakarta untuk persiapan SNBT. Cerita dan skor siswa baru dipasang setelah Tryout #1 pada 2 Nov 2026 selesai.
+                Dipakai siswa SMA di Jakarta buat persiapan SNBT.
               </p>
             </div>
 
-            {/* Fact Sheet Numbers + Bracketed Story Placeholders */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-              {/* Left: Sourced Numbers Only (300+ siswa, 14 sekolah) */}
-              <div className="lg:col-span-5 grid grid-cols-2 lg:grid-cols-1 border-2 border-blue-900 bg-blue-50 divide-x-2 lg:divide-x-0 lg:divide-y-2 divide-blue-900">
-                <div className="p-6 space-y-1">
-                  <div className="flex items-center justify-between text-slate-700">
-                    <span className="font-mono text-[12px] uppercase tracking-[0.06em]">
-                      SISWA TERDAFTAR
-                    </span>
-                    <Users className="w-5 h-5 stroke-[1.75] text-blue-500" aria-hidden="true" />
-                  </div>
-                  <div className="font-display font-extrabold text-[44px] sm:text-[56px] leading-[1.02] text-blue-500 tabular-nums">
-                    300+
-                  </div>
-                  <p className="text-[14px] text-slate-700">
-                    Siswa SMA yang ikut persiapan SNBT
-                  </p>
+            {/* Sourced Numbers Only (300+ siswa, 14 sekolah) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl">
+              <div className="p-6 border-2 border-blue-900 bg-blue-50 space-y-2">
+                <div className="flex items-center justify-between text-slate-700">
+                  <span className="font-mono text-[12px] uppercase tracking-[0.06em]">
+                    SISWA TERDAFTAR
+                  </span>
+                  <Users className="w-5 h-5 stroke-[1.75] text-blue-500" aria-hidden="true" />
                 </div>
-
-                <div className="p-6 space-y-1">
-                  <div className="flex items-center justify-between text-slate-700">
-                    <span className="font-mono text-[12px] uppercase tracking-[0.06em]">
-                      ASAL SEKOLAH
-                    </span>
-                    <School className="w-5 h-5 stroke-[1.75] text-blue-500" aria-hidden="true" />
-                  </div>
-                  <div className="font-display font-extrabold text-[44px] sm:text-[56px] leading-[1.02] text-blue-900 tabular-nums">
-                    14
-                  </div>
-                  <p className="text-[14px] text-slate-700">
-                    SMA di Jakarta
-                  </p>
+                <div className="font-display font-extrabold text-[44px] sm:text-[56px] leading-[1.02] text-blue-500 tabular-nums">
+                  300+
                 </div>
+                <p className="text-[14px] text-slate-700">
+                  Siswa terdaftar persiapan SNBT
+                </p>
               </div>
 
-              {/* Right: Honest [BRACKETED PLACEHOLDERS] (WRITING.md Section 7) */}
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="p-6 border-2 border-dashed border-slate-500 bg-blue-50 flex flex-col justify-between gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      <span>[SLOT CERITA #1]</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-[2px] border border-blue-900 bg-white text-blue-900">
-                        <Flag className="w-3 h-3 stroke-[1.75]" aria-hidden="true" />
-                        <span>2 Nov 2026</span>
-                      </span>
-                    </div>
-                    <div className="font-mono text-[14px] font-medium text-blue-900">
-                      [NAMA SISWA · ASAL SMA DI JAKARTA]
-                    </div>
-                    <p className="text-[14px] text-slate-700 leading-relaxed">
-                      [KUTIPAN ASLI SISWA SETELAH MENGERJAKAN TRYOUT #1 DAN MEMBUKA PEMBAHASAN]
-                    </p>
-                  </div>
-                  <div className="pt-2 border-t border-slate-300 font-mono text-[12px] text-slate-700">
-                    Belum ada testimoni sebelum Tryout #1 dimulai.
-                  </div>
+              <div className="p-6 border-2 border-blue-900 bg-blue-50 space-y-2">
+                <div className="flex items-center justify-between text-slate-700">
+                  <span className="font-mono text-[12px] uppercase tracking-[0.06em]">
+                    ASAL SEKOLAH
+                  </span>
+                  <School className="w-5 h-5 stroke-[1.75] text-blue-500" aria-hidden="true" />
                 </div>
-
-                <div className="p-6 border-2 border-dashed border-slate-500 bg-blue-50 flex flex-col justify-between gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      <span>[SLOT CERITA #2]</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-[2px] border border-blue-900 bg-white text-blue-900">
-                        <Flag className="w-3 h-3 stroke-[1.75]" aria-hidden="true" />
-                        <span>2026/2027</span>
-                      </span>
-                    </div>
-                    <div className="font-mono text-[14px] font-medium text-blue-900">
-                      [CATATAN SKOR TRYOUT #1 SAMPAI #5]
-                    </div>
-                    <p className="text-[14px] text-slate-700 leading-relaxed">
-                      [PERBANDINGAN SKOR IRT TIAP MINGGU DARI PESERTA YANG MENGIZINKAN DATANYA DITAMPILKAN]
-                    </p>
-                  </div>
-                  <div className="pt-2 border-t border-slate-300 font-mono text-[12px] text-slate-700">
-                    Diisi dari data peserta nyata, bukan karangan.
-                  </div>
+                <div className="font-display font-extrabold text-[44px] sm:text-[56px] leading-[1.02] text-blue-900 tabular-nums">
+                  14
                 </div>
+                <p className="text-[14px] text-slate-700">
+                  SMA di Jakarta
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 6. Blue-500 CTA Band (DESIGN.md Section 6.1 & WRITING.md Section 4) */}
+        {/* 6. FAQ (WRITING.md Section 7) */}
+        <section
+          id="faq"
+          className="py-16 lg:py-24 bg-blue-50 border-b-2 border-blue-900"
+        >
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10">
+            <div className="max-w-2xl space-y-2">
+              <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
+                FAQ
+              </div>
+              <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-blue-900">
+                Pertanyaan yang sering ditanya
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-6 bg-white border-2 border-blue-900 space-y-2.5">
+                <h3 className="font-display text-[18px] font-bold text-blue-900">
+                  Beneran gratis?
+                </h3>
+                <p className="text-[15px] text-slate-700 leading-relaxed">
+                  Beneran. Semua tryout gratis dikerjakan, dan jumlah benar, salah, kosongmu langsung keluar. Coin cuma kepakai kalau kamu mau skor IRT dan pembahasan.
+                </p>
+              </div>
+
+              <div className="p-6 bg-white border-2 border-blue-900 space-y-2.5">
+                <h3 className="font-display text-[18px] font-bold text-blue-900">
+                  Coin bisa hangus nggak?
+                </h3>
+                <p className="text-[15px] text-slate-700 leading-relaxed">
+                  Berlaku sampai 21 Apr 2027. Selama itu coin bisa dipakai di tryout mana aja.
+                </p>
+              </div>
+
+              <div className="p-6 bg-white border-2 border-blue-900 space-y-2.5">
+                <h3 className="font-display text-[18px] font-bold text-blue-900">
+                  Bayarnya lewat apa?
+                </h3>
+                <p className="text-[15px] text-slate-700 leading-relaxed">
+                  QRIS.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Closing CTA Band (WRITING.md Section 7) */}
         <section className="py-16 lg:py-20 bg-blue-500 text-white border-b-2 border-blue-900">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
             <div className="space-y-2 max-w-2xl">
@@ -1112,7 +1084,7 @@ const LandingPageModule = () => {
                 Tryout #1 dibuka 2 Nov 2026.
               </h2>
               <p className="text-[18px] text-blue-100">
-                Daftar akun sekarang, gratis. Pas jadwalnya buka, kamu tinggal langsung kerjakan.
+                Daftar dulu, gratis. Pas jadwalnya buka, tinggal kerjain.
               </p>
             </div>
 
@@ -1129,7 +1101,7 @@ const LandingPageModule = () => {
         </section>
       </main>
 
-      {/* 7. Footer (DESIGN.md Section 6.1 & WRITING.md Section 2) */}
+      {/* 8. Footer (WRITING.md Section 7) */}
       <footer className="bg-blue-900 text-white py-12">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-slate-600">
@@ -1147,7 +1119,7 @@ const LandingPageModule = () => {
                 </span>
               </div>
               <p className="text-[14px] text-blue-200 max-w-sm leading-relaxed">
-                Tryout SNBT tiap minggu mulai 2 Nov 2026 sampai 21 Apr 2027. Gratis dikerjakan. Pembahasan dan skor IRT mulai Rp8.900 per tryout.
+                Tryout SNBT tiap minggu, 2 Nov 2026 sampai 21 Apr 2027. Gratis dikerjakan. Pembahasan mulai Rp8.900 per tryout.
               </p>
               <div className="font-mono text-[12px] text-blue-300">
                 jituptn.com
@@ -1178,10 +1150,10 @@ const LandingPageModule = () => {
                   Cara kerja
                 </a>
                 <a href="#jadwal" className="text-white hover:underline min-h-[32px] inline-flex items-center">
-                  Jadwal tryout
+                  Jadwal
                 </a>
                 <a href="#harga" className="text-white hover:underline min-h-[32px] inline-flex items-center">
-                  Biaya &amp; coins
+                  Harga
                 </a>
                 <a href="#peserta" className="text-white hover:underline min-h-[32px] inline-flex items-center">
                   Peserta
@@ -1196,10 +1168,10 @@ const LandingPageModule = () => {
             </div>
           </div>
 
-          {/* Plain legal line, small, in normal language (WRITING.md Section 2) */}
+          {/* Plain legal line, small, in normal language (WRITING.md Section 2 & 7) */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-mono text-[12px] text-blue-300">
             <span>© 2026 Jitu (jituptn.com).</span>
-            <span>1 coin berlaku untuk 1 pembahasan tryout dan tidak bisa diuangkan kembali.</span>
+            <span>1 coin berlaku untuk 1 pembahasan tryout. Coin yang udah dibeli nggak bisa diuangkan lagi.</span>
           </div>
         </div>
       </footer>

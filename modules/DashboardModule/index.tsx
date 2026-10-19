@@ -394,7 +394,7 @@ const DashboardModule = () => {
                 </span>
                 <span className="px-2.5 py-1 border border-blue-200 bg-blue-50 font-mono text-[11px] uppercase tracking-wider font-medium text-blue-800 flex items-center gap-1.5">
                   <PixelCoin size={14} />
-                  <span>GRATIS DIKERJAKAN · PEMBAHASAN {featuredTryout.solutionPrice || 1} COINS</span>
+                  <span>GRATIS DIKERJAKAN · PEMBAHASAN {featuredTryout.solutionPrice || 1} COIN</span>
                 </span>
               </div>
 
@@ -449,7 +449,7 @@ const DashboardModule = () => {
         ) : (
           <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <p className="text-[15px] text-slate-600">
-              Belum ada tryout yang dikerjakan. Tryout #1 dibuka 2 Nov 2026.
+              Belum ada tryout yang kamu kerjakan. Tryout #1 dibuka 2 Nov.
             </p>
             <Button onClick={() => router.push("/tryout")}>Lihat jadwal</Button>
           </div>
@@ -611,7 +611,7 @@ const DashboardModule = () => {
                         </h3>
                         <p className="font-mono text-[11px] uppercase tracking-wider text-slate-500 tabular-nums">
                           {tryout.participants} peserta · Pembahasan{" "}
-                          {tryout.solutionPrice || 1} coins
+                          {tryout.solutionPrice || 1} coin
                         </p>
                       </div>
                     </div>
@@ -647,7 +647,7 @@ const DashboardModule = () => {
                     PERKEMBANGAN NILAI IRT
                   </div>
                   <h3 className="text-[17px] font-bold text-slate-900">
-                    Grafik skor per gelombang
+                    Grafik skor
                   </h3>
                 </div>
 
@@ -697,16 +697,16 @@ const DashboardModule = () => {
         </Tabs>
       </section>
 
-      {/* 4. BOTTOM: Coins Balance & Buy Coins Strip */}
+      {/* 4. BOTTOM: Coin Balance & Buy Coin Strip */}
       <section className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
           <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 flex items-center gap-2">
             <PixelCoin size={18} glow />
-            <span>SALDO COINS PEMBAHASAN</span>
+            <span>SALDO COIN PEMBAHASAN</span>
           </div>
           <div className="flex flex-wrap items-baseline gap-3">
             <span className="font-display font-extrabold text-[32px] leading-none text-white tabular-nums">
-              {userStats?.tokenBalance ?? 0} coins
+              {userStats?.tokenBalance ?? 0} coin
             </span>
             <span className="text-[13px] text-slate-400">
               (1 coin = 1 pembahasan tryout · mulai Rp8.900)
@@ -727,7 +727,7 @@ const DashboardModule = () => {
             onClick={() => router.push("/shop")}
             className="bg-blue-600 hover:bg-blue-500 text-white border-transparent"
           >
-            <span>Beli coins</span>
+            <span>Beli coin</span>
             <ArrowRight className="w-4 h-4 stroke-[2]" />
           </Button>
         </div>

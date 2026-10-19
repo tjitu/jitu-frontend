@@ -135,7 +135,7 @@ const HistoryModule = () => {
         {filteredHistory.length === 0 ? (
           <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50">
             <p className="text-[15px] text-slate-600">
-              Belum ada tryout yang dikerjakan. Tryout #1 dibuka 2 Nov 2026.
+              Belum ada tryout yang kamu kerjakan. Tryout #1 dibuka 2 Nov.
             </p>
           </div>
         ) : (

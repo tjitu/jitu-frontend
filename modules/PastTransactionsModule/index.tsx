@@ -10,16 +10,16 @@ const PastTransactionsModule = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b-2 border-blue-900">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
-            TRANSAKSI COINS
+            TRANSAKSI COIN
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
-            Riwayat pembelian coins
+            Riwayat pembelian coin
           </h1>
         </div>
         <Button asChild variant="outline" size="sm">
           <Link href="/shop">
             <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Kembali ke paket coins
+            Kembali ke paket coin
           </Link>
         </Button>
       </div>

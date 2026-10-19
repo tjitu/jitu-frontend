@@ -1128,15 +1128,7 @@ export default function TryoutExamModule() {
               Kumpulkan sekarang?
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-600 pt-1">
-              Masih ada{" "}
-              <span className="font-mono font-medium text-slate-900">
-                {unansweredCount}
-              </span>{" "}
-              soal kosong dan{" "}
-              <span className="font-mono font-medium text-amber-700">
-                {raguCount}
-              </span>{" "}
-              soal ragu-ragu.
+              {answeredCount} dijawab, {raguCount} ragu, {unansweredCount} kosong.
             </DialogDescription>
           </DialogHeader>
 
@@ -1169,7 +1161,7 @@ export default function TryoutExamModule() {
               onClick={() => setShowFinishConfirm(false)}
               disabled={isSubmittingFinish}
             >
-              Kembali ke soal
+              Lanjut ngerjain
             </Button>
             <Button
               variant="default"

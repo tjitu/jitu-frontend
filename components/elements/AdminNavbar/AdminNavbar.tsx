@@ -50,7 +50,7 @@ const items = [
     icon: BanknoteIcon,
   },
   {
-    title: "Paket coins",
+    title: "Paket coin",
     path: "/admin/packages",
     icon: CoinsIcon,
   },

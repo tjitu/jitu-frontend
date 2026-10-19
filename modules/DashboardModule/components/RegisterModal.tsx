@@ -59,10 +59,10 @@ export function RegisterModal({
               <div>
                 <div className="font-semibold text-amber-950 flex items-center gap-1.5">
                   <PixelCoin size={14} />
-                  <span>Pembahasan · {tokenCost} {tokenCost === 1 ? "coin" : "coins"}</span>
+                  <span>Pembahasan · {tokenCost} coin</span>
                 </div>
                 <p className="text-amber-800/80 mt-0.5 text-[13px]">
-                  Coins baru dipakai kalau kamu memilih membuka skor IRT dan pembahasan.
+                  Coin cuma kepakai kalau kamu mau buka skor IRT dan pembahasan.
                 </p>
               </div>
             </div>

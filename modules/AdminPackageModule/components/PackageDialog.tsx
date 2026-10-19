@@ -91,7 +91,7 @@ export const PackageDialog: React.FC<PackageDialogProps> = ({
             {pkg ? "Edit Paket" : "Tambah Paket Baru"}
           </DialogTitle>
           <DialogDescription>
-            Atur nama, jumlah token, dan harga paket jualan Anda.
+            Atur nama, jumlah coin, dan harga paket.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
@@ -110,7 +110,7 @@ export const PackageDialog: React.FC<PackageDialogProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="pkg-token">Jumlah Token</Label>
+              <Label htmlFor="pkg-token">Jumlah Coin</Label>
               <Input
                 id="pkg-token"
                 type="number"

@@ -94,7 +94,7 @@ export function TransitionView({
             size="lg"
             className="w-full justify-center"
           >
-            {isLastSubtest ? "Kumpulkan ujian" : "Lanjut sekarang"}
+            {isLastSubtest ? "Kumpulkan" : "Lanjut sekarang"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

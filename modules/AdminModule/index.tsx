@@ -50,7 +50,7 @@ const AdminModule = () => {
   const quickActions = [
     {
       label: "Buat tryout baru",
-      description: "Tambah paket simulasi UTBK-SNBT baru",
+      description: "Tambah jadwal tryout SNBT baru",
       href: "/admin/create-to",
     },
     {
@@ -59,8 +59,8 @@ const AdminModule = () => {
       href: "/admin/payments",
     },
     {
-      label: "Atur paket coins",
-      description: "Ubah nominal coins dan harga paket QRIS",
+      label: "Atur paket coin",
+      description: "Ubah nominal coin dan harga paket QRIS",
       href: "/admin/packages",
     },
     {
@@ -91,7 +91,7 @@ const AdminModule = () => {
           Ringkasan operasional
         </h1>
         <p className="text-sm text-slate-700 mt-1">
-          Statistik peserta, sesi tryout aktif, dan transaksi coins.
+          Statistik peserta, sesi tryout aktif, dan transaksi coin.
         </p>
       </div>
 
