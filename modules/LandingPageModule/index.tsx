@@ -509,35 +509,6 @@ const LandingPageModule = () => {
                     <span>Lihat jadwal</span>
                   </a>
                 </div>
-
-                {/* Exam Sheet Spec Grid (Fact sheet numbers only) */}
-                <div className="pt-4 grid grid-cols-3 border-2 border-blue-900 bg-white divide-x divide-slate-300">
-                  <div className="p-3">
-                    <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      KERJAKAN TRYOUT
-                    </div>
-                    <div className="font-mono font-medium text-[22px] text-blue-900 tabular-nums mt-0.5">
-                      Rp0
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      SKOR IRT &amp; PEMBAHASAN
-                    </div>
-                    <div className="font-mono font-medium text-[22px] text-blue-500 tabular-nums mt-0.5 flex items-center gap-1.5">
-                      <PixelCoin size={20} />
-                      <span>1 coin</span>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      MULAI DARI
-                    </div>
-                    <div className="font-mono font-medium text-[22px] text-blue-900 tabular-nums mt-0.5">
-                      Rp8.900
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Right Column: Big Borderless Pixel Art Pattern of Top Universities */}
