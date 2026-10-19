@@ -1,6 +1,6 @@
 # WRITING.md — Jitu (jituptn.com)
 
-Reference for every word on the site and in the app: landing, student app, admin, emails, WhatsApp notices. Pairs with `design.md`. For copy decisions this file wins over design.md section 11. Document in English; all shipped copy in Indonesian.
+Reference for every word on the site and in the app: landing, student app, admin, emails, WhatsApp notices. Pairs with `design.md` (which strictly governs visual design, layout, tokens, and components). For all copy decisions, voice, and microcopy, this file is the sole authority. Document in English; all shipped copy in Indonesian.
 
 ## 1. Four values
 1. **Information efficiency.** Every line changes what the reader knows or does. If it doesn't, delete it.
@@ -14,7 +14,7 @@ Reference for every word on the site and in the app: landing, student app, admin
 - **Inverted headline.** Two short clauses that flip the expected order: "Menang Duluan, Bayar Belakangan". Ours: "Kerjakan gratis. Bayar kalau mau tahu salahnya di mana."
 - **Colloquial support line** right under the headline, said the way you'd say it to a friend.
 - **Section titles as the reader's question**, answered by the next line: "Gimana cara mainnya?" Ours: "Bayarnya gimana?"
-- **Price inside the heading**, in short form: "Tarif Flat 200k". Ours: "Mulai Rp9.500 per tryout".
+- **Price inside the heading**, in short form: "Tarif Flat 200k". Ours: "Mulai Rp8.900 per tryout".
 - **Formula block + worked example.** A labelled formula, then one concrete case with a result. This is their best device because it makes the price checkable in five seconds.
 - **Scarcity as data**, never as adjectives: slot counts per faculty (48/50). We have no real quota, so our version is **time**: "Tryout #1 dibuka 2 Nov". Never fake scarcity.
 - **Full name under the abbreviation** (FEB → Ekonomi dan Bisnis). Use for school names and subtest codes.
@@ -34,7 +34,7 @@ Reference for every word on the site and in the app: landing, student app, admin
 | Address | "kamu". Never "Anda", never "para pelajar". |
 | Register | Casual but readable by a 16-year-old and her parent. "banget", "nggak", "gimana" are fine in marketing. App UI is neutral and short. **Test-taking screens have zero personality: labels only.** |
 | Spelling | Pick one casual form and keep it: "nggak" (not "ga"/"gak"). Standard spelling elsewhere. |
-| English words | Only established ones, e.g. "tryout". Otherwise Indonesian: "Masuk" not "Login", "Daftar" not "Sign up", "kuota" not "quota". |
+| English words | Only established ones, e.g. "tryout". Otherwise Indonesian: "Masuk" not "Login", "Daftar" not "Sign up", "coins" not "kuota" / "koin". |
 | Humor | One light line per page at most, never on prices, errors, or the test screen. |
 | Stance | Say what the product does and doesn't do. Admitting a limit builds more trust than a superlative. |
 
@@ -48,9 +48,9 @@ Reference for every word on the site and in the app: landing, student app, admin
 - Number before adjective. If an adjective can't be measured, cut it.
 - Say each fact once per page. Later mentions point back ("harga di atas").
 - Prefer a table, formula, or real UI sample over a paragraph that describes one.
-- Prices always carry their unit: "Rp55.000 untuk 5 kuota (Rp11.000 per tryout)".
+- Prices always carry their unit: "Rp59.000 untuk 5 coins (Rp11.800 per tryout)".
 - Formats: Rp15.000 (dot thousands), "2 Nov 2026", 24-hour time, "90 menit".
-- Locked or paid actions state the cost on the control: "Buka · 1 kuota".
+- Locked or paid actions state the cost on the control: "Buka · 1 coin".
 
 **Word budgets**
 | Element | Limit |
@@ -102,25 +102,25 @@ Generated copy is recognisable by shape before wording. Check both.
 **Headline formulas**
 1. Inversion: "Kerjakan gratis. Bayar kalau mau tahu salahnya di mana."
 2. Number first: "Tryout tiap minggu. 2 Nov 2026 sampai 21 Apr 2027."
-3. Question → answer: "Bayarnya gimana?" / "Tryout gratis. Kuota cuma buat pembahasan."
+3. Question → answer: "Bayarnya gimana?" / "Tryout gratis. Coins cuma buat pembahasan."
 
 **Formula + example (pricing)**
 ```
 HARGA PER TRYOUT
-harga paket ÷ jumlah kuota
+harga paket ÷ jumlah coins
 
-Contoh: 5 kuota
-Rp55.000 ÷ 5 = Rp11.000 per tryout
+Contoh: 10 coins
+Rp89.000 ÷ 10 = Rp8.900 per tryout
 ```
 
 **Microcopy**
 | Context | Copy |
 |---|---|
-| Primary CTAs | Daftar gratis · Kerjakan · Kumpulkan · Buka · 1 kuota |
+| Primary CTAs | Daftar gratis · Kerjakan · Kumpulkan · Buka · 1 coin |
 | Empty | "Belum ada tryout yang dikerjakan. Tryout #1 dibuka 2 Nov." |
 | Offline | "Tidak ada koneksi. Jawabanmu tersimpan di perangkat." |
 | Submit modal | Title "Kumpulkan sekarang?" Body "11 dijawab, 1 ragu, 8 kosong." |
-| Unlock modal | "Pakai 1 kuota untuk Tryout #3? Sisa kuota jadi 4. Ini tidak bisa dibatalkan." |
+| Unlock modal | "Pakai 1 coin untuk Tryout #3? Sisa coins jadi 4. Ini tidak bisa dibatalkan." |
 | Form error | "Kata sandi minimal 8 karakter." (say the rule, not "Input tidak valid") |
 | Generic failure | "Gagal menyimpan. Coba lagi." Never "Oops!" |
 | Timer, last 5 min | "Sisa 5 menit." No jokes. |
@@ -130,18 +130,18 @@ Rp55.000 ÷ 5 = Rp11.000 per tryout
 - 300+ siswa, 14 sekolah.
 - Tryout #1: 2 Nov 2026. One tryout per week after that, last one 21 Apr 2027. `[confirm weekday and total count before printing "tiap Senin" or a number of tryouts]`
 - All tryouts are free to take. The free result shows benar / salah / kosong.
-- 1 kuota opens the IRT score and explanations for one tryout.
-- Packs: 1 = Rp15.000 · 3 = Rp35.000 (Rp11.667 each) · 5 = Rp55.000 (Rp11.000 each) · 10 = Rp95.000 (Rp9.500 each).
+- 1 coin opens the IRT score and explanations for one tryout.
+- Packs: 1 = Rp15.000 · 3 = Rp39.000 (Rp13.000 each) · 5 = Rp59.000 (Rp11.800 each) · 10 = Rp89.000 (Rp8.900 each).
 - **Not allowed until sourced:** win rate, score-improvement figures, rankings, "terbaik", tutor or university credentials, quota scarcity, testimonials. Use `[BRACKETED PLACEHOLDERS]` meanwhile.
 
 ## 8. Before / after
 
 | Generated | Jitu |
 |---|---|
-| "Selamat datang di Jitu! Platform tryout terbaik yang membantumu meraih PTN impian." | "Tryout SNBT tiap minggu. Gratis dikerjakan. Pembahasan mulai Rp9.500." |
-| "Tidak hanya soal berkualitas, tetapi juga pembahasan yang komprehensif." | "Tiap tryout ada pembahasan. Buka dengan 1 kuota." |
+| "Selamat datang di Jitu! Platform tryout terbaik yang membantumu meraih PTN impian." | "Tryout SNBT tiap minggu. Gratis dikerjakan. Pembahasan mulai Rp8.900." |
+| "Tidak hanya soal berkualitas, tetapi juga pembahasan yang komprehensif." | "Tiap tryout ada pembahasan. Buka dengan 1 coin." |
 | "Oops! Terjadi kesalahan. Silakan coba lagi nanti." | "Gagal menyimpan. Coba lagi." |
-| "Pilih paket yang sesuai dengan kebutuhan belajarmu." | "Makin banyak kuota, makin murah per tryout." |
+| "Pilih paket yang sesuai dengan kebutuhan belajarmu." | "Makin banyak coins, makin murah per tryout." |
 
 ## 9. Edit pass (run before shipping any copy)
 - [ ] Delete test passed on every line
