@@ -260,7 +260,7 @@ export default function HiringModule() {
               <li className="flex items-start gap-2.5 font-bold">
                 <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
                 <span>
-                  All roles are profit-sharing first, directly tied to the value we build together.
+                  All roles are profit-sharing first, with fixed salary offered once milestones are achieved.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
