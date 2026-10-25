@@ -229,6 +229,11 @@ export default function HiringModule() {
                 create.
               </strong>
             </p>
+            <p>
+              If you&apos;re looking for something beyond organizational
+              experience with zero chance of economic return, this place is for
+              you.
+            </p>
           </div>
 
           <div className="pt-2">
@@ -240,18 +245,22 @@ export default function HiringModule() {
                 <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
                 <span>First-hand experience building an early-stage startup.</span>
               </li>
-              <li className="flex items-start gap-2.5">
+              <li className="flex items-start gap-2.5 font-bold">
                 <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
                 <span>
-                  Individual profit-sharing opportunities under mutually agreed
-                  terms.
+                  Individual profit-sharing under mutually agreed terms.
                 </span>
               </li>
-              <li className="flex items-start gap-2.5">
+              <li className="flex items-start gap-2.5 font-bold">
                 <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
                 <span>
-                  Potential transition to fixed compensation as milestones are
-                  achieved.
+                  Transition to fixed compensation as milestones are achieved.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5 font-bold">
+                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+                <span>
+                  All roles are profit-sharing first, directly tied to the value we build together.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
