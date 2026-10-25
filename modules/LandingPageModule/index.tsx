@@ -7,6 +7,7 @@ import { useSession } from "@/lib/auth-client";
 import {
   ArrowRight,
   Check,
+  ChevronDown,
   Clock,
   Flag,
   Menu,
@@ -180,7 +181,6 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             { href: "#jadwal", label: "Jadwal" },
             { href: "#harga", label: "Harga" },
             { href: "#peserta", label: "Peserta" },
-            { href: "/careers", label: "Open Hiring" },
           ].map((item) => (
             <a
               key={item.href}
@@ -190,6 +190,30 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
               {item.label}
             </a>
           ))}
+
+          {/* Info Dropdown */}
+          <div className="relative group">
+            <button
+              type="button"
+              className="min-h-[44px] px-3.5 inline-flex items-center gap-1.5 text-[15px] font-semibold text-blue-900 hover:bg-blue-100 transition-colors focus:outline-3 focus:outline-blue-500 focus:outline-offset-2 cursor-pointer"
+            >
+              <span>Info</span>
+              <ChevronDown className="w-4 h-4 stroke-[2] transition-transform group-hover:rotate-180" />
+            </button>
+            <div className="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
+              <div className="w-56 bg-white border-2 border-blue-900 shadow-[3px_3px_0_var(--blue-900)] p-1.5">
+                <Link
+                  href="/careers"
+                  className="px-3 py-2 text-[14px] font-semibold text-blue-900 hover:bg-blue-50 transition-colors flex flex-col"
+                >
+                  <span>Open Hiring 2026</span>
+                  <span className="text-[11px] font-mono font-normal text-slate-500">
+                    Part-Time · Remote (8 Posisi)
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
         </nav>
 
         {/* Auth Actions (WRITING.md Section 4 & 6: 1-3 words, verb first) */}
@@ -242,7 +266,6 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
               { href: "#jadwal", label: "Jadwal" },
               { href: "#harga", label: "Harga" },
               { href: "#peserta", label: "Peserta" },
-              { href: "/careers", label: "Open Hiring 2026" },
             ].map((item) => (
               <a
                 key={item.href}
@@ -254,6 +277,26 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
                 <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
               </a>
             ))}
+
+            {/* Info in Mobile Menu */}
+            <div className="bg-slate-50 p-2">
+              <span className="px-3 py-1 font-mono text-[11px] uppercase tracking-[0.08em] font-semibold text-slate-500 block">
+                INFO
+              </span>
+              <Link
+                href="/careers"
+                onClick={() => setMobileMenuOpen(false)}
+                className="min-h-[40px] px-3 flex items-center justify-between text-[15px] font-semibold text-blue-900 hover:bg-blue-100"
+              >
+                <div>
+                  <div>Open Hiring 2026</div>
+                  <div className="text-[11px] font-mono font-normal text-slate-500">
+                    Part-Time · Remote (8 Posisi)
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 pt-1">
