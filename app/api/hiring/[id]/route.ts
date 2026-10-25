@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllApplications, saveAllApplications } from "@/lib/hiring-store";
+import { updateApplication, deleteApplication } from "@/lib/hiring-store";
 import { ApplicationStatus } from "@/lib/hiring-types";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const VALID_STATUSES: ApplicationStatus[] = [
   "SUBMITTED",
@@ -18,32 +21,26 @@ export async function PATCH(
     const { id } = await context.params;
     const body = await req.json();
 
-    const applications = await getAllApplications();
-    const index = applications.findIndex(
-      (app) => app.id.toLowerCase() === id.toLowerCase()
-    );
+    const status =
+      body.status && VALID_STATUSES.includes(body.status)
+        ? (body.status as ApplicationStatus)
+        : undefined;
 
-    if (index === -1) {
+    const adminNotes =
+      typeof body.adminNotes === "string" ? body.adminNotes.trim() : undefined;
+
+    const updated = await updateApplication(id, { status, adminNotes });
+
+    if (!updated) {
       return NextResponse.json(
         { message: "Application not found." },
         { status: 404 }
       );
     }
 
-    if (body.status && VALID_STATUSES.includes(body.status)) {
-      applications[index].status = body.status;
-    }
-
-    if (typeof body.adminNotes === "string") {
-      applications[index].adminNotes = body.adminNotes.trim();
-    }
-
-    applications[index].updatedAt = new Date().toISOString();
-    await saveAllApplications(applications);
-
     return NextResponse.json({
       message: "Application updated.",
-      application: applications[index],
+      application: updated,
     });
   } catch (error) {
     console.error("PATCH /api/hiring/[id] error:", error);
@@ -60,19 +57,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    const applications = await getAllApplications();
-    const filtered = applications.filter(
-      (app) => app.id.toLowerCase() !== id.toLowerCase()
-    );
+    const deleted = await deleteApplication(id);
 
-    if (filtered.length === applications.length) {
+    if (!deleted) {
       return NextResponse.json(
         { message: "Application not found." },
         { status: 404 }
       );
     }
 
-    await saveAllApplications(filtered);
     return NextResponse.json({ message: "Application deleted." });
   } catch (error) {
     console.error("DELETE /api/hiring/[id] error:", error);

@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getAllApplications,
-  saveAllApplications,
+  insertApplication,
   generateApplicationId,
   resolveDivision,
   resolvePositionTitle,
 } from "@/lib/hiring-store";
 import { HiringApplication, HIRING_POSITIONS } from "@/lib/hiring-types";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
@@ -203,8 +206,7 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     };
 
-    applications.push(newApplication);
-    await saveAllApplications(applications);
+    await insertApplication(newApplication);
 
     return NextResponse.json(
       {
