@@ -230,9 +230,11 @@ export default function HiringModule() {
               </strong>
             </p>
             <p>
-              If you&apos;re looking for something beyond organizational
-              experience with zero chance of economic return, this place is for
-              you.
+              <strong className="font-bold text-slate-900">
+                If you&apos;re looking for something beyond organizational
+                experience with zero chance of economic return, this place is for
+                you.
+              </strong>
             </p>
           </div>
 
