@@ -134,7 +134,7 @@ export const HIRING_POSITIONS: HiringPosition[] = [
     division: "Marketing & Growth",
     slots: 2,
     summary:
-      "Shape JITU's Neo-Brutalist visual identity, 16-bit pixel art assets, social media visuals, and student-facing UI/UX.",
+      "Shape JITU's Neo-Brutalist visual identity, 16-bit pixel art assets, social media visuals, and student-facing experience.",
     responsibilities: [
       "Design high-contrast marketing visuals, campaign assets, and cohesive brand communication.",
       "Craft clean, mobile-first product interfaces in Figma adhering to JITU's design system.",
