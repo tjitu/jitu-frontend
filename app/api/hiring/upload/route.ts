@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "cv");
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -10,7 +13,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file");
 
-    if (!file || !(file instanceof File)) {
+    if (!file || typeof file === "string") {
       return NextResponse.json(
         { message: "No CV file provided." },
         { status: 400 }

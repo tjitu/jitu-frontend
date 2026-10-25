@@ -75,7 +75,25 @@ export default function HiringModule() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error(
+        "File is too large (max 10 MB). Please choose a smaller file or paste a Google Drive link."
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !["pdf", "doc", "docx"].includes(ext)) {
+      toast.error("Only PDF, DOC, or DOCX files are supported.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setIsUploadingCv(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -83,19 +101,38 @@ export default function HiringModule() {
       const res = await fetch("/api/hiring/upload", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
-      const data = await res.json();
+
+      clearTimeout(timeoutId);
+      const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.message || data?.error || "Failed to upload CV.");
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            `Upload failed with status ${res.status}`
+        );
+      }
+
+      if (!data?.url) {
+        throw new Error("Invalid response from upload server.");
       }
 
       updateField("cvUrl", data.url);
       updateField("cvFileName", data.fileName || file.name);
-      toast.success("CV uploaded.");
+      toast.success("CV uploaded successfully.");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to upload CV.";
-      toast.error(msg);
+      clearTimeout(timeoutId);
+      if (err instanceof Error && err.name === "AbortError") {
+        toast.error(
+          "Upload timed out (20s). Please check your connection or paste a Google Drive link."
+        );
+      } else {
+        const msg =
+          err instanceof Error ? err.message : "Failed to upload CV.";
+        toast.error(msg);
+      }
     } finally {
       setIsUploadingCv(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -128,7 +165,12 @@ export default function HiringModule() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to submit application.");
+        const errorMsg =
+          data?.message ||
+          (data?.errors ? Object.values(data.errors)[0] : null) ||
+          data?.error ||
+          "Failed to submit application.";
+        throw new Error(errorMsg as string);
       }
 
       setSubmittedId(data.application.id);

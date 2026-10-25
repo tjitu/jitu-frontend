@@ -143,10 +143,6 @@ export async function POST(req: NextRequest) {
     if (!cvUrl) {
       fieldErrors.cvUrl = "Please upload your CV/Resume PDF or provide a valid link.";
     }
-    if (!portfolioUrl) {
-      fieldErrors.portfolioUrl =
-        "Please provide a portfolio, GitHub, LinkedIn, or work sample link.";
-    }
     if (!experienceEssay || experienceEssay.length < 30) {
       fieldErrors.experienceEssay =
         "Please share your concrete experience or project ownership (min. 30 characters).";
