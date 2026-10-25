@@ -123,7 +123,7 @@ export function installDemoFetch() {
     const path = url.pathname.replace(/^\/api\/(proxy|auth)/, "");
     const method = (init?.method || (typeof input !== "string" && !(input instanceof URL) ? input.method : "GET")).toUpperCase();
 
-    if (!url.pathname.startsWith("/api/")) return originalFetch(input, init);
+    if (!url.pathname.startsWith("/api/") || url.pathname.startsWith("/api/hiring")) return originalFetch(input, init);
 
     if (url.pathname.includes("/api/auth/get-session")) {
       return json({ user: DEMO_USER, session: { id: "demo-session", userId: DEMO_USER.id } });

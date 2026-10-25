@@ -180,6 +180,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             { href: "#jadwal", label: "Jadwal" },
             { href: "#harga", label: "Harga" },
             { href: "#peserta", label: "Peserta" },
+            { href: "/careers", label: "Open Hiring" },
           ].map((item) => (
             <a
               key={item.href}
@@ -241,6 +242,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
               { href: "#jadwal", label: "Jadwal" },
               { href: "#harga", label: "Harga" },
               { href: "#peserta", label: "Peserta" },
+              { href: "/careers", label: "Open Hiring 2026" },
             ].map((item) => (
               <a
                 key={item.href}
@@ -694,13 +696,13 @@ const LandingPageModule = () => {
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1 font-mono text-[12px] text-blue-200">
                   <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    Tanpa langganan
+                    ✓ Tanpa Langganan
                   </span>
                   <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    QRIS
+                    ✓ QRIS
                   </span>
                   <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    Berlaku sampai 21 Apr 2027
+                    ✓ Berlaku s.d. 21 Apr 2027
                   </span>
                 </div>
               </div>
@@ -721,13 +723,13 @@ const LandingPageModule = () => {
             {/* 4 Tier Pricing Cards with Pixelated Yellow Coin Icons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {QUOTA_PACKS.map((pack) => {
-                const isTenCoin = pack.quota === 10;
+                const isTenCoins = pack.quota === 10;
 
                 return (
                   <div
                     key={pack.id}
                     className={`relative bg-white border-2 flex flex-col justify-between transition-all ${
-                      isTenCoin
+                      isTenCoins
                         ? "border-emerald-600 shadow-[4px_4px_0_#059669] ring-2 ring-emerald-500/20"
                         : "border-blue-900 shadow-[4px_4px_0_var(--blue-900)]"
                     }`}
@@ -735,18 +737,18 @@ const LandingPageModule = () => {
                     {/* Card Top Banner / Badge */}
                     <div
                       className={`px-4 py-2.5 border-b-2 flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em] ${
-                        isTenCoin
+                        isTenCoins
                           ? "bg-emerald-700 text-white font-bold border-emerald-700"
                           : "bg-blue-50 text-blue-900 font-semibold border-blue-900"
                       }`}
                     >
                       <span>{pack.quota} coin</span>
-                      {isTenCoin ? (
+                      {isTenCoins ? (
                         <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold tracking-normal shadow-xs">
                           Paling hemat
                         </span>
                       ) : (
-                        <span className="text-[11px] opacity-80">{pack.quota}x tryout</span>
+                        <span className="text-[11px] opacity-80">{pack.quota}X TRYOUT</span>
                       )}
                     </div>
 
@@ -775,7 +777,7 @@ const LandingPageModule = () => {
                           {formatRupiah(pack.totalPrice)}
                         </div>
                         <div className={`font-mono text-[13px] font-semibold ${
-                          isTenCoin ? "text-emerald-700" : "text-blue-600"
+                          isTenCoins ? "text-emerald-700" : "text-blue-600"
                         }`}>
                           {formatRupiah(pack.perTryout)} / tryout
                         </div>
@@ -787,7 +789,7 @@ const LandingPageModule = () => {
                       <Link
                         href={isLoggedIn ? "/dashboard/shop" : "/register"}
                         className={`w-full py-2.5 px-4 font-mono text-[13px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-2 border-2 transition-all ${
-                          isTenCoin
+                          isTenCoins
                             ? "bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700 shadow-[2px_2px_0_#065f46]"
                             : "bg-white text-blue-900 border-blue-900 hover:bg-blue-50 shadow-[2px_2px_0_var(--blue-900)]"
                         }`}
@@ -1158,6 +1160,9 @@ const LandingPageModule = () => {
                 <a href="#peserta" className="text-white hover:underline min-h-[32px] inline-flex items-center">
                   Peserta
                 </a>
+                <Link href="/careers" className="text-signal font-semibold hover:underline min-h-[32px] inline-flex items-center">
+                  Open Hiring 2026
+                </Link>
                 <Link href="/login" className="text-white hover:underline min-h-[32px] inline-flex items-center">
                   Masuk
                 </Link>

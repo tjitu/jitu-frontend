@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import {
   BanknoteIcon,
+  BriefcaseIcon,
   CalendarDaysIcon,
   CoinsIcon,
   HomeIcon,
@@ -58,6 +59,11 @@ const items = [
     title: "Soal harian",
     path: "/admin/daily",
     icon: CalendarDaysIcon,
+  },
+  {
+    title: "Open Hiring 2026",
+    path: "/admin/hiring",
+    icon: BriefcaseIcon,
   },
 ];
 

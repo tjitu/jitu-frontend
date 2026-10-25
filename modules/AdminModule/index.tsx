@@ -68,6 +68,11 @@ const AdminModule = () => {
       description: "Kelola bank soal harian peserta",
       href: "/admin/daily",
     },
+    {
+      label: "Open Hiring 2026",
+      description: "Kelola pelamar 8 posisi JITU Open Hiring 2026",
+      href: "/admin/hiring",
+    },
   ];
 
   if (isLoading) {

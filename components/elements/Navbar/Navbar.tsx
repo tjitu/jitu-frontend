@@ -21,7 +21,7 @@ import BottomNav from "./BottomNav";
 /**
  * DESIGN.md Section 6.3 — Student dashboard & app shell
  * - App header: "jitu." logo left; quota balance (mono chip) and avatar right.
- * - Phones: bottom tab bar (Beranda, Tryout, Coin, Akun), 56px tall.
+ * - Phones: bottom tab bar (Beranda, Tryout, Coins, Akun), 56px tall.
  */
 const navItems = [
   {
@@ -145,7 +145,7 @@ const Navbar = () => {
             </nav>
           </div>
 
-          {/* Right: Coin Balance (Mono Chip) + Profile Avatar + Logout */}
+          {/* Right: Coins Balance (Mono Chip) + Profile Avatar + Logout */}
           <div className="flex items-center gap-2.5">
             <Link
               href="/shop"
