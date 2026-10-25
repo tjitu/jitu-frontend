@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, CheckCircle2, Loader2, MapPin, Upload } from "lucide-react";
+import { Check, CheckCircle2, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { HIRING_DIVISIONS, HIRING_POSITIONS } from "@/lib/hiring-types";
 
@@ -53,12 +53,10 @@ const INITIAL_FORM: FormState = {
 
 export default function HiringModule() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
-  const [isUploadingCv, setIsUploadingCv] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateField = <K extends keyof FormState>(
     field: K,
@@ -71,74 +69,6 @@ export default function HiringModule() {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleCvFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error(
-        "File is too large (max 10 MB). Please choose a smaller file or paste a Google Drive link."
-      );
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!ext || !["pdf", "doc", "docx"].includes(ext)) {
-      toast.error("Only PDF, DOC, or DOCX files are supported.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setIsUploadingCv(true);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/hiring/upload", {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(
-          data?.message ||
-            data?.error ||
-            `Upload failed with status ${res.status}`
-        );
-      }
-
-      if (!data?.url) {
-        throw new Error("Invalid response from upload server.");
-      }
-
-      updateField("cvUrl", data.url);
-      updateField("cvFileName", data.fileName || file.name);
-      toast.success("CV uploaded successfully.");
-    } catch (err) {
-      clearTimeout(timeoutId);
-      if (err instanceof Error && err.name === "AbortError") {
-        toast.error(
-          "Upload timed out (20s). Please check your connection or paste a Google Drive link."
-        );
-      } else {
-        const msg =
-          err instanceof Error ? err.message : "Failed to upload CV.";
-        toast.error(msg);
-      }
-    } finally {
-      setIsUploadingCv(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -147,7 +77,7 @@ export default function HiringModule() {
       return;
     }
     if (!form.cvUrl.trim()) {
-      toast.error("Please upload your CV or provide a link.");
+      toast.error("Please provide your CV / Resume link.");
       return;
     }
     if (!form.commitmentAgreed) {
@@ -608,46 +538,19 @@ export default function HiringModule() {
               <div className="space-y-4 pt-2">
                 <div>
                   <label className={labelClass}>
-                    CV / Resume (Upload PDF or Paste Link) *
+                    CV / Resume Link (Google Drive, Notion, etc.) *
                   </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="text"
-                      required
-                      value={form.cvUrl}
-                      onChange={(e) => updateField("cvUrl", e.target.value)}
-                      placeholder="https://drive.google.com/... or upload file"
-                      className={inputClass}
-                    />
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleCvFileUpload}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      disabled={isUploadingCv}
-                      onClick={() => fileInputRef.current?.click()}
-                      className="h-10 px-4 border border-slate-300 bg-slate-50 hover:bg-slate-100 text-[13px] font-medium text-slate-700 inline-flex items-center justify-center gap-2 shrink-0 cursor-pointer disabled:opacity-50"
-                    >
-                      {isUploadingCv ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Upload className="w-4 h-4" />
-                      )}
-                      <span>
-                        {form.cvFileName ? "Replace File" : "Upload File"}
-                      </span>
-                    </button>
-                  </div>
-                  {form.cvFileName && (
-                    <p className="text-[12px] text-blue-700 mt-1 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Uploaded: {form.cvFileName}</span>
-                    </p>
-                  )}
+                  <input
+                    type="url"
+                    required
+                    value={form.cvUrl}
+                    onChange={(e) => updateField("cvUrl", e.target.value)}
+                    placeholder="https://drive.google.com/... or public document link"
+                    className={inputClass}
+                  />
+                  <p className="text-[12px] text-slate-500 mt-1">
+                    Please ensure the link sharing permission is set to &ldquo;Anyone with the link can view&rdquo;.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
