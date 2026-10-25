@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, CheckCircle2, Loader2, MapPin } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { HIRING_DIVISIONS, HIRING_POSITIONS } from "@/lib/hiring-types";
 
@@ -53,6 +53,7 @@ const INITIAL_FORM: FormState = {
 
 export default function HiringModule() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
 
@@ -63,6 +64,13 @@ export default function HiringModule() {
     value: FormState[K]
   ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   const scrollToForm = () => {
@@ -71,17 +79,69 @@ export default function HiringModule() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
 
+    // Client-side pre-validation
+    const clientErrors: Record<string, string> = {};
+    if (!form.fullName.trim() || form.fullName.trim().length < 2) {
+      clientErrors.fullName = "Please enter your full name.";
+    }
+    if (
+      !form.email.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+    ) {
+      clientErrors.email = "Please enter a valid email address.";
+    }
+    if (!form.whatsapp.trim() || form.whatsapp.replace(/\D/g, "").length < 8) {
+      clientErrors.whatsapp =
+        "Please enter an active WhatsApp number (min. 8 digits).";
+    }
+    if (!form.domicile.trim()) {
+      clientErrors.domicile = "Please enter your current city/domicile.";
+    }
+    if (!form.university.trim()) {
+      clientErrors.university =
+        "Please enter your university, school, or institution.";
+    }
+    if (!form.major.trim()) {
+      clientErrors.major = "Please enter your major / department.";
+    }
     if (!form.primaryRole) {
-      toast.error("Please select a primary position.");
-      return;
+      clientErrors.primaryRole = "Please select your primary position.";
     }
     if (!form.cvUrl.trim()) {
-      toast.error("Please provide your CV / Resume link.");
-      return;
+      clientErrors.cvUrl =
+        "Please provide your CV / Resume link (Google Drive, Notion, etc.).";
+    }
+    if (
+      !form.experienceEssay.trim() ||
+      form.experienceEssay.trim().length < 15
+    ) {
+      clientErrors.experienceEssay =
+        "Please briefly share your relevant experience (min. 15 characters).";
+    }
+    if (
+      !form.motivationEssay.trim() ||
+      form.motivationEssay.trim().length < 15
+    ) {
+      clientErrors.motivationEssay =
+        "Please briefly explain why you want to join JITU (min. 15 characters).";
     }
     if (!form.commitmentAgreed) {
-      toast.error("Please confirm the arrangement agreement.");
+      clientErrors.commitmentAgreed =
+        "Please confirm that you understand the profit-sharing terms.";
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      const firstKey = Object.keys(clientErrors)[0];
+      const firstMsg = clientErrors[firstKey];
+      const el = document.querySelector(`[data-field="${firstKey}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        (el as HTMLElement).focus?.();
+      }
+      toast.error(firstMsg);
       return;
     }
 
@@ -95,12 +155,24 @@ export default function HiringModule() {
       const data = await res.json();
 
       if (!res.ok) {
-        const errorMsg =
-          data?.message ||
-          (data?.errors ? Object.values(data.errors)[0] : null) ||
-          data?.error ||
-          "Failed to submit application.";
-        throw new Error(errorMsg as string);
+        if (
+          data?.errors &&
+          typeof data.errors === "object" &&
+          Object.keys(data.errors).length > 0
+        ) {
+          setFieldErrors(data.errors);
+          const firstKey = Object.keys(data.errors)[0];
+          const firstMsg = data.errors[firstKey];
+          const el = document.querySelector(`[data-field="${firstKey}"]`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            (el as HTMLElement).focus?.();
+          }
+          throw new Error(firstMsg);
+        }
+        throw new Error(
+          data?.message || data?.error || "Failed to submit application."
+        );
       }
 
       setSubmittedId(data.application.id);
@@ -114,8 +186,20 @@ export default function HiringModule() {
     }
   };
 
-  const inputClass =
-    "w-full h-10 px-3 bg-white border border-slate-300 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-colors";
+  const getInputClass = (fieldName: string) =>
+    `w-full h-10 px-3 bg-white border text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors ${
+      fieldErrors[fieldName]
+        ? "border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-600 bg-red-50/20"
+        : "border-slate-300 focus:border-blue-700 focus:ring-1 focus:ring-blue-700"
+    }`;
+
+  const getTextareaClass = (fieldName: string) =>
+    `w-full p-3 bg-white border text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors ${
+      fieldErrors[fieldName]
+        ? "border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-600 bg-red-50/20"
+        : "border-slate-300 focus:border-blue-700 focus:ring-1 focus:ring-blue-700"
+    }`;
+
   const labelClass = "block text-[13px] font-medium text-slate-800 mb-1.5";
 
   return (
@@ -369,7 +453,7 @@ export default function HiringModule() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Personal Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div data-field="fullName">
                   <label className={labelClass}>Full Name *</label>
                   <input
                     type="text"
@@ -377,10 +461,15 @@ export default function HiringModule() {
                     value={form.fullName}
                     onChange={(e) => updateField("fullName", e.target.value)}
                     placeholder="Your full name"
-                    className={inputClass}
+                    className={getInputClass("fullName")}
                   />
+                  {fieldErrors.fullName && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.fullName}
+                    </p>
+                  )}
                 </div>
-                <div>
+                <div data-field="email">
                   <label className={labelClass}>Email Address *</label>
                   <input
                     type="email"
@@ -388,24 +477,39 @@ export default function HiringModule() {
                     value={form.email}
                     onChange={(e) => updateField("email", e.target.value)}
                     placeholder="name@email.com"
-                    className={inputClass}
+                    className={getInputClass("email")}
                   />
+                  {fieldErrors.email && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>WhatsApp Number *</label>
+                <div data-field="whatsapp">
+                  <label className={labelClass}>
+                    WhatsApp Number *{" "}
+                    <span className="text-[11px] text-slate-400 font-normal">
+                      (min. 8 digits)
+                    </span>
+                  </label>
                   <input
                     type="tel"
                     required
                     value={form.whatsapp}
                     onChange={(e) => updateField("whatsapp", e.target.value)}
-                    placeholder="+62 812..."
-                    className={inputClass}
+                    placeholder="+62 812 3456 7890"
+                    className={getInputClass("whatsapp")}
                   />
+                  {fieldErrors.whatsapp && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.whatsapp}
+                    </p>
+                  )}
                 </div>
-                <div>
+                <div data-field="domicile">
                   <label className={labelClass}>Current Domicile (City) *</label>
                   <input
                     type="text"
@@ -413,13 +517,18 @@ export default function HiringModule() {
                     value={form.domicile}
                     onChange={(e) => updateField("domicile", e.target.value)}
                     placeholder="e.g. Jakarta, Bandung, Depok"
-                    className={inputClass}
+                    className={getInputClass("domicile")}
                   />
+                  {fieldErrors.domicile && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.domicile}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
+                <div data-field="university">
                   <label className={labelClass}>University / Institution *</label>
                   <input
                     type="text"
@@ -427,10 +536,15 @@ export default function HiringModule() {
                     value={form.university}
                     onChange={(e) => updateField("university", e.target.value)}
                     placeholder="e.g. Universitas Indonesia"
-                    className={inputClass}
+                    className={getInputClass("university")}
                   />
+                  {fieldErrors.university && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.university}
+                    </p>
+                  )}
                 </div>
-                <div>
+                <div data-field="major">
                   <label className={labelClass}>Major / Department *</label>
                   <input
                     type="text"
@@ -438,17 +552,22 @@ export default function HiringModule() {
                     value={form.major}
                     onChange={(e) => updateField("major", e.target.value)}
                     placeholder="e.g. Computer Science"
-                    className={inputClass}
+                    className={getInputClass("major")}
                   />
+                  {fieldErrors.major && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.major}
+                    </p>
+                  )}
                 </div>
-                <div>
+                <div data-field="academicStatus">
                   <label className={labelClass}>Current Status *</label>
                   <select
                     value={form.academicStatus}
                     onChange={(e) =>
                       updateField("academicStatus", e.target.value)
                     }
-                    className={inputClass}
+                    className={getInputClass("academicStatus")}
                   >
                     <option value="Active Undergraduate (S1/D4)">
                       Undergraduate (S1/D4)
@@ -459,18 +578,23 @@ export default function HiringModule() {
                     </option>
                     <option value="Other">Other</option>
                   </select>
+                  {fieldErrors.academicStatus && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.academicStatus}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Position & Availability */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div>
+                <div data-field="primaryRole">
                   <label className={labelClass}>Primary Position *</label>
                   <select
                     required
                     value={form.primaryRole}
                     onChange={(e) => updateField("primaryRole", e.target.value)}
-                    className={inputClass}
+                    className={getInputClass("primaryRole")}
                   >
                     <option value="">Select primary position...</option>
                     {HIRING_POSITIONS.map((pos) => (
@@ -479,8 +603,13 @@ export default function HiringModule() {
                       </option>
                     ))}
                   </select>
+                  {fieldErrors.primaryRole && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.primaryRole}
+                    </p>
+                  )}
                 </div>
-                <div>
+                <div data-field="secondaryRole">
                   <label className={labelClass}>
                     Secondary Position (Optional)
                   </label>
@@ -489,7 +618,7 @@ export default function HiringModule() {
                     onChange={(e) =>
                       updateField("secondaryRole", e.target.value)
                     }
-                    className={inputClass}
+                    className={getInputClass("secondaryRole")}
                   >
                     <option value="">None</option>
                     {HIRING_POSITIONS.filter(
@@ -500,18 +629,23 @@ export default function HiringModule() {
                       </option>
                     ))}
                   </select>
+                  {fieldErrors.secondaryRole && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.secondaryRole}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div data-field="availability">
                   <label className={labelClass}>Weekly Availability *</label>
                   <select
                     value={form.availability}
                     onChange={(e) =>
                       updateField("availability", e.target.value)
                     }
-                    className={inputClass}
+                    className={getInputClass("availability")}
                   >
                     <option value="10–15 hours/week">10–15 hours/week</option>
                     <option value="15–20 hours/week">15–20 hours/week</option>
@@ -519,12 +653,12 @@ export default function HiringModule() {
                     <option value="25+ hours/week">25+ hours/week</option>
                   </select>
                 </div>
-                <div>
+                <div data-field="startDate">
                   <label className={labelClass}>Earliest Start Date *</label>
                   <select
                     value={form.startDate}
                     onChange={(e) => updateField("startDate", e.target.value)}
-                    className={inputClass}
+                    className={getInputClass("startDate")}
                   >
                     <option value="Immediately">Immediately</option>
                     <option value="Within 1 week">Within 1 week</option>
@@ -536,48 +670,54 @@ export default function HiringModule() {
 
               {/* CV & Links */}
               <div className="space-y-4 pt-2">
-                <div>
+                <div data-field="cvUrl">
                   <label className={labelClass}>
                     CV / Resume Link (Google Drive, Notion, etc.) *
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     required
                     value={form.cvUrl}
                     onChange={(e) => updateField("cvUrl", e.target.value)}
                     placeholder="https://drive.google.com/... or public document link"
-                    className={inputClass}
+                    className={getInputClass("cvUrl")}
                   />
-                  <p className="text-[12px] text-slate-500 mt-1">
-                    Please ensure the link sharing permission is set to &ldquo;Anyone with the link can view&rdquo;.
-                  </p>
+                  {fieldErrors.cvUrl ? (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.cvUrl}
+                    </p>
+                  ) : (
+                    <p className="text-[12px] text-slate-500 mt-1">
+                      Please ensure the link sharing permission is set to &ldquo;Anyone with the link can view&rdquo;.
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  <div data-field="portfolioUrl">
                     <label className={labelClass}>
                       Portfolio / GitHub / Proof of Work Link
                     </label>
                     <input
-                      type="url"
+                      type="text"
                       value={form.portfolioUrl}
                       onChange={(e) =>
                         updateField("portfolioUrl", e.target.value)
                       }
                       placeholder="https://github.com/... or portfolio link"
-                      className={inputClass}
+                      className={getInputClass("portfolioUrl")}
                     />
                   </div>
-                  <div>
+                  <div data-field="linkedinUrl">
                     <label className={labelClass}>LinkedIn Profile URL</label>
                     <input
-                      type="url"
+                      type="text"
                       value={form.linkedinUrl}
                       onChange={(e) =>
                         updateField("linkedinUrl", e.target.value)
                       }
                       placeholder="https://linkedin.com/in/..."
-                      className={inputClass}
+                      className={getInputClass("linkedinUrl")}
                     />
                   </div>
                 </div>
@@ -585,10 +725,15 @@ export default function HiringModule() {
 
               {/* Short Essays */}
               <div className="space-y-4 pt-2">
-                <div>
-                  <label className={labelClass}>
-                    Relevant Experience &amp; Track Record *
-                  </label>
+                <div data-field="experienceEssay">
+                  <div className="flex justify-between items-baseline mb-1.5">
+                    <label className="text-[13px] font-medium text-slate-800">
+                      Relevant Experience &amp; Track Record *
+                    </label>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {form.experienceEssay.length} / 15 chars min
+                    </span>
+                  </div>
                   <textarea
                     rows={3}
                     required
@@ -597,14 +742,24 @@ export default function HiringModule() {
                       updateField("experienceEssay", e.target.value)
                     }
                     placeholder="Briefly share the most impactful project, product, or organizational initiative you've built or led, and the concrete results achieved."
-                    className="w-full p-3 bg-white border border-slate-300 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-colors"
+                    className={getTextareaClass("experienceEssay")}
                   />
+                  {fieldErrors.experienceEssay && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.experienceEssay}
+                    </p>
+                  )}
                 </div>
 
-                <div>
-                  <label className={labelClass}>
-                    Why JITU &amp; Value Creation *
-                  </label>
+                <div data-field="motivationEssay">
+                  <div className="flex justify-between items-baseline mb-1.5">
+                    <label className="text-[13px] font-medium text-slate-800">
+                      Why JITU &amp; Value Creation *
+                    </label>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {form.motivationEssay.length} / 15 chars min
+                    </span>
+                  </div>
                   <textarea
                     rows={3}
                     required
@@ -613,30 +768,56 @@ export default function HiringModule() {
                       updateField("motivationEssay", e.target.value)
                     }
                     placeholder="Why do you want to join JITU in this role, and how will you help create tangible value in your first 90 days?"
-                    className="w-full p-3 bg-white border border-slate-300 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-colors"
+                    className={getTextareaClass("motivationEssay")}
                   />
+                  {fieldErrors.motivationEssay && (
+                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.motivationEssay}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Commitment & Submit */}
               <div className="pt-2 space-y-4">
-                <label className="flex items-start gap-2.5 text-[13px] text-slate-700 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={form.commitmentAgreed}
-                    onChange={(e) =>
-                      updateField("commitmentAgreed", e.target.checked)
-                    }
-                    className="mt-1 h-4 w-4 accent-blue-900"
-                  />
-                  <span>
-                    I understand that JITU is an early-stage startup offering a
-                    part-time, remote arrangement with individual profit-sharing
-                    opportunities and potential transition to fixed compensation
-                    as key milestones are achieved.
-                  </span>
-                </label>
+                <div data-field="commitmentAgreed">
+                  <label className="flex items-start gap-2.5 text-[13px] text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={form.commitmentAgreed}
+                      onChange={(e) =>
+                        updateField("commitmentAgreed", e.target.checked)
+                      }
+                      className="mt-1 h-4 w-4 accent-blue-900"
+                    />
+                    <span>
+                      I understand that JITU is an early-stage startup offering a
+                      part-time, remote arrangement with individual profit-sharing
+                      opportunities and potential transition to fixed compensation
+                      as key milestones are achieved.
+                    </span>
+                  </label>
+                  {fieldErrors.commitmentAgreed && (
+                    <p className="mt-1.5 text-[12px] text-red-600 font-medium">
+                      {fieldErrors.commitmentAgreed}
+                    </p>
+                  )}
+                </div>
+
+                {Object.keys(fieldErrors).length > 0 && (
+                  <div className="p-3.5 bg-red-50 border border-red-300 text-red-900 text-[13px] space-y-1.5">
+                    <div className="flex items-center gap-2 font-semibold text-red-800">
+                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                      <span>Please check and correct the following items:</span>
+                    </div>
+                    <ul className="list-disc list-inside space-y-0.5 text-[12px] text-red-700">
+                      {Object.entries(fieldErrors).map(([key, msg]) => (
+                        <li key={key}>{msg}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <button
                   type="submit"

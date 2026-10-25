@@ -95,10 +95,16 @@ export async function POST(req: NextRequest) {
     const secondaryRoleRaw = String(body.secondaryRole || "").trim();
     const availability = String(body.availability || "").trim();
     const startDate = String(body.startDate || "").trim();
-    const cvUrl = String(body.cvUrl || "").trim();
+    const normalizeUrl = (str: string) => {
+      const trimmed = str.trim();
+      if (!trimmed) return "";
+      return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    };
+
+    const cvUrl = normalizeUrl(String(body.cvUrl || ""));
     const cvFileName = body.cvFileName ? String(body.cvFileName).trim() : undefined;
-    const portfolioUrl = String(body.portfolioUrl || "").trim();
-    const linkedinUrl = String(body.linkedinUrl || "").trim();
+    const portfolioUrl = normalizeUrl(String(body.portfolioUrl || ""));
+    const linkedinUrl = normalizeUrl(String(body.linkedinUrl || ""));
     const experienceEssay = String(body.experienceEssay || "").trim();
     const motivationEssay = String(body.motivationEssay || "").trim();
     const referralSource = String(body.referralSource || "").trim();
@@ -112,8 +118,8 @@ export async function POST(req: NextRequest) {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       fieldErrors.email = "Please enter a valid email address.";
     }
-    if (!whatsapp || whatsapp.replace(/\D/g, "").length < 9) {
-      fieldErrors.whatsapp = "Please enter an active WhatsApp number (min. 9 digits).";
+    if (!whatsapp || whatsapp.replace(/\D/g, "").length < 8) {
+      fieldErrors.whatsapp = "Please enter an active WhatsApp number (min. 8 digits).";
     }
     if (!university) {
       fieldErrors.university = "Please enter your university, school, or institution.";
@@ -143,26 +149,27 @@ export async function POST(req: NextRequest) {
     if (!startDate) {
       fieldErrors.startDate = "Please select your earliest start date.";
     }
-    if (!cvUrl) {
-      fieldErrors.cvUrl = "Please upload your CV/Resume PDF or provide a valid link.";
+    if (!cvUrl || cvUrl.length < 5) {
+      fieldErrors.cvUrl = "Please provide your CV/Resume link (Google Drive, Notion, etc.).";
     }
-    if (!experienceEssay || experienceEssay.length < 30) {
+    if (!experienceEssay || experienceEssay.length < 15) {
       fieldErrors.experienceEssay =
-        "Please share your concrete experience or project ownership (min. 30 characters).";
+        "Please share your relevant experience or project ownership (min. 15 characters).";
     }
-    if (!motivationEssay || motivationEssay.length < 30) {
+    if (!motivationEssay || motivationEssay.length < 15) {
       fieldErrors.motivationEssay =
-        "Please explain why you want to join JITU and the value you will create (min. 30 characters).";
+        "Please explain why you want to join JITU and the value you will create (min. 15 characters).";
     }
     if (!commitmentAgreed) {
       fieldErrors.commitmentAgreed =
-        "Please confirm that you understand the arrangement and profit-sharing terms.";
+        "Please check the agreement box to confirm the arrangement.";
     }
 
     if (Object.keys(fieldErrors).length > 0) {
+      const firstErrorMessage = Object.values(fieldErrors)[0];
       return NextResponse.json(
         {
-          message: "Please check the highlighted fields and try again.",
+          message: firstErrorMessage || "Please check the highlighted fields and try again.",
           errors: fieldErrors,
         },
         { status: 400 }
