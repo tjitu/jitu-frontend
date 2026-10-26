@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Mono, Figtree } from "next/font/google";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next";
 import DemoModeProvider from "@/components/DemoModeProvider";
 import "./globals.css";
 
@@ -51,9 +52,9 @@ export default function RootLayout({
     >
       <body className="antialiased font-sans bg-[#F3F6FC] text-[#0B1B3F]">
         <DemoModeProvider>{children}</DemoModeProvider>
+        <Analytics />
         <Toaster position="bottom-left" />
       </body>
     </html>
   );
 }
-
