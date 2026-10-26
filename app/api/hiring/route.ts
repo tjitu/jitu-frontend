@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getAllApplications,
+  findExistingApplication,
   insertApplication,
   generateApplicationId,
   resolveDivision,
@@ -173,6 +174,26 @@ export async function POST(req: NextRequest) {
           errors: fieldErrors,
         },
         { status: 400 }
+      );
+    }
+
+    // Duplicate check by email or WhatsApp
+    const existing = await findExistingApplication(email, whatsapp);
+    if (existing) {
+      return NextResponse.json(
+        {
+          message: `An application has already been submitted for ${existing.fullName} (${existing.id}) for ${existing.primaryRole}. Multiple submissions are not permitted.`,
+          alreadySubmitted: true,
+          application: {
+            id: existing.id,
+            fullName: existing.fullName,
+            email: existing.email,
+            primaryRole: existing.primaryRole,
+            status: existing.status,
+            createdAt: existing.createdAt,
+          },
+        },
+        { status: 409 }
       );
     }
 

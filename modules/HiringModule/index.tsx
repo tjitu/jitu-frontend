@@ -1,11 +1,30 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, Check, CheckCircle2, Loader2, MapPin } from "lucide-react";
+import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
+  Copy,
+  Loader2,
+  Lock,
+  MapPin,
+} from "lucide-react";
 import { toast } from "sonner";
 import { HIRING_DIVISIONS, HIRING_POSITIONS } from "@/lib/hiring-types";
+
+const BROWSER_SUBMISSION_KEY = "jitu_hiring_applied_2026";
+const BROWSER_SUBMISSION_COOKIE = "jitu_hiring_applied_2026";
+
+interface SubmittedRecord {
+  id: string;
+  fullName: string;
+  email: string;
+  primaryRole: string;
+  submittedAt: string;
+}
 
 interface FormState {
   fullName: string;
@@ -55,9 +74,57 @@ export default function HiringModule() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const [browserRecord, setBrowserRecord] = useState<SubmittedRecord | null>(
+    null
+  );
+  const [copiedId, setCopiedId] = useState(false);
 
   const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const local = localStorage.getItem(BROWSER_SUBMISSION_KEY);
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (parsed?.id) {
+          setBrowserRecord(parsed);
+          return;
+        }
+      }
+      const match = document.cookie.match(
+        new RegExp(`(?:^|; )${BROWSER_SUBMISSION_COOKIE}=([^;]*)`)
+      );
+      if (match && match[1]) {
+        try {
+          const parsedCookie = JSON.parse(decodeURIComponent(match[1]));
+          if (parsedCookie?.id) {
+            setBrowserRecord(parsedCookie);
+            return;
+          }
+        } catch {
+          setBrowserRecord({
+            id: decodeURIComponent(match[1]),
+            fullName: "Candidate",
+            email: "",
+            primaryRole: "Open Hiring 2026",
+            submittedAt: new Date().toISOString(),
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Storage check error:", err);
+    }
+  }, []);
+
+  const markBrowserAsSubmitted = (record: SubmittedRecord) => {
+    try {
+      localStorage.setItem(BROWSER_SUBMISSION_KEY, JSON.stringify(record));
+      const val = encodeURIComponent(JSON.stringify(record));
+      document.cookie = `${BROWSER_SUBMISSION_COOKIE}=${val}; max-age=34560000; path=/; SameSite=Lax`;
+    } catch (err) {
+      console.error("Failed to mark browser:", err);
+    }
+  };
 
   const updateField = <K extends keyof FormState>(
     field: K,
@@ -75,10 +142,21 @@ export default function HiringModule() {
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (browserRecord) {
+      toast.info("You have already submitted an application on this device.");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (browserRecord) {
+      toast.error(
+        "You have already submitted an application from this browser."
+      );
+      return;
+    }
+
     setFieldErrors({});
 
     // Client-side pre-validation
@@ -155,6 +233,20 @@ export default function HiringModule() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data?.alreadySubmitted && data?.application) {
+          const record: SubmittedRecord = {
+            id: data.application.id,
+            fullName: data.application.fullName || form.fullName,
+            email: data.application.email || form.email,
+            primaryRole: data.application.primaryRole || form.primaryRole,
+            submittedAt: data.application.createdAt || new Date().toISOString(),
+          };
+          markBrowserAsSubmitted(record);
+          setBrowserRecord(record);
+          toast.info(data.message || "You have already submitted an application.");
+          return;
+        }
+
         if (
           data?.errors &&
           typeof data.errors === "object" &&
@@ -175,7 +267,15 @@ export default function HiringModule() {
         );
       }
 
-      setSubmittedId(data.application.id);
+      const record: SubmittedRecord = {
+        id: data.application.id,
+        fullName: form.fullName,
+        email: form.email,
+        primaryRole: form.primaryRole,
+        submittedAt: data.application.createdAt || new Date().toISOString(),
+      };
+      markBrowserAsSubmitted(record);
+      setBrowserRecord(record);
       toast.success("Application submitted successfully.");
     } catch (err) {
       const msg =
@@ -414,39 +514,79 @@ export default function HiringModule() {
             </p>
           </div>
 
-          {submittedId ? (
-            <div className="border border-blue-900 bg-blue-50/40 p-6 space-y-4">
-              <div className="flex items-center gap-2.5 text-blue-900">
-                <CheckCircle2 className="w-5 h-5 text-blue-700 shrink-0" />
-                <h3 className="font-display font-bold text-[18px]">
-                  Application Received
-                </h3>
+          {browserRecord ? (
+            <div className="border border-blue-900 bg-blue-50/40 p-6 sm:p-7 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-blue-200">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-blue-700 shrink-0" />
+                  <div>
+                    <h3 className="font-display font-bold text-[18px] text-slate-900 leading-tight">
+                      Application Already Submitted
+                    </h3>
+                    <p className="text-[12px] text-slate-500 mt-0.5">
+                      This browser is registered with an active submission.
+                    </p>
+                  </div>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-900 text-[11px] font-mono uppercase tracking-[0.06em] font-semibold self-start sm:self-auto border border-blue-200">
+                  <Lock className="w-3 h-3 text-blue-800" />
+                  <span>1 Submission / Candidate</span>
+                </div>
               </div>
-              <p className="text-[14px] text-slate-700 leading-relaxed">
-                Thank you, <strong>{form.fullName}</strong>. Your application
-                for <strong>{form.primaryRole}</strong> has been recorded. Our
-                team will review your profile and reach out via WhatsApp or
-                email.
-              </p>
-              <div className="inline-block bg-white border border-slate-300 px-3.5 py-2">
-                <span className="text-[11px] font-mono uppercase tracking-[0.06em] text-slate-500 block">
-                  Reference ID
-                </span>
-                <span className="font-mono text-[15px] font-bold text-blue-900">
-                  {submittedId}
-                </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white border border-slate-300 p-3.5 space-y-1">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.06em] text-slate-500 block">
+                    Candidate
+                  </span>
+                  <span className="text-[14px] font-bold text-slate-900 block truncate">
+                    {browserRecord.fullName}
+                  </span>
+                </div>
+                <div className="bg-white border border-slate-300 p-3.5 space-y-1">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.06em] text-slate-500 block">
+                    Applied Position
+                  </span>
+                  <span className="text-[14px] font-bold text-slate-900 block truncate">
+                    {browserRecord.primaryRole}
+                  </span>
+                </div>
+                <div className="bg-white border border-slate-300 p-3.5 space-y-1 flex items-start justify-between">
+                  <div>
+                    <span className="text-[11px] font-mono uppercase tracking-[0.06em] text-slate-500 block">
+                      Reference ID
+                    </span>
+                    <span className="font-mono text-[14px] font-bold text-blue-900 block">
+                      {browserRecord.id}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(browserRecord.id);
+                      setCopiedId(true);
+                      toast.success("Reference ID copied to clipboard!");
+                      setTimeout(() => setCopiedId(false), 2000);
+                    }}
+                    className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                    title="Copy Reference ID"
+                  >
+                    {copiedId ? (
+                      <Check className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSubmittedId(null);
-                    setForm(INITIAL_FORM);
-                  }}
-                  className="text-[13px] font-medium text-blue-700 hover:underline cursor-pointer"
-                >
-                  Submit another application
-                </button>
+
+              <div className="text-[13.5px] text-slate-700 leading-relaxed space-y-2 pt-1">
+                <p>
+                  Thank you! Your application has been recorded in our hiring database. To ensure fair and comprehensive evaluation for every candidate, multiple submissions for this cycle are disabled.
+                </p>
+                <p className="text-[12.5px] text-slate-500">
+                  Our team reviews profiles on a rolling basis and will reach out via WhatsApp or email if your qualifications align with the role.
+                </p>
               </div>
             </div>
           ) : (

@@ -138,6 +138,43 @@ export async function getAllApplications(): Promise<HiringApplication[]> {
   return getLocalApplications();
 }
 
+export async function findExistingApplication(
+  email: string,
+  whatsapp: string
+): Promise<HiringApplication | null> {
+  const cleanEmail = email.trim().toLowerCase();
+  const digits = whatsapp.replace(/\D/g, "");
+
+  try {
+    const pool = getPool();
+    const query = `
+      SELECT * FROM hiring_applications
+      WHERE LOWER(email) = LOWER($1)
+         OR regexp_replace(whatsapp, '\\D', '', 'g') = $2
+      ORDER BY created_at DESC
+      LIMIT 1;
+    `;
+    const res = await pool.query<SupabaseHiringRow>(query, [cleanEmail, digits]);
+    if (res.rows && res.rows.length > 0) {
+      return mapRowToApplication(res.rows[0]);
+    }
+  } catch (err) {
+    console.error(
+      "[Supabase] Failed to check existing application, checking local store:",
+      err
+    );
+  }
+
+  const local = await getLocalApplications();
+  return (
+    local.find(
+      (a) =>
+        a.email.toLowerCase() === cleanEmail ||
+        (digits.length >= 8 && a.whatsapp.replace(/\D/g, "") === digits)
+    ) || null
+  );
+}
+
 export async function insertApplication(app: HiringApplication): Promise<void> {
   try {
     const pool = getPool();
