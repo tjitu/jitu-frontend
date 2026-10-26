@@ -204,9 +204,14 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
               <div className="w-56 bg-white border-2 border-blue-900 shadow-[3px_3px_0_var(--blue-900)] p-1.5">
                 <Link
                   href="/careers"
-                  className="px-3 py-2 text-[14px] font-semibold text-blue-900 hover:bg-blue-50 transition-colors flex flex-col"
+                  className="px-3 py-2 text-[14px] font-semibold text-blue-900 hover:bg-blue-50 transition-colors flex flex-col gap-0.5"
                 >
-                  <span>Open Hiring 2026</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Open Hiring 2026</span>
+                    <span className="text-[10px] font-mono font-medium text-amber-800 bg-amber-50 border border-amber-200/90 px-1.5 py-0.2">
+                      s.d. 30 Okt
+                    </span>
+                  </div>
                   <span className="text-[11px] font-mono font-normal text-slate-500">
                     Part-Time · Remote (8 Posisi)
                   </span>
@@ -289,7 +294,12 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
                 className="min-h-[40px] px-3 flex items-center justify-between text-[15px] font-semibold text-blue-900 hover:bg-blue-100"
               >
                 <div>
-                  <div>Open Hiring 2026</div>
+                  <div className="flex items-center gap-2">
+                    <span>Open Hiring 2026</span>
+                    <span className="text-[10px] font-mono font-medium text-amber-800 bg-amber-50 border border-amber-200/90 px-1.5 py-0.2">
+                      s.d. 30 Okt
+                    </span>
+                  </div>
                   <div className="text-[11px] font-mono font-normal text-slate-500">
                     Part-Time · Remote (8 Posisi)
                   </div>

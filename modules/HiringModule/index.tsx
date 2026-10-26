@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Check,
   CheckCircle2,
+  Clock,
   Copy,
   Loader2,
   Lock,
@@ -351,10 +352,17 @@ export default function HiringModule() {
 
         {/* SECTION 2: Title and Short Explanation */}
         <section className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-[12px] font-mono uppercase tracking-[0.08em] text-blue-700 font-semibold">
-              Part-Time · Remote
-            </p>
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-[12px] font-mono">
+              <span className="uppercase tracking-[0.08em] text-blue-700 font-semibold">
+                Part-Time · Remote
+              </span>
+              <span className="text-slate-300">·</span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 border border-amber-200/90 text-amber-900 font-semibold text-[11px] uppercase tracking-[0.06em]">
+                <Clock className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span>Deadline: 30 October 2026</span>
+              </span>
+            </div>
             <h1 className="font-display text-[28px] sm:text-[34px] font-bold tracking-[-0.02em] text-slate-900 leading-tight">
               JITU Open Hiring 2026
             </h1>
@@ -505,12 +513,18 @@ export default function HiringModule() {
         {/* SECTION 4: Application Form */}
         <section ref={formRef} className="space-y-6 pb-12">
           <div>
-            <h2 className="font-display text-[18px] font-bold text-slate-900">
-              Application Form
-            </h2>
-            <p className="text-[13px] text-slate-500 mt-0.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-[18px] font-bold text-slate-900">
+                Application Form
+              </h2>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.05em] text-amber-800 bg-amber-50 border border-amber-200/90 px-2.5 py-0.5 font-semibold">
+                <Clock className="w-3 h-3 text-amber-700" />
+                <span>Deadline: 30 October 2026</span>
+              </span>
+            </div>
+            <p className="text-[13px] text-slate-500 mt-1">
               Complete the form below to apply. Fields marked with * are
-              required.
+              required. Applications close on <strong>30 October 2026</strong>.
             </p>
           </div>
 
