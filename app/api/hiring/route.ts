@@ -245,8 +245,12 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("POST /api/hiring error:", error);
+    const errDetail = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { message: "Failed to submit application. Please try again." },
+      {
+        message: "Failed to submit application. Please try again.",
+        detail: errDetail,
+      },
       { status: 500 }
     );
   }
