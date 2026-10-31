@@ -7,19 +7,20 @@ import { useSession } from "@/lib/auth-client";
 import {
   ArrowRight,
   Check,
-  ChevronDown,
-  Clock,
-  Flag,
   Menu,
   School,
+  Sparkles,
   Users,
   X,
+  BookOpen,
+  TrendingUp,
+  Target,
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
 import { PixelCoin } from "@/components/ui/pixel-coin";
 
 /* -------------------------------------------------------------------------- */
-/* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 6-7)  */
+/* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 2-7)  */
 /* -------------------------------------------------------------------------- */
 
 const TRYOUT_SLOTS: TryoutSlotItem[] = [
@@ -91,7 +92,6 @@ interface QuotaPack {
   totalPrice: number;
   perTryout: number;
   note: string;
-  isPopular?: boolean;
   isBestValue?: boolean;
 }
 
@@ -128,13 +128,22 @@ const QUOTA_PACKS: QuotaPack[] = [
 ];
 
 const SUBTEST_SAMPLE_SCORES = [
-  { code: "PU", name: "Penalaran Umum", score: 672, barClass: "bg-blue-700" },
-  { code: "PPU", name: "Pengetahuan dan Pemahaman Umum", score: 634, barClass: "bg-blue-500" },
-  { code: "PBM", name: "Pemahaman Bacaan dan Menulis", score: 658, barClass: "bg-blue-700" },
-  { code: "PK", name: "Pengetahuan Kuantitatif", score: 594, barClass: "bg-blue-300" },
-  { code: "LBI", name: "Literasi dalam Bahasa Indonesia", score: 688, barClass: "bg-blue-900" },
-  { code: "LBE", name: "Literasi dalam Bahasa Inggris", score: 645, barClass: "bg-blue-500" },
-  { code: "PM", name: "Penalaran Matematika", score: 648, barClass: "bg-signal", highlight: true },
+  { code: "PU", name: "Penalaran Umum", score: 672, barClass: "bg-primary", vHeight: "78%" },
+  { code: "PPU", name: "Pengetahuan dan Pemahaman Umum", score: 634, barClass: "bg-blue-400", vHeight: "68%" },
+  { code: "PBM", name: "Pemahaman Bacaan dan Menulis", score: 658, barClass: "bg-primary", vHeight: "75%" },
+  { code: "PK", name: "Pengetahuan Kuantitatif", score: 594, barClass: "bg-danger", vHeight: "52%", isLow: true },
+  { code: "LBI", name: "Literasi dalam Bahasa Indonesia", score: 688, barClass: "bg-blue-800", vHeight: "88%" },
+  { code: "LBE", name: "Literasi dalam Bahasa Inggris", score: 645, barClass: "bg-blue-400", vHeight: "72%" },
+  { code: "PM", name: "Penalaran Matematika", score: 648, barClass: "bg-yellow-400", vHeight: "74%", highlight: true },
+];
+
+const TARGET_CAMPUSES = [
+  { name: "UI", fullName: "Universitas Indonesia", score: "680+", src: "/ui.png" },
+  { name: "ITB", fullName: "Institut Teknologi Bandung", score: "695+", src: "/itb.png" },
+  { name: "UGM", fullName: "Universitas Gadjah Mada", score: "675+", src: "/ugm.webp" },
+  { name: "ITS", fullName: "ITS Surabaya", score: "660+", src: "/its.png" },
+  { name: "UNAIR", fullName: "Universitas Airlangga", score: "650+", src: "/unair.png" },
+  { name: "UNPAD", fullName: "Universitas Padjadjaran", score: "645+", src: "/unpad.webp" },
 ];
 
 function formatRupiah(amount: number): string {
@@ -144,103 +153,222 @@ function formatRupiah(amount: number): string {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 1. Sticky Top Navigation                                                   */
+/* Blue & Yellow Doodle Accessories & Dot Grid (User Reference Image 2)       */
+/* -------------------------------------------------------------------------- */
+
+function BlueYellowDoodles() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none select-none inset-0 absolute overflow-hidden z-0">
+      {/* Crisp Dot Matrix Grid (User Reference Aesthetic) */}
+      <div className="absolute inset-0 opacity-[0.35] bg-[radial-gradient(#3B82F6_1.25px,transparent_1.25px)] [background-size:24px_24px]" />
+
+      {/* 1. Top-left Blue Loop Doodle (Exact User Crop Reference) */}
+      <svg
+        className="hidden sm:block absolute top-7 left-[2.5%] w-18 h-14 text-blue-500/80 drop-shadow-xs"
+        viewBox="0 0 68 48"
+        fill="none"
+      >
+        <path
+          d="M6 34C18 18 24 8 14 6C4 4 8 22 24 24C40 26 48 12 62 10"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* 2. Top-right Yellow Loop Swirl */}
+      <svg
+        className="hidden sm:block absolute top-7 right-[3%] w-20 h-16 text-yellow-400/85 drop-shadow-xs"
+        viewBox="0 0 72 52"
+        fill="none"
+      >
+        <path
+          d="M8 38C22 34 38 18 30 8C22 -2 12 14 30 22C48 30 58 16 66 10"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* 3. Middle-left Yellow Wave Loop (Beside Copy) */}
+      <svg
+        className="hidden md:block absolute top-[44%] left-[2%] w-16 h-12 text-yellow-400/80 drop-shadow-xs"
+        viewBox="0 0 68 48"
+        fill="none"
+      >
+        <path
+          d="M6 26C16 12 24 14 26 22C28 30 20 32 18 24C16 14 32 16 44 26C54 34 60 26 64 18"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* 4. Middle-right Blue Spring Curl (Beside Rocket) */}
+      <svg
+        className="hidden lg:block absolute top-[40%] right-[2.5%] w-14 h-16 text-blue-500/75 drop-shadow-xs"
+        viewBox="0 0 60 68"
+        fill="none"
+      >
+        <path
+          d="M14 58C18 42 24 28 34 20C44 12 50 18 44 28C38 38 26 34 28 20C30 8 46 6 54 14"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* 5. Bottom-left Yellow Underline Swoop (Underneath CTAs) */}
+      <svg
+        className="hidden sm:block absolute bottom-8 left-[5%] w-20 h-10 text-yellow-400/80 drop-shadow-xs"
+        viewBox="0 0 80 36"
+        fill="none"
+      >
+        <path
+          d="M6 18C20 22 34 24 46 16C54 10 52 2 44 6C36 10 42 22 56 20C68 18 72 12 76 10"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* 6. Bottom-right Blue Loop Accent */}
+      <svg
+        className="hidden md:block absolute bottom-10 right-[5%] w-16 h-12 text-blue-500/75 drop-shadow-xs"
+        viewBox="0 0 70 50"
+        fill="none"
+      >
+        <path
+          d="M10 16C24 8 38 12 34 26C30 40 18 32 26 20C34 8 52 14 62 30"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* 7. Center-top Subtle Blue Connector Loop */}
+      <svg
+        className="hidden xl:block absolute top-9 left-[48%] w-12 h-10 text-blue-400/70"
+        viewBox="0 0 48 40"
+        fill="none"
+      >
+        <path
+          d="M6 26C14 14 20 10 16 6C12 2 8 12 18 16C28 20 34 14 42 10"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      {/* 8. Bottom-center Yellow Playful Curl */}
+      <svg
+        className="hidden lg:block absolute bottom-7 left-[46%] w-14 h-11 text-yellow-400/80 drop-shadow-xs"
+        viewBox="0 0 56 44"
+        fill="none"
+      >
+        <path
+          d="M6 30C14 16 22 10 16 6C10 2 8 18 22 20C36 22 42 12 50 10"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* 1. Sticky Navigation (Clean top bar with Yellow "Daftar" Button)           */
 /* -------------------------------------------------------------------------- */
 
 function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const navLinks = [
+    { href: "#cara-kerja", label: "Cara kerja" },
+    { href: "#jadwal", label: "Jadwal" },
+    { href: "#harga", label: "Harga" },
+    { href: "#peserta", label: "Peserta" },
+    { href: "#faq", label: "FAQ" },
+    { href: "/careers", label: "Hiring", isRoute: true },
+  ];
+
   return (
-    <header className="sticky top-0 z-30 bg-blue-50/95 backdrop-blur-sm border-b-2 border-blue-900">
+    <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-border">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand Mark: Logo + jitu. */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            aria-label="Beranda Jitu"
-            className="min-h-[44px] inline-flex items-center gap-2.5 focus:outline-3 focus:outline-blue-500 focus:outline-offset-2"
-          >
-            <Image
-              src="/blue-jitu-logo.png"
-              alt="Logo Jitu"
-              width={54}
-              height={36}
-              priority
-              className="h-9 w-auto object-contain"
-            />
-            <span className="font-display font-extrabold text-[28px] tracking-[-0.025em] text-blue-900 leading-none">
-              jitu<span className="text-blue-500">.</span>
-            </span>
-          </Link>
-        </div>
+        {/* Brand Mark */}
+        <Link
+          href="/"
+          aria-label="Beranda Jitu"
+          className="min-h-[44px] inline-flex items-center gap-2.5 rounded-md focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+        >
+          <Image
+            src="/blue-jitu-logo.png"
+            alt="Logo Jitu"
+            width={48}
+            height={32}
+            priority
+            className="h-8 w-auto object-contain"
+          />
+          <span className="font-extrabold text-[24px] tracking-[-0.03em] text-text leading-none">
+            jitu<span className="text-primary">.</span>
+          </span>
+        </Link>
 
         {/* Desktop Nav Links */}
         <nav aria-label="Navigasi utama" className="hidden md:flex items-center gap-1">
-          {[
-            { href: "#cara-kerja", label: "Cara kerja" },
-            { href: "#jadwal", label: "Jadwal" },
-            { href: "#harga", label: "Harga" },
-            { href: "#peserta", label: "Peserta" },
-          ].map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="min-h-[44px] px-3.5 inline-flex items-center text-[15px] font-semibold text-blue-900 hover:bg-blue-100 transition-colors focus:outline-3 focus:outline-blue-500 focus:outline-offset-2"
-            >
-              {item.label}
-            </a>
-          ))}
-
-          {/* Info Dropdown */}
-          <div className="relative group">
-            <button
-              type="button"
-              className="min-h-[44px] px-3.5 inline-flex items-center gap-1.5 text-[15px] font-semibold text-blue-900 hover:bg-blue-100 transition-colors focus:outline-3 focus:outline-blue-500 focus:outline-offset-2 cursor-pointer"
-            >
-              <span>Info</span>
-              <ChevronDown className="w-4 h-4 stroke-[2] transition-transform group-hover:rotate-180" />
-            </button>
-            <div className="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
-              <div className="w-56 bg-white border-2 border-blue-900 shadow-[3px_3px_0_var(--blue-900)] p-1.5">
-                <Link
-                  href="/careers"
-                  className="px-3 py-2 text-[14px] font-semibold text-blue-900 hover:bg-blue-50 transition-colors flex flex-col gap-0.5"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span>Open Hiring 2026</span>
-                    <span className="text-[10px] font-mono font-medium text-amber-800 bg-amber-50 border border-amber-200/90 px-1.5 py-0.2">
-                      s.d. 30 Okt
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono font-normal text-slate-500">
-                    Part-Time · Remote (8 Posisi)
-                  </span>
-                </Link>
-              </div>
-            </div>
-          </div>
+          {navLinks.map((item) =>
+            item.isRoute ? (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="min-h-[38px] px-3.5 rounded-md inline-flex items-center text-[14px] font-medium text-text-body hover:text-text hover:bg-surface-muted transition-colors duration-[120ms]"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.href}
+                href={item.href}
+                className="min-h-[38px] px-3.5 rounded-md inline-flex items-center text-[14px] font-medium text-text-body hover:text-text hover:bg-surface-muted transition-colors duration-[120ms]"
+              >
+                {item.label}
+              </a>
+            )
+          )}
         </nav>
 
-        {/* Auth Actions (WRITING.md Section 4 & 6: 1-3 words, verb first) */}
-        <div className="hidden sm:flex items-center gap-2">
+        {/* Auth Actions: Yellow "Daftar" Button as Requested */}
+        <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
-            <Link href="/dashboard" className="jitu-btn-blue text-[14px] font-semibold inline-flex items-center gap-2">
-              <span>Kerjakan</span>
-              <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
+            <Link
+              href="/dashboard"
+              className="min-h-[40px] px-5 py-2 rounded-full bg-yellow-400 text-ink-900 text-[14px] font-bold inline-flex items-center gap-2 hover:bg-yellow-300 active:bg-yellow-500 transition-colors duration-[120ms] shadow-xs"
+            >
+              <span>Dashboard</span>
+              <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
             </Link>
           ) : (
             <>
               <Link
                 href="/login"
-                className="jitu-btn-secondary text-[14px] font-semibold inline-flex items-center justify-center bg-white"
+                className="min-h-[40px] px-4 py-2 rounded-md text-[14px] font-semibold text-text hover:bg-surface-muted transition-colors duration-[120ms]"
               >
                 Masuk
               </Link>
               <Link
                 href="/register"
-                className="jitu-btn-blue text-[14px] font-semibold inline-flex items-center justify-center"
+                className="min-h-[40px] px-5 py-2 rounded-full bg-yellow-400 text-ink-900 text-[14px] font-bold inline-flex items-center justify-center hover:bg-yellow-300 active:bg-yellow-500 transition-colors duration-[120ms] shadow-xs"
               >
-                Daftar gratis
+                Daftar
               </Link>
             </>
           )}
@@ -252,85 +380,67 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
           aria-label={mobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
           aria-expanded={mobileMenuOpen}
           onClick={() => setMobileMenuOpen((v) => !v)}
-          className="md:hidden min-h-[44px] min-w-[44px] border-2 border-blue-900 bg-white text-blue-900 inline-flex items-center justify-center"
+          className="md:hidden min-h-[44px] min-w-[44px] rounded-md border border-border bg-surface text-text inline-flex items-center justify-center hover:bg-surface-muted transition-colors duration-[120ms]"
         >
           {mobileMenuOpen ? (
-            <X className="w-6 h-6 stroke-[1.75]" aria-hidden="true" />
+            <X className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
           ) : (
-            <Menu className="w-6 h-6 stroke-[1.75]" aria-hidden="true" />
+            <Menu className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
           )}
         </button>
       </div>
 
-      {/* Mobile Dropdown Sheet */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t-2 border-blue-900 bg-white px-4 py-4 space-y-3">
-          <div className="flex flex-col divide-y divide-slate-300 border-2 border-blue-900">
-            {[
-              { href: "#cara-kerja", label: "Cara kerja" },
-              { href: "#jadwal", label: "Jadwal" },
-              { href: "#harga", label: "Harga" },
-              { href: "#peserta", label: "Peserta" },
-            ].map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="min-h-[44px] px-3 inline-flex items-center justify-between text-[16px] font-semibold text-blue-900 hover:bg-blue-50"
-              >
-                <span>{item.label}</span>
-                <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
-              </a>
-            ))}
-
-            {/* Info in Mobile Menu */}
-            <div className="bg-slate-50 p-2">
-              <span className="px-3 py-1 font-mono text-[11px] uppercase tracking-[0.08em] font-semibold text-slate-500 block">
-                INFO
-              </span>
-              <Link
-                href="/careers"
-                onClick={() => setMobileMenuOpen(false)}
-                className="min-h-[40px] px-3 flex items-center justify-between text-[15px] font-semibold text-blue-900 hover:bg-blue-100"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span>Open Hiring 2026</span>
-                    <span className="text-[10px] font-mono font-medium text-amber-800 bg-amber-50 border border-amber-200/90 px-1.5 py-0.2">
-                      s.d. 30 Okt
-                    </span>
-                  </div>
-                  <div className="text-[11px] font-mono font-normal text-slate-500">
-                    Part-Time · Remote (8 Posisi)
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
-              </Link>
-            </div>
+        <div className="md:hidden border-t border-border bg-surface px-4 py-4 space-y-3 shadow-float">
+          <div className="flex flex-col gap-1">
+            {navLinks.map((item) =>
+              item.isRoute ? (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="min-h-[44px] px-3 rounded-md inline-flex items-center justify-between text-[15px] font-medium text-text hover:bg-surface-muted transition-colors"
+                >
+                  <span>{item.label}</span>
+                  <ArrowRight className="w-4 h-4 stroke-[1.75] text-text-muted" aria-hidden="true" />
+                </Link>
+              ) : (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="min-h-[44px] px-3 rounded-md inline-flex items-center justify-between text-[15px] font-medium text-text hover:bg-surface-muted transition-colors"
+                >
+                  <span>{item.label}</span>
+                  <ArrowRight className="w-4 h-4 stroke-[1.75] text-text-muted" aria-hidden="true" />
+                </a>
+              )
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-border">
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="col-span-2 jitu-btn-blue text-[14px] font-semibold inline-flex items-center justify-center gap-2"
+                className="col-span-2 min-h-[44px] px-4 py-2.5 rounded-full bg-yellow-400 text-ink-900 text-[14px] font-bold inline-flex items-center justify-center gap-2"
               >
-                <span>Kerjakan</span>
-                <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
+                <span>Dashboard</span>
+                <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
               </Link>
             ) : (
               <>
                 <Link
                   href="/login"
-                  className="jitu-btn-secondary text-[14px] font-semibold inline-flex items-center justify-center"
+                  className="min-h-[44px] px-4 py-2.5 rounded-full border border-border bg-surface text-text text-[14px] font-semibold inline-flex items-center justify-center"
                 >
                   Masuk
                 </Link>
                 <Link
                   href="/register"
-                  className="jitu-btn-blue text-[14px] font-semibold inline-flex items-center justify-center"
+                  className="min-h-[44px] px-4 py-2.5 rounded-full bg-yellow-400 text-ink-900 text-[14px] font-bold inline-flex items-center justify-center"
                 >
-                  Daftar gratis
+                  Daftar
                 </Link>
               </>
             )}
@@ -342,171 +452,41 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. Hero Right: Borderless Pixel Art Pattern of Top Indonesian Universities */
+/* 2. Hero Visual: Pure Pixel Art Rocket Piercing Clouds (No Text, No Box)    */
 /* -------------------------------------------------------------------------- */
 
-const PIXEL_PATTERN_BLOCKS: Array<{
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  color: string;
-}> = [
-  // Top-left & upper sky pixel clusters (around UI Rektorat spire)
-  { x: 6, y: 12, w: 2, h: 2, color: "#93C5FD" },
-  { x: 10, y: 10, w: 1, h: 1, color: "#60A5FA" },
-  { x: 14, y: 14, w: 2, h: 2, color: "#3B82F6" },
-  { x: 18, y: 8, w: 2, h: 2, color: "#1D4ED8" },
-  { x: 22, y: 12, w: 3, h: 2, color: "#2563EB" },
-  { x: 28, y: 6, w: 2, h: 2, color: "#60A5FA" },
-  { x: 32, y: 10, w: 2, h: 2, color: "#1D4ED8" },
-  { x: 8, y: 22, w: 2, h: 2, color: "#60A5FA" },
-  { x: 12, y: 20, w: 3, h: 2, color: "#2563EB" },
-  { x: 4, y: 28, w: 2, h: 2, color: "#93C5FD" },
-  { x: 8, y: 32, w: 2, h: 2, color: "#3B82F6" },
-
-  // Upper-center & top-right dither pattern (above ITB Aula Barat & UGM Balairung)
-  { x: 44, y: 8, w: 2, h: 2, color: "#60A5FA" },
-  { x: 48, y: 12, w: 2, h: 2, color: "#1D4ED8" },
-  { x: 52, y: 6, w: 1, h: 1, color: "#93C5FD" },
-  { x: 62, y: 10, w: 2, h: 2, color: "#3B82F6" },
-  { x: 66, y: 14, w: 3, h: 2, color: "#1D4ED8" },
-  { x: 72, y: 8, w: 2, h: 2, color: "#60A5FA" },
-  { x: 78, y: 12, w: 2, h: 2, color: "#2563EB" },
-  { x: 84, y: 10, w: 2, h: 2, color: "#93C5FD" },
-  { x: 88, y: 16, w: 2, h: 2, color: "#3B82F6" },
-  { x: 92, y: 12, w: 1, h: 1, color: "#60A5FA" },
-  { x: 94, y: 20, w: 2, h: 2, color: "#1D4ED8" },
-  { x: 96, y: 26, w: 2, h: 2, color: "#93C5FD" },
-
-  // Lower-left & bottom-right pattern fade (extending the isometric campus plaza)
-  { x: 6, y: 72, w: 2, h: 2, color: "#3B82F6" },
-  { x: 10, y: 76, w: 3, h: 2, color: "#1D4ED8" },
-  { x: 16, y: 80, w: 2, h: 2, color: "#60A5FA" },
-  { x: 12, y: 84, w: 2, h: 2, color: "#93C5FD" },
-  { x: 22, y: 86, w: 2, h: 2, color: "#2563EB" },
-  { x: 28, y: 90, w: 2, h: 2, color: "#60A5FA" },
-  { x: 46, y: 88, w: 3, h: 2, color: "#1D4ED8" },
-  { x: 52, y: 92, w: 2, h: 2, color: "#3B82F6" },
-  { x: 58, y: 90, w: 2, h: 2, color: "#93C5FD" },
-  { x: 74, y: 86, w: 2, h: 2, color: "#1D4ED8" },
-  { x: 80, y: 90, w: 2, h: 2, color: "#3B82F6" },
-  { x: 86, y: 84, w: 2, h: 2, color: "#60A5FA" },
-  { x: 92, y: 78, w: 2, h: 2, color: "#2563EB" },
-  { x: 96, y: 72, w: 1, h: 1, color: "#93C5FD" },
-];
-
-function CampusPixelArtPattern() {
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
-    const ny = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x: nx, y: ny });
-  };
-
-  const handleMouseLeave = () => {
-    setMousePos({ x: 0, y: 0 });
-  };
-
-  // Subtle interactive parallax offsets (gentle, not overdone)
-  const parallaxX = mousePos.x * 14;
-  const parallaxY = mousePos.y * 10;
-  const bgParallaxX = -mousePos.x * 18;
-  const bgParallaxY = -mousePos.y * 14;
-
+function RocketCloudPixelIllustration() {
   return (
-    <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      aria-label="Ilustrasi piksel gedung kampus impian di Indonesia: UI, ITB, dan UGM"
-      className="relative w-full flex items-center justify-center lg:justify-end select-none group"
-    >
-      {/* Background Blue Pixel Matrix Halftone Pattern (borderless, blends into --blue-50) */}
-      <svg
-        viewBox="0 0 100 100"
-        shapeRendering="crispEdges"
-        aria-hidden="true"
-        style={{
-          transform: `translate3d(${bgParallaxX}px, ${bgParallaxY}px, 0)`,
-          transition: "transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)",
-        }}
-        className="absolute -inset-4 sm:-inset-8 lg:-inset-12 w-[calc(100%+2rem)] sm:w-[calc(100%+4rem)] lg:w-[calc(100%+6rem)] h-[calc(100%+2rem)] sm:h-[calc(100%+4rem)] lg:h-[calc(100%+6rem)] opacity-90 pointer-events-none"
-      >
-        <defs>
-          {/* Subtle 4x4 pixel grid dot pattern in dominant blue */}
-          <pattern
-            id="jitu-blue-pixel-dots"
-            x="0"
-            y="0"
-            width="4"
-            height="4"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect x="0" y="0" width="1" height="1" fill="#93C5FD" fillOpacity="0.55" />
-            <rect x="2" y="2" width="1" height="1" fill="#3B82F6" fillOpacity="0.35" />
-          </pattern>
-          {/* Stepped pixel mask so the pattern has a pixelated, non-rectangular silhouette */}
-          <mask id="jitu-pixel-cluster-mask">
-            <rect x="0" y="0" width="100" height="100" fill="black" />
-            <rect x="14" y="18" width="74" height="64" fill="white" />
-            <rect x="8" y="26" width="84" height="48" fill="white" />
-            <rect x="22" y="10" width="56" height="80" fill="white" />
-            <rect x="4" y="36" width="92" height="28" fill="white" />
-          </mask>
-        </defs>
-
-        {/* Pixelated halftone field */}
-        <rect
-          x="0"
-          y="0"
-          width="100"
-          height="100"
-          fill="url(#jitu-blue-pixel-dots)"
-          mask="url(#jitu-pixel-cluster-mask)"
-        />
-
-        {/* Dominant blue scattered pixel blocks radiating outward with subtle twinkle */}
-        {PIXEL_PATTERN_BLOCKS.map((b, idx) => (
-          <rect
-            key={idx}
-            x={b.x}
-            y={b.y}
-            width={b.w}
-            height={b.h}
-            fill={b.color}
-            className="jitu-pixel-blink"
-            style={{
-              animationDelay: `${(idx * 0.19) % 2.8}s`,
-            }}
-          />
-        ))}
-      </svg>
-
-      {/* Main Borderless Pixel Art Panorama (shifted right + ambient breathing zoom float + parallax) */}
+    <div className="relative w-full max-w-[620px] mx-auto lg:ml-auto select-none flex items-center justify-center">
+      {/* 1. Ambient Cosmic Aura (Soft breathing background depth) */}
       <div
-        className="relative z-10 w-full lg:w-[136%] xl:w-[146%] lg:translate-x-8 xl:translate-x-14 lg:-mr-16 xl:-mr-24 pointer-events-none"
-        style={{
-          transform: `translate3d(${parallaxX}px, ${parallaxY}px, 0)`,
-          transition: "transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)",
-        }}
-      >
-        <div className="jitu-campus-float transition-transform duration-500 group-hover:scale-[1.035]">
-          <Image
-            src="/campus-pixel-art.png"
-            alt="Ilustrasi pixel art gedung kampus top Indonesia: Gedung Rektorat UI, Aula Barat ITB, dan Balairung UGM"
-            width={1268}
-            height={596}
-            priority
-            unoptimized
-            style={{ imageRendering: "pixelated" }}
-            className="w-full h-auto object-contain drop-shadow-[0_12px_24px_rgba(23,71,232,0.08)]"
-          />
-        </div>
+        aria-hidden="true"
+        className="absolute inset-0 max-w-[520px] max-h-[420px] m-auto rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,200,31,0.22)_0%,rgba(37,87,219,0.16)_45%,transparent_70%)] blur-2xl pointer-events-none animate-pulse [animation-duration:3s]"
+      />
+
+      {/* 2. Thruster Engine Flame Glow (Actively pulsing warm energy) */}
+      <div
+        aria-hidden="true"
+        className="absolute bottom-[18%] left-[16%] w-48 h-48 rounded-full bg-gradient-to-tr from-amber-400/60 via-yellow-300/50 to-transparent blur-xl animate-flame-pulse pointer-events-none z-0"
+      />
+
+      {/* 3. Rocket Propulsion Thrust Wave Rings (Expanding shockwaves from engine) */}
+      <div aria-hidden="true" className="absolute bottom-[20%] left-[21%] pointer-events-none z-0">
+        <div className="w-16 h-16 rounded-full border-2 border-yellow-400/80 animate-thrust-ring-1 absolute inset-0 m-auto" />
+        <div className="w-16 h-16 rounded-full border-2 border-yellow-400/80 animate-thrust-ring-2 absolute inset-0 m-auto" />
+        <div className="w-16 h-16 rounded-full border-2 border-yellow-400/80 animate-thrust-ring-3 absolute inset-0 m-auto" />
+      </div>
+
+      {/* 4. Main Pixel Art Rocket Image (Crisp, solid opaque rocket, completely borderless) */}
+      <div className="relative w-full aspect-[4/3] min-h-[320px] sm:min-h-[420px] lg:min-h-[460px] flex items-center justify-center transition-all duration-300 hover:scale-[1.02]">
+        <Image
+          src="/rocket-curving-achievements.png"
+          alt="Ilustrasi pixel art roket melengkung ke atas menembus awan dengan topi wisuda, piala, dan medali"
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 620px"
+          className="object-contain select-none"
+        />
       </div>
     </div>
   );
@@ -521,168 +501,184 @@ const LandingPageModule = () => {
   const isLoggedIn = Boolean(session);
 
   return (
-    <div className="min-h-screen bg-blue-50 text-blue-900 flex flex-col selection:bg-signal selection:text-blue-900 overflow-x-hidden">
+    <div className="min-h-screen bg-bg text-text-body flex flex-col selection:bg-yellow-200 selection:text-ink-900 relative">
       {/* 1. Navigation */}
       <LandingNav isLoggedIn={isLoggedIn} />
 
       <main className="flex-1">
-        {/* 2. Hero Section (Copy Left, Big Borderless Pixel Art Pattern Right) */}
-        <section className="py-12 lg:py-20 border-b-2 border-blue-900 bg-blue-50 overflow-hidden">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
-              {/* Left Column: Hero Copy (WRITING.md Sections 2, 4, 6) */}
-              <div className="lg:col-span-5 xl:col-span-5 space-y-6 relative z-20">
-                {/* H1: <= 12 words, inverted headline (WRITING.md Section 2, 4, 6) */}
-                <h1 className="font-display font-extrabold text-[44px] sm:text-[56px] xl:text-[68px] leading-[1.02] tracking-[-0.025em] text-blue-900">
-                  Kerjakan gratis. Bayar kalau mau tahu salahnya di mana.
+        {/* ================================================================== */}
+        {/* 2. Hero Section: Rocket Piercing Clouds + Blue/Yellow Doodles      */}
+        {/* ================================================================== */}
+        <section className="relative py-12 lg:py-20 border-b border-border bg-gradient-to-b from-blue-50/50 via-bg to-bg overflow-hidden">
+          {/* Blue & Yellow Doodle Accessories (Image 2 Reference) */}
+          <BlueYellowDoodles />
+
+          <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-8 space-y-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+              {/* Left Column: Authentic Copy (Strict 4 Lines) */}
+              <div className="lg:col-span-6 space-y-6">
+                <div className="inline-flex items-center gap-2 h-7 px-3 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[12px] font-semibold">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span>Tryout SNBT 2026/2027 · Mulai 2 Nov 2026</span>
+                </div>
+
+                {/* H1: Headline (Gedean dikit lagi: 48px sweet spot) */}
+                <h1 className="text-[30px] sm:text-[38px] md:text-[44px] lg:text-[42px] xl:text-[48px] font-extrabold tracking-[-0.035em] text-text leading-[1.18] flex flex-col gap-2">
+                  <span className="whitespace-nowrap">Tryout SNBT Gratis,</span>
+                  <span className="whitespace-nowrap">
+                    Demi{" "}
+                    <span className="hashtag-select-badge bg-[#FFD13B] text-black font-black px-2 py-0.5 rounded-xs inline-block selection:bg-[#FFC81F] selection:text-black">
+                      #RaihKampusImpian
+                    </span>.
+                  </span>
                 </h1>
 
-                {/* Hero support line: <= 30 words, colloquial, what it is -> cost -> when */}
-                <p className="text-[18px] text-slate-700 leading-[1.5] max-w-xl">
+                {/* Support Line (WRITING.md §4 & §7) */}
+                <p className="text-[17px] sm:text-[18px] text-text-body leading-[1.6] max-w-[56ch]">
                   Tryout SNBT tiap minggu, mulai 2 Nov 2026. Selesai ngerjain, kamu langsung tahu benar, salah, dan kosongnya. Skor IRT dan pembahasan dibuka pakai 1 coin.
                 </p>
 
-                {/* Primary Signal CTA (1-3 words, verb first) */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
                   <Link
                     href={isLoggedIn ? "/dashboard" : "/register"}
-                    className="jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-center gap-2.5"
+                    className="min-h-[48px] px-6 py-3 rounded-md bg-primary text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-primary-hover active:bg-primary-pressed transition-colors duration-[120ms] shadow-sm"
                   >
-                    <span>{isLoggedIn ? "Kerjakan" : "Daftar gratis"}</span>
-                    <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
+                    <span>{isLoggedIn ? "Buka tryout" : "Daftar gratis"}</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
                   </Link>
 
                   <a
                     href="#jadwal"
-                    className="jitu-btn-secondary text-[16px] font-semibold inline-flex items-center justify-center gap-2 bg-white"
+                    className="min-h-[48px] px-6 py-3 rounded-md border border-border bg-surface text-text text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-surface-muted transition-colors duration-[120ms]"
                   >
                     <span>Lihat jadwal</span>
                   </a>
                 </div>
               </div>
 
-              {/* Right Column: Big Borderless Pixel Art Pattern of Top Universities */}
-              <div className="lg:col-span-7 xl:col-span-7 relative z-10 lg:pl-4">
-                <CampusPixelArtPattern />
+              {/* Right Column: Pure Pixel Art Rocket (Border-less, no tacky SVG clouds) */}
+              <div className="lg:col-span-6 flex items-center justify-center">
+                <RocketCloudPixelIllustration />
               </div>
             </div>
           </div>
         </section>
 
-        {/* 3. Cara Kerja — 3-Step Flow + Tanpa Bayar vs Pakai 1 Coin */}
-        <section
-          id="cara-kerja"
-          className="py-16 lg:py-24 bg-white border-b-2 border-blue-900"
-        >
+        {/* ================================================================== */}
+        {/* 3. Cara Kerja — 3-Step Flow + Free vs Paid Comparison (WRITING.md) */}
+        {/* ================================================================== */}
+        <section id="cara-kerja" className="relative py-16 lg:py-24 bg-surface border-b border-border overflow-hidden">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-12">
-            <div className="max-w-2xl space-y-2">
-              <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                CARA KERJA
-              </div>
-              <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-blue-900">
-                Gimana cara ikutnya?
-              </h2>
-              <p className="text-[18px] text-slate-700">
+            <div className="max-w-2xl space-y-3">
+              <div className="text-label text-primary">Cara kerja</div>
+              <h2 className="text-h1 text-text">Gimana cara ikutnya?</h2>
+              <p className="text-[17px] text-text-body leading-[1.6]">
                 Tryout-nya gratis. Coin cuma kepakai kalau kamu mau lihat skor IRT dan pembahasan.
               </p>
             </div>
 
-            {/* 3 Concrete Steps */}
+            {/* 3 Steps */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 border-2 border-blue-900 bg-blue-50 space-y-3">
-                <div className="font-mono text-[28px] font-bold text-blue-500">
-                  01
+              {[
+                {
+                  step: "01",
+                  tag: "Gratis Rp0",
+                  title: "Daftar, lalu kerjakan",
+                  body: "Bikin akun gratis, pilih jadwal tryout yang lagi buka, terus kerjain 7 subtes SNBT dengan batas waktu.",
+                },
+                {
+                  step: "02",
+                  tag: "Instan",
+                  title: "Skor langsung keluar",
+                  body: "Begitu dikumpulin, jumlah benar, salah, dan kosongmu langsung kelihatan di layar. Tanpa potong coin.",
+                },
+                {
+                  step: "03",
+                  tag: "1 coin",
+                  title: "Buka pembahasan kalau perlu",
+                  body: "Pakai 1 coin buat lihat skor IRT dan pembahasan tiap soal. Kalau nilaimu udah aman, coin-mu tetap utuh.",
+                },
+              ].map((item) => (
+                <div
+                  key={item.step}
+                  className="bg-bg rounded-xl border border-border p-6 space-y-4 hover:border-blue-300 transition-colors duration-[120ms]"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-blue-50 text-blue-800 font-mono text-[13px] font-bold tabular-nums">
+                      Langkah {item.step}
+                    </span>
+                    <span className="text-[12px] font-medium text-text-muted">
+                      {item.tag}
+                    </span>
+                  </div>
+                  <h3 className="text-h3 text-text">{item.title}</h3>
+                  <p className="text-[14px] text-text-body leading-relaxed">
+                    {item.body}
+                  </p>
                 </div>
-                <h3 className="font-display text-[20px] font-bold text-blue-900">
-                  Daftar, lalu kerjakan
-                </h3>
-                <p className="text-[15px] text-slate-700 leading-relaxed">
-                  Bikin akun gratis, pilih jadwal tryout, terus kerjain 7 subtes SNBT dengan batas waktu.
-                </p>
-              </div>
-
-              <div className="p-6 border-2 border-blue-900 bg-blue-50 space-y-3">
-                <div className="font-mono text-[28px] font-bold text-blue-500">
-                  02
-                </div>
-                <h3 className="font-display text-[20px] font-bold text-blue-900">
-                  Skor langsung keluar
-                </h3>
-                <p className="text-[15px] text-slate-700 leading-relaxed">
-                  Habis kumpulin jawaban, jumlah benar, salah, dan kosongmu langsung muncul. Gratis.
-                </p>
-              </div>
-
-              <div className="p-6 border-2 border-blue-900 bg-blue-50 space-y-3">
-                <div className="font-mono text-[28px] font-bold text-blue-500">
-                  03
-                </div>
-                <h3 className="font-display text-[20px] font-bold text-blue-900">
-                  Buka pembahasan kalau perlu
-                </h3>
-                <p className="text-[15px] text-slate-700 leading-relaxed">
-                  Pakai 1 coin buat lihat skor IRT dan pembahasan tiap soal. Kalau nilaimu udah aman, coin-mu tetap utuh.
-                </p>
-              </div>
+              ))}
             </div>
 
-            {/* Comparison Box: Gratis vs Pakai 1 Coin */}
-            <div className="grid grid-cols-1 md:grid-cols-2 border-2 border-blue-900 bg-white divide-y-2 md:divide-y-0 md:divide-x-2 divide-blue-900">
+            {/* Comparison Box: Gratis (Rp0) vs Pakai 1 Coin */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Gratis (Rp0) */}
-              <div className="p-6 sm:p-8 space-y-4 bg-white">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700 font-semibold">
-                    GRATIS
-                  </span>
-                  <span className="px-2.5 py-1 border border-blue-900 bg-blue-100 font-mono text-[13px] font-bold text-blue-900">
-                    Rp0
+              <div className="rounded-xl bg-surface border border-border p-6 sm:p-8 space-y-5">
+                <div className="flex items-center justify-between pb-4 border-b border-ink-100">
+                  <div>
+                    <div className="text-label text-text-muted">Tanpa coin</div>
+                    <h3 className="text-[20px] font-bold text-text mt-1">
+                      Kerjakan tryout mingguan
+                    </h3>
+                  </div>
+                  <span className="h-7 px-3 rounded-full bg-success-soft text-success-text font-mono text-[13px] font-bold inline-flex items-center">
+                    Gratis (Rp0)
                   </span>
                 </div>
-                <h4 className="font-display text-[22px] font-bold text-blue-900">
-                  Tryout mingguan
-                </h4>
-                <ul className="space-y-3 text-[15px] text-slate-700">
+
+                <ul className="space-y-3 text-[14px] text-text-body">
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Tryout mingguan mulai 2 Nov 2026</span>
+                    <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
+                    <span>Tryout mingguan mulai 2 Nov 2026 sampai 21 Apr 2027</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>7 subtes SNBT, TPS dan Literasi</span>
+                    <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
+                    <span>7 subtes SNBT lengkap (TPS dan Literasi, 155 soal)</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Jumlah benar, salah, dan kosong langsung keluar</span>
+                    <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
+                    <span>Jumlah benar, salah, dan kosong langsung keluar di layar</span>
                   </li>
                 </ul>
               </div>
 
               {/* Pakai 1 Coin */}
-              <div className="p-6 sm:p-8 space-y-4 bg-blue-50">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-700 font-semibold flex items-center gap-1.5">
-                    <PixelCoin size={16} />
-                    <span>PAKAI 1 COIN</span>
-                  </span>
-                  <span className="px-2.5 py-1 border border-blue-900 bg-signal text-blue-900 font-mono text-[13px] font-bold">
-                    Mulai Rp8.900
+              <div className="rounded-xl bg-blue-50/70 border-2 border-primary p-6 sm:p-8 space-y-5">
+                <div className="flex items-center justify-between pb-4 border-b border-blue-200">
+                  <div>
+                    <div className="text-label text-primary">Skor IRT &amp; pembahasan</div>
+                    <h3 className="text-[20px] font-bold text-text mt-1">
+                      Semua yang gratis, plus:
+                    </h3>
+                  </div>
+                  <span className="h-7 px-3 rounded-full bg-yellow-300 text-ink-900 font-mono text-[13px] font-bold inline-flex items-center gap-1.5">
+                    <PixelCoin size={14} />
+                    <span>Mulai Rp8.900</span>
                   </span>
                 </div>
-                <h4 className="font-display text-[22px] font-bold text-blue-900">
-                  Semua yang gratis, plus:
-                </h4>
-                <ul className="space-y-3 text-[15px] text-blue-900">
+
+                <ul className="space-y-3 text-[14px] text-text">
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Skor IRT total dan per subtes</span>
+                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Skor IRT total dan rincian nilai per subtes</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
+                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                     <span>Kunci jawaban dan pembahasan langkah demi langkah tiap nomor</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <Check className="w-5 h-5 stroke-[2] text-blue-600 shrink-0 mt-0.5" />
-                    <span>Coin dipakai di tryout mana aja, berlaku sampai 21 Apr 2027</span>
+                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Coin berlaku sampai 21 Apr 2027 di tryout mana aja</span>
                   </li>
                 </ul>
               </div>
@@ -690,332 +686,151 @@ const LandingPageModule = () => {
           </div>
         </section>
 
-        {/* 4. Schedule — Slot Grid on Ink (WRITING.md Section 6 & 7) */}
-        <section
-          id="jadwal"
-          className="py-16 lg:py-24 bg-blue-900 text-white border-b-2 border-blue-900"
-        >
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-8">
-            <div className="border-b border-slate-600 pb-6">
-              {/* H2: <= 8 words, sentence case, number/date first */}
-              <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-white">
-                Tryout tiap minggu mulai 2 Nov 2026.
-              </h2>
+        {/* ================================================================== */}
+        {/* 4. Schedule — Jadwal Tryout (WRITING.md §7)                       */}
+        {/* ================================================================== */}
+        <section id="jadwal" className="py-16 lg:py-24 bg-bg border-b border-border">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="space-y-2">
+                <div className="text-label text-primary">Jadwal tryout</div>
+                <h2 className="text-h1 text-text">
+                  Tryout tiap minggu mulai 2 Nov 2026.
+                </h2>
+              </div>
+              <p className="text-[15px] text-text-body max-w-md">
+                Pilih jadwal yang sedang dibuka untuk langsung mulai ngerjain 7 subtes SNBT secara gratis.
+              </p>
             </div>
 
-            {/* Slot Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {TRYOUT_SLOTS.map((slot) => (
                 <TryoutSlotCard
                   key={slot.id}
                   slot={{
                     ...slot,
-                    href: isLoggedIn ? "/dashboard/tryout" : slot.href,
+                    href: isLoggedIn ? "/tryout" : slot.href,
                   }}
-                  onDark
                 />
               ))}
             </div>
           </div>
         </section>
 
-        {/* 4. How to Pay — Question Heading + Formula Block + Price Table (WRITING.md Sections 2, 4, 6, 7, 8) */}
-        <section
-          id="harga"
-          className="py-16 lg:py-24 bg-blue-50 border-b-2 border-blue-900"
-        >
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-12">
-            <div className="max-w-2xl space-y-2">
-              <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                MULAI RP8.900 PER TRYOUT
-              </div>
-              {/* H2: Reader's question, answered by the next line (WRITING.md Section 2 & 6) */}
-              <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-blue-900">
-                Bayarnya gimana?
-              </h2>
-              <p className="text-[18px] text-slate-700">
-                Tryout gratis. Coin cuma buat pembahasan. Makin banyak coin, makin murah per tryout.
-              </p>
-            </div>
-
-            {/* Pixelated Art Banner Showcase */}
-            <div className="bg-[#0B1B3F] border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)] p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 text-white relative overflow-hidden">
-              <div className="space-y-3 z-10 max-w-xl">
-                <h3 className="font-display font-extrabold text-[24px] sm:text-[32px] leading-tight text-white">
-                  1 coin = 1 pembahasan tryout
-                </h3>
-                <p className="text-[15px] text-blue-100 leading-relaxed">
-                  Skor IRT dan pembahasan 155 soal. Berlaku sampai 21 Apr 2027. Bayar pakai QRIS, tanpa langganan.
+        {/* ================================================================== */}
+        {/* 5. Pricing — Harga & Paket Coin (DESIGN.md §5 & WRITING.md §7)     */}
+        {/* ================================================================== */}
+        <section id="harga" className="py-16 lg:py-24 bg-surface border-b border-border">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="space-y-2 max-w-xl">
+                <div className="text-label text-primary">Mulai Rp8.900 per tryout</div>
+                <h2 className="text-h1 text-text">Bayarnya gimana?</h2>
+                <p className="text-[17px] text-text-body">
+                  Tryout gratis. Coin cuma buat pembahasan. Makin banyak coin, makin murah per tryout.
                 </p>
-                <div className="flex flex-wrap gap-2 pt-1 font-mono text-[12px] text-blue-200">
-                  <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    ✓ Tanpa Langganan
-                  </span>
-                  <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    ✓ QRIS
-                  </span>
-                  <span className="px-2.5 py-1 bg-blue-900/80 border border-blue-700/80">
-                    ✓ Berlaku s.d. 21 Apr 2027
-                  </span>
-                </div>
               </div>
 
-              {/* Pixel Art Campus Illustration */}
-              <div className="relative shrink-0 w-full lg:w-[360px] h-[160px] sm:h-[180px] border-2 border-blue-700 bg-blue-950 overflow-hidden flex items-center justify-center">
-                <Image
-                  src="/campus-pixel-art.png"
-                  alt="Pixelated Campus Art"
-                  fill
-                  className="object-cover object-center rendering-pixelated opacity-90 select-none pointer-events-none"
-                  style={{ imageRendering: "pixelated" }}
-                  unoptimized
-                />
+              <div className="flex flex-wrap gap-2">
+                <span className="h-7 px-3 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[12px] font-semibold inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+                  <span>Tanpa langganan</span>
+                </span>
+                <span className="h-7 px-3 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[12px] font-semibold inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+                  <span>QRIS</span>
+                </span>
+                <span className="h-7 px-3 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[12px] font-semibold inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+                  <span>Berlaku s.d. 21 Apr 2027</span>
+                </span>
               </div>
             </div>
 
-            {/* 4 Tier Pricing Cards with Pixelated Yellow Coin Icons */}
+            {/* 4 Plan Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {QUOTA_PACKS.map((pack) => {
-                const isTenCoins = pack.quota === 10;
+                const isRecommended = Boolean(pack.isBestValue);
 
                 return (
                   <div
                     key={pack.id}
-                    className={`relative bg-white border-2 flex flex-col justify-between transition-all ${
-                      isTenCoins
-                        ? "border-emerald-600 shadow-[4px_4px_0_#059669] ring-2 ring-emerald-500/20"
-                        : "border-blue-900 shadow-[4px_4px_0_var(--blue-900)]"
+                    className={`rounded-xl p-6 flex flex-col justify-between gap-6 transition-colors duration-[120ms] ${
+                      isRecommended
+                        ? "bg-blue-50/50 border-2 border-primary"
+                        : "bg-surface border border-border hover:border-blue-300"
                     }`}
                   >
-                    {/* Card Top Banner / Badge */}
-                    <div
-                      className={`px-4 py-2.5 border-b-2 flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em] ${
-                        isTenCoins
-                          ? "bg-emerald-700 text-white font-bold border-emerald-700"
-                          : "bg-blue-50 text-blue-900 font-semibold border-blue-900"
-                      }`}
-                    >
-                      <span>{pack.quota} coin</span>
-                      {isTenCoins ? (
-                        <span className="px-2 py-0.5 bg-amber-400 text-slate-950 font-mono text-[10px] font-extrabold tracking-normal shadow-xs">
-                          Paling hemat
-                        </span>
-                      ) : (
-                        <span className="text-[11px] opacity-80">{pack.quota}X TRYOUT</span>
-                      )}
-                    </div>
-
-                    {/* Card Body with Pixelated Yellow Coin Icon */}
-                    <div className="p-5 space-y-4">
-                      <div>
-                        <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-600 mb-1">
-                          JUMLAH COIN
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <PixelCoin size={26} />
-                          <div className="font-display text-[26px] font-extrabold text-blue-900">
+                    <div className="space-y-4">
+                      {/* Top Header & Ribbon */}
+                      <div className="flex items-center justify-between gap-2 min-h-[24px]">
+                        <div className="inline-flex items-center gap-2">
+                          <PixelCoin size={22} />
+                          <span className="text-[20px] font-bold text-text tabular-nums">
                             {pack.quota} coin
-                          </div>
+                          </span>
                         </div>
-                        <p className="text-[13px] text-slate-600 mt-2">
-                          Buka skor IRT dan pembahasan {pack.quota} tryout.
-                        </p>
+                        {isRecommended && (
+                          <span className="h-6 px-2.5 rounded-full bg-yellow-300 text-ink-900 text-[11px] font-bold inline-flex items-center">
+                            Paling hemat
+                          </span>
+                        )}
                       </div>
 
-                      <div className="pt-3 border-t-2 border-dashed border-slate-200 space-y-1">
-                        <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-slate-600">
-                          HARGA PAKET
-                        </div>
-                        <div className="font-mono text-[24px] font-bold text-blue-900 tabular-nums">
+                      {/* Price & Per-Unit Muted Text */}
+                      <div className="pt-2 border-t border-ink-100 space-y-1">
+                        <div className="text-[28px] font-bold text-text leading-tight tabular-nums">
                           {formatRupiah(pack.totalPrice)}
                         </div>
-                        <div className={`font-mono text-[13px] font-semibold ${
-                          isTenCoins ? "text-emerald-700" : "text-blue-600"
-                        }`}>
-                          {formatRupiah(pack.perTryout)} / tryout
+                        <div className="text-[13px] font-mono text-primary font-semibold tabular-nums">
+                          {formatRupiah(pack.perTryout)} per tryout
                         </div>
                       </div>
+
+                      <p className="text-[13px] text-text-body leading-relaxed">
+                        {pack.note}
+                      </p>
                     </div>
 
-                    {/* Card CTA */}
-                    <div className="p-5 pt-0">
-                      <Link
-                        href={isLoggedIn ? "/dashboard/shop" : "/register"}
-                        className={`w-full py-2.5 px-4 font-mono text-[13px] font-bold uppercase tracking-wider inline-flex items-center justify-center gap-2 border-2 transition-all ${
-                          isTenCoins
-                            ? "bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700 shadow-[2px_2px_0_#065f46]"
-                            : "bg-white text-blue-900 border-blue-900 hover:bg-blue-50 shadow-[2px_2px_0_var(--blue-900)]"
-                        }`}
-                      >
-                        <span>Pilih paket</span>
-                        <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
-                      </Link>
-                    </div>
+                    <Link
+                      href={isLoggedIn ? "/shop" : "/register"}
+                      className={`w-full min-h-[44px] px-4 py-2.5 rounded-md text-[14px] font-semibold inline-flex items-center justify-center gap-2 transition-colors duration-[120ms] ${
+                        isRecommended
+                          ? "bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed"
+                          : "border border-border bg-surface text-text hover:bg-surface-muted"
+                      }`}
+                    >
+                      <span>Pilih paket</span>
+                      <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                    </Link>
                   </div>
                 );
               })}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Left Column: Free vs 1 Coin Table + Canonical Formula Block */}
-              <div className="lg:col-span-5 space-y-6">
-                {/* Free vs Paid Comparison Box */}
-                <div className="bg-white border-2 border-blue-900 divide-y-2 divide-blue-900">
-                  <div className="p-5 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900">
-                        KERJAKAN TRYOUT
-                      </span>
-                      <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-blue-100 font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
-                        Rp0
-                      </span>
-                    </div>
-                    <p className="text-[16px] text-blue-900 pt-1">
-                      Semua tryout gratis dikerjakan. Begitu kamu kumpulkan jawaban, jumlah benar, salah, dan kosong langsung keluar.
-                    </p>
-                  </div>
-
-                  <div className="p-5 space-y-2 bg-white">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-blue-900">
-                        SKOR IRT &amp; PEMBAHASAN
-                      </span>
-                      <span className="px-2 py-[2px] border-[1.5px] border-blue-900 bg-blue-500 text-white font-mono text-[12px] uppercase tracking-[0.06em] font-medium flex items-center gap-1">
-                        <PixelCoin size={14} />
-                        <span>1 COIN</span>
-                      </span>
-                    </div>
-                    <p className="text-[16px] text-blue-900 pt-1">
-                      1 coin membuka skor IRT dan pembahasan tiap soal untuk satu tryout. Kalau nilaimu sudah aman dan nggak butuh pembahasan, coin-mu tetap utuh.
-                    </p>
-                  </div>
+            {/* Formula Block & Payment Terms (WRITING.md §7) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <div className="lg:col-span-7 bg-bg rounded-xl border border-border p-6 space-y-2">
+                <div className="text-label text-primary">Rumus harga per tryout</div>
+                <div className="font-mono text-[15px] font-bold text-text">
+                  Harga per tryout = harga paket ÷ jumlah coin
                 </div>
-
-                {/* Canonical Formula + Worked Example Block (WRITING.md Section 7) */}
-                <div className="p-5 border-2 border-blue-900 bg-signal-100 text-blue-900 space-y-3">
-                  <div className="space-y-1">
-                    <div className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium text-signal-700">
-                      HARGA PER TRYOUT
-                    </div>
-                    <div className="font-mono text-[16px] font-medium text-blue-900">
-                      Harga per tryout = harga paket ÷ jumlah coin
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-blue-900/30 space-y-1">
-                    <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                      Contoh: 5 coin
-                    </div>
-                    <div className="font-mono text-[16px] font-medium text-blue-900 tabular-nums">
-                      Rp59.000 ÷ 5 = Rp11.800 per tryout
-                    </div>
-                  </div>
+                <div className="font-mono text-[13px] text-text-muted tabular-nums">
+                  Contoh: Rp59.000 ÷ 5 = Rp11.800 per tryout
                 </div>
               </div>
 
-              {/* Right Column: Price Table (WRITING.md Section 4 & 7) */}
-              <div className="lg:col-span-7 bg-white border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)]">
-                <div className="px-5 py-4 border-b-2 border-blue-900 bg-blue-800 text-white flex items-center justify-between">
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] font-medium flex items-center gap-1.5">
-                    <PixelCoin size={16} />
-                    <span>HARGA PAKET COIN</span>
-                  </span>
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-200">
-                    MULAI RP8.900 PER TRYOUT
-                  </span>
-                </div>
-
-                {/* Desktop Table */}
-                <div className="hidden sm:block">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b-2 border-blue-900 bg-blue-50 font-mono text-[12px] uppercase tracking-[0.06em] text-blue-900">
-                        <th className="py-3.5 px-5 text-left font-medium">Paket</th>
-                        <th className="py-3.5 px-5 text-left font-medium">Rincian</th>
-                        <th className="py-3.5 px-5 text-right font-medium">Per tryout</th>
-                        <th className="py-3.5 px-5 text-right font-medium">Harga paket</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-300">
-                      {QUOTA_PACKS.map((pack) => (
-                        <tr
-                          key={pack.id}
-                          className={`transition-colors ${
-                            pack.isBestValue
-                              ? "bg-signal hover:bg-signal"
-                              : "hover:bg-blue-50"
-                          }`}
-                        >
-                          <td className="py-4 px-5 font-mono font-medium text-[16px] text-blue-900 tabular-nums whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <PixelCoin size={18} />
-                              <span>{pack.quota} coin</span>
-                              {pack.isBestValue && (
-                                <span className="px-2 py-[2px] border-[1.5px] border-emerald-800 bg-emerald-600 text-white font-mono text-[10px] font-bold uppercase tracking-[0.06em]">
-                                  Paling hemat
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-4 px-5 text-[14px] text-blue-900">
-                            {pack.note}
-                          </td>
-                          <td className="py-4 px-5 text-right font-mono text-[14px] text-blue-900 tabular-nums whitespace-nowrap font-medium">
-                            {formatRupiah(pack.perTryout)}
-                          </td>
-                          <td className="py-4 px-5 text-right font-mono font-bold text-[18px] text-blue-900 tabular-nums whitespace-nowrap">
-                            {formatRupiah(pack.totalPrice)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Stacked List */}
-                <div className="sm:hidden divide-y divide-slate-300">
-                  {QUOTA_PACKS.map((pack) => (
-                    <div
-                      key={pack.id}
-                      className={`p-4 space-y-2 ${
-                        pack.isBestValue ? "bg-signal" : "bg-white"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <PixelCoin size={18} />
-                          <span className="font-mono font-medium text-[18px] text-blue-900 tabular-nums">
-                            {pack.quota} coin
-                          </span>
-                          {pack.isBestValue && (
-                            <span className="px-2 py-[2px] border-[1.5px] border-emerald-800 bg-emerald-600 text-white font-mono text-[10px] font-bold uppercase tracking-[0.06em]">
-                              Paling hemat
-                            </span>
-                          )}
-                        </div>
-                        <span className="font-mono font-bold text-[18px] text-blue-900 tabular-nums">
-                          {formatRupiah(pack.totalPrice)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-[14px] text-slate-700">
-                        <span>{pack.note}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Table Footer Action */}
-                <div className="p-5 border-t-2 border-blue-900 bg-blue-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                  <div className="text-[14px] text-slate-700 flex items-center gap-2">
-                    <PixelCoin size={16} />
-                    <span>1 coin buat 1 pembahasan tryout. Coin yang udah dibeli nggak bisa diuangkan lagi.</span>
-                  </div>
+              <div className="lg:col-span-5 bg-surface-muted rounded-xl border border-border p-6 space-y-3">
+                <p className="text-[13px] text-text-body leading-relaxed">
+                  1 coin buat 1 pembahasan tryout. Coin yang udah dibeli nggak bisa diuangkan lagi.
+                </p>
+                <div>
                   <Link
-                    href={isLoggedIn ? "/dashboard/shop" : "/register"}
-                    className="jitu-btn-blue text-[14px] font-semibold inline-flex items-center justify-center gap-2 shrink-0"
+                    href={isLoggedIn ? "/shop" : "/register"}
+                    className="text-[14px] font-semibold text-primary hover:underline inline-flex items-center gap-1.5"
                   >
                     <span>{isLoggedIn ? "Beli coin" : "Daftar gratis"}</span>
-                    <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
+                    <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
                   </Link>
                 </div>
               </div>
@@ -1023,173 +838,258 @@ const LandingPageModule = () => {
           </div>
         </section>
 
-        {/* 5. Peserta — 300+ siswa, 14 sekolah (WRITING.md Section 7) */}
-        <section
-          id="peserta"
-          className="py-16 lg:py-24 bg-white border-b-2 border-blue-900"
-        >
+        {/* ================================================================== */}
+        {/* 6. Social Proof & Sample IRT Breakdown — Peserta (WRITING.md §7)   */}
+        {/* ================================================================== */}
+        <section id="peserta" className="py-16 lg:py-24 bg-bg border-b border-border">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-12">
-            {/* Top Header */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
-              <div className="lg:col-span-6 space-y-2">
-                <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                  PESERTA
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left: Stats & Target Campuses */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="space-y-2">
+                  <div className="text-label text-primary">Peserta Jitu</div>
+                  <h2 className="text-h1 text-text">
+                    300+ siswa dari 14 sekolah.
+                  </h2>
+                  <p className="text-[17px] text-text-body leading-[1.6]">
+                    Dipakai siswa SMA di Jakarta buat persiapan SNBT.
+                  </p>
                 </div>
-                {/* H2: <= 8 words, sentence case, fact sheet numbers */}
-                <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-blue-900">
-                  300+ siswa dari 14 sekolah.
-                </h2>
-              </div>
-              {/* Section intro: <= 2 sentences */}
-              <p className="lg:col-span-6 text-[18px] text-slate-700 leading-relaxed">
-                Dipakai siswa SMA di Jakarta buat persiapan SNBT.
-              </p>
-            </div>
 
-            {/* Sourced Numbers Only (300+ siswa, 14 sekolah) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl">
-              <div className="p-6 border-2 border-blue-900 bg-blue-50 space-y-2">
-                <div className="flex items-center justify-between text-slate-700">
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em]">
-                    SISWA TERDAFTAR
-                  </span>
-                  <Users className="w-5 h-5 stroke-[1.75] text-blue-500" aria-hidden="true" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-surface rounded-xl border border-border p-5 space-y-2">
+                    <div className="flex items-center justify-between text-primary">
+                      <span className="text-label">Siswa</span>
+                      <Users className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                    </div>
+                    <div className="text-[34px] font-bold text-text leading-none tabular-nums">
+                      300+
+                    </div>
+                    <p className="text-[13px] text-text-muted">
+                      Siswa terdaftar persiapan SNBT
+                    </p>
+                  </div>
+
+                  <div className="bg-surface rounded-xl border border-border p-5 space-y-2">
+                    <div className="flex items-center justify-between text-primary">
+                      <span className="text-label">Sekolah</span>
+                      <School className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                    </div>
+                    <div className="text-[34px] font-bold text-text leading-none tabular-nums">
+                      14
+                    </div>
+                    <p className="text-[13px] text-text-muted">
+                      SMA di Jakarta
+                    </p>
+                  </div>
                 </div>
-                <div className="font-display font-extrabold text-[44px] sm:text-[56px] leading-[1.02] text-blue-500 tabular-nums">
-                  300+
+
+                {/* Target PTN Badges */}
+                <div className="bg-surface rounded-xl border border-border p-5 space-y-3">
+                  <div className="text-label text-text-muted">
+                    Target PTN impian peserta
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 items-center">
+                    {TARGET_CAMPUSES.map((campus) => (
+                      <div
+                        key={campus.name}
+                        className="h-14 rounded-lg bg-surface-muted border border-border px-2 flex flex-col items-center justify-center gap-1"
+                      >
+                        <Image
+                          src={campus.src}
+                          alt={`Logo ${campus.name}`}
+                          width={24}
+                          height={24}
+                          className="w-6 h-6 object-contain"
+                        />
+                        <span className="font-mono text-[10px] font-semibold text-text">
+                          {campus.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-[14px] text-slate-700">
-                  Siswa terdaftar persiapan SNBT
-                </p>
               </div>
 
-              <div className="p-6 border-2 border-blue-900 bg-blue-50 space-y-2">
-                <div className="flex items-center justify-between text-slate-700">
-                  <span className="font-mono text-[12px] uppercase tracking-[0.06em]">
-                    ASAL SEKOLAH
-                  </span>
-                  <School className="w-5 h-5 stroke-[1.75] text-blue-500" aria-hidden="true" />
+              {/* Right: Real UI Sample of 7-Subtest IRT Score Breakdown */}
+              <div className="lg:col-span-7 bg-surface rounded-xl border border-border overflow-hidden">
+                <div className="px-6 py-4 bg-surface-muted border-b border-ink-100 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="h-6 px-2.5 rounded-full bg-success-soft text-success-text text-[12px] font-semibold inline-flex items-center">
+                      Selesai dikerjakan
+                    </span>
+                    <span className="text-[14px] font-semibold text-text">
+                      Contoh rincian hasil Tryout #1
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 font-mono text-[12px]">
+                    <span className="px-2 py-0.5 rounded bg-success-soft text-success-text font-semibold tabular-nums">
+                      Benar 112
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-danger-soft text-danger-text font-semibold tabular-nums">
+                      Salah 31
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-ink-100 text-text-body font-semibold tabular-nums">
+                      Kosong 12
+                    </span>
+                  </div>
                 </div>
-                <div className="font-display font-extrabold text-[44px] sm:text-[56px] leading-[1.02] text-blue-900 tabular-nums">
-                  14
+
+                <div className="p-6 space-y-5">
+                  <div className="flex items-center justify-between gap-2 pb-4 border-b border-ink-100">
+                    <div>
+                      <div className="text-label text-text-muted">Dibuka pakai 1 coin</div>
+                      <h3 className="text-h3 text-text mt-0.5">
+                        Rincian skor IRT 7 subtes SNBT
+                      </h3>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[11px] text-text-muted">Rata-rata skor IRT</div>
+                      <div className="font-mono text-[28px] font-bold text-primary leading-none tabular-nums">
+                        648
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {SUBTEST_SAMPLE_SCORES.map((sub) => {
+                      const widthPct = Math.min(100, Math.round((sub.score / 800) * 100));
+                      return (
+                        <div key={sub.code} className="space-y-1">
+                          <div className="flex items-baseline justify-between gap-4">
+                            <div className="min-w-0">
+                              <span className="font-mono text-[13px] font-semibold text-text">
+                                {sub.code}
+                              </span>
+                              <span className="text-[13px] text-text-muted ml-2">
+                                {sub.name}
+                              </span>
+                            </div>
+                            <span className="font-mono text-[14px] font-semibold text-text tabular-nums shrink-0">
+                              {sub.score}
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-ink-100 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${sub.barClass}`}
+                              style={{ width: `${widthPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p className="text-[14px] text-slate-700">
-                  SMA di Jakarta
-                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 6. FAQ (WRITING.md Section 7) */}
-        <section
-          id="faq"
-          className="py-16 lg:py-24 bg-blue-50 border-b-2 border-blue-900"
-        >
+        {/* ================================================================== */}
+        {/* 7. FAQ (WRITING.md §7)                                             */}
+        {/* ================================================================== */}
+        <section id="faq" className="py-16 lg:py-24 bg-surface border-b border-border">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10">
             <div className="max-w-2xl space-y-2">
-              <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-slate-700">
-                FAQ
-              </div>
-              <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-blue-900">
+              <div className="text-label text-primary">FAQ</div>
+              <h2 className="text-h1 text-text">
                 Pertanyaan yang sering ditanya
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 bg-white border-2 border-blue-900 space-y-2.5">
-                <h3 className="font-display text-[18px] font-bold text-blue-900">
-                  Beneran gratis?
-                </h3>
-                <p className="text-[15px] text-slate-700 leading-relaxed">
+              <div className="p-6 bg-bg rounded-xl border border-border space-y-2.5">
+                <h3 className="text-h3 text-text">Beneran gratis?</h3>
+                <p className="text-[14px] text-text-body leading-relaxed">
                   Beneran. Semua tryout gratis dikerjakan, dan jumlah benar, salah, kosongmu langsung keluar. Coin cuma kepakai kalau kamu mau skor IRT dan pembahasan.
                 </p>
               </div>
 
-              <div className="p-6 bg-white border-2 border-blue-900 space-y-2.5">
-                <h3 className="font-display text-[18px] font-bold text-blue-900">
-                  Coin bisa hangus nggak?
-                </h3>
-                <p className="text-[15px] text-slate-700 leading-relaxed">
+              <div className="p-6 bg-bg rounded-xl border border-border space-y-2.5">
+                <h3 className="text-h3 text-text">Coin bisa hangus nggak?</h3>
+                <p className="text-[14px] text-text-body leading-relaxed">
                   Berlaku sampai 21 Apr 2027. Selama itu coin bisa dipakai di tryout mana aja.
                 </p>
               </div>
 
-              <div className="p-6 bg-white border-2 border-blue-900 space-y-2.5">
-                <h3 className="font-display text-[18px] font-bold text-blue-900">
-                  Bayarnya lewat apa?
-                </h3>
-                <p className="text-[15px] text-slate-700 leading-relaxed">
-                  QRIS.
+              <div className="p-6 bg-bg rounded-xl border border-border space-y-2.5">
+                <h3 className="text-h3 text-text">Bayarnya lewat apa?</h3>
+                <p className="text-[14px] text-text-body leading-relaxed">
+                  QRIS. Pilih paket coin, scan kode QRIS dari aplikasi bank atau e-wallet, dan coin langsung masuk ke akunmu.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 7. Closing CTA Band (WRITING.md Section 7) */}
-        <section className="py-16 lg:py-20 bg-blue-500 text-white border-b-2 border-blue-900">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-            <div className="space-y-2 max-w-2xl">
-              <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-100">
-                2 NOV 2026 · 21 APR 2027
+        {/* ================================================================== */}
+        {/* 8. Closing CTA Band (WRITING.md §7)                                */}
+        {/* ================================================================== */}
+        <section className="py-16 lg:py-20 bg-bg border-b border-border">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-8">
+            <div className="rounded-2xl bg-blue-50 border border-blue-200 p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+              <div className="space-y-2 max-w-2xl">
+                <div className="text-label text-blue-800">
+                  2 Nov 2026 · 21 Apr 2027
+                </div>
+                <h2 className="text-h1 text-text">
+                  Tryout #1 dibuka 2 Nov 2026.
+                </h2>
+                <p className="text-[17px] text-text-body">
+                  Daftar dulu, gratis. Pas jadwalnya buka, tinggal kerjain.
+                </p>
               </div>
-              {/* H2: <= 8 words, sentence case */}
-              <h2 className="font-display font-extrabold text-[34px] sm:text-[56px] leading-[1.02] tracking-[-0.025em] text-white">
-                Tryout #1 dibuka 2 Nov 2026.
-              </h2>
-              <p className="text-[18px] text-blue-100">
-                Daftar dulu, gratis. Pas jadwalnya buka, tinggal kerjain.
-              </p>
-            </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
-              <Link
-                href={isLoggedIn ? "/dashboard" : "/register"}
-                className="jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-center gap-2.5"
-              >
-                <span>{isLoggedIn ? "Kerjakan" : "Daftar gratis"}</span>
-                <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
-              </Link>
+              <div className="w-full sm:w-auto shrink-0">
+                <Link
+                  href={isLoggedIn ? "/dashboard" : "/register"}
+                  className="w-full sm:w-auto min-h-[48px] px-8 py-3 rounded-md bg-primary text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-primary-hover active:bg-primary-pressed transition-colors duration-[120ms] shadow-sm"
+                >
+                  <span>{isLoggedIn ? "Buka tryout" : "Daftar gratis"}</span>
+                  <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                </Link>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* 8. Footer (WRITING.md Section 7) */}
-      <footer className="bg-blue-900 text-white py-12">
+      {/* ================================================================== */}
+      {/* 9. Footer (DESIGN.md §2.1 blue-900)                                */}
+      {/* ================================================================== */}
+      <footer className="bg-blue-900 text-white py-14">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-slate-600">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-blue-800">
             <div className="md:col-span-5 space-y-3">
               <div className="inline-flex items-center gap-2.5">
                 <Image
                   src="/blue-jitu-logo.png"
                   alt="Logo Jitu"
-                  width={54}
-                  height={36}
-                  className="h-9 w-auto object-contain"
+                  width={48}
+                  height={32}
+                  className="h-8 w-auto object-contain brightness-0 invert"
                 />
-                <span className="font-display font-extrabold text-[28px] tracking-[-0.025em] text-white leading-none">
-                  jitu<span className="text-signal">.</span>
+                <span className="font-bold text-[24px] tracking-[-0.025em] text-white leading-none">
+                  jitu<span className="text-yellow-400">.</span>
                 </span>
               </div>
-              <p className="text-[14px] text-blue-200 max-w-sm leading-relaxed">
+              <p className="text-[14px] text-blue-100 max-w-sm leading-relaxed">
                 Tryout SNBT tiap minggu, 2 Nov 2026 sampai 21 Apr 2027. Gratis dikerjakan. Pembahasan mulai Rp8.900 per tryout.
               </p>
-              <div className="font-mono text-[12px] text-blue-300">
+              <div className="font-mono text-[12px] text-blue-200">
                 jituptn.com
               </div>
             </div>
 
-            {/* Subtest Codes with Full Name Under Abbreviation (WRITING.md Section 2) */}
-            <div className="md:col-span-4 space-y-2">
-              <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-300">
-                SUBTES SNBT
-              </div>
+            {/* Subtest Codes */}
+            <div className="md:col-span-4 space-y-3">
+              <div className="text-label text-blue-200">Subtes SNBT</div>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-[12px] text-blue-100">
                 {SUBTEST_SAMPLE_SCORES.map((sub) => (
                   <li key={sub.code} className="leading-tight">
-                    <span className="font-mono font-medium text-white">{sub.code}</span>
+                    <span className="font-mono font-semibold text-white">
+                      {sub.code}
+                    </span>
                     <div className="text-blue-200">{sub.name}</div>
                   </li>
                 ))}
@@ -1197,39 +1097,59 @@ const LandingPageModule = () => {
             </div>
 
             <div className="md:col-span-3 space-y-3">
-              <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-blue-300">
-                HALAMAN
-              </div>
+              <div className="text-label text-blue-200">Halaman</div>
               <div className="grid grid-cols-1 gap-1.5 text-[14px]">
-                <a href="#cara-kerja" className="text-white hover:underline min-h-[32px] inline-flex items-center">
+                <a
+                  href="#cara-kerja"
+                  className="text-blue-100 hover:text-white hover:underline min-h-[32px] inline-flex items-center"
+                >
                   Cara kerja
                 </a>
-                <a href="#jadwal" className="text-white hover:underline min-h-[32px] inline-flex items-center">
+                <a
+                  href="#jadwal"
+                  className="text-blue-100 hover:text-white hover:underline min-h-[32px] inline-flex items-center"
+                >
                   Jadwal
                 </a>
-                <a href="#harga" className="text-white hover:underline min-h-[32px] inline-flex items-center">
+                <a
+                  href="#harga"
+                  className="text-blue-100 hover:text-white hover:underline min-h-[32px] inline-flex items-center"
+                >
                   Harga
                 </a>
-                <a href="#peserta" className="text-white hover:underline min-h-[32px] inline-flex items-center">
+                <a
+                  href="#peserta"
+                  className="text-blue-100 hover:text-white hover:underline min-h-[32px] inline-flex items-center"
+                >
                   Peserta
                 </a>
-                <Link href="/careers" className="text-signal font-semibold hover:underline min-h-[32px] inline-flex items-center">
+                <Link
+                  href="/careers"
+                  className="text-yellow-400 font-semibold hover:underline min-h-[32px] inline-flex items-center"
+                >
                   Open Hiring 2026
                 </Link>
-                <Link href="/login" className="text-white hover:underline min-h-[32px] inline-flex items-center">
+                <Link
+                  href="/login"
+                  className="text-blue-100 hover:text-white hover:underline min-h-[32px] inline-flex items-center"
+                >
                   Masuk
                 </Link>
-                <Link href="/register" className="text-white hover:underline min-h-[32px] inline-flex items-center">
+                <Link
+                  href="/register"
+                  className="text-blue-100 hover:text-white hover:underline min-h-[32px] inline-flex items-center"
+                >
                   Daftar gratis
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Plain legal line, small, in normal language (WRITING.md Section 2 & 7) */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-mono text-[12px] text-blue-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[12px] text-blue-200">
             <span>© 2026 Jitu (jituptn.com).</span>
-            <span>1 coin berlaku untuk 1 pembahasan tryout. Coin yang udah dibeli nggak bisa diuangkan lagi.</span>
+            <span>
+              1 coin berlaku untuk 1 pembahasan tryout. Coin yang udah dibeli nggak bisa diuangkan lagi.
+            </span>
           </div>
         </div>
       </footer>
