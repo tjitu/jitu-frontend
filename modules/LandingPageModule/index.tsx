@@ -519,7 +519,7 @@ const LandingPageModule = () => {
               <div className="lg:col-span-6 space-y-6">
                 <div className="inline-flex items-center gap-2 h-7 px-3 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[12px] font-semibold">
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
-                  <span>Tryout SNBT 2026/2027 · Mulai 2 Nov 2026</span>
+                  <span>Teman Persiapan Masuk PTN 2026/2027</span>
                 </div>
 
                 {/* H1: Headline (Gedean dikit lagi: 48px sweet spot) */}
@@ -535,7 +535,7 @@ const LandingPageModule = () => {
 
                 {/* Support Line (WRITING.md §4 & §7) */}
                 <p className="text-[17px] sm:text-[18px] text-text-body leading-[1.6] max-w-[56ch]">
-                  Tryout SNBT tiap minggu, mulai 2 Nov 2026. Selesai ngerjain, kamu langsung tahu benar, salah, dan kosongnya. Skor IRT dan pembahasan dibuka pakai 1 coin.
+                  Latihan SNBT jadi lebih terarah dengan tryout mingguan dari JITU. Selesai mengerjakan, langsung cek hasil jawabanmu. Akses skor IRT dan pembahasan lengkap hanya dengan 1 coin!
                 </p>
 
                 {/* CTAs */}
