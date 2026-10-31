@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
@@ -15,6 +15,7 @@ import {
   BookOpen,
   TrendingUp,
   Target,
+  GraduationCap,
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
 import { PixelCoin } from "@/components/ui/pixel-coin";
@@ -493,6 +494,117 @@ function RocketCloudPixelIllustration() {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Hero Section Animated Stats Counter Strip                                  */
+/* -------------------------------------------------------------------------- */
+
+function CounterStat({
+  target,
+  label,
+  suffix = "+",
+  icon: Icon,
+}: {
+  target: number;
+  label: string;
+  suffix?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!("IntersectionObserver" in window)) {
+      setHasAnimated(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasAnimated(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!hasAnimated) return;
+
+    let startTime: number | null = null;
+    const duration = 1800; // ms
+    let animationFrameId: number;
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const current = Math.floor(easeOutCubic(progress) * target);
+      setCount(current);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      } else {
+        setCount(target);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [hasAnimated, target]);
+
+  const formatted = new Intl.NumberFormat("id-ID").format(count);
+
+  return (
+    <div
+      ref={ref}
+      aria-label={`${target}${suffix} ${label}`}
+      className="flex items-center justify-center gap-3.5 sm:gap-4 px-3 sm:px-5 py-3.5 sm:py-2"
+    >
+      {Icon && (
+        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 border border-blue-200/70 text-primary flex items-center justify-center shrink-0 shadow-2xs">
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary stroke-[2.2]" aria-hidden="true" />
+        </div>
+      )}
+      <div className="flex flex-col text-left">
+        <div className="text-[28px] sm:text-[34px] lg:text-[38px] font-black text-primary tracking-tight leading-none flex items-baseline">
+          <span>{formatted}</span>
+          <span className="font-black ml-0.5">{suffix}</span>
+        </div>
+        <div className="text-[12.5px] sm:text-[13.5px] font-semibold text-text-muted mt-1.5 tracking-normal whitespace-nowrap">
+          {label}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroStatsBar() {
+  return (
+    <div className="pt-2 sm:pt-4">
+      <div className="max-w-4xl mx-auto rounded-2xl bg-surface/90 backdrop-blur-md border border-border shadow-xs px-3 sm:px-6 py-3 sm:py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border/80 gap-3 sm:gap-0">
+          <CounterStat target={50} label="Paket Soal" icon={BookOpen} />
+          <CounterStat target={700} label="Materi" icon={GraduationCap} />
+          <CounterStat target={15000} label="Soal UTBK/Masuk PTN" icon={Target} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Main Landing Page Component                                                */
 /* -------------------------------------------------------------------------- */
 
@@ -562,6 +674,9 @@ const LandingPageModule = () => {
                 <RocketCloudPixelIllustration />
               </div>
             </div>
+
+            {/* 3. Hero Section Animated Stats: 50+ Paket Soal · 700+ Materi · 15.000+ Soal UTBK/Masuk PTN */}
+            <HeroStatsBar />
           </div>
         </section>
 
