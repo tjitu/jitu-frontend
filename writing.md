@@ -178,7 +178,7 @@ Approved wording. Change facts only through §9.
 
 **Hero**
 - H1: Kerjakan gratis. Bayar kalau mau tahu salahnya di mana.
-- Support: Tryout SNBT tiap minggu, mulai 2 Nov 2026. Selesai ngerjain, kamu langsung tahu benar, salah, dan kosongnya. Skor IRT dan pembahasan dibuka pakai 1 coin.
+- Support: Latihan SNBT jadi lebih terarah dengan tryout mingguan dari JITU. Selesai mengerjakan, langsung cek hasil jawabanmu. Akses skor IRT dan pembahasan lengkap hanya dengan 1 coin!
 - Buttons: Daftar gratis · Lihat jadwal
 
 **Cara kerja**
