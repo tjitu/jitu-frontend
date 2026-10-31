@@ -1,29 +1,23 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Mono, Figtree } from "next/font/google";
-import { Toaster } from "sonner";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
 import DemoModeProvider from "@/components/DemoModeProvider";
+import PageVisitTracker from "@/components/PageVisitTracker";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-display",
+  variable: "--font-jakarta",
 });
 
-const figtree = Figtree({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
-  variable: "--font-body",
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-  variable: "--font-mono",
+  variable: "--font-jetbrains-mono",
 });
 
 export const metadata: Metadata = {
@@ -48,12 +42,13 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${bricolage.variable} ${figtree.variable} ${dmMono.variable}`}
+      className={`${plusJakartaSans.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="antialiased font-sans bg-[#F3F6FC] text-[#0B1B3F]">
+      <body className="antialiased font-sans bg-bg text-text-body">
+        <PageVisitTracker />
         <DemoModeProvider>{children}</DemoModeProvider>
         <Analytics />
-        <Toaster position="bottom-left" />
+        <Toaster position="bottom-center" />
       </body>
     </html>
   );
