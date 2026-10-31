@@ -1103,35 +1103,6 @@ const LandingPageModule = () => {
                     <span>Lihat jadwal</span>
                   </a>
                 </div>
-
-                {/* Social Proof: Random Cartoon People Student Avatars */}
-                <div className="flex items-center gap-3 pt-1">
-                  <div className="flex items-center -space-x-2.5">
-                    {[
-                      { name: 'Dimas', seed: 'Dimas', style: 'open-peeps' },
-                      { name: 'Siti', seed: 'Siti', style: 'open-peeps' },
-                      { name: 'Rian', seed: 'Rian', style: 'open-peeps' },
-                      { name: 'Nadia', seed: 'Nadia', style: 'open-peeps' },
-                      { name: 'Budi', seed: 'Budi', style: 'open-peeps' },
-                    ].map((item) => (
-                      <div
-                        key={item.seed}
-                        className="w-8 h-8 rounded-full border-2 border-surface bg-blue-100 overflow-hidden shadow-xs ring-1 ring-border/50"
-                        title={`Siswa ${item.name}`}
-                      >
-                        <img
-                          src={`https://api.dicebear.com/9.x/${item.style}/svg?seed=${item.seed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`}
-                          alt={`Avatar Siswa ${item.name}`}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-[13px] text-text-body font-medium">
-                    <span className="font-bold text-text">300+ siswa SMA</span> sudah gabung
-                  </div>
-                </div>
               </div>
 
               {/* Right Column: Pure Pixel Art Rocket (Border-less, no tacky SVG clouds) */}
