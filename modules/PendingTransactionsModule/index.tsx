@@ -7,12 +7,12 @@ import PendingTransactionList from "./components/PendingTransactionList";
 const PendingTransactionsModule = () => {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+          <p className="text-label text-primary mb-1">
             TRANSAKSI COIN
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+          <h1 className="text-h2 font-bold text-text">
             Menunggu pembayaran
           </h1>
         </div>

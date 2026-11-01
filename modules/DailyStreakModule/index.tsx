@@ -107,64 +107,62 @@ const DailyStreakModule = () => {
   return (
     <div className="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-border">
         <div>
-          <p className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-1 font-medium">
+          <p className="text-label text-primary mb-1">
             LATIHAN HARIAN · 1 SOAL TIAP HARI
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">
+          <h1 className="text-h2 font-bold text-text">
             Latihan harian SNBT
           </h1>
-          <p className="text-sm text-slate-600 mt-1">
+          <p className="text-[14px] text-text-muted mt-1">
             Jawab 1 soal pilihan tiap hari untuk jaga ritme pengerjaanmu.
           </p>
         </div>
-        <div className="bg-amber-50 border border-amber-300 px-3.5 py-1.5 font-mono text-xs font-semibold text-amber-900 uppercase tracking-wider shadow-xs">
-          STREAK: {streak} HARI
+        <div className="h-7 rounded-full bg-yellow-100 px-3.5 inline-flex items-center font-semibold text-[12px] text-yellow-700">
+          Streak: {streak} hari
         </div>
       </div>
 
       {/* 3 Fact-Sheet Stat Boxes */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-slate-200 p-5 shadow-xs">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
+        <div className="bg-surface border border-border rounded-lg p-5">
+          <div className="text-label text-text-muted mb-1">
             STREAK AKTIF
           </div>
-          <div className="font-mono text-2xl font-bold text-slate-900">
+          <div className="font-mono text-2xl font-bold text-text tabular-nums">
             {streak} hari
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 p-5 shadow-xs">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
+        <div className="bg-surface border border-border rounded-lg p-5">
+          <div className="text-label text-text-muted mb-1">
             REKOR TERBAIK
           </div>
-          <div className="font-mono text-2xl font-bold text-blue-600">
+          <div className="font-mono text-2xl font-bold text-primary tabular-nums">
             {bestStreak} hari
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 p-5 shadow-xs">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
+        <div className="bg-surface border border-border rounded-lg p-5">
+          <div className="text-label text-text-muted mb-1">
             SOAL TERJAWAB
           </div>
-          <div className="font-mono text-2xl font-bold text-slate-900">
+          <div className="font-mono text-2xl font-bold text-text tabular-nums">
             {totalProblemsSolved} soal
           </div>
         </div>
       </div>
 
       {/* Daily Question Sheet */}
-      <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-xs">
-        <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b border-slate-100">
+      <div className="bg-surface border border-border rounded-lg p-6 sm:p-8">
+        <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b border-border">
           <div className="flex items-center gap-2">
-            <span className="bg-slate-900 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-wider font-semibold">
-              SOAL HARI INI
-            </span>
+            <Badge variant="default">Soal hari ini</Badge>
           </div>
           {isAnswered && (
             <Badge variant={isCorrect ? "success" : "danger"}>
-              {isCorrect ? "BENAR" : "SALAH"}
+              {isCorrect ? "Benar" : "Salah"}
             </Badge>
           )}
         </div>
@@ -172,36 +170,36 @@ const DailyStreakModule = () => {
         {currentProblem ? (
           <div className="space-y-6">
             {currentProblem.imageUrl && (
-              <div className="border border-slate-200 p-3 bg-slate-50">
+              <div className="border border-border rounded-md p-3 bg-surface-muted">
                 <img
                   src={currentProblem.imageUrl}
                   alt="Ilustrasi soal"
-                  className="max-w-full h-auto"
+                  className="max-w-full h-auto rounded-sm"
                 />
               </div>
             )}
 
             {currentProblem.narration && (
-              <div className="bg-slate-50 border border-slate-200 p-4 sm:p-5 text-slate-800 text-sm sm:text-base leading-relaxed max-w-[68ch]">
+              <div className="bg-surface-muted border border-border rounded-md p-4 sm:p-5 text-text-body text-sm sm:text-base leading-relaxed max-w-[68ch]">
                 {currentProblem.narration}
               </div>
             )}
 
             {currentProblem.content && (
-              <div className="text-slate-900 text-base sm:text-[17px] leading-relaxed max-w-[68ch] font-medium">
+              <div className="text-text text-base sm:text-[17px] leading-relaxed max-w-[68ch] font-medium">
                 {currentProblem.content}
               </div>
             )}
 
             {/* Answer Area */}
             {currentProblem.type === "ISIAN_SINGKAT" ? (
-              <div className="space-y-3">
-                <label className="block font-mono text-xs uppercase tracking-wider text-slate-500 font-medium">
-                  JAWABAN SINGKAT
+              <div className="space-y-2">
+                <label className="block text-[13px] font-medium text-text">
+                  Jawaban singkat
                 </label>
                 <input
                   type="text"
-                  className="w-full h-11 px-3.5 bg-white border border-slate-300 font-mono text-base text-slate-900 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-xs"
+                  className="w-full h-11 px-3.5 rounded-md bg-surface border border-border font-mono text-base text-text outline-none hover:border-ink-300 focus:border-primary focus:ring-3 focus:ring-blue-200 transition-colors"
                   placeholder="Ketik jawaban kamu..."
                   value={selectedAnswer || ""}
                   onChange={(e) =>
@@ -221,22 +219,22 @@ const DailyStreakModule = () => {
                   const optionLabel = String.fromCharCode(65 + index);
 
                   let rowClass =
-                    "bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800";
+                    "bg-surface border border-border hover:bg-surface-muted hover:border-ink-300 text-text-body";
                   let badgeClass =
-                    "bg-slate-100 border border-slate-200 text-slate-700";
+                    "bg-surface-muted border border-border text-text-body";
 
                   if (isRightAnswer) {
                     rowClass =
-                      "bg-emerald-50/80 border border-emerald-500 text-emerald-950 ring-1 ring-emerald-500 font-semibold";
-                    badgeClass = "bg-emerald-600 border-emerald-600 text-white";
+                      "bg-success-soft border-2 border-success text-success-text font-semibold";
+                    badgeClass = "bg-success border-success text-white";
                   } else if (isWrongAnswer) {
                     rowClass =
-                      "bg-rose-50/80 border border-rose-500 text-rose-950 ring-1 ring-rose-500";
-                    badgeClass = "bg-rose-600 border-rose-600 text-white";
+                      "bg-danger-soft border-2 border-danger text-danger-text";
+                    badgeClass = "bg-danger border-danger text-white";
                   } else if (isSelected) {
                     rowClass =
-                      "bg-blue-50/80 border border-blue-600 text-blue-950 ring-1 ring-blue-600 font-medium";
-                    badgeClass = "bg-blue-600 border-blue-600 text-white";
+                      "bg-blue-50 border-2 border-primary text-text font-medium";
+                    badgeClass = "bg-primary border-primary text-white";
                   }
 
                   return (
@@ -247,10 +245,10 @@ const DailyStreakModule = () => {
                         !isAnswered && setSelectedAnswer(option.id)
                       }
                       disabled={isAnswered}
-                      className={`w-full min-h-[52px] px-4 py-3 text-left flex items-center gap-3.5 transition-colors cursor-pointer shadow-xs ${rowClass}`}
+                      className={`w-full min-h-[52px] rounded-md px-4 py-3 text-left flex items-center gap-3.5 transition-colors cursor-pointer ${rowClass}`}
                     >
                       <span
-                        className={`w-7 h-7 shrink-0 font-mono text-xs font-semibold flex items-center justify-center ${badgeClass}`}
+                        className={`w-7 h-7 rounded-sm shrink-0 font-mono text-xs font-semibold flex items-center justify-center ${badgeClass}`}
                       >
                         {optionLabel}
                       </span>
@@ -258,10 +256,10 @@ const DailyStreakModule = () => {
                         {option.content}
                       </span>
                       {isRightAnswer && (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                       )}
                       {isWrongAnswer && (
-                        <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                        <XCircle className="w-5 h-5 text-danger shrink-0" />
                       )}
                     </button>
                   );
@@ -291,12 +289,12 @@ const DailyStreakModule = () => {
             )}
 
             {isAnswered && explanation && (
-              <div className="p-5 sm:p-6 bg-slate-50 border border-slate-200">
-                <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-slate-700 font-semibold pb-3 mb-3 border-b border-slate-200">
-                  <BookOpen className="w-4 h-4 text-blue-600" />
+              <div className="p-5 sm:p-6 rounded-md bg-surface-muted border border-border">
+                <div className="flex items-center gap-2 text-label text-text pb-3 mb-3 border-b border-border">
+                  <BookOpen className="w-4 h-4 text-primary" />
                   PEMBAHASAN
                 </div>
-                <p className="text-sm sm:text-base text-slate-800 leading-relaxed max-w-[68ch]">
+                <p className="text-sm sm:text-base text-text-body leading-relaxed max-w-[68ch]">
                   {explanation}
                 </p>
               </div>
@@ -304,10 +302,10 @@ const DailyStreakModule = () => {
           </div>
         ) : (
           <div className="py-12 text-center">
-            <p className="font-mono text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <p className="text-label text-text-subtle mb-1">
               BELUM TERSEDIA
             </p>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-text-muted">
               Soal latihan hari ini belum diterbitkan. Cek lagi nanti.
             </p>
           </div>
@@ -326,10 +324,10 @@ const DailyStreakModule = () => {
               return (
                 <div
                   key={i}
-                  className={`w-9 h-9 border font-mono text-xs flex items-center justify-center ${
+                  className={`w-9 h-9 rounded-sm border font-mono text-xs flex items-center justify-center ${
                     active
-                      ? "bg-blue-600 border-blue-600 text-white font-semibold shadow-xs"
-                      : "bg-slate-50 border-slate-200 text-slate-400"
+                      ? "bg-primary border-primary text-white font-semibold"
+                      : "bg-surface-muted border-border text-text-subtle"
                   }`}
                   title={`Hari ke-${i + 1}`}
                 >

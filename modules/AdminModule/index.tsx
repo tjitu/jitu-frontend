@@ -78,9 +78,9 @@ const AdminModule = () => {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-          MEMUAT RINGKASAN ADMIN...
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="text-[13px] font-medium text-text-muted">
+          Memuat ringkasan admin...
         </span>
       </div>
     );
@@ -88,14 +88,14 @@ const AdminModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="pb-5 border-b-2 border-blue-900">
-        <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+      <div className="pb-5 border-b border-border">
+        <p className="text-label text-primary mb-1">
           PANEL ADMIN · JITU.
         </p>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+        <h1 className="text-h2 font-bold text-text">
           Ringkasan operasional
         </h1>
-        <p className="text-sm text-slate-700 mt-1">
+        <p className="text-[14px] text-text-muted mt-1">
           Statistik peserta, sesi tryout aktif, dan transaksi coin.
         </p>
       </div>
@@ -136,7 +136,7 @@ const AdminModule = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Quick Actions Grid */}
         <div className="lg:col-span-8 space-y-3">
-          <h2 className="font-display text-lg font-bold text-blue-900">
+          <h2 className="text-[18px] font-bold text-text">
             Pintasan menu
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -144,17 +144,17 @@ const AdminModule = () => {
               <Link
                 href={action.href}
                 key={index}
-                className="bg-white border-2 border-blue-900 p-5 hover:bg-blue-50 transition-colors flex items-center justify-between gap-4"
+                className="bg-surface rounded-lg border border-border p-5 hover:border-blue-300 transition-colors flex items-center justify-between gap-4"
               >
                 <div>
-                  <h3 className="font-display font-bold text-blue-900 text-base">
+                  <h3 className="font-bold text-text text-base">
                     {action.label}
                   </h3>
-                  <p className="text-xs text-slate-600 mt-1">
+                  <p className="text-[13px] text-text-muted mt-1">
                     {action.description}
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-blue-700 shrink-0" />
+                <ArrowRight className="h-4 w-4 text-primary shrink-0" />
               </Link>
             ))}
           </div>
@@ -166,20 +166,20 @@ const AdminModule = () => {
             <CardHeader>
               <CardTitle>Status sistem</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 font-mono text-xs">
-              <div className="flex items-center justify-between py-2 border-b border-blue-100">
-                <span className="text-slate-600 uppercase">DATABASE</span>
-                <Badge variant="success">ONLINE</Badge>
+            <CardContent className="space-y-3 text-[13px]">
+              <div className="flex items-center justify-between py-2 border-b border-border">
+                <span className="text-text-muted">Database</span>
+                <Badge variant="success">Online</Badge>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-blue-100">
-                <span className="text-slate-600 uppercase">SESI AKTIF</span>
-                <span className="font-medium text-blue-900">
+              <div className="flex items-center justify-between py-2 border-b border-border">
+                <span className="text-text-muted">Sesi aktif</span>
+                <span className="font-mono font-semibold text-text">
                   {stats?.totalActiveTryout || 0} tryout
                 </span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-slate-600 uppercase">ADMIN</span>
-                <span className="font-medium text-blue-900">
+                <span className="text-text-muted">Admin</span>
+                <span className="font-mono font-semibold text-text">
                   {stats?.totalAdmin || 0} akun
                 </span>
               </div>

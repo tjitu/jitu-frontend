@@ -146,9 +146,9 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
   if (isFetching) {
     return (
       <div className="flex h-[60vh] items-center justify-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-          MEMUAT TRYOUT...
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="text-[13px] font-medium text-text-muted">
+          Memuat tryout...
         </span>
       </div>
     );
@@ -156,7 +156,7 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b border-border">
         <div className="flex items-center gap-4">
           <Button asChild variant="outline" size="icon">
             <Link href="/admin/tryout">
@@ -164,10 +164,10 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
             </Link>
           </Button>
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+            <p className="text-label text-primary">
               MANAJEMEN UJIAN
             </p>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+            <h1 className="text-h2 font-bold text-text">
               Kelola tryout
             </h1>
           </div>

@@ -252,18 +252,18 @@ const AdminAiGeneratorModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b border-border">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+          <p className="text-label text-primary mb-1">
             GENERATOR BANK SOAL
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+            <h1 className="text-h2 font-bold text-text">
               AI generator soal
             </h1>
             <EnvironmentBadge status={status} isLoading={isLoadingStatus} />
           </div>
-          <p className="text-sm text-slate-700 mt-1">
+          <p className="text-[14px] text-text-muted mt-1">
             Buat dan kurasi draf soal SNBT sebelum diterbitkan ke bank soal.
           </p>
         </div>

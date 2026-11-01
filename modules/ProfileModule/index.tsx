@@ -283,11 +283,11 @@ export default function ProfileModule() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Top Profile Sheet Header */}
-      <div className="bg-white border border-slate-200 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
+      <div className="bg-surface border border-border rounded-lg p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start sm:items-center gap-5">
           <div className="relative group shrink-0">
             <div
-              className="w-20 h-20 border border-slate-200 bg-slate-50 relative cursor-pointer overflow-hidden shadow-xs"
+              className="w-20 h-20 rounded-lg border border-border bg-surface-muted relative cursor-pointer overflow-hidden"
               onClick={() => fileInputRef.current?.click()}
             >
               {user.image ? (
@@ -299,19 +299,19 @@ export default function ProfileModule() {
                   unoptimized
                 />
               ) : (
-                <div className="flex items-center justify-center w-full h-full text-slate-500">
+                <div className="flex items-center justify-center w-full h-full text-text-muted">
                   <User size={32} />
                 </div>
               )}
 
               {isUploading && (
-                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center z-10">
+                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center z-10">
                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                 </div>
               )}
 
               {!isUploading && (
-                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <Camera className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -328,7 +328,7 @@ export default function ProfileModule() {
             <button
               type="button"
               onClick={openEditModal}
-              className="absolute -bottom-1.5 -right-1.5 bg-amber-400 p-1.5 border border-slate-300 text-slate-900 hover:bg-amber-300 transition-colors cursor-pointer z-20 shadow-xs"
+              className="absolute -bottom-1.5 -right-1.5 bg-yellow-300 rounded-full p-1.5 border border-yellow-400 text-ink-900 hover:bg-yellow-400 transition-colors cursor-pointer z-20"
               title="Ubah profil"
             >
               <Edit3 size={12} />
@@ -336,27 +336,27 @@ export default function ProfileModule() {
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-0.5 font-medium">
+            <div className="text-label text-text-muted mb-0.5">
               PESERTA SNBT 2026
             </div>
-            <h1 className="font-display text-2xl font-bold text-slate-900">
+            <h1 className="text-[22px] font-bold text-text">
               {user.name}
             </h1>
-            <p className="font-mono text-xs text-slate-500 mb-3">
+            <p className="font-mono text-xs text-text-muted mb-3">
               {user.email}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="default">
                 <Target size={12} className="mr-1.5" />
-                TARGET: {user.target}
+                Target: {user.target}
               </Badge>
               <button
                 type="button"
                 onClick={() => router.push("/shop")}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 border border-amber-300 bg-amber-50 font-mono text-xs font-semibold text-amber-900 uppercase cursor-pointer hover:bg-amber-100 transition-colors"
+                className="h-6 inline-flex items-center gap-1.5 px-2.5 rounded-full bg-yellow-100 text-[12px] font-semibold text-yellow-700 cursor-pointer hover:bg-yellow-200 transition-colors"
               >
                 <PixelCoin size={12} />
-                <span>COIN: {user.tokenBalance}</span>
+                <span>{user.tokenBalance} coin</span>
               </button>
             </div>
           </div>
@@ -376,7 +376,7 @@ export default function ProfileModule() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Navigation */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white border border-slate-200 divide-y divide-slate-100 shadow-xs">
+          <div className="bg-surface border border-border rounded-lg p-1.5 space-y-1">
             <MenuButton
               active={activeTab === "overview"}
               onClick={() => setActiveTab("overview")}
@@ -403,8 +403,8 @@ export default function ProfileModule() {
             />
           </div>
 
-          <div className="bg-white border border-slate-200 p-4 space-y-2 shadow-xs">
-            <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 font-medium">
+          <div className="bg-surface border border-border rounded-lg p-4 space-y-2">
+            <div className="text-label text-text-muted mb-1">
               AKSI AKUN
             </div>
             <Button
@@ -435,39 +435,39 @@ export default function ProfileModule() {
           {activeTab === "overview" && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white border border-slate-200 p-5 shadow-xs">
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
+                <div className="bg-surface border border-border rounded-lg p-5">
+                  <div className="text-label text-text-muted mb-1">
                     SKOR TERAKHIR
                   </div>
-                  <div className="font-mono text-2xl font-bold text-slate-900">
+                  <div className="font-mono text-2xl font-bold text-text tabular-nums">
                     {stats.lastScore || "-"}
                   </div>
                 </div>
-                <div className="bg-white border border-slate-200 p-5 shadow-xs">
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
+                <div className="bg-surface border border-border rounded-lg p-5">
+                  <div className="text-label text-text-muted mb-1">
                     RATA-RATA IRT
                   </div>
-                  <div className="font-mono text-2xl font-bold text-blue-600">
+                  <div className="font-mono text-2xl font-bold text-primary tabular-nums">
                     {stats.averageScore || "-"}
                   </div>
                 </div>
-                <div className="bg-white border border-slate-200 p-5 shadow-xs">
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 mb-1 font-medium">
+                <div className="bg-surface border border-border rounded-lg p-5">
+                  <div className="text-label text-text-muted mb-1">
                     TRYOUT SELESAI
                   </div>
-                  <div className="font-mono text-2xl font-bold text-slate-900">
+                  <div className="font-mono text-2xl font-bold text-text tabular-nums">
                     {stats.totalTryout}
                   </div>
                 </div>
               </div>
 
               {stats.totalTryout === 0 && (
-                <div className="bg-slate-900 text-white border border-slate-800 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="font-display text-lg font-bold text-white">
+                    <h3 className="text-[18px] font-bold text-text">
                       Belum ada tryout yang dikerjakan
                     </h3>
-                    <p className="text-sm text-slate-300 mt-0.5">
+                    <p className="text-[14px] text-text-body mt-0.5">
                       Coba 1 paket tryout gratis untuk lihat baseline skor IRT
                       kamu.
                     </p>
@@ -494,13 +494,13 @@ export default function ProfileModule() {
                 </CardHeader>
                 <CardContent>
                   {attempts.length > 0 ? (
-                    <div className="divide-y divide-blue-100">
+                    <div className="divide-y divide-border">
                       {attempts.slice(0, 3).map((attempt) => (
                         <HistoryItem key={attempt.id} attempt={attempt} />
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-slate-600 text-sm">
+                    <div className="text-center py-8 text-text-muted text-sm">
                       {isLoadingData
                         ? "Memuat data..."
                         : "Belum ada tryout yang selesai."}
@@ -518,17 +518,17 @@ export default function ProfileModule() {
               </CardHeader>
               <CardContent>
                 {attempts.length > 0 ? (
-                  <div className="divide-y divide-blue-100">
+                  <div className="divide-y divide-border">
                     {attempts.map((attempt) => (
                       <HistoryItem key={attempt.id} attempt={attempt} />
                     ))}
                   </div>
                 ) : (
                   <div className="py-12 text-center space-y-3">
-                    <p className="font-mono text-xs uppercase tracking-[0.08em] text-slate-500">
+                    <p className="text-label text-text-subtle">
                       KOSONG
                     </p>
-                    <p className="text-sm text-slate-700">
+                    <p className="text-sm text-text-muted">
                       Belum ada tryout yang selesai.
                     </p>
                     <Button
@@ -546,13 +546,13 @@ export default function ProfileModule() {
           {activeTab === "transactions" && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-display text-lg font-bold text-blue-900 mb-3">
+                <h3 className="text-[18px] font-bold text-text mb-3">
                   Menunggu pembayaran
                 </h3>
                 <PendingTransactionList />
               </div>
               <div>
-                <h3 className="font-display text-lg font-bold text-blue-900 mb-3">
+                <h3 className="text-[18px] font-bold text-text mb-3">
                   Riwayat pembelian
                 </h3>
                 <PastTransactionList />
@@ -572,29 +572,29 @@ export default function ProfileModule() {
               <CardContent className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>NAMA LENGKAP</Label>
-                    <div className="p-3 border border-slate-200 bg-slate-50 text-slate-800 text-sm font-medium">
+                    <Label>Nama lengkap</Label>
+                    <div className="p-3 rounded-md border border-border bg-surface-muted text-text text-sm font-medium">
                       {user.name}
                     </div>
                   </div>
                   <div>
-                    <Label>TARGET KAMPUS &amp; PRODI</Label>
-                    <div className="p-3 border border-slate-200 bg-slate-50 text-slate-800 text-sm font-medium">
+                    <Label>Target kampus &amp; prodi</Label>
+                    <div className="p-3 rounded-md border border-border bg-surface-muted text-text text-sm font-medium">
                       {user.target}
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label>EMAIL TERDAFTAR</Label>
-                  <div className="p-3 border border-slate-200 bg-slate-50 text-slate-800 text-sm flex items-center justify-between">
+                  <Label>Email terdaftar</Label>
+                  <div className="p-3 rounded-md border border-border bg-surface-muted text-text text-sm flex items-center justify-between">
                     <span className="font-mono text-xs">{user.email}</span>
-                    <Badge variant="success">AKTIF</Badge>
+                    <Badge variant="success">Aktif</Badge>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100">
-                  <Label>KEAMANAN AKUN</Label>
+                <div className="pt-4 border-t border-border">
+                  <Label>Keamanan akun</Label>
                   <Button
                     variant="outline"
                     onClick={() => setIsPasswordOpen(true)}
@@ -621,7 +621,7 @@ export default function ProfileModule() {
           </DialogHeader>
           <div className="grid gap-4 py-3">
             <div>
-              <Label htmlFor="name">NAMA LENGKAP</Label>
+              <Label htmlFor="name">Nama lengkap</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -632,7 +632,7 @@ export default function ProfileModule() {
               />
             </div>
             <div>
-              <Label htmlFor="target">TARGET KAMPUS / PRODI</Label>
+              <Label htmlFor="target">Target kampus / prodi</Label>
               <Input
                 id="target"
                 value={formData.target}
@@ -672,7 +672,7 @@ export default function ProfileModule() {
           <div className="grid gap-4 py-3">
             {hasPassword && (
               <div>
-                <Label>PASSWORD SAAT INI</Label>
+                <Label>Password saat ini</Label>
                 <Input
                   type="password"
                   placeholder="••••••••"
@@ -688,7 +688,7 @@ export default function ProfileModule() {
             )}
 
             <div>
-              <Label>PASSWORD BARU</Label>
+              <Label>Password baru</Label>
               <Input
                 type="password"
                 placeholder="Minimal 8 karakter"
@@ -703,7 +703,7 @@ export default function ProfileModule() {
             </div>
 
             <div>
-              <Label>ULANGI PASSWORD BARU</Label>
+              <Label>Ulangi password baru</Label>
               <Input
                 type="password"
                 placeholder="Ketik ulang password baru"
@@ -743,14 +743,14 @@ function MenuButton({ active, onClick, icon: Icon, label }: any) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
+      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md text-[14px] font-medium transition-colors cursor-pointer ${
         active
-          ? "bg-slate-900 text-white font-semibold"
-          : "bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+          ? "bg-blue-50 text-blue-700 font-semibold"
+          : "bg-surface text-text-body hover:bg-surface-muted hover:text-text"
       }`}
     >
       <Icon
-        className={`h-4 w-4 ${active ? "text-amber-400" : "text-slate-400"}`}
+        className={`h-4 w-4 ${active ? "text-primary" : "text-text-muted"}`}
       />
       <span>{label}</span>
     </button>
@@ -767,15 +767,15 @@ function HistoryItem({ attempt }: { attempt: Attempt }) {
   return (
     <div className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
       <div>
-        <h4 className="font-semibold text-blue-900 text-sm">{attempt.title}</h4>
-        <p className="font-mono text-xs text-slate-600 mt-0.5">{dateStr}</p>
+        <h4 className="font-semibold text-text text-sm">{attempt.title}</h4>
+        <p className="font-mono text-xs text-text-muted mt-0.5">{dateStr}</p>
       </div>
       <div className="text-right flex items-center gap-3">
         <div>
-          <div className="font-mono text-lg font-medium text-blue-900">
+          <div className="font-mono text-lg font-bold text-text tabular-nums">
             {attempt.score}
           </div>
-          <div className="font-mono text-[10px] uppercase text-slate-500">
+          <div className="font-mono text-[10px] uppercase text-text-muted">
             {attempt.status}
           </div>
         </div>

@@ -17,7 +17,7 @@ export default function MainLayout({
     HIDDEN_NAVBAR_ROUTES.includes(pathname) || isExamOrBreak;
 
   return (
-    <div className="min-h-screen w-full bg-blue-50 text-blue-900 flex flex-col">
+    <div className="min-h-screen w-full bg-bg text-text-body flex flex-col">
       {!hideNavbar && <Navbar />}
       <main className={`flex-1 w-full ${!hideNavbar ? "pb-16 md:pb-0" : ""}`}>
         {children}

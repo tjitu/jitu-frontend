@@ -45,9 +45,9 @@ const AdminTryoutPreviewModule: React.FC<AdminTryoutPreviewModuleProps> = ({
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-          MEMUAT PRATINJAU...
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="text-[13px] font-medium text-text-muted">
+          Memuat pratinjau...
         </span>
       </div>
     );
@@ -55,7 +55,7 @@ const AdminTryoutPreviewModule: React.FC<AdminTryoutPreviewModuleProps> = ({
 
   if (!data || !data.subtests || data.subtests.length === 0) {
     return (
-      <div className="p-8 bg-white border-2 border-blue-900 text-center space-y-4">
+      <div className="p-8 bg-surface rounded-lg border border-border text-center space-y-4">
         <p className="text-danger font-semibold">
           Tryout ini belum memiliki subtes atau soal.
         </p>
@@ -92,22 +92,22 @@ const AdminTryoutPreviewModule: React.FC<AdminTryoutPreviewModuleProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b border-border">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+            <p className="text-label text-primary">
               PRATINJAU SOAL
             </p>
-            <h1 className="font-display text-2xl font-bold text-blue-900 flex items-center gap-2">
+            <h1 className="text-h2 font-bold text-text flex items-center gap-2">
               <span>{data.title}</span>
               <Badge variant="default">{data.batch}</Badge>
             </h1>
           </div>
         </div>
-        <Badge variant="signal">MODE PRATINJAU</Badge>
+        <Badge variant="signal">Mode pratinjau</Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

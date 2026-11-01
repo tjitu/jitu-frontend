@@ -115,14 +115,14 @@ const AdminUserModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="pb-5 border-b-2 border-blue-900">
-        <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+      <div className="pb-5 border-b border-border">
+        <p className="text-label text-primary mb-1">
           DATA PENGGUNA
         </p>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+        <h1 className="text-h2 font-bold text-text">
           Kelola peserta
         </h1>
-        <p className="text-sm text-slate-700 mt-1">
+        <p className="text-[14px] text-text-muted mt-1">
           Pantau akun peserta, target kampus, dan saldo coin.
         </p>
       </div>
@@ -139,9 +139,9 @@ const AdminUserModule = () => {
       </div>
 
       {/* Search & Filter */}
-      <div className="bg-white border-2 border-blue-900 p-4 flex flex-col sm:flex-row gap-3">
+      <div className="bg-surface rounded-lg border border-border p-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-subtle" />
           <Input
             placeholder="Cari nama atau email peserta..."
             className="pl-10"
@@ -196,16 +196,16 @@ const AdminUserModule = () => {
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="h-24 text-center font-mono text-xs uppercase text-slate-500"
+                    className="h-24 text-center text-[13px] font-medium text-text-muted"
                   >
-                    MEMUAT DATA...
+                    Memuat data...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="h-24 text-center text-slate-600"
+                    className="h-24 text-center text-text-muted"
                   >
                     Tidak ada peserta yang cocok.
                   </TableCell>
@@ -213,10 +213,10 @@ const AdminUserModule = () => {
               ) : (
                 users.map((user, index) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-mono text-xs text-slate-500">
+                    <TableCell className="font-mono text-xs text-text-muted">
                       {(page - 1) * 10 + index + 1}
                     </TableCell>
-                    <TableCell className="font-semibold text-blue-900">
+                    <TableCell className="font-semibold text-text">
                       {user.name}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
@@ -232,7 +232,7 @@ const AdminUserModule = () => {
                         {user.role}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-mono text-xs font-medium text-blue-900">
+                    <TableCell className="font-mono text-xs font-semibold text-text">
                       {user.tokenBalance} coin
                     </TableCell>
                     <TableCell className="font-mono text-xs">

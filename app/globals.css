@@ -293,6 +293,80 @@
   will-change: transform, opacity;
 }
 
+/* Gentle Floating Animation for Mascot */
+@keyframes astronaut-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-astronaut-float {
+  animation: astronaut-float 4.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Gentle Floating Animation for Golden Pass Ticket */
+@keyframes ticket-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(-2deg);
+  }
+}
+
+.animate-ticket-float {
+  animation: ticket-float 3.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Subtle Shimmer Sweeping Light for Premium Card */
+@keyframes pass-shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-18deg);
+  }
+  40%, 100% {
+    transform: translateX(250%) skewX(-18deg);
+  }
+}
+
+.animate-pass-shimmer {
+  animation: pass-shimmer 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Subtle Floating & Swaying Animation for Card Doodles */
+@keyframes doodle-float-1 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(4deg);
+  }
+}
+
+@keyframes doodle-float-2 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(4px) rotate(-4deg);
+  }
+}
+
+.animate-doodle-1 {
+  animation: doodle-float-1 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-doodle-2 {
+  animation: doodle-float-2 5s ease-in-out infinite;
+  will-change: transform;
+}
+
 /* Fluid Typography Scale (design.md §3) */
 .text-display {
   font-size: clamp(2.25rem, 1.6rem + 2.8vw, 3.75rem);

@@ -5,16 +5,16 @@ import { cn } from "@/lib/utils";
 
 /**
  * DESIGN.md Section 5 — Banner / Alert
- * signal-100 for info/warning, warn-100 for error, icon on the left, no thick left border, 0 radius.
+ * Soft semantic fills (blue-50 for info, danger-soft for error), radius 10 (rounded-md).
  */
 const alertVariants = cva(
-  "relative w-full rounded-none border border-slate-200 px-4 py-3 text-[14px] grid has-[>svg]:grid-cols-[20px_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-1 items-start [&>svg]:size-5 [&>svg]:translate-y-0.5 [&>svg]:text-current shadow-xs",
+  "relative w-full rounded-md border px-4 py-3 text-[14px] grid has-[>svg]:grid-cols-[20px_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-1 items-start [&>svg]:size-5 [&>svg]:translate-y-0.5 [&>svg]:text-current",
   {
     variants: {
       variant: {
-        default: "bg-blue-50/80 text-blue-950 border-blue-200",
+        default: "bg-blue-50 text-blue-800 border-blue-200",
         destructive:
-          "bg-red-50/80 text-red-950 border-red-300 *:data-[slot=alert-description]:text-red-800",
+          "bg-danger-soft text-danger-text border-danger/30 *:data-[slot=alert-description]:text-danger-text",
       },
     },
     defaultVariants: {
@@ -43,7 +43,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="alert-title"
       className={cn(
-        "col-start-2 min-h-4 font-bold tracking-tight text-blue-900",
+        "col-start-2 min-h-4 font-semibold tracking-tight text-current",
         className
       )}
       {...props}
@@ -59,7 +59,7 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        "text-blue-900 col-start-2 grid justify-items-start gap-1 text-[14px] [&_p]:leading-relaxed",
+        "text-current col-start-2 grid justify-items-start gap-1 text-[14px] [&_p]:leading-relaxed",
         className
       )}
       {...props}

@@ -67,7 +67,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
             className="space-y-5 group-disabled:opacity-50"
           >
             <div>
-              <Label htmlFor="title">NAMA TRYOUT</Label>
+              <Label htmlFor="title">Nama tryout</Label>
               <Input
                 id="title"
                 name="title"
@@ -79,7 +79,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="description">DESKRIPSI</Label>
+              <Label htmlFor="description">Deskripsi</Label>
               <Textarea
                 id="description"
                 name="description"
@@ -90,18 +90,18 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="p-4 border border-slate-200/90 bg-slate-50/70 shadow-xs space-y-3">
+              <div className="p-4 rounded-md border border-border bg-surface-muted space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <div className="font-mono text-xs uppercase tracking-[0.08em] font-medium text-slate-900 flex items-center gap-1.5">
+                    <div className="text-[13px] font-semibold text-text flex items-center gap-1.5">
                       {formData.isPublic ? (
-                        <Globe className="h-3.5 w-3.5 text-blue-600" />
+                        <Globe className="h-3.5 w-3.5 text-primary" />
                       ) : (
-                        <Lock className="h-3.5 w-3.5 text-warn" />
+                        <Lock className="h-3.5 w-3.5 text-yellow-700" />
                       )}
-                      AKSES TRYOUT
+                      Akses tryout
                     </div>
-                    <p className="text-xs text-slate-600 mt-0.5">
+                    <p className="text-xs text-text-muted mt-0.5">
                       {formData.isPublic
                         ? "Publik: terbuka untuk semua peserta"
                         : "Privat: wajib kode akses"}
@@ -117,7 +117,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
 
                 {!formData.isPublic && (
                   <div className="pt-2">
-                    <Label htmlFor="referralCode">KODE AKSES</Label>
+                    <Label htmlFor="referralCode">Kode akses</Label>
                     <Input
                       id="referralCode"
                       name="referralCode"
@@ -132,7 +132,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="solutionPrice">COIN PEMBAHASAN</Label>
+                <Label htmlFor="solutionPrice">Coin pembahasan</Label>
                 <Input
                   id="solutionPrice"
                   name="solutionPrice"
@@ -143,7 +143,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
                   onChange={handleChange}
                   className="font-mono"
                 />
-                <p className="font-mono text-[11px] text-slate-600 mt-1">
+                <p className="text-[12px] text-text-muted mt-1">
                   Isi 0 untuk tryout gratis.
                 </p>
               </div>
@@ -151,11 +151,11 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <Label htmlFor="batch">KATEGORI BATCH</Label>
+                <Label htmlFor="batch">Kategori batch</Label>
                 <select
                   id="batch"
                   name="batch"
-                  className="flex h-11 w-full border-[1.5px] border-slate-300 bg-white px-3.5 py-2 text-sm text-blue-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="flex h-11 w-full rounded-md border border-border bg-surface px-3.5 py-2 text-sm text-text hover:border-ink-300 focus:outline-none focus:border-primary focus:ring-3 focus:ring-blue-200 transition-colors"
                   value={formData.batch}
                   onChange={handleChange}
                 >
@@ -165,7 +165,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="releaseDate">TANGGAL RILIS</Label>
+                <Label htmlFor="releaseDate">Tanggal rilis</Label>
                 <Input
                   id="releaseDate"
                   name="releaseDate"
@@ -180,7 +180,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <Label htmlFor="scheduledStart">JADWAL MULAI</Label>
+                <Label htmlFor="scheduledStart">Jadwal mulai</Label>
                 <Input
                   id="scheduledStart"
                   name="scheduledStart"
@@ -193,7 +193,7 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="scheduledEnd">JADWAL SELESAI</Label>
+                <Label htmlFor="scheduledEnd">Jadwal selesai</Label>
                 <Input
                   id="scheduledEnd"
                   name="scheduledEnd"

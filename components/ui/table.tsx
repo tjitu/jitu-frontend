@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * DESIGN.md Section 5 — Table
- * mono uppercase 12px header with 2px ink underline;
- * rows separated by 1px slate-300; hover blue-50; numbers right-aligned.
+ * 48px rows, ink-50 header with Label style (12px, 600, uppercase, +0.06em),
+ * 1px ink-100 row dividers, numeric columns right-aligned with tabular-nums.
  */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
@@ -17,7 +17,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-[14px] text-blue-900 border-collapse", className)}
+        className={cn("w-full caption-bottom text-[14px] text-text-body border-collapse", className)}
         {...props}
       />
     </div>
@@ -28,7 +28,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("bg-slate-50 border-b border-slate-200", className)}
+      className={cn("bg-ink-50 border-b border-ink-200", className)}
       {...props}
     />
   );
@@ -38,7 +38,7 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
       data-slot="table-body"
-      className={cn("divide-y divide-slate-200 [&_tr:last-child]:border-0", className)}
+      className={cn("divide-y divide-ink-100 [&_tr:last-child]:border-0", className)}
       {...props}
     />
   );
@@ -49,7 +49,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "bg-slate-50 border-t border-slate-200 font-medium [&>tr]:last:border-b-0",
+        "bg-ink-50 border-t border-ink-200 font-medium [&>tr]:last:border-b-0",
         className
       )}
       {...props}
@@ -62,7 +62,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-blue-50 data-[state=selected]:bg-blue-100 border-b border-slate-300 transition-colors",
+        "h-12 hover:bg-blue-50/50 data-[state=selected]:bg-blue-50 border-b border-ink-100 transition-colors",
         className
       )}
       {...props}
@@ -75,7 +75,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "text-blue-900 h-11 px-4 text-left align-middle font-mono text-[12px] uppercase tracking-[0.06em] font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "text-ink-500 h-12 px-4 text-left align-middle text-[12px] uppercase tracking-[0.06em] font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -88,7 +88,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-4 align-middle whitespace-nowrap text-blue-900 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "px-4 py-3 align-middle whitespace-nowrap text-text-body [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -103,7 +103,7 @@ function TableCaption({
   return (
     <caption
       data-slot="table-caption"
-      className={cn("text-slate-700 mt-4 text-[14px]", className)}
+      className={cn("text-text-muted mt-4 text-[14px]", className)}
       {...props}
     />
   );

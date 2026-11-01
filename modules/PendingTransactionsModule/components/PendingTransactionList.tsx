@@ -48,18 +48,18 @@ const PendingTransactionList = () => {
   return (
     <div className="space-y-4">
       {isLoading ? (
-        <div className="flex items-center justify-center py-12 bg-white border border-slate-200">
-          <Loader2 className="w-5 h-5 animate-spin text-blue-600 mr-2" />
-          <span className="font-mono text-xs uppercase tracking-wider text-slate-500">
-            MEMUAT TRANSAKSI...
+        <div className="flex items-center justify-center py-12 bg-surface border border-border rounded-lg">
+          <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
+          <span className="text-[13px] font-medium text-text-muted">
+            Memuat transaksi...
           </span>
         </div>
       ) : transactions.length === 0 ? (
-        <div className="bg-white border border-slate-200 p-10 text-center">
-          <p className="font-mono text-xs uppercase tracking-wider text-slate-400 mb-1">
+        <div className="bg-surface border border-border rounded-lg p-10 text-center">
+          <p className="text-label text-text-subtle mb-1">
             KOSONG
           </p>
-          <p className="text-sm text-slate-600">Belum ada transaksi.</p>
+          <p className="text-[14px] text-text-muted">Belum ada transaksi.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,26 +96,26 @@ const PendingTransactionList = () => {
                     toast.error("Gagal mengambil kode QRIS.");
                   });
               }}
-              className="bg-white border border-slate-200 shadow-xs p-5 cursor-pointer hover:border-slate-300 transition-colors flex flex-col justify-between gap-4"
+              className="bg-surface border border-border rounded-lg p-5 cursor-pointer hover:border-blue-300 transition-colors flex flex-col justify-between gap-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="font-mono text-xs text-slate-400 uppercase mb-1">
+                  <div className="font-mono text-xs text-text-subtle uppercase mb-1">
                     ID #{String(tx.id).slice(0, 8)}
                   </div>
-                  <h3 className="font-display font-bold text-slate-900 text-base">
+                  <h3 className="font-bold text-text text-base">
                     {tx.packageName}
                   </h3>
                 </div>
-                <Badge variant="warn">MENUNGGU</Badge>
+                <Badge variant="warn">Menunggu</Badge>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between font-mono text-xs">
-                <span className="text-slate-900 font-medium">
+              <div className="pt-3 border-t border-border flex items-center justify-between font-mono text-xs">
+                <span className="text-text font-semibold tabular-nums">
                   Rp{Number(tx.totalPrice || 0).toLocaleString("id-ID")} ·{" "}
                   {tx.amount} coin
                 </span>
-                <span className="text-slate-500 inline-flex items-center gap-1">
+                <span className="text-text-muted inline-flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
                   {new Date(tx.createdAt).toLocaleString("id-ID", {
                     day: "2-digit",
@@ -147,9 +147,9 @@ const PendingTransactionList = () => {
         <DialogContent className="sm:max-w-[440px]">
           {isModalLoading && (
             <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="w-7 h-7 animate-spin text-blue-600 mb-3" />
-              <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-                MEMUAT QRIS...
+              <Loader2 className="w-7 h-7 animate-spin text-primary mb-3" />
+              <div className="text-[13px] font-medium text-text-muted">
+                Memuat QRIS...
               </div>
             </div>
           )}
@@ -157,15 +157,15 @@ const PendingTransactionList = () => {
           {!isModalLoading && transactionId && !showContact && (
             <div className="flex flex-col items-center gap-4">
               <div className="text-center">
-                <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+                <p className="text-label text-primary">
                   PEMBAYARAN QRIS
                 </p>
-                <h2 className="font-display text-xl font-bold text-blue-900 mt-1">
+                <h2 className="text-[20px] font-bold text-text mt-1">
                   Scan QRIS untuk bayar
                 </h2>
               </div>
 
-              <div className="flex justify-center items-center p-4 w-full border border-slate-200 bg-white">
+              <div className="flex justify-center items-center p-4 w-full border border-border rounded-lg bg-surface">
                 {qrCodeUrl ? (
                   <img
                     src={qrCodeUrl}
@@ -181,14 +181,14 @@ const PendingTransactionList = () => {
                     className="w-48 h-48 object-contain"
                   />
                 ) : (
-                  <p className="text-sm text-slate-600 py-12">
+                  <p className="text-sm text-text-muted py-12">
                     Waktu bayar habis. Buat kode QRIS baru untuk lanjut.
                   </p>
                 )}
               </div>
 
-              <p className="font-mono text-xs text-slate-600">
-                ID TRANSAKSI: {transactionId}
+              <p className="font-mono text-xs text-text-muted">
+                ID transaksi: {transactionId}
               </p>
 
               <Button
@@ -203,10 +203,10 @@ const PendingTransactionList = () => {
 
           {!isModalLoading && transactionId && showContact && (
             <div className="space-y-4">
-              <h2 className="font-display text-xl font-bold text-blue-900">
+              <h2 className="text-[20px] font-bold text-text">
                 Menunggu verifikasi
               </h2>
-              <p className="text-sm text-slate-700">
+              <p className="text-[14px] text-text-body">
                 Coin otomatis masuk setelah pembayaran terkonfirmasi. Jika
                 belum masuk, hubungi kontak bantuan:
               </p>

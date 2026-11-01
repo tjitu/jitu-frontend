@@ -343,128 +343,126 @@ const TryoutDetailModule = () => {
       </div>
 
       {/* Exam Sheet Header */}
-      <div className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-800">
+      <div className="bg-surface rounded-lg border border-border p-6 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-ink-100">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs uppercase tracking-wider bg-slate-800 text-slate-200 px-2.5 py-1 border border-slate-700">
-              TRYOUT #{tryoutData.number}
-            </span>
-            <Badge variant="primary">{tryoutData.badge}</Badge>
+            <Badge variant="secondary">Tryout #{tryoutData.number}</Badge>
+            <Badge variant="default">{tryoutData.badge}</Badge>
             {tryoutData.isFree ? (
-              <Badge variant="signal">GRATIS</Badge>
+              <Badge variant="success">Gratis</Badge>
             ) : (
-              <Badge variant="default" className="inline-flex items-center gap-1.5">
+              <Badge variant="signal" className="inline-flex items-center gap-1.5">
                 <PixelCoin size={12} />
-                <span>{cost} COIN</span>
+                <span>{cost} coin</span>
               </Badge>
             )}
           </div>
-          <span className="font-mono text-xs text-slate-400 uppercase tracking-wider">
+          <span className="text-[13px] text-text-muted tabular-nums">
             {formatDate(tryoutData.startDate)} –{" "}
             {formatDate(tryoutData.endDate)}
           </span>
         </div>
 
-        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight mb-3">
+        <h1 className="text-h1 text-text mb-3">
           {tryoutData.title}
         </h1>
-        <p className="text-slate-300 text-sm sm:text-base max-w-[65ch] mb-6 leading-relaxed">
+        <p className="text-text-body text-[15px] max-w-[65ch] mb-6 leading-relaxed">
           {tryoutData.description}
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-surface-muted rounded-md border border-border p-4">
+            <div className="flex items-center gap-1.5 text-label text-text-muted mb-1">
               <Users className="w-3.5 h-3.5" />
-              PESERTA
+              <span>Peserta</span>
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-bold text-white">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-text tabular-nums">
               {Number(tryoutData.participants || 0).toLocaleString("id-ID")}
             </div>
           </div>
 
-          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+          <div className="bg-surface-muted rounded-md border border-border p-4">
+            <div className="flex items-center gap-1.5 text-label text-text-muted mb-1">
               <FileText className="w-3.5 h-3.5" />
-              SOAL
+              <span>Soal</span>
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-bold text-white">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-text tabular-nums">
               {totalQ} soal
             </div>
           </div>
 
-          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+          <div className="bg-surface-muted rounded-md border border-border p-4">
+            <div className="flex items-center gap-1.5 text-label text-text-muted mb-1">
               <Clock className="w-3.5 h-3.5" />
-              DURASI
+              <span>Durasi</span>
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-bold text-white">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-text tabular-nums">
               {tryoutData.duration} menit
             </div>
           </div>
 
-          <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 shadow-xs">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+          <div className="bg-surface-muted rounded-md border border-border p-4">
+            <div className="flex items-center gap-1.5 text-label text-text-muted mb-1">
               <Calendar className="w-3.5 h-3.5" />
-              PEMBAHASAN
+              <span>Pembahasan</span>
             </div>
-            <div className="font-mono text-xl sm:text-2xl font-bold text-amber-400">
+            <div className="font-mono text-xl sm:text-2xl font-bold text-primary tabular-nums">
               {tryoutData.isFree ? "Gratis" : `${cost} coin`}
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECTION 6.5: RESULTS & PAYWALL (WHEN FINISHED) */}
+      {/* RESULTS & PAYWALL (WHEN FINISHED) */}
       {isFinished ? (
         <div className="space-y-6">
           {/* 1. Free section (always visible): Raw score summary 3 boxes */}
-          <div className="bg-white border border-slate-200 shadow-xs p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
+          <div className="bg-surface rounded-lg border border-border p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-ink-100">
               <div>
-                <p className="font-mono text-xs uppercase tracking-wider text-blue-600 font-semibold">
-                  RINGKASAN PENGERJAAN · GRATIS
+                <p className="text-label text-text-muted">
+                  Ringkasan pengerjaan · Gratis
                 </p>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="text-h3 text-text">
                   Rekap jawaban mentah
                 </h2>
               </div>
-              <Badge variant="success">SELESAI DIKERJAKAN</Badge>
+              <Badge variant="success">Selesai dikerjakan</Badge>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-slate-50/80 border border-slate-200 p-5 shadow-xs">
-                <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-1 font-medium">
-                  BENAR
+              <div className="bg-surface-muted rounded-md border border-border p-5">
+                <div className="text-label text-text-muted mb-1">
+                  Benar
                 </div>
-                <div className="font-mono text-[34px] leading-none font-bold text-emerald-600">
+                <div className="font-mono text-[34px] leading-none font-bold text-success tabular-nums">
                   {correctCount}
                 </div>
-                <div className="font-mono text-xs text-slate-500 mt-2">
+                <div className="text-xs text-text-muted mt-2 tabular-nums">
                   dari {totalQ} soal
                 </div>
               </div>
 
-              <div className="bg-slate-50/80 border border-slate-200 p-5 shadow-xs">
-                <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-1 font-medium">
-                  SALAH
+              <div className="bg-surface-muted rounded-md border border-border p-5">
+                <div className="text-label text-text-muted mb-1">
+                  Salah
                 </div>
-                <div className="font-mono text-[34px] leading-none font-bold text-rose-600">
+                <div className="font-mono text-[34px] leading-none font-bold text-danger tabular-nums">
                   {wrongCount}
                 </div>
-                <div className="font-mono text-xs text-slate-500 mt-2">
+                <div className="text-xs text-text-muted mt-2 tabular-nums">
                   dari {totalQ} soal
                 </div>
               </div>
 
-              <div className="bg-slate-50/80 border border-slate-200 p-5 shadow-xs">
-                <div className="font-mono text-xs uppercase tracking-wider text-slate-500 mb-1 font-medium">
-                  KOSONG
+              <div className="bg-surface-muted rounded-md border border-border p-5">
+                <div className="text-label text-text-muted mb-1">
+                  Kosong
                 </div>
-                <div className="font-mono text-[34px] leading-none font-bold text-slate-700">
+                <div className="font-mono text-[34px] leading-none font-bold text-text tabular-nums">
                   {emptyCount}
                 </div>
-                <div className="font-mono text-xs text-slate-500 mt-2">
+                <div className="text-xs text-text-muted mt-2">
                   tidak dijawab
                 </div>
               </div>
@@ -473,34 +471,34 @@ const TryoutDetailModule = () => {
 
           {/* 2. Locked or Unlocked IRT + Subtest + Solution Section */}
           {!isUnlocked ? (
-            <div className="border border-slate-200 bg-slate-50/80 p-6 sm:p-8 shadow-xs">
+            <div className="rounded-lg border border-border bg-surface p-6 sm:p-8">
               <div className="max-w-xl">
-                <div className="inline-flex items-center gap-2 bg-slate-900 text-white px-2.5 py-1 font-mono text-xs uppercase tracking-wider mb-4">
-                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                <div className="inline-flex items-center gap-2 h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-[12px] font-semibold mb-4">
+                  <Lock className="w-3.5 h-3.5 stroke-[1.75]" />
                   <span className="flex items-center gap-1.5">
                     <PixelCoin size={12} />
-                    <span>TERKUNCI · {cost} COIN</span>
+                    <span>Terkunci · {cost} coin</span>
                   </span>
                 </div>
 
-                <h3 className="font-display text-2xl font-bold text-slate-900 mb-2">
+                <h3 className="text-h2 text-text mb-2">
                   Mau tahu salahnya di mana?
                 </h3>
-                <p className="text-sm text-slate-600 mb-5">
+                <p className="text-sm text-text-body mb-5">
                   Pakai {cost} coin buat lihat skor IRT dan pembahasan lengkap {tryoutData.title}:
                 </p>
 
-                <ul className="space-y-2.5 mb-6 text-sm font-medium text-slate-700">
+                <ul className="space-y-2.5 mb-6 text-sm font-medium text-text-body">
                   <li className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 bg-blue-600 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     Skor IRT &amp; persentil nasional
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 bg-blue-600 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     Nilai per {tryoutData.categories?.length || 7} subtes
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 bg-blue-600 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     Pembahasan {totalQ} soal langkah demi langkah
                   </li>
                 </ul>
@@ -519,14 +517,14 @@ const TryoutDetailModule = () => {
                   {userBalance < cost ? (
                     <Link
                       href="/shop"
-                      className="font-mono text-xs uppercase tracking-wider font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-4"
+                      className="text-sm font-semibold text-primary hover:underline"
                     >
                       Beli coin →
                     </Link>
                   ) : (
-                    <span className="font-mono text-xs text-slate-600 flex items-center gap-1.5">
+                    <span className="text-xs text-text-muted flex items-center gap-1.5">
                       <PixelCoin size={12} />
-                      <span>SALDO KAMU: {userBalance} COIN</span>
+                      <span>Saldo kamu: {userBalance} coin</span>
                     </span>
                   )}
                 </div>
@@ -535,28 +533,28 @@ const TryoutDetailModule = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Big IRT Score Card */}
-              <div className="lg:col-span-5 bg-slate-900 text-white border border-slate-800 p-6 sm:p-8 flex flex-col justify-between shadow-sm">
+              <div className="lg:col-span-5 bg-surface rounded-lg border-2 border-primary p-6 sm:p-8 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-4">
-                    <span className="font-mono text-xs uppercase tracking-wider text-slate-400">
-                      SKOR AKHIR IRT
+                    <span className="text-label text-text-muted">
+                      Skor akhir IRT
                     </span>
-                    <span className="bg-amber-400 text-slate-900 px-2.5 py-0.5 font-mono text-xs font-bold uppercase tracking-wider">
-                      TOP {(100 - percentile).toFixed(1)}% NASIONAL
+                    <span className="h-6 px-2.5 rounded-full bg-yellow-300 text-ink-900 text-xs font-semibold inline-flex items-center">
+                      Top {(100 - percentile).toFixed(1)}% nasional
                     </span>
                   </div>
 
-                  <div className="font-mono text-[56px] leading-none font-bold text-white tracking-tight my-4">
+                  <div className="font-mono text-[56px] leading-none font-bold text-primary tracking-tight my-4 tabular-nums">
                     {finalScore}
                   </div>
 
-                  <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                  <p className="text-sm text-text-body leading-relaxed mb-6">
                     Persentil nasional{" "}
-                    <span className="font-mono font-bold text-white">
+                    <span className="font-mono font-bold text-text tabular-nums">
                       {percentile}%
                     </span>{" "}
                     dari{" "}
-                    <span className="font-mono font-bold text-white">
+                    <span className="font-mono font-bold text-text tabular-nums">
                       {Number(tryoutData.participants || 0).toLocaleString(
                         "id-ID",
                       )}
@@ -577,18 +575,18 @@ const TryoutDetailModule = () => {
               </div>
 
               {/* Subtest Breakdown: 7 horizontal bars */}
-              <div className="lg:col-span-7 bg-white border border-slate-200 shadow-xs p-6 sm:p-8">
-                <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-100">
+              <div className="lg:col-span-7 bg-surface rounded-lg border border-border p-6 sm:p-8">
+                <div className="flex items-center justify-between pb-3 mb-5 border-b border-ink-100">
                   <div>
-                    <p className="font-mono text-xs uppercase tracking-wider text-blue-600 font-semibold">
-                      RINCIAN NILAI
+                    <p className="text-label text-text-muted">
+                      Rincian nilai
                     </p>
-                    <h3 className="font-display text-lg font-bold text-slate-900">
+                    <h3 className="text-h3 text-text">
                       Skor per subtes
                     </h3>
                   </div>
-                  <span className="font-mono text-xs text-slate-500 uppercase">
-                    SKALA 0–1000
+                  <span className="text-label text-text-muted">
+                    Skala 0–1000
                   </span>
                 </div>
 
@@ -613,20 +611,20 @@ const TryoutDetailModule = () => {
                           <button
                             type="button"
                             onClick={() => handleStartSubtest(idx + 1, true)}
-                            className="font-semibold text-slate-900 hover:text-blue-600 text-left flex items-center gap-2"
+                            className="font-semibold text-text hover:text-primary text-left flex items-center gap-2 cursor-pointer"
                           >
-                            <span className="font-mono text-xs text-slate-400">
+                            <span className="font-mono text-xs text-text-muted tabular-nums">
                               0{idx + 1}
                             </span>
                             <span>{cat.name}</span>
                           </button>
-                          <span className="font-mono text-sm font-semibold text-slate-900">
+                          <span className="font-mono text-sm font-semibold text-text tabular-nums">
                             {subScore}
                           </span>
                         </div>
-                        <div className="h-2.5 w-full bg-slate-100 border border-slate-200 overflow-hidden">
+                        <div className="h-2.5 w-full rounded-full bg-ink-100 overflow-hidden">
                           <div
-                            className="h-full bg-blue-600"
+                            className="h-full rounded-full bg-primary"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -640,13 +638,13 @@ const TryoutDetailModule = () => {
         </div>
       ) : (
         /* REGISTRATION / START ACTION BAR (WHEN NOT YET FINISHED) */
-        <div className="bg-white border border-slate-200 shadow-xs p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-surface rounded-lg border border-border p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div
-              className={`w-10 h-10 border border-slate-200 flex items-center justify-center shrink-0 ${
+              className={`w-10 h-10 rounded-md border border-border flex items-center justify-center shrink-0 ${
                 tryoutData.isRegistered
-                  ? "bg-emerald-50 text-emerald-600"
-                  : "bg-blue-50 text-blue-600"
+                  ? "bg-success-soft text-success-text"
+                  : "bg-blue-50 text-primary"
               }`}
             >
               {tryoutData.isRegistered ? (
@@ -656,14 +654,14 @@ const TryoutDetailModule = () => {
               )}
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-slate-900">
+              <h2 className="text-h3 text-text">
                 {tryoutData.isRegistered
                   ? tryoutData.latestAttemptStatus === "IN_PROGRESS"
                     ? "Sedang dikerjakan"
                     : "Sudah terdaftar"
                   : "Belum terdaftar"}
               </h2>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-text-body">
                 {tryoutData.isRegistered
                   ? tryoutData.latestAttemptStatus === "IN_PROGRESS"
                     ? "Lanjutkan dari subtes terakhir. Jawaban kamu tersimpan otomatis."
@@ -709,7 +707,7 @@ const TryoutDetailModule = () => {
       {/* Leaderboard if ended */}
       {leaderboardData && <Leaderboard leaderboardData={leaderboardData} />}
       {leaderboardError && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-sm">
+        <div className="p-4 rounded-md bg-danger-soft border border-danger/30 text-danger-text text-sm">
           {leaderboardError}
         </div>
       )}
@@ -720,21 +718,21 @@ const TryoutDetailModule = () => {
           <CardHeader>
             <CardTitle>Daftar subtes ({tryoutData.categories.length})</CardTitle>
           </CardHeader>
-          <CardContent className="divide-y divide-slate-100">
+          <CardContent className="divide-y divide-ink-100">
             {tryoutData.categories.map((category, index) => (
               <div
                 key={category.id || index}
                 className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 bg-slate-100 border border-slate-200 font-mono text-xs font-semibold text-slate-800 flex items-center justify-center shrink-0">
+                  <span className="w-8 h-8 rounded-md bg-surface-muted border border-border font-mono text-xs font-semibold text-text flex items-center justify-center shrink-0 tabular-nums">
                     0{index + 1}
                   </span>
                   <div>
-                    <h4 className="font-semibold text-slate-900 text-sm sm:text-base">
+                    <h4 className="font-semibold text-text text-sm sm:text-base">
                       {category.name}
                     </h4>
-                    <div className="font-mono text-xs text-slate-500">
+                    <div className="text-xs text-text-muted tabular-nums">
                       {category.questionCount} soal · {category.duration} menit
                     </div>
                   </div>
@@ -760,16 +758,16 @@ const TryoutDetailModule = () => {
             <CardHeader>
               <CardTitle>Periode pelaksanaan</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 font-mono text-xs">
-              <div className="flex justify-between items-center py-2 border-b border-blue-100">
-                <span className="text-slate-600 uppercase">DIBUKA</span>
-                <span className="font-medium text-blue-900">
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex justify-between items-center py-2 border-b border-ink-100">
+                <span className="text-label text-text-muted">Dibuka</span>
+                <span className="font-medium text-text tabular-nums">
                   {formatDate(tryoutData.startDate)}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2">
-                <span className="text-slate-600 uppercase">DITUTUP</span>
-                <span className="font-medium text-blue-900">
+                <span className="text-label text-text-muted">Ditutup</span>
+                <span className="font-medium text-text tabular-nums">
                   {formatDate(tryoutData.endDate)}
                 </span>
               </div>
@@ -782,10 +780,10 @@ const TryoutDetailModule = () => {
                 <CardTitle>Yang kamu dapat</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2.5 text-sm text-slate-700">
+                <ul className="space-y-2.5 text-sm text-text-body">
                   {tryoutData.benefits.map((benefit, index) => (
                     <li key={index} className="flex items-start gap-2.5">
-                      <span className="w-2 h-2 bg-blue-600 mt-2 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                       <span>{benefit}</span>
                     </li>
                   ))}

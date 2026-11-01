@@ -96,14 +96,14 @@ const LoginModule = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 text-blue-900 py-12 px-4 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-bg text-text-body py-12 px-4 flex flex-col items-center justify-center">
       <div className="w-full max-w-[420px] space-y-6">
         {/* Top Brand Link */}
         <div className="flex items-center justify-between">
           <Link
             href="/"
             aria-label="Beranda Jitu"
-            className="min-h-[44px] inline-flex items-center gap-2.5 focus:outline-3 focus:outline-blue-500 focus:outline-offset-2"
+            className="min-h-[44px] inline-flex items-center gap-2.5 rounded-md focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
           >
             <Image
               src="/blue-jitu-logo.png"
@@ -113,22 +113,22 @@ const LoginModule = () => {
               priority
               className="h-8 w-auto object-contain"
             />
-            <span className="font-display font-extrabold text-[24px] tracking-[-0.025em] text-blue-900 leading-none">
-              jitu<span className="text-blue-500">.</span>
+            <span className="font-bold text-[24px] tracking-[-0.025em] text-text leading-none">
+              jitu<span className="text-primary">.</span>
             </span>
           </Link>
-          <span className="px-2 py-[3px] border-[1.5px] border-blue-900 bg-white font-mono text-[12px] uppercase tracking-[0.06em] text-blue-900">
-            MASUK AKUN
+          <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center">
+            Masuk akun
           </span>
         </div>
 
         {/* Single 420px White Card */}
-        <div className="bg-white border-2 border-blue-900 shadow-[10px_10px_0_var(--blue-500)]">
-          <div className="px-6 py-4 border-b-2 border-blue-900 bg-blue-800 text-white">
-            <h1 className="font-display font-extrabold text-[28px] leading-[1.05] tracking-[-0.025em]">
+        <div className="bg-surface rounded-lg border border-border overflow-hidden">
+          <div className="px-6 pt-6 pb-4 border-b border-border bg-surface">
+            <h1 className="text-h2 text-text">
               Masuk ke Jitu
             </h1>
-            <p className="text-[14px] text-blue-200 mt-1">
+            <p className="text-[14px] text-text-muted mt-1">
               Lanjutkan tryout atau buka pembahasan yang sudah kamu kerjakan.
             </p>
           </div>
@@ -137,9 +137,9 @@ const LoginModule = () => {
             {errors.form && (
               <div
                 role="alert"
-                className="p-3 border-2 border-warn bg-warn-100 text-warn text-[14px] flex items-start gap-2.5"
+                className="p-3 rounded-md border border-danger/30 bg-danger-soft text-danger-text text-[14px] flex items-start gap-2.5"
               >
-                <AlertCircle className="w-5 h-5 stroke-[1.75] shrink-0 mt-0.5" aria-hidden="true" />
+                <AlertCircle className="w-5 h-5 stroke-[1.75] shrink-0 mt-0.5 text-danger" aria-hidden="true" />
                 <span>{errors.form}</span>
               </div>
             )}
@@ -148,7 +148,7 @@ const LoginModule = () => {
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="block text-[14px] font-semibold text-blue-900"
+                className="block text-[14px] font-semibold text-text"
               >
                 Email
               </label>
@@ -161,8 +161,8 @@ const LoginModule = () => {
                 onChange={(e) => handleChange("email", e.target.value)}
               />
               {errors.email && (
-                <p className="text-[13px] text-warn flex items-center gap-1.5 pt-0.5">
-                  <AlertCircle className="w-4 h-4 stroke-[1.75] shrink-0" aria-hidden="true" />
+                <p className="text-[12px] text-danger-text flex items-center gap-1.5 pt-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 stroke-[1.75] shrink-0 text-danger" aria-hidden="true" />
                   <span>{errors.email}</span>
                 </p>
               )}
@@ -173,13 +173,13 @@ const LoginModule = () => {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-[14px] font-semibold text-blue-900"
+                  className="block text-[14px] font-semibold text-text"
                 >
                   Kata sandi
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-[13px] font-semibold text-blue-500 hover:underline"
+                  className="text-[13px] font-semibold text-primary hover:underline"
                 >
                   Lupa kata sandi?
                 </Link>
@@ -198,41 +198,41 @@ const LoginModule = () => {
                   type="button"
                   aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-1 top-1 bottom-1 w-10 inline-flex items-center justify-center text-slate-700 hover:text-blue-900 cursor-pointer"
+                  className="absolute right-1 top-1 bottom-1 w-10 rounded-sm inline-flex items-center justify-center text-text-muted hover:text-text cursor-pointer"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
+                    <EyeOff className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                   ) : (
-                    <Eye className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />
+                    <Eye className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                   )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-[13px] text-warn flex items-center gap-1.5 pt-0.5">
-                  <AlertCircle className="w-4 h-4 stroke-[1.75] shrink-0" aria-hidden="true" />
+                <p className="text-[12px] text-danger-text flex items-center gap-1.5 pt-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 stroke-[1.75] shrink-0 text-danger" aria-hidden="true" />
                   <span>{errors.password}</span>
                 </p>
               )}
             </div>
 
-            {/* Primary Signal CTA (One signal CTA per screen) */}
+            {/* Primary CTA */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full jitu-btn-primary text-[16px] font-bold inline-flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+              className="w-full min-h-[44px] px-4 py-2.5 rounded-md bg-primary text-on-primary text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-primary-hover active:bg-primary-pressed disabled:bg-blue-300 transition-colors duration-[120ms] cursor-pointer"
             >
               <span>{loading ? "Memproses…" : "Masuk"}</span>
-              {!loading && <ArrowRight className="w-5 h-5 stroke-[1.75]" aria-hidden="true" />}
+              {!loading && <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />}
             </button>
 
             {/* Divider */}
             <div className="relative py-1">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-300" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center">
-                <span className="px-3 bg-white font-mono text-[11px] uppercase tracking-[0.06em] text-slate-700">
-                  ATAU
+                <span className="px-3 bg-surface text-label text-text-muted">
+                  Atau
                 </span>
               </div>
             </div>
@@ -241,7 +241,7 @@ const LoginModule = () => {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full jitu-btn-secondary bg-white text-[14px] font-semibold inline-flex items-center justify-center gap-2.5 cursor-pointer"
+              className="w-full min-h-[44px] px-4 py-2.5 rounded-md border border-border bg-surface text-text text-[14px] font-semibold inline-flex items-center justify-center gap-2.5 hover:bg-surface-muted transition-colors duration-[120ms] cursor-pointer"
             >
               <Image
                 src="/icons/google.svg"
@@ -254,11 +254,11 @@ const LoginModule = () => {
           </form>
 
           {/* Footer Link */}
-          <div className="px-6 py-4 border-t border-slate-300 bg-blue-50 text-center text-[14px] text-slate-700">
+          <div className="px-6 py-4 border-t border-border bg-surface-muted text-center text-[14px] text-text-body">
             Belum punya akun?{" "}
             <Link
               href="/register"
-              className="font-bold text-blue-500 hover:underline"
+              className="font-semibold text-primary hover:underline"
             >
               Daftar gratis
             </Link>

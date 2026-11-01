@@ -95,7 +95,7 @@ English words only when everyone already uses them (tryout, QRIS, IRT). Otherwis
 - Say each fact once per page. Later mentions point back ("harga di atas").
 - Prefer a table, formula or real UI sample over a paragraph that describes one.
 - Prices always carry their unit: "Rp59.000 untuk 5 coin (Rp11.800 per tryout)".
-- Formats: Rp15.000 (dot thousands), "2 Nov 2026", 24-hour time, "90 menit".
+- Formats: Rp15.000 (dot thousands), "16 Nov 2026", 24-hour time, "90 menit".
 - Paid actions state the cost on the control: "Buka pembahasan · 1 coin".
 - Write in sentence case. If design.md wants uppercase labels, that is CSS; don't type copy in capitals.
 
@@ -172,7 +172,7 @@ Approved wording. Change facts only through §9.
 
 **Meta**
 - Title: Jitu · Tryout SNBT Gratis, Pembahasan Mulai Rp8.900
-- Description: Tryout SNBT tiap minggu mulai 2 Nov 2026. Gratis dikerjakan, pembahasan dan skor IRT mulai Rp8.900 per tryout.
+- Description: Tryout SNBT tiap minggu mulai 16 Nov 2026. Gratis dikerjakan, pembahasan dan skor IRT mulai Rp8.900 per tryout.
 
 **Nav:** Cara kerja · Jadwal · Harga · Peserta · Masuk · Daftar gratis
 
@@ -189,12 +189,12 @@ Approved wording. Change facts only through §9.
 - Step 3, Buka pembahasan kalau perlu: Pakai 1 coin buat lihat skor IRT dan pembahasan tiap soal. Kalau nilaimu udah aman, coin-mu tetap utuh.
 
 **Free vs coin card**
-- Gratis (Rp0): Tryout mingguan mulai 2 Nov 2026 · 7 subtes SNBT, TPS dan Literasi · Jumlah benar, salah, dan kosong langsung keluar
+- Gratis (Rp0): Tryout mingguan mulai 16 Nov 2026 · 7 subtes SNBT, TPS dan Literasi · Jumlah benar, salah, dan kosong langsung keluar
 - Pakai 1 coin (mulai Rp8.900): Semua yang gratis, plus: skor IRT total dan per subtes · Kunci jawaban dan pembahasan langkah demi langkah tiap nomor · Coin dipakai di tryout mana aja, berlaku sampai 21 Apr 2027
 
 **Jadwal**
-- H2: Tryout tiap minggu mulai 2 Nov 2026. `[confirm cadence, see §9]`
-- Card: "Tryout #1 · Dibuka · 2 Nov 2026 · Gratis dikerjakan · Pembahasan 1 coin" · button "Kerjakan"
+- H2: Tryout tiap minggu mulai 16 Nov 2026. `[confirm cadence, see §9]`
+- Card: "Tryout #1 · Dibuka · 16 Nov 2026 · Gratis dikerjakan · Pembahasan 1 coin" · button "Kerjakan"
 - Later cards: same line, status "Segera", button "Daftar gratis". Last card title: "Tryout terakhir".
 
 **Harga**
@@ -221,18 +221,18 @@ Contoh: Rp59.000 ÷ 5 = Rp11.800 per tryout
 - Bayarnya lewat apa? — QRIS.
 
 **Closing CTA**
-- H2: Tryout #1 dibuka 2 Nov 2026.
+- H2: Tryout #1 dibuka 16 Nov 2026.
 - Body: Daftar dulu, gratis. Pas jadwalnya buka, tinggal kerjain.
 - Button: Daftar gratis
 
-**Footer:** Tryout SNBT tiap minggu, 2 Nov 2026 sampai 21 Apr 2027. Gratis dikerjakan. Pembahasan mulai Rp8.900 per tryout. `[confirm cadence]`
+**Footer:** Tryout SNBT tiap minggu, 16 Nov 2026 sampai 21 Apr 2027. Gratis dikerjakan. Pembahasan mulai Rp8.900 per tryout. `[confirm cadence]`
 
 ## 8. Microcopy
 
 | Context | Copy |
 |---|---|
 | Primary buttons | Daftar gratis · Masuk · Kerjakan · Kumpulkan · Buka pembahasan · 1 coin · Beli coin |
-| Dashboard, empty | "Belum ada tryout yang kamu kerjakan. Tryout #1 dibuka 2 Nov." + button "Lihat jadwal" |
+| Dashboard, empty | "Belum ada tryout yang kamu kerjakan. Tryout #1 dibuka 16 Nov." + button "Lihat jadwal" |
 | Submit modal | Title "Kumpulkan sekarang?" Body "11 dijawab, 1 ragu, 8 kosong." Buttons "Kumpulkan" / "Lanjut ngerjain" |
 | Result, free part | "Selesai! Benar 98, salah 40, kosong 17." then "Mau tahu salahnya di mana?" + button "Buka pembahasan · 1 coin" |
 | Unlock modal | Title "Pakai 1 coin untuk Tryout #3?" Body "Sisa coin kamu jadi 4. Ini nggak bisa dibatalkan." Buttons "Pakai 1 coin" / "Nanti dulu" |
@@ -251,7 +251,7 @@ Contoh: Rp59.000 ÷ 5 = Rp11.800 per tryout
 
 - Audience: SMA students in Jakarta preparing for SNBT/UTBK.
 - 300+ siswa, 14 sekolah.
-- Tryout #1: 2 Nov 2026. Last tryout on the site: 21 Apr 2027.
+- Tryout #1: 16 Nov 2026. Last tryout on the site: 21 Apr 2027.
 - `[confirm before shipping]` The site says "tiap minggu" until 21 Apr 2027 but lists only 6 tryouts (the fifth on 30 Nov 2026, then a jump to 21 Apr 2027). Confirm cadence and total count before printing "tiap minggu sampai ..." or a tryout count. Also confirm the weekday before writing "tiap Senin".
 - 7 subtests, 155 soal.
 - All tryouts are free to take. The free result shows benar, salah, kosong.

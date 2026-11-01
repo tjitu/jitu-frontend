@@ -49,9 +49,9 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
         fill: true,
         label: "Pendapatan (Rp)",
         data: revenue.map((i) => i.value),
-        borderColor: "#1E40AF",
-        backgroundColor: "rgba(37, 99, 235, 0.12)",
-        tension: 0,
+        borderColor: "#2557DB",
+        backgroundColor: "rgba(37, 87, 219, 0.10)",
+        tension: 0.25,
         borderWidth: 2,
       },
     ],
@@ -64,9 +64,9 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
         fill: true,
         label: "Peserta Baru",
         data: userGrowth.map((i) => i.value),
-        borderColor: "#2563EB",
-        backgroundColor: "rgba(37, 99, 235, 0.12)",
-        tension: 0,
+        borderColor: "#2557DB",
+        backgroundColor: "rgba(37, 87, 219, 0.10)",
+        tension: 0.25,
         borderWidth: 2,
       },
     ],
@@ -78,8 +78,8 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
       {
         label: "Aktivitas Harian",
         data: weeklyActivity.map((i) => i.value),
-        backgroundColor: "#2563EB",
-        borderRadius: 0,
+        backgroundColor: "#2557DB",
+        borderRadius: 6,
       },
     ],
   };
@@ -91,9 +91,14 @@ export const AdminOverviewCharts: React.FC<AdminOverviewChartsProps> = ({
       legend: { display: false },
     },
     scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: "#4E5B73", font: { size: 12 } },
+      },
       y: {
         beginAtZero: true,
-        ticks: { precision: 0 },
+        grid: { color: "#E9EDF4" },
+        ticks: { precision: 0, color: "#4E5B73", font: { size: 12 } },
       },
     },
   };

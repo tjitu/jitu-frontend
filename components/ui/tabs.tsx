@@ -6,8 +6,9 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 
 /**
- * DESIGN.md Section 5 — Tabs
- * 16px/600 text, 3px blue-500 underline for active, 0 radius.
+ * DESIGN.md Section 5 — Tabs / Segmented Control
+ * 2px bottom border in --primary for active tab;
+ * segmented control uses --surface-muted track with white pill.
  */
 function Tabs({
   className,
@@ -30,7 +31,7 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "bg-slate-100 text-slate-700 inline-flex min-h-[42px] w-fit items-center justify-start rounded-none border border-slate-200 p-1 gap-1",
+        "bg-surface-muted text-text-muted inline-flex min-h-[44px] w-fit items-center justify-start rounded-md border border-border p-1 gap-1",
         className
       )}
       {...props}
@@ -46,7 +47,7 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "data-[state=active]:bg-white data-[state=active]:text-blue-900 data-[state=active]:shadow-sm data-[state=active]:font-semibold text-slate-600 hover:text-blue-900 hover:bg-white/50 inline-flex min-h-[34px] flex-1 items-center justify-center gap-2 rounded-none px-3.5 py-1.5 text-[14px] font-medium whitespace-nowrap transition-all focus-visible:outline-2 focus-visible:outline-blue-600 disabled:pointer-events-none disabled:opacity-50 cursor-pointer [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "data-[state=active]:bg-surface data-[state=active]:text-text data-[state=active]:border-border data-[state=active]:font-semibold border border-transparent text-text-muted hover:text-text inline-flex min-h-[34px] flex-1 items-center justify-center gap-2 rounded-sm px-3.5 py-1.5 text-[14px] font-medium whitespace-nowrap transition-colors duration-[120ms] focus-visible:outline-2 focus-visible:outline-primary disabled:pointer-events-none disabled:opacity-50 cursor-pointer [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

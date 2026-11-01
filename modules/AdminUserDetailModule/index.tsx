@@ -94,9 +94,9 @@ const AdminUserDetailModule: React.FC<AdminUserDetailModuleProps> = ({
   if (isLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center gap-3">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-          MEMUAT DETAIL PESERTA...
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <span className="text-[13px] font-medium text-text-muted">
+          Memuat detail peserta...
         </span>
       </div>
     );
@@ -104,7 +104,7 @@ const AdminUserDetailModule: React.FC<AdminUserDetailModuleProps> = ({
 
   if (!user) {
     return (
-      <div className="p-8 bg-white border-2 border-blue-900 text-center text-danger font-medium">
+      <div className="p-8 bg-surface rounded-lg border border-border text-center text-danger font-medium">
         Peserta tidak ditemukan.
       </div>
     );
@@ -112,15 +112,15 @@ const AdminUserDetailModule: React.FC<AdminUserDetailModuleProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex items-center gap-4 pb-5 border-b border-border">
         <Button variant="outline" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+          <p className="text-label text-primary">
             DATA PENGGUNA
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+          <h1 className="text-h2 font-bold text-text">
             Detail peserta
           </h1>
         </div>

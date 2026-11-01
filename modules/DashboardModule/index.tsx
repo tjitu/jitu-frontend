@@ -59,13 +59,23 @@ ChartJS.register(
 );
 
 /**
- * DESIGN.md Section 6.3 — Student dashboard
- * - Top: next tryout (large slot card with mono countdown) and a Kerjakan button.
- * - Middle: tryout schedule grid (slot component, section 7).
- * - Bottom: history and quota balance, buy-quota button.
- * - Section 2.4: Multi-series charts separate by lightness (blue-300, 500, 700, 900), not hue.
+ * DESIGN.md Section 2.4 & 5 — Student dashboard
+ * Series order:
+ * 1. #2557DB (blue-600) — primary series
+ * 2. #FFC81F (yellow-400) — comparison / benchmark
+ * 3. #93BAFF (blue-300)
+ * 4. #6B778C (ink-500)
+ * 5. #1F9D63 (success)
+ * 6. #1B3475 (blue-900)
  */
-const SERIES_BLUES = ["#0B1B3F", "#1747E8", "#0F2D96", "#9DB0DC", "#FFD43B"];
+const SERIES_BLUES = [
+  "#2557DB",
+  "#FFC81F",
+  "#93BAFF",
+  "#6B778C",
+  "#1F9D63",
+  "#1B3475",
+];
 
 const DashboardModule = () => {
   const router = useRouter();
@@ -188,11 +198,11 @@ const DashboardModule = () => {
   if (isPending || loading) {
     return (
       <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-10 space-y-6">
-        <div className="h-40 bg-blue-100 border-2 border-blue-900 animate-pulse" />
+        <div className="h-40 rounded-lg jitu-skeleton" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="h-32 bg-blue-100 border-2 border-blue-900 animate-pulse" />
-          <div className="h-32 bg-blue-100 border-2 border-blue-900 animate-pulse" />
-          <div className="h-32 bg-blue-100 border-2 border-blue-900 animate-pulse" />
+          <div className="h-32 rounded-lg jitu-skeleton" />
+          <div className="h-32 rounded-lg jitu-skeleton" />
+          <div className="h-32 rounded-lg jitu-skeleton" />
         </div>
       </div>
     );
@@ -259,12 +269,20 @@ const DashboardModule = () => {
       y: {
         beginAtZero: true,
         grid: {
-          color: "#B9C5E2",
+          color: "#E9EDF4",
+        },
+        ticks: {
+          color: "#6B778C",
+          font: { size: 12 },
         },
       },
       x: {
         grid: {
-          color: "#E4EBFA",
+          color: "#E9EDF4",
+        },
+        ticks: {
+          color: "#6B778C",
+          font: { size: 12 },
         },
       },
     },
@@ -278,7 +296,7 @@ const DashboardModule = () => {
     ),
   ];
 
-  // Primary featured tryout for Top Banner (DESIGN.md Section 6.3)
+  // Primary featured tryout for Top Banner
   const featuredTryout =
     myTryouts.find((t) => t.status !== "FINISHED") ||
     myTryouts[0] ||
@@ -294,7 +312,7 @@ const DashboardModule = () => {
       : null;
 
   const formatSlotDate = (dateStr?: string | Date | null) => {
-    if (!dateStr) return "2 Nov 2026";
+    if (!dateStr) return "16 Nov 2026";
     return new Date(dateStr).toLocaleDateString("id-ID", {
       day: "numeric",
       month: "short",
@@ -305,23 +323,23 @@ const DashboardModule = () => {
   return (
     <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-10">
       {/* 1. Student Identity Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
         <div className="flex items-center gap-4">
           <div className="relative group">
             <Avatar
-              className="w-14 h-14 border border-slate-200 shadow-xs cursor-pointer"
+              className="w-14 h-14 border border-border cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               <AvatarImage src={session.user.image || ""} />
-              <AvatarFallback className="bg-slate-100 text-slate-800 font-mono text-[16px] font-semibold">
+              <AvatarFallback className="bg-surface-muted text-text font-semibold text-[16px]">
                 {session.user.name.charAt(0).toUpperCase()}
               </AvatarFallback>
               {isUploading ? (
-                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center rounded-full">
+                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center rounded-full">
                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                 </div>
               ) : (
-                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                   <Camera className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -336,52 +354,52 @@ const DashboardModule = () => {
           </div>
 
           <div>
-            <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
-              LEMBAR PESERTA · SNBT 2026
+            <div className="text-label text-text-muted">
+              Lembar peserta · SNBT 2026
             </div>
-            <h1 className="font-display font-bold text-[26px] sm:text-[30px] leading-tight tracking-tight text-slate-900">
+            <h1 className="text-h2 text-text">
               {session.user.name}
             </h1>
           </div>
         </div>
 
         {/* Summary Numbers Row */}
-        <div className="grid grid-cols-3 border border-slate-200 bg-white divide-x divide-slate-100 shadow-xs">
+        <div className="grid grid-cols-3 rounded-lg border border-border bg-surface divide-x divide-ink-100">
           <div className="px-5 py-3">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-medium">
-              TERDAFTAR
+            <div className="text-label text-text-muted">
+              Terdaftar
             </div>
-            <div className="font-mono font-bold text-[20px] text-slate-900 tabular-nums">
+            <div className="font-mono font-bold text-[20px] text-text tabular-nums">
               {myTryouts.length}
             </div>
           </div>
           <div className="px-5 py-3">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-medium">
-              SELESAI
+            <div className="text-label text-text-muted">
+              Selesai
             </div>
-            <div className="font-mono font-bold text-[20px] text-slate-900 tabular-nums">
+            <div className="font-mono font-bold text-[20px] text-text tabular-nums">
               {userStats?.totalFinished ?? 0}
             </div>
           </div>
           <div className="px-5 py-3">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-medium">
-              RERATA IRT
+            <div className="text-label text-text-muted">
+              Rerata IRT
             </div>
-            <div className="font-mono font-bold text-[20px] text-blue-600 tabular-nums">
+            <div className="font-mono font-bold text-[20px] text-primary tabular-nums">
               {avgScore ?? "-"}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. TOP: Next Tryout — Crisp Slot Card + Single Clean CTA */}
+      {/* 2. TOP: Next Tryout */}
       <section aria-label="Tryout berikutnya">
         {featuredTryout ? (
-          <div className="bg-white border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-slate-300 transition-colors">
+          <div className="bg-surface rounded-lg border border-border p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-blue-300 transition-colors duration-[120ms]">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-1 border border-amber-300 bg-amber-50 font-mono text-[11px] uppercase tracking-wider font-semibold text-amber-900 inline-flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 stroke-[2] text-amber-600" aria-hidden="true" />
+                <span className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-[12px] font-semibold inline-flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
                   <span>
                     {featuredTryout.isRegistered
                       ? featuredTryout.status === "IN_PROGRESS"
@@ -392,24 +410,24 @@ const DashboardModule = () => {
                       : "Jadwal terdekat"}
                   </span>
                 </span>
-                <span className="px-2.5 py-1 border border-blue-200 bg-blue-50 font-mono text-[11px] uppercase tracking-wider font-medium text-blue-800 flex items-center gap-1.5">
+                <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center gap-1.5">
                   <PixelCoin size={14} />
-                  <span>GRATIS DIKERJAKAN · PEMBAHASAN {featuredTryout.solutionPrice || 1} COIN</span>
+                  <span>Gratis dikerjakan · Pembahasan {featuredTryout.solutionPrice || 1} coin</span>
                 </span>
               </div>
 
-              <div className="font-display font-extrabold text-[32px] sm:text-[40px] leading-tight tracking-tight text-slate-900 tabular-nums">
+              <div className="font-bold text-[32px] sm:text-[36px] leading-tight tracking-[-0.02em] text-text tabular-nums">
                 {formatSlotDate(featuredTryout.scheduledStart)}
               </div>
 
-              <h2 className="text-[19px] sm:text-[21px] font-bold text-slate-900">
+              <h2 className="text-h3 text-text">
                 {featuredTryout.title}
               </h2>
 
-              <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
+              <div className="flex flex-wrap items-center gap-4 text-[13px] text-text-muted font-medium">
                 <span className="inline-flex items-center gap-1.5">
                   <Users className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
-                  <span>{featuredTryout.participants} peserta</span>
+                  <span className="tabular-nums">{featuredTryout.participants} peserta</span>
                 </span>
                 <span>·</span>
                 <span>7 subtes SNBT</span>
@@ -429,7 +447,7 @@ const DashboardModule = () => {
                       ? "Lihat hasil"
                       : "Kerjakan"}
                   </span>
-                  <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                  <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                 </Button>
               ) : (
                 <Button
@@ -441,35 +459,35 @@ const DashboardModule = () => {
                   className="justify-between"
                 >
                   <span>Daftar gratis</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2]" aria-hidden="true" />
+                  <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                 </Button>
               )}
             </div>
           </div>
         ) : (
-          <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-[15px] text-slate-600">
-              Belum ada tryout yang kamu kerjakan. Tryout #1 dibuka 2 Nov.
+          <div className="p-8 rounded-lg border border-dashed border-border bg-surface-muted flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p className="text-[15px] text-text-body">
+              Belum ada tryout yang kamu kerjakan. Tryout #1 dibuka 16 Nov.
             </p>
             <Button onClick={() => router.push("/tryout")}>Lihat jadwal</Button>
           </div>
         )}
       </section>
 
-      {/* 3. MIDDLE: Tryout Schedule Grid & Tabs (DESIGN.md Section 6.3 & Section 7) */}
+      {/* 3. MIDDLE: Tryout Schedule Grid & Tabs */}
       <section className="space-y-6">
         <Tabs defaultValue="my-tryouts" className="w-full space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <TabsList>
               <TabsTrigger value="my-tryouts">
                 <span>Tryout kamu</span>
-                <span className="px-1.5 py-[1px] border border-slate-200 bg-slate-100 font-mono text-[10px] tabular-nums text-slate-700">
+                <span className="h-5 px-2 rounded-full bg-ink-100 font-mono text-[11px] font-semibold tabular-nums text-text inline-flex items-center">
                   {myTryouts.length}
                 </span>
               </TabsTrigger>
               <TabsTrigger value="explore" id="explore-trigger">
                 <span>Jadwal tersedia</span>
-                <span className="px-1.5 py-[1px] border border-slate-200 bg-slate-100 font-mono text-[10px] tabular-nums text-slate-700">
+                <span className="h-5 px-2 rounded-full bg-ink-100 font-mono text-[11px] font-semibold tabular-nums text-text inline-flex items-center">
                   {marketTryouts.length}
                 </span>
               </TabsTrigger>
@@ -480,10 +498,10 @@ const DashboardModule = () => {
 
             <Link
               href="/tryout"
-              className="font-mono text-[11px] uppercase tracking-wider font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1.5"
+              className="text-[13px] font-semibold text-primary hover:underline inline-flex items-center gap-1.5"
             >
               <span>Buka semua jadwal</span>
-              <ArrowRight className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
+              <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
             </Link>
           </div>
 
@@ -498,28 +516,28 @@ const DashboardModule = () => {
                   return (
                     <article
                       key={tryout.id}
-                      className={`p-6 border border-slate-200 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 transition-colors ${
-                        isFinished ? "bg-slate-50/60" : "bg-white"
+                      className={`p-6 rounded-lg border border-border flex flex-col justify-between gap-4 hover:border-blue-300 transition-colors duration-[120ms] ${
+                        isFinished ? "bg-surface-muted" : "bg-surface"
                       }`}
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate-700 tabular-nums">
-                            TRYOUT #{String(idx + 1).padStart(2, "0")}
+                          <span className="text-label text-text-muted tabular-nums">
+                            Tryout #{idx + 1}
                           </span>
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2 py-[2px] border font-mono text-[10px] uppercase tracking-wider font-semibold ${
+                            className={`inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[12px] font-semibold ${
                               isFinished
-                                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                                ? "bg-success-soft text-success-text"
                                 : isProgress
-                                  ? "border-amber-200 bg-amber-50 text-amber-900"
-                                  : "border-blue-200 bg-blue-50 text-blue-800"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-blue-50 text-blue-800"
                             }`}
                           >
                             {isFinished ? (
-                              <Check className="w-3 h-3 stroke-[2]" />
+                              <Check className="w-3.5 h-3.5 stroke-[1.75]" />
                             ) : (
-                              <Clock className="w-3 h-3 stroke-[2]" />
+                              <Clock className="w-3.5 h-3.5 stroke-[1.75]" />
                             )}
                             <span>
                               {isFinished
@@ -531,15 +549,15 @@ const DashboardModule = () => {
                           </span>
                         </div>
 
-                        <div className="font-display font-extrabold text-[30px] leading-tight tracking-tight text-slate-900 tabular-nums">
+                        <div className="font-bold text-[28px] leading-tight tracking-[-0.02em] text-text tabular-nums">
                           {formatSlotDate(tryout.scheduledStart)}
                         </div>
 
-                        <div className="pt-3 border-t border-slate-100 space-y-1">
-                          <h3 className="text-[15px] font-bold text-slate-900 leading-snug">
+                        <div className="pt-3 border-t border-ink-100 space-y-1">
+                          <h3 className="text-[16px] font-semibold text-text leading-snug">
                             {tryout.title}
                           </h3>
-                          <p className="font-mono text-[11px] uppercase tracking-wider text-slate-500 tabular-nums">
+                          <p className="text-[13px] text-text-muted tabular-nums">
                             {tryout.participants} peserta · SNBT
                           </p>
                         </div>
@@ -557,16 +575,16 @@ const DashboardModule = () => {
                               ? "Lanjutkan"
                               : "Kerjakan"}
                         </span>
-                        <ArrowRight className="w-4 h-4 stroke-[2]" />
+                        <ArrowRight className="w-4 h-4 stroke-[1.75]" />
                       </Button>
                     </article>
                   );
                 })}
               </div>
             ) : (
-              <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <p className="text-[15px] text-slate-600">
-                  Belum ada tryout yang dikerjakan. Tryout #1 dibuka 2 Nov 2026.
+              <div className="p-8 rounded-lg border border-dashed border-border bg-surface-muted flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p className="text-[15px] text-text-body">
+                  Belum ada tryout yang dikerjakan. Tryout #1 dibuka 16 Nov 2026.
                 </p>
                 <Button
                   variant="outline"
@@ -587,29 +605,27 @@ const DashboardModule = () => {
                 {marketTryouts.map((tryout, idx) => (
                   <article
                     key={tryout.id}
-                    className="p-6 bg-white border border-slate-200 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 transition-colors"
+                    className="p-6 bg-surface rounded-lg border border-border flex flex-col justify-between gap-4 hover:border-blue-300 transition-colors duration-[120ms]"
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate-700 tabular-nums">
-                          TRYOUT #
-                          {tryout.title.match(/\d+/)?.[0]?.padStart(2, "0") ||
-                            String(idx + 1).padStart(2, "0")}
+                        <span className="text-label text-text-muted tabular-nums">
+                          Tryout #{tryout.title.match(/\d+/)?.[0] || idx + 1}
                         </span>
-                        <span className="px-2 py-[2px] border border-blue-200 bg-blue-50 font-mono text-[10px] uppercase tracking-wider font-semibold text-blue-800">
+                        <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center">
                           Gratis · Rp0
                         </span>
                       </div>
 
-                      <div className="font-display font-extrabold text-[30px] leading-tight tracking-tight text-slate-900 tabular-nums">
+                      <div className="font-bold text-[28px] leading-tight tracking-[-0.02em] text-text tabular-nums">
                         {formatSlotDate(tryout.scheduledStart)}
                       </div>
 
-                      <div className="pt-3 border-t border-slate-100 space-y-1">
-                        <h3 className="text-[15px] font-bold text-slate-900 leading-snug">
+                      <div className="pt-3 border-t border-ink-100 space-y-1">
+                        <h3 className="text-[16px] font-semibold text-text leading-snug">
                           {tryout.title}
                         </h3>
-                        <p className="font-mono text-[11px] uppercase tracking-wider text-slate-500 tabular-nums">
+                        <p className="text-[13px] text-text-muted tabular-nums">
                           {tryout.participants} peserta · Pembahasan{" "}
                           {tryout.solutionPrice || 1} coin
                         </p>
@@ -617,21 +633,21 @@ const DashboardModule = () => {
                     </div>
 
                     <Button
-                      variant="primary"
+                      variant="outline"
                       className="w-full justify-between"
                       onClick={() =>
                         handleRegisterClick(tryout as OngoingTryout)
                       }
                     >
                       <span>Daftar gratis</span>
-                      <ArrowRight className="w-4 h-4 stroke-[2]" />
+                      <ArrowRight className="w-4 h-4 stroke-[1.75]" />
                     </Button>
                   </article>
                 ))}
               </div>
             ) : (
-              <div className="p-8 border border-dashed border-slate-300 bg-slate-50/50">
-                <p className="text-[15px] text-slate-600">
+              <div className="p-8 rounded-lg border border-dashed border-border bg-surface-muted">
+                <p className="text-[15px] text-text-body">
                   Semua jadwal yang tersedia sudah terdaftar di akunmu.
                 </p>
               </div>
@@ -640,13 +656,13 @@ const DashboardModule = () => {
 
           {/* TAB 3: SCORE HISTORY */}
           <TabsContent value="history">
-            <div className="bg-white border border-slate-200 shadow-xs p-6 space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="bg-surface rounded-lg border border-border p-6 space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 pb-4">
                 <div>
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 font-medium">
-                    PERKEMBANGAN NILAI IRT
+                  <div className="text-label text-text-muted">
+                    Perkembangan nilai IRT
                   </div>
-                  <h3 className="text-[17px] font-bold text-slate-900">
+                  <h3 className="text-h3 text-text">
                     Grafik skor
                   </h3>
                 </div>
@@ -655,10 +671,10 @@ const DashboardModule = () => {
                   <button
                     type="button"
                     onClick={() => toggleSubtest("total")}
-                    className={`px-3 py-1 border text-[11px] font-mono uppercase tracking-wider font-medium cursor-pointer transition-colors ${
+                    className={`h-8 px-3 rounded-full text-[12px] font-semibold cursor-pointer transition-colors duration-[120ms] ${
                       activeSubtests.includes("total")
-                        ? "bg-slate-900 text-white border-slate-900"
-                        : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                        ? "bg-primary text-on-primary"
+                        : "bg-surface-muted text-text-body border border-border hover:text-text"
                     }`}
                   >
                     Total
@@ -668,10 +684,10 @@ const DashboardModule = () => {
                       key={subtest.id}
                       type="button"
                       onClick={() => toggleSubtest(subtest.id)}
-                      className={`px-3 py-1 border text-[11px] font-mono uppercase tracking-wider font-medium cursor-pointer transition-colors ${
+                      className={`h-8 px-3 rounded-full text-[12px] font-semibold cursor-pointer transition-colors duration-[120ms] ${
                         activeSubtests.includes(subtest.id)
-                          ? "bg-slate-900 text-white border-slate-900"
-                          : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                          ? "bg-primary text-on-primary"
+                          : "bg-surface-muted text-text-body border border-border hover:text-text"
                       }`}
                     >
                       {subtest.label}
@@ -684,9 +700,9 @@ const DashboardModule = () => {
                 {scoreHistory.length > 0 ? (
                   <Line data={chartData} options={chartOptions} />
                 ) : (
-                  <div className="h-full border border-dashed border-slate-300 bg-slate-50/50 flex flex-col items-center justify-center p-6 text-center gap-3">
-                    <TrendingUp className="w-8 h-8 stroke-[1.75] text-slate-400" />
-                    <p className="text-[14px] text-slate-600">
+                  <div className="h-full rounded-lg border border-dashed border-border bg-surface-muted flex flex-col items-center justify-center p-6 text-center gap-3">
+                    <TrendingUp className="w-8 h-8 stroke-[1.75] text-text-muted" />
+                    <p className="text-[14px] text-text-body">
                       Belum ada tryout yang dikerjakan. Grafik skor muncul setelah kamu menyelesaikan tryout.
                     </p>
                   </div>
@@ -698,17 +714,17 @@ const DashboardModule = () => {
       </section>
 
       {/* 4. BOTTOM: Coin Balance & Buy Coin Strip */}
-      <section className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <section className="bg-surface rounded-lg border border-border p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <PixelCoin size={18} glow />
-            <span>SALDO COIN PEMBAHASAN</span>
+          <div className="text-label text-text-muted flex items-center gap-2">
+            <PixelCoin size={18} />
+            <span>Saldo coin pembahasan</span>
           </div>
           <div className="flex flex-wrap items-baseline gap-3">
-            <span className="font-display font-extrabold text-[32px] leading-none text-white tabular-nums">
+            <span className="font-bold text-[32px] leading-none text-text tabular-nums">
               {userStats?.tokenBalance ?? 0} coin
             </span>
-            <span className="text-[13px] text-slate-400">
+            <span className="text-[14px] text-text-muted">
               (1 coin = 1 pembahasan tryout · mulai Rp8.900)
             </span>
           </div>
@@ -718,17 +734,15 @@ const DashboardModule = () => {
           <Button
             variant="outline"
             onClick={() => router.push("/shop/past")}
-            className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white"
           >
             Riwayat transaksi
           </Button>
           <Button
             variant="primary"
             onClick={() => router.push("/shop")}
-            className="bg-blue-600 hover:bg-blue-500 text-white border-transparent"
           >
             <span>Beli coin</span>
-            <ArrowRight className="w-4 h-4 stroke-[2]" />
+            <ArrowRight className="w-4 h-4 stroke-[1.75]" />
           </Button>
         </div>
       </section>

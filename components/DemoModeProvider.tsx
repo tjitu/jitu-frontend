@@ -9,7 +9,7 @@ export default function DemoModeProvider({ children }: { children: React.ReactNo
     <>
       {children}
       {DEMO_MODE && (
-        <div className="fixed bottom-16 md:bottom-4 right-4 z-40 rounded-none border-[1.5px] border-blue-900 bg-signal-100 px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] font-medium text-signal-700 shadow-[2px_2px_0_var(--blue-900)]">
+        <div className="fixed bottom-16 md:bottom-4 right-4 z-40 h-6 inline-flex items-center rounded-full border border-yellow-300 bg-yellow-100 px-2.5 text-[12px] font-semibold text-yellow-700">
           Mode demo · data lokal
         </div>
       )}

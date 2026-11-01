@@ -97,15 +97,15 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Top App Header (Crisp modern header) */}
-      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-slate-200">
+      {/* Top App Header (DESIGN.md Section 5: 64px top bar, white, 1px bottom border, Active item gets blue-50 background and blue-700 text) */}
+      <header className="sticky top-0 z-10 bg-surface border-b border-border">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Left: Logo + Desktop Navigation */}
           <div className="flex items-center gap-6">
             <Link
               href="/dashboard"
               aria-label="Beranda Jitu"
-              className="min-h-[44px] inline-flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+              className="min-h-[44px] inline-flex items-center gap-2 rounded-md focus:outline-none focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             >
               <Image
                 src="/blue-jitu-logo.png"
@@ -115,8 +115,8 @@ const Navbar = () => {
                 priority
                 className="h-8 w-auto object-contain"
               />
-              <span className="font-display font-extrabold text-[22px] tracking-[-0.03em] text-blue-900 leading-none">
-                jitu<span className="text-blue-600">.</span>
+              <span className="font-bold text-[22px] tracking-[-0.025em] text-text leading-none">
+                jitu<span className="text-primary">.</span>
               </span>
             </Link>
 
@@ -131,10 +131,10 @@ const Navbar = () => {
                   <Link
                     key={item.path}
                     href={`/${item.path}`}
-                    className={`min-h-[38px] px-3.5 inline-flex items-center gap-2 text-[14px] transition-colors ${
+                    className={`min-h-[40px] px-3.5 rounded-md inline-flex items-center gap-2 text-[14px] transition-colors duration-[120ms] ${
                       isActive
-                        ? "text-blue-700 bg-blue-50/80 font-semibold border-b-2 border-blue-600"
-                        : "text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-900"
+                        ? "text-blue-700 bg-blue-50 font-semibold"
+                        : "text-text-body font-medium hover:bg-surface-muted hover:text-text"
                     }`}
                   >
                     <item.icon className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
@@ -145,11 +145,11 @@ const Navbar = () => {
             </nav>
           </div>
 
-          {/* Right: Coins Balance (Mono Chip) + Profile Avatar + Logout */}
+          {/* Right: Coins Balance (Accent Chip) + Profile Avatar + Logout */}
           <div className="flex items-center gap-2.5">
             <Link
               href="/shop"
-              className="min-h-[36px] px-3 py-1 border border-amber-300 bg-amber-50 text-amber-900 font-mono text-[11px] uppercase tracking-wider font-semibold inline-flex items-center gap-1.5 shadow-xs hover:bg-amber-100 transition-colors"
+              className="h-8 px-3 rounded-full bg-yellow-100 text-yellow-700 text-[12px] font-semibold inline-flex items-center gap-1.5 hover:bg-yellow-300/60 transition-colors duration-[120ms]"
             >
               <PixelCoin size={15} />
               <span className="tabular-nums">
@@ -160,13 +160,13 @@ const Navbar = () => {
             <Link
               href="/profile"
               aria-label="Akun dan profil"
-              className={`min-h-[36px] px-3 border inline-flex items-center gap-2 transition-colors text-[13px] font-medium shadow-xs ${
+              className={`min-h-[40px] px-3 rounded-md border inline-flex items-center gap-2 transition-colors duration-[120ms] text-[13px] font-medium ${
                 path.startsWith("/profile")
-                  ? "border-blue-600 bg-blue-50 text-blue-700 font-semibold"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+                  ? "border-primary bg-blue-50 text-blue-700 font-semibold"
+                  : "border-border bg-surface text-text-body hover:bg-surface-muted hover:text-text"
               }`}
             >
-              <span className="w-5 h-5 border border-slate-300 inline-flex items-center justify-center font-mono text-[11px] font-semibold bg-slate-100 text-slate-700">
+              <span className="w-6 h-6 rounded-full border border-border inline-flex items-center justify-center text-[11px] font-semibold bg-surface-muted text-text">
                 {initial}
               </span>
               <span className="hidden sm:inline max-w-[110px] truncate">
@@ -184,7 +184,7 @@ const Navbar = () => {
                   },
                 });
               }}
-              className="hidden sm:inline-flex min-h-[36px] min-w-[36px] items-center justify-center border border-slate-200 bg-white text-slate-600 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shadow-xs"
+              className="hidden sm:inline-flex min-h-[40px] min-w-[40px] rounded-md items-center justify-center border border-border bg-surface text-text-muted hover:text-danger-text hover:border-danger/30 hover:bg-danger-soft transition-colors duration-[120ms] cursor-pointer"
               title="Keluar"
             >
               <LogOut className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />

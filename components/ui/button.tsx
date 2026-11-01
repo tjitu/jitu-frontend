@@ -6,39 +6,41 @@ import { cn } from "@/lib/utils";
 
 /**
  * DESIGN.md Section 5 — Button
- * min height 44px, padding 14×22, 2px ink border, 0 radius
- * - Primary (blue): blue-500 fill, white text, 2px ink border
- * - Signal (secondary / main CTA): signal fill, ink text, md shadow -> 2px hover -> 0 active + shift 4px
- * - Outline: white/transparent, 2px ink border
- * - Destructive: warn fill, white text, 2px ink border
- * - Disabled: blue-100 fill, slate-500 text, no shadow
+ * - Radius: 10px (rounded-md), 44px tall (48px for hero CTAs).
+ * - Primary: --primary fill, white text. Hover --primary-hover, pressed --primary-pressed, disabled --blue-300.
+ * - Secondary: white fill, 1px solid --border, --text. Hover --surface-muted.
+ * - Ghost: transparent, --primary text, hover --blue-50.
+ * - Accent (rare): --yellow-400 fill, --ink-900 text, 600 weight, hover --yellow-500.
+ * - Destructive: --danger fill, white text.
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center cursor-pointer gap-2 rounded-none border whitespace-nowrap text-[14px] font-medium transition-colors duration-150 ease-out disabled:pointer-events-none disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 shrink-0 outline-none focus-visible:outline-2 focus-visible:outline-blue-600 focus-visible:outline-offset-2",
+  "inline-flex items-center justify-center cursor-pointer gap-2 rounded-md border whitespace-nowrap text-[14px] font-semibold transition-colors duration-[120ms] ease-out disabled:pointer-events-none disabled:bg-ink-100 disabled:text-ink-500 disabled:border-ink-200 shrink-0 outline-none focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2",
   {
     variants: {
       variant: {
         default:
-          "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm",
+          "bg-primary text-on-primary border-transparent hover:bg-primary-hover active:bg-primary-pressed disabled:bg-blue-300 disabled:text-white disabled:border-transparent",
         primary:
-          "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm",
+          "bg-primary text-on-primary border-transparent hover:bg-primary-hover active:bg-primary-pressed disabled:bg-blue-300 disabled:text-white disabled:border-transparent",
         signal:
-          "bg-amber-400 text-blue-950 font-semibold border-amber-400 hover:bg-amber-300 active:bg-amber-500 shadow-sm",
+          "bg-yellow-400 text-ink-900 font-semibold border-transparent hover:bg-yellow-500 active:bg-yellow-700 active:text-white",
+        accent:
+          "bg-yellow-400 text-ink-900 font-semibold border-transparent hover:bg-yellow-500 active:bg-yellow-700 active:text-white",
         secondary:
-          "bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100/80 active:bg-blue-200 shadow-sm",
+          "bg-surface text-text border-border hover:bg-surface-muted active:bg-ink-100",
         destructive:
-          "bg-red-600 text-white border-red-600 hover:bg-red-700 active:bg-red-800 shadow-sm",
+          "bg-danger text-white border-transparent hover:opacity-90 active:bg-danger-text",
         outline:
-          "bg-white text-slate-800 border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100 shadow-sm",
+          "bg-surface text-text border-border hover:bg-surface-muted active:bg-ink-100",
         ghost:
-          "border-transparent bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900",
-        link: "border-transparent bg-transparent text-blue-600 underline-offset-4 hover:underline p-0 min-h-0 h-auto",
+          "border-transparent bg-transparent text-primary hover:bg-blue-50",
+        link: "border-transparent bg-transparent text-primary underline-offset-4 hover:underline p-0 min-h-0 h-auto",
       },
       size: {
-        default: "min-h-[42px] px-4 py-2",
-        sm: "min-h-[36px] px-3 py-1 text-[13px]",
-        lg: "min-h-[48px] px-6 py-2.5 text-[15px]",
-        icon: "min-h-[40px] min-w-[40px] p-2",
+        default: "min-h-[44px] px-4 py-2.5",
+        sm: "min-h-[36px] px-3 py-1.5 text-[13px]",
+        lg: "min-h-[48px] px-6 py-3 text-[15px]",
+        icon: "min-h-[44px] min-w-[44px] p-2.5",
       },
     },
     defaultVariants: {

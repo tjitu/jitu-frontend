@@ -5,29 +5,30 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * DESIGN.md Section 5 — Chip / badge
- * 1.5px ink border, padding 3×8, mono 12px uppercase, 0 radius.
- * Free = signal, Locked = white + lock icon, Done = blue-100.
+ * DESIGN.md Section 5 — Badge / Chip
+ * 24px tall, radius full, 12px/600 text, soft status backgrounds.
+ * Accent chip: yellow-100 bg, yellow-700 text.
  */
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-none border px-2 py-[2px] font-mono text-[11px] uppercase tracking-[0.06em] font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3.5 gap-1.5 [&>svg]:pointer-events-none transition-colors overflow-hidden",
+  "inline-flex items-center justify-center h-6 rounded-full border border-transparent px-2.5 text-[12px] font-semibold leading-[1.33] w-fit whitespace-nowrap shrink-0 [&>svg]:size-3.5 gap-1.5 [&>svg]:pointer-events-none transition-colors overflow-hidden",
   {
     variants: {
       variant: {
-        default: "bg-blue-50 text-blue-700 border-blue-200",
-        primary: "bg-blue-600 text-white border-blue-600",
-        secondary: "bg-slate-100 text-slate-700 border-slate-200",
-        signal: "bg-amber-50 text-amber-900 border-amber-300 font-semibold",
-        success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        warn: "bg-amber-50 text-amber-800 border-amber-200",
-        danger: "bg-red-50 text-red-700 border-red-200",
-        destructive: "bg-red-50 text-red-700 border-red-200",
-        outline: "bg-white text-slate-700 border-slate-300",
-        chips: "bg-blue-50 text-blue-700 border-blue-200",
+        default: "bg-blue-50 text-blue-800",
+        primary: "bg-primary text-on-primary",
+        secondary: "bg-ink-50 text-ink-700 border-ink-200",
+        signal: "bg-yellow-100 text-yellow-700",
+        accent: "bg-yellow-100 text-yellow-700",
+        success: "bg-success-soft text-success-text",
+        warn: "bg-yellow-100 text-yellow-700",
+        danger: "bg-danger-soft text-danger-text",
+        destructive: "bg-danger-soft text-danger-text",
+        outline: "bg-surface text-ink-700 border-border",
+        chips: "bg-blue-50 text-blue-800",
       },
       size: {
-        sm: "text-[11px] px-2 py-[2px]",
-        md: "text-[12px] px-2.5 py-1",
+        sm: "h-6 text-[12px] px-2.5",
+        md: "h-6 text-[12px] px-2.5",
       },
     },
     defaultVariants: {
@@ -59,13 +60,13 @@ function Badge({
   const Comp = asChild ? Slot : "span";
 
   const colorMap: Record<string, string> = {
-    blue: "bg-blue-100 text-blue-900",
-    purple: "bg-blue-200 text-blue-900",
-    green: "bg-blue-600 text-white",
-    orange: "bg-signal-100 text-signal-700",
-    red: "bg-warn-100 text-warn",
-    yellow: "bg-signal text-blue-900",
-    indigo: "bg-blue-800 text-white",
+    blue: "bg-blue-50 text-blue-800",
+    purple: "bg-blue-100 text-blue-800",
+    green: "bg-success-soft text-success-text",
+    orange: "bg-yellow-100 text-yellow-700",
+    red: "bg-danger-soft text-danger-text",
+    yellow: "bg-yellow-100 text-yellow-700",
+    indigo: "bg-blue-600 text-white",
   };
 
   return (

@@ -44,18 +44,18 @@ export function UnlockSolutionModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <div className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+          <div className="inline-flex items-center gap-1.5 text-label text-primary mb-1">
             <PixelCoin size={14} />
-            <span>KONFIRMASI COIN</span>
+            <span>Konfirmasi coin</span>
           </div>
-          <DialogTitle className="font-display text-xl font-bold text-blue-900">
+          <DialogTitle>
             Pakai {cost} coin untuk {label}?
           </DialogTitle>
-          <DialogDescription className="text-sm text-slate-700 pt-1">
+          <DialogDescription className="text-sm text-text-body pt-1">
             {isSufficient ? (
               <>
                 Sisa coin kamu jadi{" "}
-                <span className="font-mono font-medium text-blue-900">
+                <span className="font-mono font-semibold text-text tabular-nums">
                   {remaining} coin
                 </span>
                 . Ini nggak bisa dibatalkan.
@@ -71,44 +71,44 @@ export function UnlockSolutionModal({
         </DialogHeader>
 
         <div className="py-3">
-          <div className="bg-slate-50 p-4 border border-slate-200 space-y-2.5 font-mono text-xs">
+          <div className="bg-surface-muted p-4 rounded-md border border-border space-y-2.5 text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 uppercase tracking-wider">
-                TRYOUT
+              <span className="text-label text-text-muted">
+                Tryout
               </span>
-              <span className="font-sans font-semibold text-slate-900 text-right">
+              <span className="font-semibold text-text text-right">
                 {tryoutTitle}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <span className="text-label text-text-muted flex items-center gap-1">
                 <PixelCoin size={12} />
-                <span>COIN DIPAKAI</span>
+                <span>Coin dipakai</span>
               </span>
-              <span className="font-medium text-slate-900">{cost} coin</span>
+              <span className="font-mono font-medium text-text tabular-nums">{cost} coin</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 uppercase tracking-wider">
-                SALDO SAAT INI
+              <span className="text-label text-text-muted">
+                Saldo saat ini
               </span>
-              <span className="font-medium text-slate-900">
+              <span className="font-mono font-medium text-text tabular-nums">
                 {userBalance} coin
               </span>
             </div>
-            <div className="h-px bg-slate-200 my-1" />
+            <div className="h-px bg-border my-1" />
             <div className="flex justify-between items-center font-medium">
-              <span className="text-slate-900 uppercase tracking-wider">
-                SISA COIN
+              <span className="text-label text-text">
+                Sisa coin
               </span>
-              <span className={isSufficient ? "text-blue-600 font-semibold" : "text-rose-600 font-semibold"}>
+              <span className={isSufficient ? "font-mono text-primary font-semibold tabular-nums" : "font-mono text-danger-text font-semibold tabular-nums"}>
                 {Math.max(0, userBalance - cost)} coin
               </span>
             </div>
           </div>
 
           {error && (
-            <div className="mt-3 p-3 bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-600" />
+            <div className="mt-3 p-3 rounded-md bg-danger-soft border border-danger/30 text-danger-text text-sm flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-danger" />
               <span>{error}</span>
             </div>
           )}
@@ -122,7 +122,7 @@ export function UnlockSolutionModal({
             <Button
               onClick={onConfirm}
               disabled={isLoading}
-              variant="default"
+              variant="primary"
               className="inline-flex items-center gap-1.5"
             >
               {isLoading ? (
@@ -143,7 +143,7 @@ export function UnlockSolutionModal({
                 onClose();
                 router.push("/shop");
               }}
-              variant="default"
+              variant="primary"
             >
               Beli coin
             </Button>

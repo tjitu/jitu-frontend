@@ -72,11 +72,11 @@ const AdminTryoutModule = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "IN_PROGRESS":
-        return <Badge variant="success">AKTIF</Badge>;
+        return <Badge variant="success">Aktif</Badge>;
       case "NOT_STARTED":
-        return <Badge variant="warn">BELUM RILIS</Badge>;
+        return <Badge variant="warn">Belum rilis</Badge>;
       case "FINISHED":
-        return <Badge variant="default">SELESAI</Badge>;
+        return <Badge variant="default">Selesai</Badge>;
       default:
         return <Badge variant="default">{status}</Badge>;
     }
@@ -84,15 +84,15 @@ const AdminTryoutModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b border-border">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+          <p className="text-label text-primary mb-1">
             MANAJEMEN UJIAN
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+          <h1 className="text-h2 font-bold text-text">
             Daftar paket tryout
           </h1>
-          <p className="text-sm text-slate-700 mt-1">
+          <p className="text-[14px] text-text-muted mt-1">
             Kelola jadwal, subtes, dan bank soal tryout SNBT.
           </p>
         </div>
@@ -152,16 +152,16 @@ const AdminTryoutModule = () => {
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="h-24 text-center font-mono text-xs uppercase text-slate-500"
+                    className="h-24 text-center text-[13px] font-medium text-text-muted"
                   >
-                    MEMUAT DATA...
+                    Memuat data...
                   </TableCell>
                 </TableRow>
               ) : tryouts.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="h-24 text-center text-slate-600"
+                    className="h-24 text-center text-text-muted"
                   >
                     Belum ada tryout yang dibuat.
                   </TableCell>
@@ -169,17 +169,17 @@ const AdminTryoutModule = () => {
               ) : (
                 tryouts.map((tryout) => (
                   <TableRow key={tryout.id}>
-                    <TableCell className="font-mono text-xs font-medium text-slate-600">
+                    <TableCell className="font-mono text-xs font-medium text-text-muted">
                       #{tryout.code}
                     </TableCell>
-                    <TableCell className="font-semibold text-blue-900">
+                    <TableCell className="font-semibold text-text">
                       {tryout.title}
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant={tryout.isPublic ? "default" : "warn"}
                       >
-                        {tryout.isPublic ? "PUBLIK" : "PRIVAT"}
+                        {tryout.isPublic ? "Publik" : "Privat"}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono text-xs">

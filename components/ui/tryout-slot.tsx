@@ -23,32 +23,28 @@ interface TryoutSlotCardProps {
 }
 
 /**
- * DESIGN.md Section 7 — Slot (shared component)
- * Box with 2px border, mono `#n` label, 34px display date.
- * States:
- * - open/active = signal fill
- * - upcoming = white
- * - done = blue-100 + check
- * - missed = dashed
+ * DESIGN.md Section 5 & WRITING.md Section 7 — Tryout Slot Card
+ * White card, 1px solid --border (blue-300 on hover / primary border when open), radius 16 (rounded-lg), 24px padding.
+ * Pill status chips (24px tall, radius full, 12px/600 text).
  */
 export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
-  const numStr = `#${String(slot.number).padStart(2, "0")}`;
+  const numStr = `#${slot.number}`;
 
   const containerStyle =
     slot.state === "open"
-      ? "bg-signal text-blue-900 border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-500)]"
+      ? "bg-surface text-text border-2 border-primary hover:border-primary"
       : slot.state === "done"
-        ? "bg-blue-100 text-blue-900 border-2 border-blue-900"
+        ? "bg-surface-muted text-text border border-border"
         : slot.state === "missed"
           ? onDark
-            ? "bg-blue-800 text-blue-300 border-2 border-dashed border-slate-500"
-            : "bg-blue-50 text-slate-700 border-2 border-dashed border-slate-500"
-          : "bg-white text-blue-900 border-2 border-blue-900";
+            ? "bg-blue-900/40 text-blue-200 border border-dashed border-blue-700"
+            : "bg-surface-muted text-text-muted border border-dashed border-ink-300"
+          : "bg-surface text-text border border-border hover:border-blue-300";
 
   const chipContent = () => {
     if (slot.state === "open") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-[3px] border-[1.5px] border-blue-900 bg-white text-blue-900 font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
+        <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-[12px] font-semibold">
           <Clock className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
           <span>Dibuka</span>
         </span>
@@ -56,7 +52,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
     }
     if (slot.state === "done") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-[3px] border-[1.5px] border-blue-900 bg-blue-100 text-blue-900 font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
+        <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-success-soft text-success-text text-[12px] font-semibold">
           <Check className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
           <span>Selesai</span>
         </span>
@@ -65,10 +61,10 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
     if (slot.state === "missed") {
       return (
         <span
-          className={`inline-flex items-center gap-1.5 px-2 py-[3px] border-[1.5px] border-dashed font-mono text-[12px] uppercase tracking-[0.06em] ${
+          className={`inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[12px] font-semibold ${
             onDark
-              ? "border-slate-500 text-blue-300"
-              : "border-slate-500 text-slate-700"
+              ? "bg-blue-800 text-blue-200"
+              : "bg-ink-100 text-ink-500"
           }`}
         >
           <Minus className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
@@ -77,7 +73,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-[3px] border-[1.5px] border-blue-900 bg-blue-50 text-blue-900 font-mono text-[12px] uppercase tracking-[0.06em] font-medium">
+      <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold">
         <Calendar className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
         <span>Segera</span>
       </span>
@@ -85,41 +81,43 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
   };
 
   return (
-    <article className={`p-6 flex flex-col justify-between gap-4 ${containerStyle}`}>
+    <article
+      className={`p-6 rounded-lg flex flex-col justify-between gap-4 transition-colors duration-[120ms] ${containerStyle}`}
+    >
       <div className="space-y-3">
-        {/* Top Row: Mono #n label + State chip */}
+        {/* Top Row: Label + State chip */}
         <div className="flex items-center justify-between gap-2">
           <span
-            className={`font-mono text-[12px] uppercase tracking-[0.06em] font-medium tabular-nums ${
-              slot.state === "missed" && onDark ? "text-blue-300" : "text-blue-900"
+            className={`text-[12px] uppercase tracking-[0.06em] font-semibold tabular-nums ${
+              slot.state === "missed" && onDark ? "text-blue-200" : "text-text-muted"
             }`}
           >
-            TRYOUT {numStr}
+            Tryout {numStr}
           </span>
           {chipContent()}
         </div>
 
-        {/* 34px Display Date */}
+        {/* Display Date */}
         <div
-          className={`font-display font-extrabold text-[34px] leading-[1.02] tracking-[-0.025em] tabular-nums ${
-            slot.state === "missed" && onDark ? "text-white" : "text-blue-900"
+          className={`font-bold text-[28px] leading-[1.2] tracking-[-0.02em] tabular-nums ${
+            slot.state === "missed" && onDark ? "text-white" : "text-text"
           }`}
         >
           {slot.displayDate}
         </div>
 
         {/* Title & Window */}
-        <div className="space-y-1 pt-1 border-t border-slate-300/80">
+        <div className="space-y-1 pt-3 border-t border-ink-100">
           <h3
-            className={`text-[16px] font-bold leading-snug ${
-              slot.state === "missed" && onDark ? "text-white" : "text-blue-900"
+            className={`text-[16px] font-semibold leading-snug ${
+              slot.state === "missed" && onDark ? "text-white" : "text-text"
             }`}
           >
             {slot.title}
           </h3>
           <p
-            className={`font-mono text-[12px] uppercase tracking-[0.06em] tabular-nums ${
-              slot.state === "missed" && onDark ? "text-blue-300" : "text-slate-700"
+            className={`text-[13px] tabular-nums ${
+              slot.state === "missed" && onDark ? "text-blue-200" : "text-text-muted"
             }`}
           >
             {slot.windowLabel} · {slot.subtestInfo}
@@ -132,7 +130,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
         {slot.state === "open" ? (
           <Link
             href={slot.href ?? "/register"}
-            className="w-full min-h-[44px] px-4 py-2.5 border-2 border-blue-900 bg-blue-900 text-white font-semibold text-[14px] inline-flex items-center justify-between hover:bg-blue-800 transition-colors"
+            className="w-full min-h-[44px] px-4 py-2.5 rounded-md bg-primary text-on-primary font-semibold text-[14px] inline-flex items-center justify-between hover:bg-primary-hover active:bg-primary-pressed transition-colors duration-[120ms]"
           >
             <span>Kerjakan</span>
             <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
@@ -140,7 +138,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
         ) : slot.state === "upcoming" ? (
           <Link
             href={slot.href ?? "/register"}
-            className="w-full min-h-[44px] px-4 py-2.5 border-2 border-blue-900 bg-blue-50 text-blue-900 font-semibold text-[14px] inline-flex items-center justify-between hover:bg-blue-100 transition-colors"
+            className="w-full min-h-[44px] px-4 py-2.5 rounded-md border border-border bg-surface text-text font-semibold text-[14px] inline-flex items-center justify-between hover:bg-surface-muted transition-colors duration-[120ms]"
           >
             <span>Daftar gratis</span>
             <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
@@ -148,13 +146,13 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
         ) : slot.state === "done" ? (
           <Link
             href={slot.href ?? "/login"}
-            className="w-full min-h-[44px] px-4 py-2.5 border-2 border-blue-900 bg-white text-blue-900 font-semibold text-[14px] inline-flex items-center justify-between hover:bg-blue-50 transition-colors"
+            className="w-full min-h-[44px] px-4 py-2.5 rounded-md border border-border bg-surface text-text font-semibold text-[14px] inline-flex items-center justify-between hover:bg-surface-muted transition-colors duration-[120ms]"
           >
             <span>Lihat hasil</span>
             <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
           </Link>
         ) : (
-          <div className="min-h-[44px] px-3 py-2 border border-dashed border-slate-500 flex items-center justify-between font-mono text-[12px] uppercase tracking-[0.06em]">
+          <div className="min-h-[44px] px-3 py-2 rounded-md border border-dashed border-ink-300 flex items-center justify-between text-[12px] font-medium text-text-muted">
             <span>Ditutup</span>
             <span>Buka pembahasan · 1 coin</span>
           </div>
@@ -163,4 +161,3 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
     </article>
   );
 }
-

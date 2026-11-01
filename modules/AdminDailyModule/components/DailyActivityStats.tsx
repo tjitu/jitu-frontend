@@ -10,31 +10,31 @@ interface DailyActivityStatsProps {
 export const DailyActivityStats: React.FC<DailyActivityStatsProps> = ({ stats }) => {
   return (
     <div className="grid grid-cols-1 gap-4 h-full">
-      <Card className="border-border/50 shadow-sm">
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-text-muted flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Total Pengerjaan Hari Ini
+            Total pengerjaan hari ini
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">{stats.totalAttempts}</div>
-          <p className="text-xs text-muted-foreground mt-1">User telah mencoba menjawab</p>
+          <div className="text-3xl font-mono font-bold text-text tabular-nums">{stats.totalAttempts}</div>
+          <p className="text-xs text-text-muted mt-1">Peserta telah mencoba menjawab</p>
         </CardContent>
       </Card>
 
-      <Card className="border-border/50 shadow-sm">
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-text-muted flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Success Rate
+            Tingkat akurasi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-blue-600">{stats.successRate.toFixed(1)}%</div>
-          <div className="w-full bg-muted rounded-full h-2 mt-3 overflow-hidden">
+          <div className="text-3xl font-mono font-bold text-primary tabular-nums">{stats.successRate.toFixed(1)}%</div>
+          <div className="w-full bg-surface-muted border border-border rounded-full h-2 mt-3 overflow-hidden">
             <div 
-              className="bg-blue-600 h-full transition-all duration-500" 
+              className="bg-primary h-full transition-all duration-300" 
               style={{ width: `${stats.successRate}%` }}
             />
           </div>
@@ -42,27 +42,27 @@ export const DailyActivityStats: React.FC<DailyActivityStatsProps> = ({ stats })
       </Card>
 
       <div className="grid grid-cols-2 gap-4">
-        <Card className="border-border/50 shadow-sm bg-green-50/30">
+        <Card className="bg-success-soft border-success/30">
           <CardHeader className="pb-2 p-4">
-            <CardTitle className="text-xs font-medium text-green-700 flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" />
-              BENAR
+            <CardTitle className="text-xs font-semibold text-success-text flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Benar
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold text-green-700">{stats.correctAnswers}</div>
+            <div className="text-xl font-mono font-bold text-success-text tabular-nums">{stats.correctAnswers}</div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 shadow-sm bg-red-50/30">
+        <Card className="bg-danger-soft border-danger/30">
           <CardHeader className="pb-2 p-4">
-            <CardTitle className="text-xs font-medium text-red-700 flex items-center gap-1">
-              <XCircle className="h-3 w-3" />
-              SALAH
+            <CardTitle className="text-xs font-semibold text-danger-text flex items-center gap-1">
+              <XCircle className="h-3.5 w-3.5" />
+              Salah
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold text-red-700">{stats.incorrectAnswers}</div>
+            <div className="text-xl font-mono font-bold text-danger-text tabular-nums">{stats.incorrectAnswers}</div>
           </CardContent>
         </Card>
       </div>

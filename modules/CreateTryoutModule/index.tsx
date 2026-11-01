@@ -103,15 +103,15 @@ const CreateTryoutModule = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex items-center gap-4 pb-5 border-b border-border">
         <Button variant="outline" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+          <p className="text-label text-primary">
             MANAJEMEN UJIAN
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+          <h1 className="text-h2 font-bold text-text">
             Buat tryout baru
           </h1>
         </div>

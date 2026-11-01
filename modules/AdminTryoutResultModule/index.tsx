@@ -108,9 +108,9 @@ const AdminTryoutResultModule: React.FC<AdminTryoutResultModuleProps> = ({
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-          MEMUAT HASIL TRYOUT...
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="text-[13px] font-medium text-text-muted">
+          Memuat hasil tryout...
         </span>
       </div>
     );
@@ -118,23 +118,23 @@ const AdminTryoutResultModule: React.FC<AdminTryoutResultModuleProps> = ({
 
   if (!stats)
     return (
-      <div className="p-8 bg-white border-2 border-blue-900 text-center text-danger font-medium">
+      <div className="p-8 bg-surface rounded-lg border border-border text-center text-danger font-medium">
         Data tidak ditemukan.
       </div>
     );
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b border-border">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+            <p className="text-label text-primary">
               REKAP NILAI &amp; PERINGKAT
             </p>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+            <h1 className="text-h2 font-bold text-text">
               {stats.title}
             </h1>
           </div>
@@ -204,17 +204,17 @@ const AdminTryoutResultModule: React.FC<AdminTryoutResultModuleProps> = ({
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="font-semibold text-blue-900 text-sm">
+                        <div className="font-semibold text-text text-sm">
                           {entry.user.name}
                         </div>
-                        <div className="font-mono text-[11px] text-slate-600">
+                        <div className="font-mono text-[11px] text-text-muted">
                           {entry.user.email}
                         </div>
                       </TableCell>
                       <TableCell className="text-xs">
                         {entry.user.target || "-"}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-sm font-medium text-blue-900">
+                      <TableCell className="text-right font-mono text-sm font-semibold text-text">
                         {Math.round(entry.totalScore)}
                       </TableCell>
                     </TableRow>

@@ -288,26 +288,26 @@ export default function HiringModule() {
   };
 
   const getInputClass = (fieldName: string) =>
-    `w-full h-10 px-3 bg-white border text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors ${
+    `w-full h-11 px-3.5 rounded-md bg-surface border text-[14px] text-text placeholder:text-text-subtle focus:outline-none transition-colors ${
       fieldErrors[fieldName]
-        ? "border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-600 bg-red-50/20"
-        : "border-slate-300 focus:border-blue-700 focus:ring-1 focus:ring-blue-700"
+        ? "border-danger focus:border-danger focus:ring-3 focus:ring-danger-soft bg-danger-soft/30"
+        : "border-border hover:border-ink-300 focus:border-primary focus:ring-3 focus:ring-blue-200"
     }`;
 
   const getTextareaClass = (fieldName: string) =>
-    `w-full p-3 bg-white border text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors ${
+    `w-full p-3.5 rounded-md bg-surface border text-[14px] text-text placeholder:text-text-subtle focus:outline-none transition-colors ${
       fieldErrors[fieldName]
-        ? "border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-600 bg-red-50/20"
-        : "border-slate-300 focus:border-blue-700 focus:ring-1 focus:ring-blue-700"
+        ? "border-danger focus:border-danger focus:ring-3 focus:ring-danger-soft bg-danger-soft/30"
+        : "border-border hover:border-ink-300 focus:border-primary focus:ring-3 focus:ring-blue-200"
     }`;
 
-  const labelClass = "block text-[13px] font-medium text-slate-800 mb-1.5";
+  const labelClass = "block text-[13px] font-medium text-text mb-1.5";
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-bg text-text-body">
       {/* Minimalist Navbar — ONLY JITU LOGO */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="max-w-[760px] mx-auto px-4 sm:px-6 h-14 flex items-center">
+      <header className="border-b border-border bg-surface">
+        <div className="max-w-[760px] mx-auto px-4 sm:px-6 h-16 flex items-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <Image
               src="/blue-jitu-logo.png"
@@ -317,65 +317,50 @@ export default function HiringModule() {
               priority
               className="h-6 w-auto object-contain"
             />
-            <span className="font-display font-extrabold text-[20px] tracking-[-0.025em] text-blue-900 leading-none">
-              jitu<span className="text-blue-600">.</span>
+            <span className="font-bold text-[20px] tracking-[-0.025em] text-text leading-none">
+              jitu<span className="text-primary">.</span>
             </span>
           </Link>
         </div>
       </header>
 
       <main className="max-w-[760px] mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-10">
-        {/* SECTION 1: Header Picture (Indonesian SMA students achieving PTN + layered blue tone) */}
+        {/* SECTION 1: Header Picture (full-color, rounded-lg, 1px border per design.md §6) */}
         <section aria-label="Header banner">
-          <div className="relative w-full h-[180px] sm:h-[230px] overflow-hidden bg-[#061844]">
+          <div className="relative w-full h-[180px] sm:h-[230px] rounded-lg border border-border overflow-hidden bg-surface-muted">
             <img
               src="/hiring-header-photo.jpg?v=5"
               alt="JITU Open Hiring 2026"
-              className="w-full h-full object-cover object-[center_52%] grayscale contrast-105 brightness-100"
-            />
-            <div
-              className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-80"
-              style={{
-                background:
-                  "linear-gradient(90deg, #0D3894 0%, #2563EB 42%, #0A2E7A 100%)",
-              }}
-            />
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(6,22,62,0.10) 0%, rgba(6,22,62,0.24) 100%)",
-              }}
+              className="w-full h-full object-cover object-[center_52%]"
             />
           </div>
         </section>
 
         {/* SECTION 2: Title and Short Explanation */}
         <section className="space-y-4">
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-[12px] font-mono">
-              <span className="uppercase tracking-[0.08em] text-blue-700 font-semibold">
-                Part-Time · Remote
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <span className="h-6 rounded-full bg-blue-50 text-blue-800 px-2.5 text-[12px] font-semibold inline-flex items-center">
+                Part-time · Remote
               </span>
-              <span className="text-slate-300">·</span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 border border-amber-200/90 text-amber-900 font-semibold text-[11px] uppercase tracking-[0.06em]">
-                <Clock className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+              <span className="h-6 rounded-full bg-yellow-100 text-yellow-700 px-2.5 text-[12px] font-semibold inline-flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 shrink-0" />
                 <span>Deadline: 30 October 2026</span>
               </span>
             </div>
-            <h1 className="font-display text-[28px] sm:text-[34px] font-bold tracking-[-0.02em] text-slate-900 leading-tight">
+            <h1 className="text-h1 font-bold text-text">
               JITU Open Hiring 2026
             </h1>
           </div>
 
-          <p className="text-[16px] font-semibold text-slate-900">
+          <p className="text-[16px] font-semibold text-text">
             What if your organizational experience actually paid off?
           </p>
 
-          <div className="space-y-3 text-[14px] sm:text-[15px] text-slate-600 leading-relaxed">
+          <div className="space-y-3 text-[15px] text-text-body leading-relaxed">
             <p>
               We&apos;ve all seen it:{" "}
-              <strong className="font-bold text-slate-900">
+              <strong className="font-semibold text-text">
                 working long hours, organizing events, chasing sponsorships, and
                 taking on responsibilities, all for the sake of a certificate
                 and another line on your CV.
@@ -387,14 +372,14 @@ export default function HiringModule() {
               At JITU, we&apos;re building an early-stage EdTech startup from the
               ground up, developing products for Indonesia&apos;s education
               ecosystem while growing a sustainable business.{" "}
-              <strong className="font-bold text-slate-900">
+              <strong className="font-semibold text-text">
                 We&apos;re looking for people who want to take ownership, gain
                 hands-on startup experience, and share in the value they help
                 create.
               </strong>
             </p>
             <p>
-              <strong className="font-bold text-slate-900">
+              <strong className="font-semibold text-text">
                 If you&apos;re looking for something beyond organizational
                 experience with zero chance of economic return, this place is for
                 you.
@@ -403,57 +388,57 @@ export default function HiringModule() {
           </div>
 
           <div className="pt-2">
-            <h2 className="text-[13px] sm:text-[14px] font-mono uppercase tracking-[0.08em] text-blue-700 font-semibold mb-3">
-              What You Get
+            <h2 className="text-label text-primary mb-3">
+              WHAT YOU GET
             </h2>
-            <ul className="flex flex-col gap-2.5 text-[15px] sm:text-[16px] text-blue-700 font-normal leading-relaxed">
+            <ul className="flex flex-col gap-2.5 text-[15px] text-text-body leading-relaxed">
               <li className="flex items-start gap-2.5">
-                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>First-hand experience building an early-stage startup.</span>
               </li>
-              <li className="flex items-start gap-2.5 font-bold">
-                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+              <li className="flex items-start gap-2.5 font-semibold text-text">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>
                   Individual profit-sharing under mutually agreed terms.
                 </span>
               </li>
-              <li className="flex items-start gap-2.5 font-bold">
-                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+              <li className="flex items-start gap-2.5 font-semibold text-text">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>
                   Transition to fixed compensation as milestones are achieved.
                 </span>
               </li>
-              <li className="flex items-start gap-2.5 font-bold">
-                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+              <li className="flex items-start gap-2.5 font-semibold text-text">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>
                   All roles are profit-sharing first, with fixed salary offered once milestones are achieved.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>Real ownership and responsibilities.</span>
               </li>
               <li className="flex items-start gap-2.5">
-                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>Room to grow in technology, product, and business.</span>
               </li>
               <li className="flex items-start gap-2.5">
-                <span className="text-blue-700 text-[18px] leading-none mt-0.5">•</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
                 <span>Part-time and remote arrangement.</span>
               </li>
             </ul>
           </div>
         </section>
 
-        <hr className="border-slate-200" />
+        <hr className="border-border" />
 
         {/* SECTION 3: Open Positions (8 Positions Available) */}
         <section className="space-y-5">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-display text-[19px] sm:text-[20px] font-bold text-slate-900">
-              Open Positions
+            <h2 className="text-[20px] font-bold text-text">
+              Open positions
             </h2>
-            <span className="text-[12px] font-mono text-slate-500">
+            <span className="text-[12px] font-mono text-text-muted">
               8 positions available
             </span>
           </div>
@@ -465,36 +450,36 @@ export default function HiringModule() {
               );
               return (
                 <div key={division} className="space-y-2.5">
-                  <h3 className="text-[11.5px] font-mono uppercase tracking-[0.08em] font-semibold text-blue-700">
+                  <h3 className="text-label text-primary">
                     {division}
                   </h3>
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     {roles.map((role) => (
                       <div
                         key={role.id}
-                        className="w-full text-left bg-white border border-slate-200/90 shadow-xs p-4 sm:p-5"
+                        className="w-full text-left bg-surface rounded-lg border border-border hover:border-blue-300 transition-colors p-5"
                       >
-                        <div className="text-[12px] text-slate-500 font-medium">
+                        <div className="text-[12px] text-text-muted font-medium">
                           {role.division}
                         </div>
-                        <h4 className="font-serif text-[20px] sm:text-[22px] font-bold text-slate-900 tracking-tight leading-snug mt-1">
+                        <h4 className="text-[18px] sm:text-[20px] font-bold text-text tracking-[-0.015em] leading-snug mt-1">
                           {role.title}
                         </h4>
-                        <p className="text-[13.5px] text-slate-600 leading-relaxed mt-1.5">
+                        <p className="text-[14px] text-text-body leading-relaxed mt-1.5">
                           {role.summary}
                         </p>
-                        <div className="flex items-center justify-between gap-3 text-[12px] text-slate-500 mt-3.5 pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-between gap-3 text-[12px] text-text-muted mt-3.5 pt-3 border-t border-border">
                           <div className="flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <MapPin className="w-3.5 h-3.5 text-text-subtle shrink-0" />
                             <span>
-                              Remote | Part-Time | {role.slots}{" "}
-                              {role.slots > 1 ? "Positions" : "Position"}
+                              Remote · Part-Time · {role.slots}{" "}
+                              {role.slots > 1 ? "positions" : "position"}
                             </span>
                           </div>
                           <button
                             type="button"
                             onClick={scrollToForm}
-                            className="text-[12px] font-medium text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
+                            className="text-[13px] font-semibold text-primary hover:text-primary-hover hover:underline cursor-pointer"
                           >
                             Apply now →
                           </button>
@@ -508,69 +493,69 @@ export default function HiringModule() {
           </div>
         </section>
 
-        <hr className="border-slate-200" />
+        <hr className="border-border" />
 
         {/* SECTION 4: Application Form */}
         <section ref={formRef} className="space-y-6 pb-12">
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-display text-[18px] font-bold text-slate-900">
-                Application Form
+              <h2 className="text-[20px] font-bold text-text">
+                Application form
               </h2>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.05em] text-amber-800 bg-amber-50 border border-amber-200/90 px-2.5 py-0.5 font-semibold">
-                <Clock className="w-3 h-3 text-amber-700" />
+              <span className="h-6 rounded-full inline-flex items-center gap-1.5 text-[12px] text-yellow-700 bg-yellow-100 px-2.5 font-semibold">
+                <Clock className="w-3.5 h-3.5" />
                 <span>Deadline: 30 October 2026</span>
               </span>
             </div>
-            <p className="text-[13px] text-slate-500 mt-1">
+            <p className="text-[13px] text-text-muted mt-1">
               Complete the form below to apply. Fields marked with * are
               required. Applications close on <strong>30 October 2026</strong>.
             </p>
           </div>
 
           {browserRecord ? (
-            <div className="border border-blue-900 bg-blue-50/40 p-6 sm:p-7 space-y-5">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-blue-200">
+            <div className="rounded-lg border border-border bg-surface p-6 sm:p-7 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-blue-700 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
                   <div>
-                    <h3 className="font-display font-bold text-[18px] text-slate-900 leading-tight">
-                      Application Already Submitted
+                    <h3 className="font-bold text-[18px] text-text leading-tight">
+                      Application already submitted
                     </h3>
-                    <p className="text-[12px] text-slate-500 mt-0.5">
+                    <p className="text-[12px] text-text-muted mt-0.5">
                       This browser is registered with an active submission.
                     </p>
                   </div>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-900 text-[11px] font-mono uppercase tracking-[0.06em] font-semibold self-start sm:self-auto border border-blue-200">
-                  <Lock className="w-3 h-3 text-blue-800" />
-                  <span>1 Submission / Candidate</span>
+                <div className="h-6 rounded-full inline-flex items-center gap-1.5 px-2.5 bg-blue-50 text-blue-800 text-[12px] font-semibold self-start sm:self-auto">
+                  <Lock className="w-3 h-3" />
+                  <span>1 submission / candidate</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-white border border-slate-300 p-3.5 space-y-1">
-                  <span className="text-[11px] font-mono uppercase tracking-[0.06em] text-slate-500 block">
+                <div className="bg-surface-muted rounded-md border border-border p-3.5 space-y-1">
+                  <span className="text-label text-text-muted block">
                     Candidate
                   </span>
-                  <span className="text-[14px] font-bold text-slate-900 block truncate">
+                  <span className="text-[14px] font-bold text-text block truncate">
                     {browserRecord.fullName}
                   </span>
                 </div>
-                <div className="bg-white border border-slate-300 p-3.5 space-y-1">
-                  <span className="text-[11px] font-mono uppercase tracking-[0.06em] text-slate-500 block">
-                    Applied Position
+                <div className="bg-surface-muted rounded-md border border-border p-3.5 space-y-1">
+                  <span className="text-label text-text-muted block">
+                    Applied position
                   </span>
-                  <span className="text-[14px] font-bold text-slate-900 block truncate">
+                  <span className="text-[14px] font-bold text-text block truncate">
                     {browserRecord.primaryRole}
                   </span>
                 </div>
-                <div className="bg-white border border-slate-300 p-3.5 space-y-1 flex items-start justify-between">
+                <div className="bg-surface-muted rounded-md border border-border p-3.5 space-y-1 flex items-start justify-between">
                   <div>
-                    <span className="text-[11px] font-mono uppercase tracking-[0.06em] text-slate-500 block">
+                    <span className="text-label text-text-muted block">
                       Reference ID
                     </span>
-                    <span className="font-mono text-[14px] font-bold text-blue-900 block">
+                    <span className="font-mono text-[14px] font-bold text-primary block">
                       {browserRecord.id}
                     </span>
                   </div>
@@ -582,11 +567,11 @@ export default function HiringModule() {
                       toast.success("Reference ID copied to clipboard!");
                       setTimeout(() => setCopiedId(false), 2000);
                     }}
-                    className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-sm text-text-muted hover:text-text hover:bg-surface transition-colors cursor-pointer"
                     title="Copy Reference ID"
                   >
                     {copiedId ? (
-                      <Check className="w-4 h-4 text-emerald-600" />
+                      <Check className="w-4 h-4 text-success" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -594,21 +579,21 @@ export default function HiringModule() {
                 </div>
               </div>
 
-              <div className="text-[13.5px] text-slate-700 leading-relaxed space-y-2 pt-1">
+              <div className="text-[13.5px] text-text-body leading-relaxed space-y-2 pt-1">
                 <p>
                   Thank you! Your application has been recorded in our hiring database. To ensure fair and comprehensive evaluation for every candidate, multiple submissions for this cycle are disabled.
                 </p>
-                <p className="text-[12.5px] text-slate-500">
+                <p className="text-[12.5px] text-text-muted">
                   Our team reviews profiles on a rolling basis and will reach out via WhatsApp or email if your qualifications align with the role.
                 </p>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="bg-surface rounded-lg border border-border p-6 sm:p-8 space-y-5">
               {/* Personal Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div data-field="fullName">
-                  <label className={labelClass}>Full Name *</label>
+                  <label className={labelClass}>Full name *</label>
                   <input
                     type="text"
                     required
@@ -618,13 +603,13 @@ export default function HiringModule() {
                     className={getInputClass("fullName")}
                   />
                   {fieldErrors.fullName && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.fullName}
                     </p>
                   )}
                 </div>
                 <div data-field="email">
-                  <label className={labelClass}>Email Address *</label>
+                  <label className={labelClass}>Email address *</label>
                   <input
                     type="email"
                     required
@@ -634,7 +619,7 @@ export default function HiringModule() {
                     className={getInputClass("email")}
                   />
                   {fieldErrors.email && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.email}
                     </p>
                   )}
@@ -644,8 +629,8 @@ export default function HiringModule() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div data-field="whatsapp">
                   <label className={labelClass}>
-                    WhatsApp Number *{" "}
-                    <span className="text-[11px] text-slate-400 font-normal">
+                    WhatsApp number *{" "}
+                    <span className="text-[12px] text-text-muted font-normal">
                       (min. 8 digits)
                     </span>
                   </label>
@@ -658,13 +643,13 @@ export default function HiringModule() {
                     className={getInputClass("whatsapp")}
                   />
                   {fieldErrors.whatsapp && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.whatsapp}
                     </p>
                   )}
                 </div>
                 <div data-field="domicile">
-                  <label className={labelClass}>Current Domicile (City) *</label>
+                  <label className={labelClass}>Current domicile (city) *</label>
                   <input
                     type="text"
                     required
@@ -674,7 +659,7 @@ export default function HiringModule() {
                     className={getInputClass("domicile")}
                   />
                   {fieldErrors.domicile && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.domicile}
                     </p>
                   )}
@@ -683,7 +668,7 @@ export default function HiringModule() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div data-field="university">
-                  <label className={labelClass}>University / Institution *</label>
+                  <label className={labelClass}>University / institution *</label>
                   <input
                     type="text"
                     required
@@ -693,13 +678,13 @@ export default function HiringModule() {
                     className={getInputClass("university")}
                   />
                   {fieldErrors.university && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.university}
                     </p>
                   )}
                 </div>
                 <div data-field="major">
-                  <label className={labelClass}>Major / Department *</label>
+                  <label className={labelClass}>Major / department *</label>
                   <input
                     type="text"
                     required
@@ -709,13 +694,13 @@ export default function HiringModule() {
                     className={getInputClass("major")}
                   />
                   {fieldErrors.major && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.major}
                     </p>
                   )}
                 </div>
                 <div data-field="academicStatus">
-                  <label className={labelClass}>Current Status *</label>
+                  <label className={labelClass}>Current status *</label>
                   <select
                     value={form.academicStatus}
                     onChange={(e) =>
@@ -733,7 +718,7 @@ export default function HiringModule() {
                     <option value="Other">Other</option>
                   </select>
                   {fieldErrors.academicStatus && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.academicStatus}
                     </p>
                   )}
@@ -743,7 +728,7 @@ export default function HiringModule() {
               {/* Position & Availability */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div data-field="primaryRole">
-                  <label className={labelClass}>Primary Position *</label>
+                  <label className={labelClass}>Primary position *</label>
                   <select
                     required
                     value={form.primaryRole}
@@ -758,14 +743,14 @@ export default function HiringModule() {
                     ))}
                   </select>
                   {fieldErrors.primaryRole && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.primaryRole}
                     </p>
                   )}
                 </div>
                 <div data-field="secondaryRole">
                   <label className={labelClass}>
-                    Secondary Position (Optional)
+                    Secondary position (optional)
                   </label>
                   <select
                     value={form.secondaryRole}
@@ -784,7 +769,7 @@ export default function HiringModule() {
                     ))}
                   </select>
                   {fieldErrors.secondaryRole && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.secondaryRole}
                     </p>
                   )}
@@ -793,7 +778,7 @@ export default function HiringModule() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div data-field="availability">
-                  <label className={labelClass}>Weekly Availability *</label>
+                  <label className={labelClass}>Weekly availability *</label>
                   <select
                     value={form.availability}
                     onChange={(e) =>
@@ -808,7 +793,7 @@ export default function HiringModule() {
                   </select>
                 </div>
                 <div data-field="startDate">
-                  <label className={labelClass}>Earliest Start Date *</label>
+                  <label className={labelClass}>Earliest start date *</label>
                   <select
                     value={form.startDate}
                     onChange={(e) => updateField("startDate", e.target.value)}
@@ -826,7 +811,7 @@ export default function HiringModule() {
               <div className="space-y-4 pt-2">
                 <div data-field="cvUrl">
                   <label className={labelClass}>
-                    CV / Resume Link (Google Drive, Notion, etc.) *
+                    CV / resume link (Google Drive, Notion, etc.) *
                   </label>
                   <input
                     type="text"
@@ -837,11 +822,11 @@ export default function HiringModule() {
                     className={getInputClass("cvUrl")}
                   />
                   {fieldErrors.cvUrl ? (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.cvUrl}
                     </p>
                   ) : (
-                    <p className="text-[12px] text-slate-500 mt-1">
+                    <p className="text-[12px] text-text-muted mt-1">
                       Please ensure the link sharing permission is set to &ldquo;Anyone with the link can view&rdquo;.
                     </p>
                   )}
@@ -850,7 +835,7 @@ export default function HiringModule() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div data-field="portfolioUrl">
                     <label className={labelClass}>
-                      Portfolio / GitHub / Proof of Work Link
+                      Portfolio / GitHub / proof of work link
                     </label>
                     <input
                       type="text"
@@ -863,7 +848,7 @@ export default function HiringModule() {
                     />
                   </div>
                   <div data-field="linkedinUrl">
-                    <label className={labelClass}>LinkedIn Profile URL</label>
+                    <label className={labelClass}>LinkedIn profile URL</label>
                     <input
                       type="text"
                       value={form.linkedinUrl}
@@ -881,10 +866,10 @@ export default function HiringModule() {
               <div className="space-y-4 pt-2">
                 <div data-field="experienceEssay">
                   <div className="flex justify-between items-baseline mb-1.5">
-                    <label className="text-[13px] font-medium text-slate-800">
-                      Relevant Experience &amp; Track Record *
+                    <label className="text-[13px] font-medium text-text">
+                      Relevant experience &amp; track record *
                     </label>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-text-muted font-mono">
                       {form.experienceEssay.length} / 15 chars min
                     </span>
                   </div>
@@ -899,7 +884,7 @@ export default function HiringModule() {
                     className={getTextareaClass("experienceEssay")}
                   />
                   {fieldErrors.experienceEssay && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.experienceEssay}
                     </p>
                   )}
@@ -907,10 +892,10 @@ export default function HiringModule() {
 
                 <div data-field="motivationEssay">
                   <div className="flex justify-between items-baseline mb-1.5">
-                    <label className="text-[13px] font-medium text-slate-800">
-                      Why JITU &amp; Value Creation *
+                    <label className="text-[13px] font-medium text-text">
+                      Why JITU &amp; value creation *
                     </label>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-text-muted font-mono">
                       {form.motivationEssay.length} / 15 chars min
                     </span>
                   </div>
@@ -925,7 +910,7 @@ export default function HiringModule() {
                     className={getTextareaClass("motivationEssay")}
                   />
                   {fieldErrors.motivationEssay && (
-                    <p className="mt-1 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1 text-[12px] text-danger font-medium">
                       {fieldErrors.motivationEssay}
                     </p>
                   )}
@@ -935,7 +920,7 @@ export default function HiringModule() {
               {/* Commitment & Submit */}
               <div className="pt-2 space-y-4">
                 <div data-field="commitmentAgreed">
-                  <label className="flex items-start gap-2.5 text-[13px] text-slate-700 cursor-pointer select-none">
+                  <label className="flex items-start gap-2.5 text-[13px] text-text-body cursor-pointer select-none">
                     <input
                       type="checkbox"
                       required
@@ -943,7 +928,7 @@ export default function HiringModule() {
                       onChange={(e) =>
                         updateField("commitmentAgreed", e.target.checked)
                       }
-                      className="mt-1 h-4 w-4 accent-blue-900"
+                      className="mt-1 h-4 w-4 accent-primary"
                     />
                     <span>
                       I understand that JITU is an early-stage startup offering a
@@ -953,19 +938,19 @@ export default function HiringModule() {
                     </span>
                   </label>
                   {fieldErrors.commitmentAgreed && (
-                    <p className="mt-1.5 text-[12px] text-red-600 font-medium">
+                    <p className="mt-1.5 text-[12px] text-danger font-medium">
                       {fieldErrors.commitmentAgreed}
                     </p>
                   )}
                 </div>
 
                 {Object.keys(fieldErrors).length > 0 && (
-                  <div className="p-3.5 bg-red-50 border border-red-300 text-red-900 text-[13px] space-y-1.5">
-                    <div className="flex items-center gap-2 font-semibold text-red-800">
-                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <div className="p-3.5 rounded-md bg-danger-soft border border-danger/30 text-danger-text text-[13px] space-y-1.5">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <AlertCircle className="w-4 h-4 text-danger shrink-0" />
                       <span>Please check and correct the following items:</span>
                     </div>
-                    <ul className="list-disc list-inside space-y-0.5 text-[12px] text-red-700">
+                    <ul className="list-disc list-inside space-y-0.5 text-[12px]">
                       {Object.entries(fieldErrors).map(([key, msg]) => (
                         <li key={key}>{msg}</li>
                       ))}
@@ -976,11 +961,11 @@ export default function HiringModule() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-11 px-6 bg-blue-900 hover:bg-blue-800 text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 transition-colors"
+                  className="h-11 px-6 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-active text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-45 transition-colors"
                 >
                   {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>
-                    {isSubmitting ? "Submitting..." : "Submit Application"}
+                    {isSubmitting ? "Submitting..." : "Submit application"}
                   </span>
                 </button>
               </div>

@@ -33,7 +33,7 @@ export const ScoreDistributionChart: React.FC<ScoreDistributionChartProps> = ({
   distribution,
 }) => {
   const data = {
-    labels: ["< 400", "400 - 600", "600 - 800", "> 800"],
+    labels: ["< 400", "400–600", "600–800", "> 800"],
     datasets: [
       {
         label: "Jumlah Peserta",
@@ -43,19 +43,8 @@ export const ScoreDistributionChart: React.FC<ScoreDistributionChartProps> = ({
           distribution.range600to800,
           distribution.above800,
         ],
-        backgroundColor: [
-          "rgba(239, 68, 68, 0.6)", // Red
-          "rgba(245, 158, 11, 0.6)", // Orange
-          "rgba(59, 130, 246, 0.6)", // Blue
-          "rgba(16, 185, 129, 0.6)", // Green
-        ],
-        borderColor: [
-          "rgb(239, 68, 68)",
-          "rgb(245, 158, 11)",
-          "rgb(59, 130, 246)",
-          "rgb(16, 185, 129)",
-        ],
-        borderWidth: 1,
+        backgroundColor: ["#6B778C", "#93BAFF", "#2557DB", "#FFC81F"],
+        borderRadius: 6,
       },
     ],
   };
@@ -67,17 +56,22 @@ export const ScoreDistributionChart: React.FC<ScoreDistributionChartProps> = ({
       legend: { display: false },
     },
     scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: "#4E5B73", font: { size: 12 } },
+      },
       y: {
         beginAtZero: true,
-        ticks: { precision: 0 },
+        grid: { color: "#E9EDF4" },
+        ticks: { precision: 0, color: "#4E5B73", font: { size: 12 } },
       },
     },
   };
 
   return (
-    <Card className="border-border/50 shadow-sm h-full">
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-sm font-medium">Distribusi Nilai</CardTitle>
+        <CardTitle>Distribusi skor IRT</CardTitle>
       </CardHeader>
       <CardContent className="h-[250px]">
         <Bar data={data} options={options} />

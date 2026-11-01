@@ -133,12 +133,12 @@ const AdminPaymentModule = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "CONFIRMED":
-        return <Badge variant="success">LUNAS</Badge>;
+        return <Badge variant="success">Lunas</Badge>;
       case "PENDING":
-        return <Badge variant="warn">MENUNGGU</Badge>;
+        return <Badge variant="warn">Menunggu</Badge>;
       case "DECLINED":
       case "CANCELLED":
-        return <Badge variant="danger">BATAL</Badge>;
+        return <Badge variant="danger">Batal</Badge>;
       default:
         return <Badge variant="default">{status}</Badge>;
     }
@@ -152,14 +152,14 @@ const AdminPaymentModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="pb-5 border-b-2 border-blue-900">
-        <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+      <div className="pb-5 border-b border-border">
+        <p className="text-label text-primary mb-1">
           KEUANGAN &amp; COIN
         </p>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+        <h1 className="text-h2 font-bold text-text">
           Kelola pembayaran
         </h1>
-        <p className="text-sm text-slate-700 mt-1">
+        <p className="text-[14px] text-text-muted mt-1">
           Verifikasi transaksi QRIS dan pantau pendapatan paket coin.
         </p>
       </div>
@@ -176,11 +176,11 @@ const AdminPaymentModule = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-2 border-blue-900 p-4 flex flex-col sm:flex-row gap-4 items-end">
+      <div className="bg-surface rounded-lg border border-border p-4 flex flex-col sm:flex-row gap-4 items-end">
         <div className="flex-1 w-full">
-          <Label>CARI TRANSAKSI</Label>
+          <Label>Cari transaksi</Label>
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-subtle" />
             <Input
               placeholder="Cari nama atau email peserta..."
               value={searchTerm}
@@ -190,7 +190,7 @@ const AdminPaymentModule = () => {
           </div>
         </div>
         <div className="w-full sm:w-[220px]">
-          <Label>STATUS PEMBAYARAN</Label>
+          <Label>Status pembayaran</Label>
           <Select
             value={filterStatus}
             onValueChange={(val) => {
@@ -234,16 +234,16 @@ const AdminPaymentModule = () => {
                 <TableRow>
                   <TableCell
                     colSpan={7}
-                    className="h-24 text-center font-mono text-xs uppercase text-slate-500"
+                    className="h-24 text-center text-[13px] font-medium text-text-muted"
                   >
-                    MEMUAT TRANSAKSI...
+                    Memuat transaksi...
                   </TableCell>
                 </TableRow>
               ) : payments.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={7}
-                    className="h-24 text-center text-slate-600"
+                    className="h-24 text-center text-text-muted"
                   >
                     Belum ada transaksi.
                   </TableCell>
@@ -251,26 +251,26 @@ const AdminPaymentModule = () => {
               ) : (
                 payments.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-mono text-xs text-slate-600">
+                    <TableCell className="font-mono text-xs text-text-muted">
                       #{p.id.slice(-6).toUpperCase()}
                     </TableCell>
                     <TableCell>
-                      <div className="font-semibold text-blue-900 text-sm">
+                      <div className="font-semibold text-text text-sm">
                         {p.user.name}
                       </div>
-                      <div className="font-mono text-[11px] text-slate-600">
+                      <div className="font-mono text-[11px] text-text-muted">
                         {p.user.email}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm font-medium text-blue-900">
+                      <div className="text-sm font-medium text-text">
                         {p.tokenPackage.name}
                       </div>
-                      <div className="font-mono text-xs text-blue-600">
+                      <div className="font-mono text-xs text-primary">
                         {p.tokenAmount} coin
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs font-medium text-blue-900">
+                    <TableCell className="font-mono text-xs font-semibold text-text">
                       Rp{p.amount.toLocaleString("id-ID")}
                     </TableCell>
                     <TableCell className="font-mono text-xs uppercase">

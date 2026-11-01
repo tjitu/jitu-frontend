@@ -32,8 +32,8 @@ export default function AdminLayout({
 
   if (isPending) {
     return (
-      <div className="h-screen w-full bg-blue-50 flex items-center justify-center gap-2 font-mono text-[14px] text-blue-900">
-        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+      <div className="h-screen w-full bg-bg flex items-center justify-center gap-2 text-[14px] text-text-body">
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
         <span>Memuat panel admin…</span>
       </div>
     );
@@ -46,7 +46,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen w-full bg-blue-50 text-blue-900 flex flex-col lg:flex-row">
+    <div className="min-h-screen w-full bg-bg text-text-body flex flex-col lg:flex-row">
       <AdminNavbar />
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
         <div className="max-w-[1200px] mx-auto">{children}</div>

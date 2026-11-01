@@ -47,9 +47,9 @@ const AdminDailyModule = () => {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-        <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-          MEMUAT SOAL HARIAN...
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="text-[13px] font-medium text-text-muted">
+          Memuat soal harian...
         </span>
       </div>
     );
@@ -71,17 +71,17 @@ const AdminDailyModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b border-border">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+          <p className="text-label text-primary mb-1">
             LATIHAN HARIAN
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+          <h1 className="text-h2 font-bold text-text">
             Pantau soal harian
           </h1>
-          <div className="flex items-center gap-2 font-mono text-xs text-slate-600 mt-1">
+          <div className="flex items-center gap-2 font-mono text-xs text-text-muted mt-1">
             <Clock className="h-3.5 w-3.5" />
-            <span>ROTASI BERIKUTNYA: {getNextUpdateDate()} · 00:00 WIB</span>
+            <span>Rotasi berikutnya: {getNextUpdateDate()} · 00:00 WIB</span>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={fetchData}>
@@ -100,11 +100,11 @@ const AdminDailyModule = () => {
         </div>
       </div>
 
-      <div className="bg-blue-50 border-2 border-blue-900 p-4 text-sm text-blue-900 flex items-start gap-3">
-        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-blue-600" />
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-text flex items-start gap-3">
+        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
         <div className="space-y-1 text-xs sm:text-sm">
           <p className="font-bold">Rotasi otomatis pukul 00:00 WIB</p>
-          <p className="text-slate-700">
+          <p className="text-text-body">
             Satu soal dipilih otomatis dari bank soal setiap hari dan disajikan
             serentak untuk seluruh peserta.
           </p>

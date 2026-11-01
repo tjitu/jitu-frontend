@@ -80,15 +80,15 @@ const AdminPackageModule = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b-2 border-blue-900">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-5 border-b border-border">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+          <p className="text-label text-primary mb-1">
             TOKO COIN
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-blue-900">
+          <h1 className="text-h2 font-bold text-text">
             Kelola paket coin
           </h1>
-          <p className="text-sm text-slate-700 mt-1">
+          <p className="text-[14px] text-text-muted mt-1">
             Atur jumlah coin dan harga paket QRIS yang tampil di halaman Beli
             Coin.
           </p>
@@ -125,9 +125,9 @@ const AdminPackageModule = () => {
       </div>
 
       {/* Search */}
-      <div className="bg-white border-2 border-blue-900 p-4">
+      <div className="bg-surface rounded-lg border border-border p-4">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-subtle" />
           <Input
             placeholder="Cari nama paket..."
             value={searchTerm}
@@ -159,16 +159,16 @@ const AdminPackageModule = () => {
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="h-24 text-center font-mono text-xs uppercase text-slate-500"
+                    className="h-24 text-center text-[13px] font-medium text-text-muted"
                   >
-                    MEMUAT PAKET...
+                    Memuat paket...
                   </TableCell>
                 </TableRow>
               ) : filteredPackages.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="h-24 text-center text-slate-600"
+                    className="h-24 text-center text-text-muted"
                   >
                     Belum ada paket coin.
                   </TableCell>
@@ -176,13 +176,13 @@ const AdminPackageModule = () => {
               ) : (
                 filteredPackages.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-semibold text-blue-900">
+                    <TableCell className="font-semibold text-text">
                       {p.name}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {p.tokenAmount} coin
                     </TableCell>
-                    <TableCell className="font-mono text-xs font-medium text-blue-900">
+                    <TableCell className="font-mono text-xs font-semibold text-text">
                       Rp{p.price.toLocaleString("id-ID")}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
@@ -195,7 +195,7 @@ const AdminPackageModule = () => {
                           onCheckedChange={() => handleToggleStatus(p.id)}
                         />
                         <Badge variant={p.isActive ? "success" : "default"}>
-                          {p.isActive ? "AKTIF" : "NON-AKTIF"}
+                          {p.isActive ? "Aktif" : "Non-aktif"}
                         </Badge>
                       </div>
                     </TableCell>

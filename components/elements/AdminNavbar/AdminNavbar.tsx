@@ -93,8 +93,8 @@ const AdminNavbar = () => {
   return (
     <>
       {/* Phone Top Menu */}
-      <header className="lg:hidden sticky top-0 z-20 bg-slate-900 text-white border-b border-slate-800">
-        <div className="px-4 h-14 flex items-center justify-between">
+      <header className="lg:hidden sticky top-0 z-10 bg-surface text-text border-b border-border">
+        <div className="px-4 h-16 flex items-center justify-between">
           <Link href="/admin" className="inline-flex items-center gap-2">
             <Image
               src="/blue-jitu-logo.png"
@@ -104,11 +104,11 @@ const AdminNavbar = () => {
               priority
               className="h-7 w-auto object-contain"
             />
-            <span className="font-display font-extrabold text-[22px] tracking-[-0.025em] text-white leading-none">
-              jitu<span className="text-blue-500">.</span>
+            <span className="font-bold text-[22px] tracking-[-0.025em] text-text leading-none">
+              jitu<span className="text-primary">.</span>
             </span>
-            <span className="px-1.5 py-[1px] border border-slate-700 bg-slate-800 font-mono text-[11px] uppercase tracking-[0.06em] text-slate-300">
-              ADMIN
+            <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center">
+              Admin
             </span>
           </Link>
 
@@ -116,7 +116,7 @@ const AdminNavbar = () => {
             type="button"
             aria-label={mobileOpen ? "Tutup menu admin" : "Buka menu admin"}
             onClick={() => setMobileOpen((v) => !v)}
-            className="min-h-[38px] min-w-[38px] border border-slate-700 bg-slate-800 text-white inline-flex items-center justify-center hover:bg-slate-700 transition-colors"
+            className="min-h-[40px] min-w-[40px] rounded-md border border-border bg-surface text-text inline-flex items-center justify-center hover:bg-surface-muted transition-colors"
           >
             {mobileOpen ? (
               <X className="w-5 h-5 stroke-[1.75]" />
@@ -129,7 +129,7 @@ const AdminNavbar = () => {
         {mobileOpen && (
           <nav
             aria-label="Menu admin"
-            className="border-t border-slate-800 bg-slate-900 px-4 py-3 space-y-1"
+            className="border-t border-border bg-surface px-4 py-3 space-y-1 shadow-float"
           >
             {items.map((item) => {
               const active = isItemActive(item);
@@ -138,10 +138,10 @@ const AdminNavbar = () => {
                   key={item.path}
                   href={item.path}
                   onClick={() => setMobileOpen(false)}
-                  className={`min-h-[42px] px-3 flex items-center gap-3 text-[14px] font-medium transition-colors ${
+                  className={`min-h-[42px] px-3 rounded-md flex items-center gap-3 text-[14px] font-medium transition-colors duration-[120ms] ${
                     active
-                      ? "bg-blue-600 text-white"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      ? "bg-blue-50 text-blue-700 font-semibold"
+                      : "text-text-body hover:bg-surface-muted hover:text-text"
                   }`}
                 >
                   <item.icon className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
@@ -152,7 +152,7 @@ const AdminNavbar = () => {
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full min-h-[42px] px-3 flex items-center gap-3 text-[14px] font-medium text-red-400 hover:bg-slate-800 cursor-pointer"
+              className="w-full min-h-[42px] px-3 rounded-md flex items-center gap-3 text-[14px] font-medium text-danger-text hover:bg-danger-soft cursor-pointer"
             >
               <LogOut className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
               <span>Keluar</span>
@@ -161,10 +161,10 @@ const AdminNavbar = () => {
         )}
       </header>
 
-      {/* Desktop Slate-900 Sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:shrink-0 bg-slate-900 text-white border-r border-slate-800 min-h-screen sticky top-0 h-screen">
+      {/* Desktop Sidebar (DESIGN.md §2.1 & §5: surface-muted ink-50 sidebar, active item blue-50 + blue-700) */}
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:shrink-0 bg-surface-muted text-text border-r border-border min-h-screen sticky top-0 h-screen">
         {/* Top Brand Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div className="h-16 px-5 border-b border-border bg-surface flex items-center justify-between">
           <Link href="/admin" className="inline-flex items-center gap-2.5">
             <Image
               src="/blue-jitu-logo.png"
@@ -174,12 +174,12 @@ const AdminNavbar = () => {
               priority
               className="h-8 w-auto object-contain"
             />
-            <span className="font-display font-extrabold text-[24px] tracking-[-0.025em] text-white leading-none">
-              jitu<span className="text-blue-500">.</span>
+            <span className="font-bold text-[22px] tracking-[-0.025em] text-text leading-none">
+              jitu<span className="text-primary">.</span>
             </span>
           </Link>
-          <span className="px-2 py-[2px] border border-slate-700 bg-slate-800 font-mono text-[11px] uppercase tracking-[0.06em] text-slate-300">
-            ADMIN
+          <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center">
+            Admin
           </span>
         </div>
 
@@ -191,10 +191,10 @@ const AdminNavbar = () => {
               <Link
                 key={item.path}
                 href={item.path}
-                className={`min-h-[40px] px-3.5 py-2 flex items-center gap-3 text-[14px] font-medium transition-colors ${
+                className={`min-h-[40px] px-3.5 py-2 rounded-md flex items-center gap-3 text-[14px] transition-colors duration-[120ms] ${
                   active
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                    ? "bg-blue-50 text-blue-700 font-semibold"
+                    : "text-text-body font-medium hover:bg-ink-100/70 hover:text-text"
                 }`}
               >
                 <item.icon className="w-4 h-4 stroke-[1.75] shrink-0" aria-hidden="true" />
@@ -205,13 +205,13 @@ const AdminNavbar = () => {
         </nav>
 
         {/* Bottom Admin User Info & Logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/60 space-y-3">
+        <div className="p-4 border-t border-border bg-surface space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-[14px] font-semibold text-white truncate">
+              <div className="text-[14px] font-semibold text-text truncate">
                 {session?.user?.name || "Admin"}
               </div>
-              <div className="font-mono text-[11px] text-slate-400 truncate">
+              <div className="text-[12px] text-text-muted truncate">
                 {session?.user?.email}
               </div>
             </div>
@@ -220,7 +220,7 @@ const AdminNavbar = () => {
               onClick={handleLogout}
               aria-label="Keluar akun"
               title="Keluar"
-              className="min-h-[36px] min-w-[36px] border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-red-900/60 hover:border-red-600 inline-flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              className="min-h-[38px] min-w-[38px] rounded-md border border-border bg-surface text-text-muted hover:text-danger-text hover:bg-danger-soft hover:border-danger/30 inline-flex items-center justify-center transition-colors duration-[120ms] cursor-pointer shrink-0"
             >
               <LogOut className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
             </button>

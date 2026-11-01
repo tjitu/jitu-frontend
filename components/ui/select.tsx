@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * DESIGN.md Section 5 — Select
- * white, 2px ink border, 48px tall, 0 radius, focus 3px blue-500 outline.
+ * White, 1px solid --border, radius 10 (rounded-md), 44px tall, 12px horizontal padding.
+ * Hover border ink-300. Focus border --primary + 0 0 0 3px var(--blue-200).
  */
 function Select({
   ...props
@@ -41,7 +42,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border border-slate-300 bg-white text-slate-900 data-[placeholder]:text-slate-400 [&_svg:not([class*='text-'])]:text-slate-600 flex w-fit items-center justify-between gap-2 rounded-none px-3.5 py-2 text-[15px] whitespace-nowrap outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 data-[size=default]:h-11 data-[size=sm]:h-9 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer shadow-sm transition-colors",
+        "border border-border bg-surface text-text data-[placeholder]:text-text-muted [&_svg:not([class*='text-'])]:text-ink-500 flex w-fit items-center justify-between gap-2 rounded-md px-3 py-2 text-[15px] whitespace-nowrap outline-none hover:border-ink-300 focus:border-primary focus:ring-3 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted data-[size=default]:h-11 data-[size=sm]:h-9 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer transition-colors duration-[120ms]",
         className
       )}
       {...props}
@@ -66,7 +67,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "bg-white text-blue-900 relative z-40 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-none border-2 border-blue-900 shadow-[4px_4px_0_var(--blue-900)]",
+          "bg-surface text-text relative z-20 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border border-border shadow-float",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
@@ -78,7 +79,7 @@ function SelectContent({
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
           className={cn(
-            "p-1",
+            "p-1.5",
             position === "popper" &&
               "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
           )}
@@ -99,7 +100,7 @@ function SelectLabel({
     <SelectPrimitive.Label
       data-slot="select-label"
       className={cn(
-        "text-slate-700 px-2 py-1.5 font-mono text-[12px] uppercase tracking-[0.06em]",
+        "text-ink-500 px-2.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.06em]",
         className
       )}
       {...props}
@@ -116,14 +117,14 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "focus:bg-blue-100 focus:text-blue-900 relative flex w-full cursor-pointer items-center gap-2 rounded-none py-2 pr-8 pl-2.5 text-[14px] font-medium text-blue-900 outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        "focus:bg-blue-50 focus:text-blue-700 relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-2 pr-8 pl-2.5 text-[14px] font-medium text-text outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className
       )}
       {...props}
     >
       <span
         data-slot="select-item-indicator"
-        className="absolute right-2 flex size-4 items-center justify-center text-blue-600"
+        className="absolute right-2 flex size-4 items-center justify-center text-primary"
       >
         <SelectPrimitive.ItemIndicator>
           <CheckIcon className="size-4 stroke-[1.75]" />
@@ -141,7 +142,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn("bg-slate-300 pointer-events-none -mx-1 my-1 h-px", className)}
+      className={cn("bg-ink-100 pointer-events-none -mx-1 my-1 h-px", className)}
       {...props}
     />
   );

@@ -11,39 +11,39 @@ import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 /**
  * DESIGN.md Section 5 — Toast
- * bottom-left, 2px ink border, icon + text, dismisses after 5s (errors stay).
+ * ink-900 bg, white text, radius 10 (rounded-md), bottom-center, 4s auto-dismiss.
  */
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme="light"
-      position="bottom-left"
-      duration={5000}
-      className="toaster group"
+      theme="dark"
+      position="bottom-center"
+      duration={4000}
+      className="toaster group z-40"
       toastOptions={{
         classNames: {
           toast:
-            "rounded-none border border-slate-200 bg-white text-slate-900 shadow-md font-sans text-[14px] font-medium px-4 py-3 flex items-center gap-2.5",
-          title: "font-semibold text-slate-900",
-          description: "text-slate-600 text-[13px]",
-          error: "bg-red-50 text-red-900 border-red-200",
-          warning: "bg-amber-50 text-amber-900 border-amber-200",
-          success: "bg-white text-slate-900 border-slate-200",
+            "rounded-md border border-ink-700 bg-ink-900 text-white shadow-float font-sans text-[14px] font-medium px-4 py-3 flex items-center gap-2.5",
+          title: "font-semibold text-white",
+          description: "text-ink-200 text-[13px]",
+          error: "bg-ink-900 text-white border-danger",
+          warning: "bg-ink-900 text-white border-yellow-400",
+          success: "bg-ink-900 text-white border-ink-700",
         },
       }}
       icons={{
-        success: <Check className="size-4 stroke-[1.75] text-emerald-600" />,
-        info: <Info className="size-4 stroke-[1.75] text-blue-600" />,
-        warning: <AlertTriangle className="size-4 stroke-[1.75] text-amber-600" />,
-        error: <X className="size-4 stroke-[1.75] text-red-600" />,
-        loading: <Loader2 className="size-4 stroke-[1.75] animate-spin text-blue-600" />,
+        success: <Check className="size-4 stroke-[1.75] text-success" />,
+        info: <Info className="size-4 stroke-[1.75] text-blue-400" />,
+        warning: <AlertTriangle className="size-4 stroke-[1.75] text-yellow-400" />,
+        error: <X className="size-4 stroke-[1.75] text-danger" />,
+        loading: <Loader2 className="size-4 stroke-[1.75] animate-spin text-blue-400" />,
       }}
       style={
         {
-          "--normal-bg": "#FFFFFF",
-          "--normal-text": "#0F172A",
-          "--normal-border": "#E2E8F0",
-          "--border-radius": "0px",
+          "--normal-bg": "#151B2B",
+          "--normal-text": "#FFFFFF",
+          "--normal-border": "#3A4458",
+          "--border-radius": "10px",
         } as React.CSSProperties
       }
       {...props}

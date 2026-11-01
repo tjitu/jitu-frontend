@@ -379,27 +379,27 @@ const ShopModule = () => {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Top Summary Bar: Current Coin Balance */}
-      <div className="bg-slate-900 text-white border border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-surface border border-border rounded-lg p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="font-mono text-xs uppercase tracking-wider text-slate-400 mb-1">
+          <p className="text-label text-primary mb-1">
             BELI COIN TRYOUT · BAYAR SEKALI VIA QRIS
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">
+          <h1 className="text-h2 font-bold text-text">
             Paket coin tanpa langganan
           </h1>
-          <p className="text-sm text-slate-300 mt-1 max-w-[58ch]">
+          <p className="text-[14px] text-text-muted mt-1 max-w-[58ch]">
             1 coin membuka skor IRT dan pembahasan 155 soal untuk 1 tryout.
             Berlaku sampai 21 Apr 2027.
           </p>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700 px-5 py-3.5 shrink-0 shadow-xs">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-1">
+        <div className="bg-surface-muted border border-border rounded-md px-5 py-3.5 shrink-0">
+          <div className="text-label text-text-muted mb-1">
             SALDO COIN KAMU
           </div>
           <div className="flex items-center gap-2">
-            <PixelCoin size={26} glow />
-            <div className="font-mono text-[28px] leading-tight font-bold text-amber-400">
+            <PixelCoin size={24} />
+            <div className="font-mono text-[26px] leading-tight font-bold text-text tabular-nums">
               {userBalance} coin
             </div>
           </div>
@@ -409,7 +409,7 @@ const ShopModule = () => {
       {/* Tabs: Beli Coin | Menunggu (n) | Riwayat */}
       <Tabs defaultValue="buy" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="buy">Beli Coin</TabsTrigger>
+          <TabsTrigger value="buy">Beli coin</TabsTrigger>
           <TabsTrigger value="pending">
             Menunggu ({pendingCount})
           </TabsTrigger>
@@ -418,8 +418,8 @@ const ShopModule = () => {
 
         <TabsContent value="buy">
           {loadingPackages ? (
-            <div className="bg-white border border-slate-200 p-12 text-center font-mono text-xs uppercase tracking-wider text-slate-500">
-              MEMUAT PAKET COIN...
+            <div className="bg-surface border border-border rounded-lg p-12 text-center text-[13px] font-medium text-text-muted">
+              Memuat paket coin...
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -494,9 +494,9 @@ const ShopModule = () => {
               <DialogTitle className="sr-only">Memeriksa transaksi</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col items-center justify-center py-6">
-              <Loader2 className="w-7 h-7 animate-spin text-blue-600 mb-3" />
-              <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-                MEMERIKSA TRANSAKSI...
+              <Loader2 className="w-7 h-7 animate-spin text-primary mb-3" />
+              <div className="text-[13px] font-medium text-text-muted">
+                Memeriksa transaksi...
               </div>
             </div>
           </DialogContent>
@@ -507,10 +507,10 @@ const ShopModule = () => {
       <Dialog open={showPendingDialog} onOpenChange={setShowPendingDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl font-bold text-blue-900">
+            <DialogTitle className="text-[20px] font-bold text-text">
               Ada pembayaran yang belum selesai
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-700">
+            <DialogDescription className="text-[14px] text-text-muted">
               Selesaikan pembayaran QRIS sebelumnya atau batalkan untuk membuat
               kode baru.
             </DialogDescription>
@@ -518,27 +518,27 @@ const ShopModule = () => {
 
           {pendingPayment && (
             <div className="space-y-4">
-              <div className="space-y-2 p-4 bg-blue-50 border-2 border-blue-900 font-mono text-xs">
+              <div className="space-y-2.5 p-4 bg-surface-muted border border-border rounded-md text-[13px]">
                 <div className="flex justify-between">
-                  <span className="text-slate-600">ORDER ID</span>
-                  <span className="text-blue-900">{pendingPayment.orderId}</span>
+                  <span className="text-text-muted">Order ID</span>
+                  <span className="font-mono text-text">{pendingPayment.orderId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">PAKET</span>
-                  <span className="font-sans font-semibold text-blue-900">
+                  <span className="text-text-muted">Paket</span>
+                  <span className="font-semibold text-text">
                     {pendingPayment.tokenPackage.name} (
                     {pendingPayment.tokenAmount} coin)
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">TOTAL BAYAR</span>
-                  <span className="font-medium text-blue-900">
+                  <span className="text-text-muted">Total bayar</span>
+                  <span className="font-mono font-semibold text-text">
                     Rp{pendingPayment.amount.toLocaleString("id-ID")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">BATAS WAKTU</span>
-                  <span className="text-danger font-medium">
+                  <span className="text-text-muted">Batas waktu</span>
+                  <span className="font-mono text-danger font-medium">
                     {new Date(pendingPayment.expiresAt).toLocaleTimeString(
                       "id-ID",
                     )}
@@ -608,15 +608,15 @@ const ShopModule = () => {
           {!isModalLoading && !transactionId && (
             <>
               <DialogHeader>
-                <div className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600 mb-1">
+                <div className="text-label text-primary mb-1">
                   PEMBAYARAN INSTAN
                 </div>
-                <DialogTitle className="font-display text-xl font-bold text-blue-900">
+                <DialogTitle className="text-[20px] font-bold text-text">
                   Bayar {selectedPkg?.tokenAmount} coin via QRIS
                 </DialogTitle>
-                <DialogDescription className="text-sm text-slate-700">
+                <DialogDescription className="text-[14px] text-text-body">
                   Total tagihan{" "}
-                  <span className="font-mono font-medium text-blue-900">
+                  <span className="font-mono font-semibold text-text">
                     Rp{(selectedPkg?.price ?? 0).toLocaleString("id-ID")}
                   </span>
                   . Bisa dibayar pakai GoPay, OVO, DANA, ShopeePay, atau
@@ -643,9 +643,9 @@ const ShopModule = () => {
 
           {isModalLoading && (
             <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="w-7 h-7 animate-spin text-blue-600 mb-3" />
-              <div className="font-mono text-xs uppercase tracking-[0.08em] text-slate-600">
-                MEMBUAT KODE QRIS...
+              <Loader2 className="w-7 h-7 animate-spin text-primary mb-3" />
+              <div className="text-[13px] font-medium text-text-muted">
+                Membuat kode QRIS...
               </div>
             </div>
           )}
@@ -653,13 +653,13 @@ const ShopModule = () => {
           {!isModalLoading && transactionId && !showContact && (
             <div className="flex flex-col items-center gap-4">
               <div className="text-center">
-                <p className="font-mono text-xs uppercase tracking-[0.08em] text-blue-600">
+                <p className="font-mono text-xs uppercase tracking-[0.06em] text-primary">
                   ORDER #{paymentData?.orderId}
                 </p>
-                <h2 className="font-display text-xl font-bold text-blue-900 mt-1">
+                <h2 className="text-[20px] font-bold text-text mt-1">
                   Scan QRIS untuk bayar
                 </h2>
-                <div className="font-mono text-2xl font-medium text-blue-900 mt-1">
+                <div className="font-mono text-2xl font-bold text-text mt-1 tabular-nums">
                   Rp{(paymentData?.amount ?? selectedPkg?.price ?? 0).toLocaleString("id-ID")}
                 </div>
               </div>
@@ -679,7 +679,7 @@ const ShopModule = () => {
               )}
 
               {paymentData?.qrCodeUrl && (
-                <div className="p-4 border-2 border-blue-900 bg-white">
+                <div className="p-4 border border-border rounded-lg bg-surface">
                   <img
                     src={paymentData.qrCodeUrl}
                     alt="Kode QRIS"
@@ -688,20 +688,20 @@ const ShopModule = () => {
                 </div>
               )}
 
-              <div className="w-full bg-blue-50 border-[1.5px] border-blue-900 p-3 flex items-center justify-between font-mono text-xs">
-                <span className="inline-flex items-center gap-2 text-blue-900">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+              <div className="w-full bg-blue-50 border border-blue-200 rounded-md p-3 flex items-center justify-between text-[13px]">
+                <span className="inline-flex items-center gap-2 text-blue-800 font-medium">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
                   {paymentStatus === "PENDING" || paymentStatus === "pending"
                     ? "Menunggu pembayaran…"
                     : paymentStatus}
                 </span>
-                <span className="text-slate-600">
-                  BATAS:{" "}
+                <span className="font-mono text-xs text-text-muted">
+                  Batas:{" "}
                   {paymentData?.expiryTime
                     ? new Date(paymentData.expiryTime).toLocaleTimeString(
                         "id-ID",
                       )
-                    : "15 MENIT"}
+                    : "15 menit"}
                 </span>
               </div>
 
@@ -725,10 +725,10 @@ const ShopModule = () => {
 
           {!isModalLoading && transactionId && showContact && (
             <div className="space-y-4">
-              <h2 className="font-display text-xl font-bold text-blue-900">
+              <h2 className="text-[20px] font-bold text-text">
                 Pembayaran diproses
               </h2>
-              <p className="text-sm text-slate-700">
+              <p className="text-[14px] text-text-body">
                 Jika dalam 1x24 jam coin belum masuk, hubungi kontak bantuan:
               </p>
               {contactInfos.map((contact) => (

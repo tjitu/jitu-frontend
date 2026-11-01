@@ -18,12 +18,12 @@ interface LeaderboardProps {
 export const Leaderboard = ({ leaderboardData }: LeaderboardProps) => {
   if (!leaderboardData || !leaderboardData.top10 || leaderboardData.top10.length === 0) {
     return (
-      <div className="border border-dashed border-slate-300 bg-slate-50/60 p-6 space-y-2">
-        <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-slate-500 font-medium">
-          <Trophy className="w-4 h-4 stroke-[1.75] text-amber-500" aria-hidden="true" />
-          <span>PERINGKAT PESERTA</span>
+      <div className="rounded-lg border border-dashed border-border bg-surface-muted p-6 space-y-2">
+        <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.06em] text-text-muted font-semibold">
+          <Trophy className="w-4 h-4 stroke-[1.75] text-yellow-700" aria-hidden="true" />
+          <span>Peringkat peserta</span>
         </div>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-text-body">
           Belum ada peserta yang menyelesaikan tryout ini.
         </p>
       </div>
@@ -33,16 +33,16 @@ export const Leaderboard = ({ leaderboardData }: LeaderboardProps) => {
   const { top10, currentUserRank } = leaderboardData;
 
   return (
-    <div className="bg-white border border-slate-200 shadow-xs">
-      <div className="px-5 py-3 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
+    <div className="bg-surface rounded-lg border border-border overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-border bg-surface flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Trophy className="w-4 h-4 stroke-[2] text-amber-400" aria-hidden="true" />
-          <span className="font-mono text-xs uppercase tracking-wider font-semibold">
-            10 SKOR TERTINGGI
+          <Trophy className="w-4 h-4 stroke-[1.75] text-primary" aria-hidden="true" />
+          <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-text">
+            10 Skor tertinggi
           </span>
         </div>
-        <span className="font-mono text-xs uppercase tracking-wider text-slate-400">
-          SKOR IRT
+        <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-text-muted">
+          Skor IRT
         </span>
       </div>
 
@@ -58,20 +58,20 @@ export const Leaderboard = ({ leaderboardData }: LeaderboardProps) => {
           {top10.map((user) => (
             <TableRow
               key={user.rank}
-              className={user.isCurrentUser ? "bg-amber-50/70 font-semibold" : ""}
+              className={user.isCurrentUser ? "bg-yellow-100/50 font-semibold" : ""}
             >
               <TableCell className="font-mono font-medium tabular-nums">
                 #{String(user.rank).padStart(2, "0")}
               </TableCell>
               <TableCell>
-                <span>{user.name}</span>
+                <span className="text-text">{user.name}</span>
                 {user.isCurrentUser && (
-                  <span className="ml-2 px-1.5 py-[1px] border border-amber-300 bg-amber-100 text-amber-900 font-mono text-[10px] uppercase font-bold">
+                  <span className="ml-2 h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-[12px] font-semibold inline-flex items-center">
                     Kamu
                   </span>
                 )}
               </TableCell>
-              <TableCell className="text-right font-mono font-bold tabular-nums text-slate-900">
+              <TableCell className="text-right font-mono font-semibold tabular-nums text-text">
                 {user.score}
               </TableCell>
             </TableRow>
@@ -80,16 +80,16 @@ export const Leaderboard = ({ leaderboardData }: LeaderboardProps) => {
       </Table>
 
       {currentUserRank && currentUserRank.rank > 10 && (
-        <div className="border-t border-slate-200 bg-slate-50 px-5 py-3 flex items-center justify-between font-mono text-sm">
+        <div className="border-t border-border bg-surface-muted px-5 py-3 flex items-center justify-between text-sm">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-slate-900 tabular-nums">
+            <span className="font-mono font-semibold text-text tabular-nums">
               #{currentUserRank.rank}
             </span>
-            <span className="font-sans font-semibold text-slate-900">
+            <span className="font-semibold text-text">
               {currentUserRank.name} (Peringkatmu)
             </span>
           </div>
-          <span className="font-bold text-blue-600 tabular-nums">
+          <span className="font-mono font-bold text-primary tabular-nums">
             {currentUserRank.score}
           </span>
         </div>

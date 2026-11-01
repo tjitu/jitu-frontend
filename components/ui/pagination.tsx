@@ -57,10 +57,10 @@ function PaginationLink({
       data-slot="pagination-link"
       data-active={isActive}
       className={cn(
-        "min-h-[40px] min-w-[40px] px-3 inline-flex items-center justify-center rounded-none border border-slate-200 font-mono text-[13px] font-medium tabular-nums cursor-pointer transition-colors shadow-xs",
+        "min-h-[44px] min-w-[44px] px-3 inline-flex items-center justify-center rounded-md border border-border font-mono text-[13px] font-medium tabular-nums cursor-pointer transition-colors duration-[120ms]",
         isActive
-          ? "bg-blue-600 text-white border-blue-600 font-semibold"
-          : "bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900",
+          ? "bg-primary text-on-primary border-primary font-semibold"
+          : "bg-surface text-text-body hover:bg-surface-muted hover:border-ink-300 hover:text-text",
         className
       )}
       {...props}

@@ -32,7 +32,6 @@ export function PixelCoin({
     <span
       className={cn(
         "inline-flex items-center justify-center shrink-0 select-none",
-        glow && "drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]",
         className,
       )}
       style={{ width: pixelSize, height: pixelSize }}
