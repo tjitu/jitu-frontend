@@ -18,10 +18,11 @@ export interface PublishedArticle extends PublishedArticleSummary {
 }
 
 const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000").replace(/\/+$/, "");
+const articlesApiUrl = (process.env.ARTICLES_API_URL || backendUrl).replace(/\/+$/, "");
 
 export async function getPublishedArticles(): Promise<PublishedArticleSummary[] | null> {
   try {
-    const response = await fetch(`${backendUrl}/articles`, { cache: "no-store" });
+    const response = await fetch(`${articlesApiUrl}/articles`, { cache: "no-store" });
     if (!response.ok) return null;
     return (await response.json()) as PublishedArticleSummary[];
   } catch {
@@ -34,7 +35,7 @@ export async function getPublishedArticle(slug: string): Promise<{
   unavailable: boolean;
 }> {
   try {
-    const response = await fetch(`${backendUrl}/articles/${encodeURIComponent(slug)}`, {
+    const response = await fetch(`${articlesApiUrl}/articles/${encodeURIComponent(slug)}`, {
       cache: "no-store",
     });
     if (response.status === 404) return { article: null, unavailable: false };

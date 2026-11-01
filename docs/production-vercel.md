@@ -13,6 +13,7 @@ Use `.env.production.example` as the Vercel env checklist:
 
 - `NEXT_PUBLIC_FRONTEND_URL=https://YOUR_VERCEL_DOMAIN`
 - `NEXT_PUBLIC_BACKEND_URL=https://YOUR_BACKEND_CLOUD_RUN_URL`
+- `ARTICLES_API_URL=https://YOUR_TEAM_BACKEND_VERCEL_DOMAIN/api`
 
 The app uses Next rewrites:
 
