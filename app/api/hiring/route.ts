@@ -82,6 +82,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  return NextResponse.json(
+    { message: "Pendaftaran JITU Open Hiring 2026 telah resmi ditutup pada 30 Oktober 2026." },
+    { status: 403 }
+  );
+}
+
+export async function _DISABLED_POST(req: NextRequest) {
   try {
     const body = await req.json();
 

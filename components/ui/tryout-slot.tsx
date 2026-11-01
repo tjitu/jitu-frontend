@@ -15,6 +15,9 @@ export interface TryoutSlotItem {
   subtestInfo: string;
   state: SlotState;
   href?: string;
+  customNumberLabel?: string;
+  customChipLabel?: string;
+  isTeaser?: boolean;
 }
 
 interface TryoutSlotCardProps {
@@ -28,7 +31,7 @@ interface TryoutSlotCardProps {
  * Pill status chips (24px tall, radius full, 12px/600 text).
  */
 export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
-  const numStr = `#${slot.number}`;
+  const numStr = slot.customNumberLabel ?? `#${slot.number}`;
 
   const containerStyle =
     slot.state === "open"
@@ -42,6 +45,14 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
           : "bg-surface text-text border border-border hover:border-blue-300";
 
   const chipContent = () => {
+    if (slot.customChipLabel) {
+      return (
+        <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold">
+          <Calendar className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
+          <span>{slot.customChipLabel}</span>
+        </span>
+      );
+    }
     if (slot.state === "open") {
       return (
         <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-[12px] font-semibold">
@@ -80,6 +91,60 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
     );
   };
 
+  if (slot.isTeaser) {
+    return (
+      <Link
+        href={slot.href ?? "/register"}
+        className={`group p-6 rounded-lg flex flex-col justify-between gap-4 transition-all duration-[120ms] ${containerStyle} cursor-pointer hover:border-primary`}
+      >
+        <div className="space-y-3">
+          {/* Top Row: Label */}
+          <div className="flex items-center justify-between gap-2 min-h-[24px]">
+            <span
+              className={`text-[12px] uppercase tracking-[0.06em] font-semibold ${
+                onDark ? "text-blue-200" : "text-text-muted"
+              }`}
+            >
+              {slot.customNumberLabel ?? "Tryout Mendatang"}
+            </span>
+          </div>
+
+          {/* Minimalist Headline with Arrow Icon (no numbers) */}
+          <div className="flex items-center justify-between py-1 min-h-[34px]">
+            <span
+              className={`font-bold text-[24px] sm:text-[26px] leading-[1.2] tracking-[-0.02em] ${
+                onDark ? "text-white" : "text-text"
+              }`}
+            >
+              {slot.displayDate || "Tryout lainnya"}
+            </span>
+            <div className="w-10 h-10 rounded-full border border-border bg-surface-muted flex items-center justify-center text-text-muted group-hover:text-primary group-hover:border-primary group-hover:bg-blue-50/80 transition-all duration-200 shrink-0">
+              <ArrowRight className="w-5 h-5 stroke-[2] group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+            </div>
+          </div>
+
+          {/* Title & Subtitle */}
+          <div className="space-y-1 pt-3 border-t border-ink-100">
+            <h3
+              className={`text-[16px] font-semibold leading-snug ${
+                onDark ? "text-white" : "text-text"
+              }`}
+            >
+              {slot.title}
+            </h3>
+            <p
+              className={`text-[13px] ${
+                onDark ? "text-blue-200" : "text-text-muted"
+              }`}
+            >
+              {slot.windowLabel} · {slot.subtestInfo}
+            </p>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <article
       className={`p-6 rounded-lg flex flex-col justify-between gap-4 transition-colors duration-[120ms] ${containerStyle}`}
@@ -92,7 +157,7 @@ export function TryoutSlotCard({ slot, onDark = false }: TryoutSlotCardProps) {
               slot.state === "missed" && onDark ? "text-blue-200" : "text-text-muted"
             }`}
           >
-            Tryout {numStr}
+            {slot.customNumberLabel ? slot.customNumberLabel : `Tryout ${numStr}`}
           </span>
           {chipContent()}
         </div>

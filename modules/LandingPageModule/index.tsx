@@ -79,14 +79,16 @@ const TRYOUT_SLOTS: TryoutSlotItem[] = [
     href: "/register",
   },
   {
-    id: "to-last",
+    id: "to-more",
     number: 6,
-    title: "Tryout terakhir",
-    displayDate: "21 Apr 2027",
+    customNumberLabel: "Tryout Mendatang",
+    title: "Rutin setiap pekan",
+    displayDate: "Tryout lainnya",
     windowLabel: "Gratis dikerjakan",
-    subtestInfo: "Pembahasan 1 coin",
+    subtestInfo: "Hingga UTBK",
     state: "upcoming",
     href: "/register",
+    isTeaser: true,
   },
 ];
 
@@ -270,11 +272,11 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: "#metode-3p", label: "Metode 3P" },
-    { href: "#jadwal", label: "Jadwal" },
-    { href: "#harga", label: "Harga" },
+    { href: "#jadwal", label: "Tryout" },
+    { href: "#belajar", label: "Belajar" },
+    { href: "#latihan", label: "Latihan" },
+    { href: "/blog", label: "Blog", isRoute: true },
     { href: "#faq", label: "FAQ" },
-    { href: "/careers", label: "Hiring", isRoute: true },
   ];
 
   return (
@@ -573,6 +575,103 @@ function HeroStatsBar() {
 }
 
 /* -------------------------------------------------------------------------- */
+/* 2b. Kampus Penerima Pengguna Jitu (Infinite Marquee Social Proof Belt)     */
+/* -------------------------------------------------------------------------- */
+
+const PTN_CAMPUSES = [
+  { name: "Universitas Indonesia", acronym: "UI", src: "/ui.png" },
+  { name: "Institut Teknologi Bandung", acronym: "ITB", src: "/itb.png" },
+  { name: "Universitas Gadjah Mada", acronym: "UGM", src: "/ugm.webp" },
+  { name: "Institut Teknologi Sepuluh Nopember", acronym: "ITS", src: "/its.png" },
+  { name: "Universitas Airlangga", acronym: "UNAIR", src: "/unair.png" },
+  { name: "Universitas Padjadjaran", acronym: "UNPAD", src: "/unpad.webp" },
+];
+
+function PtnAcceptanceMarquee() {
+  // 2 sets of 12 items (24 items total) ensures seamless -50% translateX loop on all screens
+  const halfList = [...PTN_CAMPUSES, ...PTN_CAMPUSES];
+  const marqueeList = [...halfList, ...halfList];
+
+  return (
+    <section
+      aria-label="Kampus penerima pengguna Jitu"
+      className="py-8 sm:py-10 lg:py-12 bg-surface/60 border-b border-border/80 relative overflow-hidden"
+    >
+      {/* Scoped CSS to ensure 100% bulletproof horizontal flex layout & smooth continuous loop */}
+      <style>{`
+        @keyframes jitu-marquee-roll {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+          100% {
+            transform: translate3d(-50%, 0, 0);
+          }
+        }
+        .jitu-marquee-belt {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          width: max-content !important;
+          animation: jitu-marquee-roll 35s linear infinite;
+          will-change: transform;
+        }
+        .jitu-marquee-belt:hover {
+          animation-play-state: paused !important;
+        }
+        .jitu-marquee-fade {
+          -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+        }
+      `}</style>
+
+      {/* Subtle Paper Texture Background */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[url('/white-speckled-paper.svg')] opacity-60 bg-repeat bg-[length:450px_450px] pointer-events-none z-0"
+      />
+
+      <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-8 space-y-6">
+        <p className="text-center text-[12px] sm:text-[13px] font-bold text-text-muted uppercase tracking-[0.2em]">
+          Pengguna kami sudah diterima di:
+        </p>
+
+        {/* Horizontal Infinite Conveyor Belt with Left & Right Gradient Fade Mask */}
+        <div className="jitu-marquee-fade relative w-full overflow-hidden py-2">
+          <div
+            className="jitu-marquee-belt flex flex-row flex-nowrap items-center w-max gap-12 sm:gap-16 lg:gap-20 py-3 select-none"
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "nowrap",
+              width: "max-content",
+              animation: "jitu-marquee-roll 35s linear infinite",
+            }}
+          >
+            {marqueeList.map((ptn, idx) => (
+              <div
+                key={`${ptn.acronym}-${idx}`}
+                className="flex items-center justify-center shrink-0 group transition-all duration-300 cursor-pointer p-1"
+                style={{ flexShrink: 0 }}
+                title={`${ptn.name} (${ptn.acronym})`}
+              >
+                <div className="relative h-14 w-14 sm:h-18 sm:w-18 md:h-20 md:w-20 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-115">
+                  <img
+                    src={ptn.src}
+                    alt={ptn.name}
+                    className="max-h-full max-w-full object-contain filter grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 drop-shadow-xs group-hover:drop-shadow-md"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* 3. Metode 3P Jitu: Pahami · Praktik · Pantau (Penjelasan Fitur Utama)      */
 /* -------------------------------------------------------------------------- */
 
@@ -607,7 +706,7 @@ function Metode3PSection() {
         {/* ================================================================== */}
         {/* 01. Pahami: Materi Konsep Terstruktur per Bab                      */}
         {/* ================================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        <div id="belajar" className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center scroll-mt-24">
           {/* Left: Copy & Value Proposition */}
           <div className="lg:col-span-5 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300/80 text-[12px] font-bold">
@@ -746,7 +845,7 @@ function Metode3PSection() {
         {/* ================================================================== */}
         {/* 02. Praktik: Drill Soal yang Mengikuti Kemampuanmu                */}
         {/* ================================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        <div id="latihan" className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center scroll-mt-24">
           {/* Left on Desktop: Drill Question UI Mockup */}
           <div className="lg:col-span-7 order-2 lg:order-1">
             <div className="rounded-3xl bg-emerald-50/80 p-5 sm:p-8 lg:p-10 flex items-center justify-center min-h-[480px] sm:min-h-[520px] lg:min-h-[540px]">
@@ -1510,6 +1609,11 @@ const LandingPageModule = () => {
         </section>
 
         {/* ================================================================== */}
+        {/* 2. Social Proof: Kampus Penerima Pengguna Jitu (Infinite Marquee)  */}
+        {/* ================================================================== */}
+        <PtnAcceptanceMarquee />
+
+        {/* ================================================================== */}
         {/* 2b. Metode 3P Jitu: Pahami · Praktik · Pantau (Penjelasan Utama)   */}
         {/* ================================================================== */}
         <Metode3PSection />
@@ -1567,10 +1671,10 @@ const LandingPageModule = () => {
 
           <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10">
             <div className="space-y-2 max-w-xl">
-              <div className="text-label text-primary">Biaya & Pembelian</div>
-              <h2 className="text-h1 text-text">Bayarnya gimana?</h2>
+              <div className="text-label text-primary">Pilihan Akses Belajar</div>
+              <h2 className="text-h1 text-text">Fleksibel sesuai kebutuhanmu</h2>
               <p className="text-[17px] text-text-body">
-                Tryout gratis. Coin atau Pass cuma kepakai kalau kamu butuh pembahasan lengkap & analisis skor IRT.
+                Pelajari pembahasan tryout pakai coins, materi atau latihan unlimited dengan Monthly pass.
               </p>
             </div>
 
@@ -1656,31 +1760,30 @@ const LandingPageModule = () => {
       {/* ================================================================== */}
       {/* 9. Modern Editorial Footer (Matches Pepete Reference Layout)       */}
       {/* ================================================================== */}
-      <footer className="bg-[#0B1E48] text-white pt-14 sm:pt-16 lg:pt-20 pb-4 relative overflow-hidden border-t border-blue-900/60">
-        {/* Subtle Paper / Grain Texture Background */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[url('/white-speckled-paper.svg')] opacity-[0.05] bg-repeat bg-[length:450px_450px] pointer-events-none z-0"
-        />
+      <footer className="bg-[#0C1F52] text-white pt-14 sm:pt-16 lg:pt-20 pb-8 sm:pb-12 lg:pb-16 relative overflow-hidden border-t border-blue-900/50">
+        {/* Background Photo from /careers with Deepened Blue Gradient Tint */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          <img
+            src="/hiring-header-photo.jpg"
+            alt=""
+            className="w-full h-full object-cover object-center filter saturate-125 contrast-110 brightness-95"
+          />
+          {/* Deepened Blue Multiply Layer */}
+          <div className="absolute inset-0 bg-[#1D44B8]/82 mix-blend-multiply" />
+          {/* Smooth Gradient: Rich deep blue flowing to midnight navy */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#122F82]/85 via-[#183EA6]/78 to-[#08153A]/92" />
+          {/* Vignette Shadow for added depth and contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/15" />
+          {/* Subtle Paper / Grain Texture Background */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[url('/white-speckled-paper.svg')] opacity-[0.04] bg-repeat bg-[length:450px_450px]"
+          />
+        </div>
 
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-8 space-y-10 sm:space-y-12">
-          {/* Top Row: Brand Logo (Left) + Horizontal Navigation Links (Right) */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2">
-            {/* Brand Logo */}
-            <div className="inline-flex items-center gap-2.5">
-              <Image
-                src="/blue-jitu-logo.png"
-                alt="Logo Jitu"
-                width={48}
-                height={32}
-                className="h-8 w-auto object-contain brightness-0 invert"
-              />
-              <span className="font-extrabold text-[26px] tracking-[-0.03em] text-white leading-none">
-                jitu<span className="text-yellow-400">.</span>
-              </span>
-            </div>
-
-            {/* Horizontal Nav Links (Matching Pepete Reference Style) */}
+          {/* Top Row: Horizontal Navigation Links (Matching Pepete Reference Style) */}
+          <div className="pb-2">
             <nav className="flex flex-wrap items-center gap-x-6 sm:gap-x-7 gap-y-3 text-[14px] sm:text-[15px] font-medium text-blue-100">
               <a
                 href="#harga"
@@ -1693,12 +1796,6 @@ const LandingPageModule = () => {
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
               >
                 Jadwal
-              </a>
-              <a
-                href="#metode-3p"
-                className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
-              >
-                Metode 3P
               </a>
               <a
                 href="#faq"
@@ -1740,38 +1837,27 @@ const LandingPageModule = () => {
           </div>
 
           {/* Middle Row: Contacts (Left) + Copyright (Right) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13px] sm:text-[14px] text-blue-200/90 pt-6 border-t border-blue-800/40">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13px] sm:text-[14px] text-blue-200/90 pt-6 border-t border-blue-400/30">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <span>
                 Email{" "}
                 <a
                   href="mailto:team@jituptn.com"
-                  className="text-white hover:text-yellow-300 underline underline-offset-4 decoration-blue-400/60 transition-colors"
+                  className="text-white hover:text-yellow-300 underline underline-offset-4 decoration-blue-300/60 transition-colors"
                 >
                   team@jituptn.com
                 </a>
               </span>
-              <span>
-                WhatsApp{" "}
-                <a
-                  href="https://wa.me/628123456789"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white hover:text-yellow-300 underline underline-offset-4 decoration-blue-400/60 transition-colors"
-                >
-                  08123456789
-                </a>
-              </span>
             </div>
 
-            <div className="text-[13px] text-blue-300/80">
-              © 2026 PT Jitu Edukasi Nusantara
+            <div className="text-[13px] text-blue-200/90 font-medium">
+              © 2026 Jitu Edukasi
             </div>
           </div>
 
-          {/* Bottom Row: Giant Oversized Brand Wordmark */}
-          <div className="pt-4 sm:pt-8 lg:pt-10 -mb-4 sm:-mb-8 overflow-hidden select-none pointer-events-none">
-            <div className="text-[100px] sm:text-[170px] md:text-[230px] lg:text-[290px] xl:text-[340px] font-black tracking-tighter text-white/95 leading-[0.8] select-none text-left">
+          {/* Bottom Row: Giant Brand Wordmark (Fully Visible, Not Cut Off) */}
+          <div className="pt-4 sm:pt-6 select-none pointer-events-none">
+            <div className="text-[76px] sm:text-[150px] md:text-[210px] lg:text-[270px] xl:text-[310px] font-black tracking-tighter text-white/95 leading-[0.95] select-none text-left">
               jitu<span className="text-yellow-400">.</span>
             </div>
           </div>

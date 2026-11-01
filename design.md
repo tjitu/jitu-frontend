@@ -172,7 +172,7 @@ Max line length 68ch. Headings use `text-wrap: balance`; paragraphs use `text-wr
 
 **Pricing / plan cards (if used):** equal height, recommended plan gets `2px --primary` border and a `yellow-300` ribbon; per-unit price in `--text-muted` under the total.
 
-## 6. Iconography and imagery
+## 6. Iconography and imagery 
 
 - **Icons:** stroke style, 1.75px stroke, 20px grid (24px in nav and empty states), rounded caps and joins. `ink-700` default, `--primary` when active.
 - **Accent icon:** at most one filled, colored icon family in the whole UI, fill `yellow-400` with a 1.5px `ink-900` outline so it reads on white and blue.

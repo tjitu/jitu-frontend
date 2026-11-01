@@ -649,3 +649,32 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--ink-300);
 }
+
+/* Infinite Horizontal Marquee Belt for Social Proof */
+@keyframes jitu-marquee-roll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.jitu-marquee-belt {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: max-content !important;
+  will-change: transform;
+  animation: jitu-marquee-roll 32s linear infinite;
+}
+
+.jitu-marquee-belt:hover {
+  animation-play-state: paused !important;
+}
+
+.jitu-marquee-fade {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+

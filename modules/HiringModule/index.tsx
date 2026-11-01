@@ -18,6 +18,7 @@ import { HIRING_DIVISIONS, HIRING_POSITIONS } from "@/lib/hiring-types";
 
 const BROWSER_SUBMISSION_KEY = "jitu_hiring_applied_2026";
 const BROWSER_SUBMISSION_COOKIE = "jitu_hiring_applied_2026";
+const IS_HIRING_CLOSED = true;
 
 interface SubmittedRecord {
   id: string;
@@ -343,9 +344,9 @@ export default function HiringModule() {
               <span className="h-6 rounded-full bg-blue-50 text-blue-800 px-2.5 text-[12px] font-semibold inline-flex items-center">
                 Part-time · Remote
               </span>
-              <span className="h-6 rounded-full bg-yellow-100 text-yellow-700 px-2.5 text-[12px] font-semibold inline-flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 shrink-0" />
-                <span>Deadline: 30 October 2026</span>
+              <span className="h-6 rounded-full bg-red-100 text-red-700 px-2.5 text-[12px] font-semibold inline-flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 shrink-0" />
+                <span>Pendaftaran Ditutup</span>
               </span>
             </div>
             <h1 className="text-h1 font-bold text-text">
@@ -476,13 +477,19 @@ export default function HiringModule() {
                               {role.slots > 1 ? "positions" : "position"}
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={scrollToForm}
-                            className="text-[13px] font-semibold text-primary hover:text-primary-hover hover:underline cursor-pointer"
-                          >
-                            Apply now →
-                          </button>
+                          {IS_HIRING_CLOSED ? (
+                            <span className="text-[12.5px] font-semibold text-text-muted">
+                              Closed
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={scrollToForm}
+                              className="text-[13px] font-semibold text-primary hover:text-primary-hover hover:underline cursor-pointer"
+                            >
+                              Apply now →
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -502,14 +509,13 @@ export default function HiringModule() {
               <h2 className="text-[20px] font-bold text-text">
                 Application form
               </h2>
-              <span className="h-6 rounded-full inline-flex items-center gap-1.5 text-[12px] text-yellow-700 bg-yellow-100 px-2.5 font-semibold">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Deadline: 30 October 2026</span>
+              <span className="h-6 rounded-full inline-flex items-center gap-1.5 text-[12px] text-red-700 bg-red-100 px-2.5 font-semibold">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Pendaftaran Ditutup</span>
               </span>
             </div>
             <p className="text-[13px] text-text-muted mt-1">
-              Complete the form below to apply. Fields marked with * are
-              required. Applications close on <strong>30 October 2026</strong>.
+              Periode pendaftaran telah resmi berakhir pada <strong>30 Oktober 2026</strong>.
             </p>
           </div>
 
@@ -585,6 +591,26 @@ export default function HiringModule() {
                 </p>
                 <p className="text-[12.5px] text-text-muted">
                   Our team reviews profiles on a rolling basis and will reach out via WhatsApp or email if your qualifications align with the role.
+                </p>
+              </div>
+            </div>
+          ) : IS_HIRING_CLOSED ? (
+            <div className="rounded-lg border border-border bg-surface p-8 sm:p-10 space-y-5 text-center">
+              <div className="w-14 h-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto border border-red-200">
+                <Lock className="w-6 h-6" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-[20px] font-bold text-text">
+                  Pendaftaran Telah Resmi Ditutup
+                </h3>
+                <p className="text-[14px] text-text-body max-w-[540px] mx-auto leading-relaxed">
+                  Periode registrasi berkas JITU Open Hiring 2026 telah berakhir pada <strong>30 Oktober 2026</strong>. Form pendaftaran saat ini sudah tidak menerima pengiriman berkas baru.
+                </p>
+              </div>
+              <div className="p-4 rounded-md bg-surface-muted border border-border max-w-[520px] mx-auto text-left space-y-1">
+                <span className="text-[12px] font-semibold text-text block">Informasi Seleksi Berkas:</span>
+                <p className="text-[13px] text-text-muted leading-relaxed">
+                  Seluruh berkas dan portofolio kandidat yang telah masuk sedang dalam proses kurasi oleh tim rekrutmen kami. Kandidat yang lolos tahap seleksi berkas akan dihubungi melalui email atau WhatsApp.
                 </p>
               </div>
             </div>
