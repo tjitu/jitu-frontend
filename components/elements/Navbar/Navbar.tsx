@@ -36,7 +36,7 @@ const navItems = [
   },
   {
     title: "Latihan",
-    path: "daily-streak",
+    path: "latihan",
     icon: Flame,
   },
   {
@@ -87,7 +87,7 @@ const Navbar = () => {
   const bottomNavItems = [
     { title: "Beranda", path: "dashboard", icon: Home },
     { title: "Tryout", path: "tryout", icon: NotebookPen },
-    { title: "Latihan", path: "daily-streak", icon: Flame },
+    { title: "Latihan", path: "latihan", icon: Flame },
     { title: "Coin", path: "shop", icon: ShoppingBag },
     { title: "Akun", path: "profile", icon: User },
   ];
