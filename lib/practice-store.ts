@@ -92,7 +92,7 @@ export async function getPracticeQuestions(params: {
     LEFT JOIN "QuestionSolution" sol ON sol."questionId" = q.id
     WHERE ${whereClauses.join(" AND ")}
     GROUP BY q.id, s.title, t.title, sol.id
-    ORDER BY q."createdAt" DESC
+    ORDER BY q."createdAt" ASC
     LIMIT 50;
   `;
 
