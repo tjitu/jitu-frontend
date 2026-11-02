@@ -25,16 +25,23 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { questionId, selectedOptionId } = body;
+    const { questionId, selectedOptionId, revealOnly } = body;
 
-    if (!questionId || !selectedOptionId) {
+    if (!questionId) {
       return NextResponse.json(
-        { success: false, message: "questionId and selectedOptionId are required" },
+        { success: false, message: "questionId is required" },
         { status: 400 }
       );
     }
 
-    const result = await evaluatePracticeAnswer(questionId, selectedOptionId);
+    if (!revealOnly && !selectedOptionId) {
+      return NextResponse.json(
+        { success: false, message: "selectedOptionId is required" },
+        { status: 400 }
+      );
+    }
+
+    const result = await evaluatePracticeAnswer(questionId, selectedOptionId || null);
     return NextResponse.json({ success: true, ...result });
   } catch (err: any) {
     console.error("Failed to evaluate practice answer:", err);

@@ -1,223 +1,352 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Zap, Sparkles, BookOpen, Layers, CheckCircle2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Zap,
+  Sparkles,
+  BookOpen,
+  Layers,
+  CheckCircle2,
+  Check,
+} from "lucide-react";
 import katex from "katex";
 import type { SolutionStep, QuestionSolutionData } from "@/lib/practice-store";
 
-interface InteractiveSolutionDeckProps {
-  solution: QuestionSolutionData;
-  className?: string;
-  autoFocus?: boolean;
+export interface RenderMathOptions {
+  animatedHighlights?: boolean;
 }
 
-export function renderMathContent(content: string): string {
+export function renderMathContent(
+  content: string,
+  options: RenderMathOptions = {}
+): string {
   if (!content) return "";
 
-  // Replace block math $$...$$
+  const { animatedHighlights = false } = options;
+
+  // 1. Replace block math $$...$$
   let processed = content.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
     try {
-      return `<div class="katex-block my-3 overflow-x-auto py-1 text-center">${katex.renderToString(math.trim(), { displayMode: true, throwOnError: false })}</div>`;
+      const rendered = katex.renderToString(math.trim(), {
+        displayMode: true,
+        throwOnError: false,
+      });
+      return `<div class="step-math-card my-3 py-2.5 px-3 rounded-xl bg-surface-muted/70 border border-border text-center overflow-x-auto">${rendered}</div>`;
     } catch {
-      return `$$${math}$$`;
+      return `<div class="step-math-card my-3 py-2.5 px-3 rounded-xl bg-surface-muted/70 border border-border font-mono text-center overflow-x-auto">$$${math}$$</div>`;
     }
   });
 
-  // Replace inline math $...$
+  // 2. Replace inline math $...$
   processed = processed.replace(/\$([^\$\n]+?)\$/g, (_, math) => {
     try {
-      return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
+      return `<span class="inline-math font-mono text-text">${katex.renderToString(
+        math.trim(),
+        { displayMode: false, throwOnError: false }
+      )}</span>`;
     } catch {
       return `$${math}$`;
     }
   });
 
-  // Convert bold markdown **text** to <strong>
-  processed = processed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  // 3. Special callout for checklist / conclusion lines starting with ✅
+  processed = processed.replace(
+    /^✅\s*(.*?)$/gm,
+    `<div class="flex items-start gap-2.5 p-3 my-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-950 font-bold text-xs sm:text-[13px] leading-snug">
+      <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-[11px] mt-0.5">✓</span>
+      <div class="flex-1">$1</div>
+    </div>`
+  );
+
+  // 4. Blockquotes > ...
+  processed = processed.replace(
+    /^>\s*(.*?)$/gm,
+    `<blockquote class="border-l-3 border-primary/70 pl-3 py-1.5 my-2.5 bg-blue-50/40 rounded-r-lg text-xs sm:text-[13px] text-text-body italic leading-relaxed">$1</blockquote>`
+  );
+
+  // 5. Convert bold markdown **text**
+  if (animatedHighlights) {
+    processed = processed.replace(
+      /\*\*(.*?)\*\*/g,
+      `<mark class="step-highlight-animated">$1</mark>`
+    );
+  } else {
+    processed = processed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  }
 
   return processed;
+}
+
+interface InteractiveSolutionDeckProps {
+  solution: QuestionSolutionData;
+  className?: string;
+  onStepChange?: (stepIndex: number, totalSteps: number) => void;
 }
 
 export function InteractiveSolutionDeck({
   solution,
   className = "",
+  onStepChange,
 }: InteractiveSolutionDeckProps) {
   const steps = solution.steps || [];
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState<"next" | "prev">("next");
   const [showFullStatic, setShowFullStatic] = useState(false);
 
   const hasSteps = steps.length > 0;
   const currentStep = hasSteps ? steps[currentSlide] : null;
 
+  // Reset to slide 0 when solution changes
+  useEffect(() => {
+    setCurrentSlide(0);
+    setDirection("next");
+  }, [solution.id]);
+
+  // Notify parent on step change
+  useEffect(() => {
+    if (onStepChange && hasSteps) {
+      onStepChange(currentSlide, steps.length);
+    }
+  }, [currentSlide, hasSteps, steps.length, onStepChange]);
+
+  const goToSlide = (targetIndex: number) => {
+    if (targetIndex === currentSlide || targetIndex < 0 || targetIndex >= steps.length) {
+      return;
+    }
+    setDirection(targetIndex > currentSlide ? "next" : "prev");
+    setCurrentSlide(targetIndex);
+  };
+
+  const handleNext = () => {
+    if (currentSlide < steps.length - 1) {
+      setDirection("next");
+      setCurrentSlide((prev) => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentSlide > 0) {
+      setDirection("prev");
+      setCurrentSlide((prev) => prev - 1);
+    }
+  };
+
   // Keyboard navigation support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in input/textarea
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
+
       if (e.key === "ArrowLeft") {
-        setCurrentSlide((prev) => Math.max(0, prev - 1));
+        handlePrev();
       } else if (e.key === "ArrowRight") {
-        setCurrentSlide((prev) => Math.min(steps.length - 1, prev + 1));
+        handleNext();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [steps.length]);
+  }, [currentSlide, steps.length]);
 
   return (
-    <div className={`rounded-xl border border-blue-200 bg-surface shadow-sm overflow-hidden ${className}`}>
-      {/* Top Deck Banner */}
-      <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white px-5 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/25 border border-blue-400/40 text-blue-200">
-              <Layers className="h-4 w-4" />
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold tracking-tight text-white m-0">
-                  Interactive Solution Deck
-                </h3>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-400/20 text-blue-200 text-[10px] font-semibold border border-blue-400/30">
-                  <Sparkles className="w-2.5 h-2.5 text-yellow-300" /> Deck Mode
-                </span>
-              </div>
-              <p className="text-[12px] text-blue-200/80 m-0 mt-0.5">
-                Pelajari langkah penyelesaian bertahap & konsep kunci secara interaktif.
-              </p>
-            </div>
-          </div>
-
-          {/* Slide Indicator & Nav */}
-          {hasSteps && (
-            <div className="flex items-center gap-2 self-end sm:self-center">
-              <span className="text-[11px] font-mono font-medium px-2.5 py-1 rounded-md bg-white/10 text-blue-100 border border-white/15">
-                Slide {currentSlide + 1} / {steps.length}
+    <div
+      className={`rounded-2xl border border-border bg-surface shadow-xs overflow-hidden ${className}`}
+    >
+      {/* ============================================================
+          Minimalist Header (design.md: Quiet Chrome, Loud Content)
+          ============================================================ */}
+      <div className="p-4 sm:p-5 border-b border-border bg-surface flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 border border-blue-200 text-primary">
+            <Sparkles className="w-4 h-4" />
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-text m-0">Pembahasan Interaktif</h3>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-200">
+                Interactive Deck
               </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setCurrentSlide((prev) => Math.max(0, prev - 1))}
-                  disabled={currentSlide === 0}
-                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/15 text-white hover:bg-white/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Slide sebelumnya"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentSlide((prev) => Math.min(steps.length - 1, prev + 1))}
-                  disabled={currentSlide >= steps.length - 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/15 text-white hover:bg-white/25 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Slide selanjutnya"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
             </div>
-          )}
+            <p className="text-[11px] text-text-muted m-0 mt-0.5">
+              Langkah terstruktur dengan highlight konsep kunci otomatis
+            </p>
+          </div>
         </div>
 
-        {/* Slide Progress Bar */}
+        {/* Quick Stepper Counter & Prev/Next chevrons */}
         {hasSteps && (
-          <div className="mt-3.5 flex items-center gap-1.5 w-full">
-            {steps.map((_, idx) => (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[11px] font-mono font-bold px-2 py-1 rounded-md bg-surface-muted text-text-body border border-border">
+              {currentSlide + 1} / {steps.length}
+            </span>
+            <div className="flex items-center gap-1">
               <button
-                key={idx}
                 type="button"
-                onClick={() => setCurrentSlide(idx)}
-                className={`h-1.5 flex-1 rounded-full transition-all cursor-pointer ${
-                  idx === currentSlide
-                    ? "bg-yellow-400 shadow-sm"
-                    : idx < currentSlide
-                    ? "bg-blue-300/80"
-                    : "bg-white/20 hover:bg-white/40"
-                }`}
-                title={`Lompat ke langkah ${idx + 1}`}
-              />
-            ))}
+                onClick={handlePrev}
+                disabled={currentSlide === 0}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Langkah sebelumnya"
+                title="Langkah sebelumnya (◀)"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={currentSlide >= steps.length - 1}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Langkah selanjutnya"
+                title="Langkah selanjutnya (▶)"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Main Slide Card Body */}
-      <div className="p-5 sm:p-6 space-y-5">
+      {/* ============================================================
+          Horizontal Step Chips Roadmap / Tabs
+          ============================================================ */}
+      {hasSteps && (
+        <div className="px-4 py-2.5 bg-surface-muted/40 border-b border-border flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          {steps.map((st, idx) => {
+            const isActive = idx === currentSlide;
+            const isCompleted = idx < currentSlide;
+            const categoryLabel = (st.category || `Langkah ${st.stepNumber}`)
+              .replace(/_/g, " ")
+              .toLowerCase();
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => goToSlide(idx)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
+                  isActive
+                    ? "bg-primary text-on-primary shadow-2xs"
+                    : isCompleted
+                    ? "bg-surface text-text border border-border hover:border-blue-300"
+                    : "bg-surface/50 text-text-muted hover:text-text border border-transparent"
+                }`}
+                title={`Lompat ke langkah ${idx + 1}`}
+              >
+                <span
+                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
+                    isActive
+                      ? "bg-white text-primary"
+                      : isCompleted
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-border text-text-muted"
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
+                </span>
+                <span className="capitalize">{categoryLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ============================================================
+          Current Step Card Body (Direction-Aware Slide + Animated Highlights)
+          ============================================================ */}
+      <div className="p-5 sm:p-6 space-y-4">
         {hasSteps && currentStep ? (
-          <div className="rounded-xl border border-border bg-surface-muted/40 p-5 space-y-3.5 shadow-sm">
-            {/* Step Category & Step Number */}
-            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border">
+          <div
+            key={currentSlide}
+            className={`space-y-3.5 ${
+              direction === "next" ? "animate-step-enter-right" : "animate-step-enter-left"
+            }`}
+          >
+            {/* Step Category Badge & Progress Header */}
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
+                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
                   {currentStep.category || `Langkah ${currentStep.stepNumber}`}
                 </span>
                 <span className="text-xs font-semibold text-text-muted">
                   Langkah {currentStep.stepNumber} dari {steps.length}
                 </span>
               </div>
-              <div className="text-[11px] text-text-muted hidden sm:block">
-                Gunakan panah ◀ ▶ keyboard untuk navigasi
-              </div>
+              <span className="text-[11px] text-text-muted font-medium hidden sm:inline">
+                Tekan ◀ ▶ di keyboard
+              </span>
             </div>
 
             {/* Step Title */}
-            <h4 className="text-base sm:text-[17px] font-bold text-text leading-snug">
+            <h4 className="text-base font-bold text-text leading-snug m-0">
               {currentStep.title}
             </h4>
 
-            {/* Step Content */}
+            {/* Step Content: KaTeX + Animated Highlighter Pen Effect */}
             <div
-              className="text-[14px] sm:text-[15px] text-text-body leading-relaxed space-y-2 whitespace-pre-wrap font-sans"
+              className="text-sm text-text-body leading-relaxed space-y-2 whitespace-pre-wrap font-sans"
               dangerouslySetInnerHTML={{
-                __html: renderMathContent(currentStep.content),
+                __html: renderMathContent(currentStep.content, {
+                  animatedHighlights: true,
+                }),
               }}
             />
           </div>
         ) : (
-          <div className="p-4 rounded-lg bg-surface-muted border border-border text-xs text-text-muted italic">
-            Belum ada slide bertahap untuk soal ini.
+          <div className="p-4 rounded-xl bg-surface-muted border border-border text-xs text-text-muted italic">
+            Belum ada langkah bertahap untuk soal ini.
           </div>
         )}
 
-        {/* Companion Quick Tricks & Key Formula Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+        {/* ============================================================
+            Companion Cards: Rumus Kunci & Trik Jitu
+            ============================================================ */}
+        <div className="space-y-3 pt-2">
           {solution.keyFormula && (
-            <div className="rounded-xl border border-purple-200 bg-purple-50/60 p-4 shadow-2xs">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900 uppercase tracking-wider mb-2">
+            <div className="rounded-xl border border-border bg-surface-muted/60 p-3.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-text mb-1.5">
                 <span className="text-sm">📐</span> Rumus Kunci & Konsep
               </div>
               <div
-                className="text-xs text-purple-950 font-mono overflow-x-auto py-1"
+                className="text-xs font-mono text-text-body overflow-x-auto py-1"
                 dangerouslySetInnerHTML={{
-                  __html: renderMathContent(solution.keyFormula),
+                  __html: renderMathContent(solution.keyFormula, {
+                    animatedHighlights: false,
+                  }),
                 }}
               />
             </div>
           )}
 
           {solution.quickTrick && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 shadow-2xs">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 uppercase tracking-wider mb-2">
-                <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" /> Trik Jitu & Pola Cepat
+            <div className="rounded-xl border border-yellow-300 bg-yellow-50/70 p-3.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-yellow-900 mb-1">
+                <Zap className="w-3.5 h-3.5 text-yellow-600 fill-yellow-500" /> Trik Jitu Cepat
               </div>
-              <p className="text-xs sm:text-[13px] text-amber-950 leading-relaxed m-0 font-medium">
+              <p className="text-xs sm:text-[13px] text-yellow-950 font-medium leading-relaxed m-0">
                 {solution.quickTrick}
               </p>
             </div>
           )}
         </div>
 
-        {/* Fallback / Full Conventional Static Explanation Toggle */}
+        {/* ============================================================
+            Collapsible Full Conventional Text Solution Fallback
+            ============================================================ */}
         {solution.staticContent && (
           <div className="pt-2 border-t border-border">
             <button
               type="button"
               onClick={() => setShowFullStatic((prev) => !prev)}
-              className="flex items-center gap-2 text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer py-1"
+              className="flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text transition-colors cursor-pointer py-1"
             >
               <BookOpen className="w-3.5 h-3.5" />
-              {showFullStatic ? "Sembunyikan Versi Teks Lengkap" : "Lihat Pembahasan Versi Teks Lengkap (Konvensional)"}
+              {showFullStatic
+                ? "Sembunyikan Versi Teks Lengkap"
+                : "Lihat Pembahasan Versi Teks Lengkap"}
             </button>
 
             {showFullStatic && (
-              <div className="mt-3 p-4 rounded-lg bg-surface-muted border border-border text-xs sm:text-sm text-text-body leading-relaxed whitespace-pre-wrap">
+              <div className="mt-2.5 p-3.5 rounded-xl bg-surface-muted border border-border text-xs sm:text-sm text-text-body leading-relaxed whitespace-pre-wrap">
                 {solution.staticContent}
               </div>
             )}
@@ -225,33 +354,49 @@ export function InteractiveSolutionDeck({
         )}
       </div>
 
-      {/* Bottom Slide Action Bar */}
+      {/* ============================================================
+          Bottom Slide Action Bar
+          ============================================================ */}
       {hasSteps && (
-        <div className="bg-surface-muted border-t border-border px-5 py-3 flex items-center justify-between">
+        <div className="bg-surface-muted/50 border-t border-border px-5 py-3 flex items-center justify-between">
           <button
             type="button"
-            onClick={() => setCurrentSlide((prev) => Math.max(0, prev - 1))}
+            onClick={handlePrev}
             disabled={currentSlide === 0}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-text hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            <ChevronLeft className="h-4 w-4" /> Langkah Sebelumnya
+            <ChevronLeft className="h-4 w-4" /> Sebelumnya
           </button>
 
-          <span className="text-[12px] font-medium text-text-muted">
-            {currentSlide + 1} dari {steps.length} langkah
-          </span>
+          {/* Stepper Dots */}
+          <div className="flex items-center gap-1.5">
+            {steps.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => goToSlide(idx)}
+                className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
+                  idx === currentSlide
+                    ? "w-6 bg-primary"
+                    : idx < currentSlide
+                    ? "w-1.5 bg-blue-300"
+                    : "w-1.5 bg-border hover:bg-text-muted"
+                }`}
+                title={`Langkah ${idx + 1}`}
+              />
+            ))}
+          </div>
 
           <button
             type="button"
-            onClick={() => setCurrentSlide((prev) => Math.min(steps.length - 1, prev + 1))}
+            onClick={handleNext}
             disabled={currentSlide >= steps.length - 1}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            Langkah Selanjutnya <ChevronRight className="h-4 w-4" />
+            Selanjutnya <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       )}
     </div>
   );
 }
-

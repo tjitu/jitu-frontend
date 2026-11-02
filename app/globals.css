@@ -678,3 +678,80 @@
   mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
 }
 
+/* ============================================================
+   Interactive Solution Deck: Animations & Highlighter (design.md)
+   ============================================================ */
+@keyframes jitu-highlight-sweep {
+  0% {
+    background-size: 0% 100%;
+  }
+  100% {
+    background-size: 100% 100%;
+  }
+}
+
+@keyframes jitu-step-enter-right {
+  0% {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes jitu-step-enter-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes jitu-math-glow {
+  0% {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 87, 219, 0.12);
+  }
+  100% {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+}
+
+.step-highlight-animated {
+  background-image: linear-gradient(
+    120deg,
+    rgba(255, 200, 31, 0.35) 0%,
+    rgba(255, 216, 77, 0.45) 100%
+  );
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 100% 100%;
+  animation: jitu-highlight-sweep 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s backwards;
+  padding: 1px 5px;
+  border-radius: 4px;
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.animate-step-enter-right {
+  animation: jitu-step-enter-right 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-step-enter-left {
+  animation: jitu-step-enter-left 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.step-math-card {
+  animation: jitu-math-glow 0.8s ease-out;
+}
+
+

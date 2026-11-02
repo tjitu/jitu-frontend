@@ -1,4 +1,5 @@
 import pg from "pg";
+import { getDbPool } from "./db";
 
 export type PracticeOption = {
   id: string;
@@ -37,33 +38,12 @@ export type PracticeQuestionSummary = {
   hasFormula: boolean;
 };
 
-let poolInstance: pg.Pool | null = null;
-
-function getPool(): pg.Pool {
-  if (!poolInstance) {
-    const rawUrl =
-      process.env.DATABASE_URL ||
-      "postgresql://postgres.oyyhjyyadrsviehamztc:JituPes13DbM3l3tusyyy@aws-1-ap-southeast-2.pooler.supabase.com:5432/postgres";
-    // Ensure direct port 5432 is used for reliable connection
-    const connectionString = rawUrl.replace(":6543", ":5432");
-
-    poolInstance = new pg.Pool({
-      connectionString,
-      ssl: { rejectUnauthorized: false },
-      max: 3,
-      idleTimeoutMillis: 15000,
-      connectionTimeoutMillis: 10000,
-    });
-  }
-  return poolInstance;
-}
-
 export async function getPracticeQuestions(params: {
   subtest?: string;
   difficulty?: string;
   search?: string;
 }): Promise<PracticeQuestionSummary[]> {
-  const pool = getPool();
+  const pool = getDbPool();
   const whereClauses: string[] = ["(q.target = 'FOR_PRACTICE' OR q.target IS NULL)"];
   const values: any[] = [];
   let paramIdx = 1;
@@ -140,13 +120,13 @@ export async function getPracticeQuestions(params: {
 
 export async function evaluatePracticeAnswer(
   questionId: string,
-  selectedOptionId: string
+  selectedOptionId?: string | null
 ): Promise<{
   isCorrect: boolean;
   correctOptionId: string | null;
   solution: QuestionSolutionData | null;
 }> {
-  const pool = getPool();
+  const pool = getDbPool();
 
   // Find correct option for this question
   const optRes = await pool.query(
@@ -154,7 +134,9 @@ export async function evaluatePracticeAnswer(
     [questionId]
   );
 
-  const selectedOpt = optRes.rows.find((o) => o.id === selectedOptionId);
+  const selectedOpt = selectedOptionId
+    ? optRes.rows.find((o) => o.id === selectedOptionId)
+    : null;
   const correctOpt = optRes.rows.find((o) => o.is_correct === true);
 
   const isCorrect = Boolean(selectedOpt?.is_correct);

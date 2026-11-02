@@ -135,9 +135,9 @@ export function LatihanModule() {
         });
 
         if (data.isCorrect) {
-          toast.success("Jawaban kamu benar! 🎉 Pembahasan interaktif terbuka di bawah.");
+          toast.success("Jawaban kamu benar! 🎉 Pembahasan interaktif terbuka di sidebar.");
         } else {
-          toast.error("Jawaban belum tepat. Simak langkah solusi di bawah ini.");
+          toast.error("Jawaban belum tepat. Simak langkah solusi di sidebar samping.");
         }
       } else {
         toast.error(data.message || "Gagal memeriksa jawaban");
@@ -145,6 +145,40 @@ export function LatihanModule() {
     } catch (err) {
       console.error("Submit answer error:", err);
       toast.error("Terjadi kesalahan saat memeriksa jawaban");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Reveal solution directly for self-study mode
+  const handleRevealSolution = async () => {
+    if (!activeQuestion) return;
+
+    try {
+      setSubmitting(true);
+      const res = await fetch("/api/practice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId: activeQuestion.id,
+          revealOnly: true,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.solution) {
+        setEvaluatedResult({
+          isCorrect: false,
+          correctOptionId: data.correctOptionId,
+          solution: data.solution,
+        });
+        toast.info("Pembahasan interaktif terbuka di sidebar.");
+      } else {
+        toast.error(data.message || "Gagal membuka pembahasan");
+      }
+    } catch (err) {
+      console.error("Reveal solution error:", err);
+      toast.error("Terjadi kesalahan saat memuat pembahasan");
     } finally {
       setSubmitting(false);
     }
@@ -253,10 +287,16 @@ export function LatihanModule() {
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 pt-6">
+      <div
+        className={
+          activeQuestion
+            ? "max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-6"
+            : "max-w-[1120px] mx-auto px-4 sm:px-6 pt-6"
+        }
+      >
         {activeQuestion ? (
           /* ============================================================
-             ARENA LATIHAN INTERAKTIF (SINGLE QUESTION PRACTICE VIEW)
+             ARENA LATIHAN INTERAKTIF (TWO-COLUMN SIDEBAR VIEW)
              ============================================================ */
           <div className="space-y-6">
             {/* Arena Top Navigation Bar */}
@@ -299,223 +339,238 @@ export function LatihanModule() {
               </div>
             </div>
 
-            {/* Question Card */}
-            <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
-              {/* Question Metadata */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
-                      DIFFICULTIES.find((d) => d.id === activeQuestion.difficulty)?.color ||
-                      "text-gray-700 bg-gray-50 border-gray-200"
-                    }`}
-                  >
-                    {activeQuestion.difficulty}
-                  </span>
-                  {activeQuestion.topicTitle && (
-                    <span className="text-xs text-text-muted">
-                      {activeQuestion.topicTitle}
-                      {activeQuestion.subtopicTitle ? ` › ${activeQuestion.subtopicTitle}` : ""}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 text-xs font-medium text-text-muted">
-                  <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
-                    <Layers className="h-3 w-3" /> {activeQuestion.stepsCount} Langkah Solusi
-                  </span>
-                  {activeQuestion.hasTrick && (
-                    <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                      <Zap className="h-3 w-3 text-amber-600 fill-amber-500" /> Trik Jitu
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Stimulus / Narration Box (if available) */}
-              {activeQuestion.narration && (
-                <div className="rounded-xl bg-blue-50/50 border border-blue-200/70 p-4 sm:p-5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 uppercase tracking-wide mb-2">
-                    <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Wacana / Stimulus Soal
-                  </div>
-                  <div
-                    className="text-sm sm:text-[15px] text-blue-950 leading-relaxed"
-                    dangerouslySetInnerHTML={{
-                      __html: renderMathContent(activeQuestion.narration),
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Main Question Prompt */}
-              <div className="text-base sm:text-lg font-semibold text-text leading-relaxed">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: renderMathContent(activeQuestion.content),
-                  }}
-                />
-              </div>
-
-              {/* Options List */}
-              <div className="space-y-3 pt-2">
-                <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Pilih salah satu jawaban: (Bisa tekan tombol A - E di keyboard)
-                </div>
-
-                <div className="grid grid-cols-1 gap-2.5">
-                  {activeQuestion.options.map((opt, idx) => {
-                    const letter = OPTION_LETTERS[idx] || String.fromCharCode(65 + idx);
-                    const isSelected = selectedOptionId === opt.id;
-                    const isEvaluated = Boolean(evaluatedResult);
-                    const isCorrectAnswer =
-                      isEvaluated && evaluatedResult?.correctOptionId === opt.id;
-                    const isSelectedWrong =
-                      isEvaluated && isSelected && !evaluatedResult?.isCorrect;
-
-                    let optionBorderClass =
-                      "border-border bg-surface hover:border-blue-300 hover:bg-blue-50/20";
-                    let badgeClass = "bg-surface-muted text-text border-border";
-
-                    if (isEvaluated) {
-                      if (isCorrectAnswer) {
-                        optionBorderClass = "border-emerald-500 bg-emerald-50/80 ring-1 ring-emerald-500";
-                        badgeClass = "bg-emerald-600 text-white border-emerald-600";
-                      } else if (isSelectedWrong) {
-                        optionBorderClass = "border-rose-400 bg-rose-50/80 ring-1 ring-rose-400";
-                        badgeClass = "bg-rose-600 text-white border-rose-600";
-                      } else {
-                        optionBorderClass = "border-border/60 bg-surface/50 opacity-60";
-                      }
-                    } else if (isSelected) {
-                      optionBorderClass = "border-primary bg-blue-50/70 ring-2 ring-primary/20";
-                      badgeClass = "bg-primary text-on-primary border-primary";
-                    }
-
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        disabled={isEvaluated}
-                        onClick={() => setSelectedOptionId(opt.id)}
-                        className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all duration-150 flex items-start gap-3.5 cursor-pointer disabled:cursor-default ${optionBorderClass}`}
+            {/* Responsive 2-Column Split: Soal (Left) + Pembahasan Sidebar (Right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column: Soal & Options (Col 1-7) */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="bg-surface border border-border rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+                  {/* Question Metadata */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          DIFFICULTIES.find((d) => d.id === activeQuestion.difficulty)?.color ||
+                          "text-gray-700 bg-gray-50 border-gray-200"
+                        }`}
                       >
-                        <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition-colors ${badgeClass}`}
-                        >
-                          {letter}
+                        {activeQuestion.difficulty}
+                      </span>
+                      {activeQuestion.topicTitle && (
+                        <span className="text-xs text-text-muted">
+                          {activeQuestion.topicTitle}
+                          {activeQuestion.subtopicTitle ? ` › ${activeQuestion.subtopicTitle}` : ""}
                         </span>
+                      )}
+                    </div>
 
-                        <div className="flex-1 pt-0.5 text-sm sm:text-base text-text">
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: renderMathContent(opt.content),
-                            }}
-                          />
-                        </div>
+                    <div className="flex items-center gap-2 text-xs font-medium text-text-muted">
+                      <span className="inline-flex items-center gap-1 text-primary bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 font-semibold">
+                        <Layers className="h-3 w-3" /> {activeQuestion.stepsCount} Langkah Solusi
+                      </span>
+                      {activeQuestion.hasTrick && (
+                        <span className="inline-flex items-center gap-1 text-yellow-800 bg-yellow-50 px-2 py-0.5 rounded-md border border-yellow-200 font-semibold">
+                          <Zap className="h-3 w-3 text-yellow-600 fill-yellow-500" /> Trik Jitu
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-                        {/* State Checkmark / Cross icon */}
-                        {isEvaluated && isCorrectAnswer && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                            <CheckCircle2 className="w-4 h-4" />
-                          </span>
+                  {/* Stimulus / Narration Box (if available) */}
+                  {activeQuestion.narration && (
+                    <div className="rounded-xl bg-blue-50/50 border border-blue-200/70 p-4 sm:p-5">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 uppercase tracking-wide mb-2">
+                        <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Wacana / Stimulus Soal
+                      </div>
+                      <div
+                        className="text-sm sm:text-[15px] text-blue-950 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: renderMathContent(activeQuestion.narration, {
+                            animatedHighlights: false,
+                          }),
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Main Question Prompt */}
+                  <div className="text-base sm:text-lg font-semibold text-text leading-relaxed">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: renderMathContent(activeQuestion.content, {
+                          animatedHighlights: false,
+                        }),
+                      }}
+                    />
+                  </div>
+
+                  {/* Options List */}
+                  <div className="space-y-3 pt-2">
+                    <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                      Pilih salah satu jawaban: (Bisa tekan tombol A - E di keyboard)
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2.5">
+                      {activeQuestion.options.map((opt, idx) => {
+                        const letter = OPTION_LETTERS[idx] || String.fromCharCode(65 + idx);
+                        const isSelected = selectedOptionId === opt.id;
+                        const isEvaluated = Boolean(evaluatedResult);
+                        const isCorrectAnswer =
+                          isEvaluated && evaluatedResult?.correctOptionId === opt.id;
+                        const isSelectedWrong =
+                          isEvaluated && isSelected && !evaluatedResult?.isCorrect;
+
+                        let optionBorderClass =
+                          "border-border bg-surface hover:border-blue-300 hover:bg-blue-50/20";
+                        let badgeClass = "bg-surface-muted text-text border-border";
+
+                        if (isEvaluated) {
+                          if (isCorrectAnswer) {
+                            optionBorderClass =
+                              "border-emerald-500 bg-emerald-50/80 ring-1 ring-emerald-500";
+                            badgeClass = "bg-emerald-600 text-white border-emerald-600";
+                          } else if (isSelectedWrong) {
+                            optionBorderClass =
+                              "border-rose-400 bg-rose-50/80 ring-1 ring-rose-400";
+                            badgeClass = "bg-rose-600 text-white border-rose-600";
+                          } else {
+                            optionBorderClass = "border-border/60 bg-surface/50 opacity-60";
+                          }
+                        } else if (isSelected) {
+                          optionBorderClass =
+                            "border-primary bg-blue-50/70 ring-2 ring-primary/20";
+                          badgeClass = "bg-primary text-on-primary border-primary";
+                        }
+
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            disabled={isEvaluated}
+                            onClick={() => setSelectedOptionId(opt.id)}
+                            className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all duration-150 flex items-start gap-3.5 cursor-pointer disabled:cursor-default ${optionBorderClass}`}
+                          >
+                            <span
+                              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition-colors ${badgeClass}`}
+                            >
+                              {letter}
+                            </span>
+
+                            <div className="flex-1 pt-0.5 text-sm sm:text-base text-text">
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: renderMathContent(opt.content, {
+                                    animatedHighlights: false,
+                                  }),
+                                }}
+                              />
+                            </div>
+
+                            {/* State Checkmark / Cross icon */}
+                            {isEvaluated && isCorrectAnswer && (
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                                <CheckCircle2 className="w-4 h-4" />
+                              </span>
+                            )}
+                            {isEvaluated && isSelectedWrong && (
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+                                <XCircle className="w-4 h-4" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
+                    {!evaluatedResult ? (
+                      <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          disabled={!selectedOptionId || submitting}
+                          onClick={handleSubmitAnswer}
+                          className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          {submitting ? (
+                            <>Memeriksa...</>
+                          ) : (
+                            <>
+                              <Check className="w-4 h-4" /> Periksa Jawaban
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={submitting}
+                          onClick={handleRevealSolution}
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-xs font-semibold text-text hover:bg-surface-muted transition-colors cursor-pointer"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-primary" /> Buka Pembahasan Langsung
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          onClick={handleResetAttempt}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border text-xs font-bold text-text hover:bg-surface-muted transition-colors cursor-pointer"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" /> Coba Lagi
+                        </button>
+
+                        {activeQuestionIndex < questions.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={handleNextQuestion}
+                            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
+                          >
+                            Lanjut ke Soal Berikutnya <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
                         )}
-                        {isEvaluated && isSelectedWrong && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700">
-                            <XCircle className="w-4 h-4" />
-                          </span>
+                      </div>
+                    )}
+
+                    {/* Score Status Pill */}
+                    {evaluatedResult && (
+                      <div
+                        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold ${
+                          evaluatedResult.isCorrect
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                            : "bg-rose-50 text-rose-800 border border-rose-300"
+                        }`}
+                      >
+                        {evaluatedResult.isCorrect ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            Jawaban Benar (+{activeQuestion.points} Poin)
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-4 h-4 text-rose-600" />
+                            Jawaban Belum Tepat · Cek Pembahasan di Sidebar
+                          </>
                         )}
-                      </button>
-                    );
-                  })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
-                {!evaluatedResult ? (
-                  <button
-                    type="button"
-                    disabled={!selectedOptionId || submitting}
-                    onClick={handleSubmitAnswer}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-sm transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {submitting ? (
-                      <>Memeriksa...</>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" /> Periksa Jawaban
-                      </>
-                    )}
-                  </button>
+              {/* Right Column: Pembahasan Sidebar (Col 8-12) */}
+              <div className="lg:col-span-5 lg:sticky lg:top-6 space-y-4">
+                {evaluatedResult?.solution ? (
+                  <InteractiveSolutionDeck solution={evaluatedResult.solution} />
                 ) : (
-                  <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={handleResetAttempt}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border text-xs font-bold text-text hover:bg-surface-muted transition-colors cursor-pointer"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" /> Coba Lagi
-                    </button>
-
-                    {activeQuestionIndex < questions.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={handleNextQuestion}
-                        className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
-                      >
-                        Lanjut ke Soal Berikutnya <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Score Status Pill */}
-                {evaluatedResult && (
-                  <div
-                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold ${
-                      evaluatedResult.isCorrect
-                        ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                        : "bg-rose-50 text-rose-800 border border-rose-300"
-                    }`}
-                  >
-                    {evaluatedResult.isCorrect ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        Jawaban Benar (+{activeQuestion.points} Poin)
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 text-rose-600" />
-                        Jawaban Salah · Pelajari Solusi di Bawah
-                      </>
-                    )}
-                  </div>
+                  <PembahasanSidebarTeaser
+                    question={activeQuestion}
+                    onReveal={handleRevealSolution}
+                    loading={submitting}
+                  />
                 )}
               </div>
             </div>
-
-            {/* ============================================================
-               INTERACTIVE SOLUTION DECK DISPLAY
-               ============================================================ */}
-            {evaluatedResult?.solution && (
-              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white">
-                      <Sparkles className="w-3.5 h-3.5" />
-                    </span>
-                    <h2 className="text-base font-bold text-text m-0">
-                      Pembahasan Interaktif Resmi
-                    </h2>
-                  </div>
-                  <span className="text-xs text-text-muted">
-                    Gunakan tombol panah ⬅ ➡ di keyboard untuk slide
-                  </span>
-                </div>
-
-                <InteractiveSolutionDeck solution={evaluatedResult.solution} />
-              </div>
-            )}
           </div>
         ) : (
           /* ============================================================
@@ -655,5 +710,102 @@ export function LatihanModule() {
     </div>
   );
 }
+
+function PembahasanSidebarTeaser({
+  question,
+  onReveal,
+  loading,
+}: {
+  question: PracticeQuestionSummary;
+  onReveal: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="flex items-center gap-3 pb-3.5 border-b border-border">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 border border-blue-200 text-primary">
+          <Sparkles className="w-4 h-4" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-text m-0">Sidebar Pembahasan</h3>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              Interactive Deck
+            </span>
+          </div>
+          <p className="text-[11px] text-text-muted m-0 mt-0.5">
+            Langkah bertahap & highlight konsep otomatis
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
+            <Layers className="w-3.5 h-3.5" />
+            {question.stepsCount} Langkah Solusi
+          </span>
+          {question.hasTrick && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs font-semibold">
+              <Zap className="w-3.5 h-3.5 text-yellow-600 fill-yellow-500" />
+              Trik Jitu Cepat
+            </span>
+          )}
+          {question.hasFormula && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-muted border border-border text-text text-xs font-semibold">
+              📐 Rumus Kunci
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs sm:text-[13px] text-text-body leading-relaxed m-0">
+          Pembahasan disajikan secara bertahap di sidebar ini. Saat kamu berpindah langkah, variabel kunci, rumus, dan pembuktian akan <strong>di-highlight dengan animasi</strong> agar fokus ke konsep intinya.
+        </p>
+
+        {/* Sneak peek roadmap */}
+        <div className="p-3.5 rounded-xl bg-surface-muted/60 border border-border space-y-2">
+          <div className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+            Alur Pembahasan Deck:
+          </div>
+          <div className="space-y-2 text-xs text-text-body">
+            <div className="flex items-center gap-2">
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">1</span>
+              <span>Identifikasi Variabel & Pemahaman Soal</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">2</span>
+              <span>Substitusi Rumus, Kalkulasi, & Trik Jitu</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">3</span>
+              <span>Verifikasi Kesimpulan & Kunci Jawaban</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-3 border-t border-border space-y-2.5">
+        <p className="text-[11px] text-text-muted m-0">
+          Pilih salah satu jawaban di samping lalu klik <strong>Periksa Jawaban</strong>, atau langsung buka pembahasan di sidebar:
+        </p>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={onReveal}
+          className="w-full py-2.5 px-4 rounded-xl border border-primary/40 bg-blue-50/60 hover:bg-blue-50 text-primary text-xs font-bold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+        >
+          {loading ? (
+            "Membuka Pembahasan..."
+          ) : (
+            <>
+              <Sparkles className="w-3.5 h-3.5" /> Buka Pembahasan Langsung
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default LatihanModule;
 
