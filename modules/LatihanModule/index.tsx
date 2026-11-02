@@ -308,10 +308,6 @@ export function LatihanModule() {
                   <Flame className="w-3.5 h-3.5 text-blue-600" />
                   Mode Latihan Interaktif
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-[11px] font-semibold">
-                  <Sparkles className="w-3 h-3 text-purple-600" />
-                  Interactive Deck
-                </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-text tracking-tight m-0">
                 Latihan Soal SNBT & UTBK
@@ -489,17 +485,6 @@ export function LatihanModule() {
                       {activeQuestion.difficulty}
                     </span>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
-                      <Layers className="h-3.5 w-3.5" /> {activeQuestion.stepsCount} Slides
-                    </span>
-                    {activeQuestion.hasTrick && (
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-yellow-800 bg-yellow-50 px-2.5 py-0.5 rounded-md border border-yellow-200">
-                        <Zap className="h-3.5 w-3.5 text-yellow-600 fill-yellow-500" /> Trik Jitu
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 {/* Topic / Subtopic Breadcrumb */}
@@ -514,12 +499,12 @@ export function LatihanModule() {
 
                 {/* Stimulus / Narration Box (if available) */}
                 {activeQuestion.narration && (
-                  <div className="rounded-xl bg-blue-50/50 border border-blue-200/80 p-4 sm:p-5">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 uppercase tracking-wide mb-2.5">
-                      <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Wacana / Stimulus Soal
+                  <div className="rounded-xl bg-surface-muted/60 border border-border p-4 sm:p-5">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted uppercase tracking-wider mb-2.5">
+                      <Lightbulb className="w-4 h-4 text-text-muted" /> Wacana / Stimulus Soal
                     </div>
                     <div
-                      className="text-sm sm:text-[15px] text-blue-950 leading-relaxed font-sans"
+                      className="text-sm sm:text-[15px] text-text leading-relaxed font-sans"
                       dangerouslySetInnerHTML={{
                         __html: renderMathContent(activeQuestion.narration, {
                           animatedHighlights: false,
@@ -721,46 +706,7 @@ export function LatihanModule() {
                   User Request: "tapi lebih ke card yang setara dengan card soal, habis itu bisa di close lagi"
                   ============================================================ */}
               {isSolutionOpen && currentAttempt && currentAttempt.solution && (
-                <div className="lg:col-span-6 space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                  {/* Top Answer Recap Banner */}
-                  {!currentAttempt.isRevealOnly && (
-                    <div
-                      className={`p-4 rounded-2xl border text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs ${
-                        currentAttempt.isCorrect
-                          ? "bg-emerald-50/90 border-emerald-200 text-emerald-950"
-                          : "bg-rose-50/90 border-rose-200 text-rose-950"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {currentAttempt.isCorrect ? (
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs">
-                            ✓
-                          </span>
-                        ) : (
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-xs">
-                            ✕
-                          </span>
-                        )}
-                        <span className="font-bold">
-                          {currentAttempt.isCorrect
-                            ? "Jawaban kamu tepat! Pelajari konsep & trik cepatnya di bawah:"
-                            : "Jawaban belum tepat. Simak langkah penyelesaian berikut:"}
-                        </span>
-                      </div>
-
-                      {/* Close button pill for quick dismissal */}
-                      <button
-                        type="button"
-                        onClick={() => setIsSolutionOpen(false)}
-                        className="self-end sm:self-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface text-text text-xs font-semibold transition-colors cursor-pointer"
-                        title="Tutup Card Pembahasan"
-                      >
-                        <X className="w-3.5 h-3.5" /> Tutup
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Interactive Solution Deck Card */}
+                <div className="lg:col-span-6 animate-in fade-in duration-200">
                   <div className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">
                     <InteractiveSolutionDeck
                       solution={currentAttempt.solution}

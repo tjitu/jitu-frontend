@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Check,
   X,
+  Sigma,
 } from "lucide-react";
 import katex from "katex";
 import type { SolutionStep, QuestionSolutionData } from "@/lib/practice-store";
@@ -97,6 +98,7 @@ export function InteractiveSolutionDeck({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [showFullStatic, setShowFullStatic] = useState(false);
+  const [showKeyFormula, setShowKeyFormula] = useState(false);
 
   const hasSteps = steps.length > 0;
   const currentStep = hasSteps ? steps[currentSlide] : null;
@@ -105,6 +107,7 @@ export function InteractiveSolutionDeck({
   useEffect(() => {
     setCurrentSlide(0);
     setDirection("next");
+    setShowKeyFormula(false);
   }, [solution.id]);
 
   // Notify parent on step change
@@ -157,114 +160,138 @@ export function InteractiveSolutionDeck({
       className={`rounded-2xl border border-border bg-surface shadow-xs overflow-hidden ${className}`}
     >
       {/* ============================================================
-          Minimalist Header (design.md: Quiet Chrome, Loud Content)
+          TOP STEP NAVIGATION BAR (User Request: Header sininya hapus, langsung step tabs & icon)
           ============================================================ */}
-      <div className="p-4 sm:p-5 border-b border-border bg-surface flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 border border-blue-200 text-primary">
-            <Sparkles className="w-4 h-4" />
-          </span>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-text m-0">Pembahasan Interaktif</h3>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-200">
-                Interactive Deck
-              </span>
-            </div>
-            <p className="text-[11px] text-text-muted m-0 mt-0.5">
-              Langkah terstruktur dengan highlight konsep kunci otomatis
-            </p>
-          </div>
-        </div>
+      <div className="p-3 sm:px-4 bg-surface-muted/40 border-b border-border flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+        {/* Step Chips on Left */}
+        {hasSteps && (
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            {steps.map((st, idx) => {
+              const isActive = idx === currentSlide;
+              const isCompleted = idx < currentSlide;
+              const categoryLabel = (st.category || `Langkah ${st.stepNumber}`)
+                .replace(/_/g, " ")
+                .toLowerCase();
 
-        {/* Quick Stepper Counter, Prev/Next chevrons & Optional Close button */}
-        <div className="flex items-center gap-2 shrink-0">
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => goToSlide(idx)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-on-primary shadow-2xs"
+                      : isCompleted
+                      ? "bg-surface text-text border border-border hover:border-blue-300"
+                      : "bg-surface/50 text-text-muted hover:text-text border border-transparent"
+                  }`}
+                  title={`Lompat ke langkah ${idx + 1}`}
+                >
+                  <span
+                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
+                      isActive
+                        ? "bg-white text-primary"
+                        : isCompleted
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-border text-text-muted"
+                    }`}
+                  >
+                    {isCompleted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
+                  </span>
+                  <span className="capitalize">{categoryLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Action controls on Right: Formula Icon, Stepper, Close button */}
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          {/* Rumus Kunci Click-to-view icon (pake icon aja, gausah ditulis teksnya) */}
+          {solution.keyFormula && (
+            <button
+              type="button"
+              onClick={() => setShowKeyFormula((prev) => !prev)}
+              className={`flex h-7 w-7 items-center justify-center rounded-md border text-xs transition-all cursor-pointer ${
+                showKeyFormula
+                  ? "bg-primary text-on-primary border-primary shadow-2xs"
+                  : "border-border bg-surface text-text-muted hover:text-text hover:bg-surface-muted hover:border-blue-400"
+              }`}
+              title={showKeyFormula ? "Sembunyikan Rumus" : "Lihat Rumus"}
+              aria-label="Lihat Rumus"
+            >
+              <Sigma className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {/* Stepper counter & navigation */}
           {hasSteps && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-mono font-bold px-2 py-1 rounded-md bg-surface-muted text-text-body border border-border">
-                {currentSlide + 1} / {steps.length}
+            <div className="flex items-center gap-0.5">
+              <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-surface text-text-body border border-border">
+                {currentSlide + 1}/{steps.length}
               </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  disabled={currentSlide === 0}
-                  className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                  aria-label="Langkah sebelumnya"
-                  title="Langkah sebelumnya (◀)"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={currentSlide >= steps.length - 1}
-                  className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                  aria-label="Langkah selanjutnya"
-                  title="Langkah selanjutnya (▶)"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={currentSlide === 0}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Langkah sebelumnya"
+                title="Langkah sebelumnya"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={currentSlide >= steps.length - 1}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Langkah selanjutnya"
+                title="Langkah selanjutnya"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
             </div>
           )}
 
+          {/* Close button X */}
           {onClose && (
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-border text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-muted hover:border-text transition-colors cursor-pointer ml-0.5"
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text-muted hover:text-text hover:bg-surface hover:border-text transition-colors cursor-pointer ml-0.5"
               aria-label="Tutup Pembahasan"
               title="Tutup Pembahasan"
             >
-              <span>Tutup</span>
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
       </div>
 
-      {/* ============================================================
-          Horizontal Step Chips Roadmap / Tabs
-          ============================================================ */}
-      {hasSteps && (
-        <div className="px-4 py-2.5 bg-surface-muted/40 border-b border-border flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-          {steps.map((st, idx) => {
-            const isActive = idx === currentSlide;
-            const isCompleted = idx < currentSlide;
-            const categoryLabel = (st.category || `Langkah ${st.stepNumber}`)
-              .replace(/_/g, " ")
-              .toLowerCase();
-
-            return (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => goToSlide(idx)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
-                  isActive
-                    ? "bg-primary text-on-primary shadow-2xs"
-                    : isCompleted
-                    ? "bg-surface text-text border border-border hover:border-blue-300"
-                    : "bg-surface/50 text-text-muted hover:text-text border border-transparent"
-                }`}
-                title={`Lompat ke langkah ${idx + 1}`}
-              >
-                <span
-                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
-                    isActive
-                      ? "bg-white text-primary"
-                      : isCompleted
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-border text-text-muted"
-                  }`}
-                >
-                  {isCompleted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
-                </span>
-                <span className="capitalize">{categoryLabel}</span>
-              </button>
-            );
-          })}
+      {/* Click-to-view Formula Dropdown / Collapsible (icon only trigger) */}
+      {solution.keyFormula && showKeyFormula && (
+        <div className="mx-4 sm:mx-6 mt-3.5 p-3 rounded-xl border border-blue-200 bg-blue-50/70 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="flex items-center justify-between pb-1 mb-1 border-b border-blue-200/50">
+            <span className="flex items-center justify-center h-5 w-5 rounded bg-blue-100 text-blue-700">
+              <Sigma className="w-3.5 h-3.5" />
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowKeyFormula(false)}
+              className="text-blue-700 hover:text-blue-900 p-0.5 rounded cursor-pointer"
+              title="Tutup"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div
+            className="text-xs sm:text-sm font-mono text-blue-950 overflow-x-auto py-1 text-center"
+            dangerouslySetInnerHTML={{
+              __html: renderMathContent(solution.keyFormula, {
+                animatedHighlights: false,
+              }),
+            }}
+          />
         </div>
       )}
 
@@ -319,13 +346,38 @@ export function InteractiveSolutionDeck({
             Companion Cards: Rumus Kunci & Trik Jitu
             ============================================================ */}
         <div className="space-y-3 pt-2">
-          {solution.keyFormula && (
-            <div className="rounded-xl border border-border bg-surface-muted/60 p-3.5">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-text mb-1.5">
-                <span className="text-sm">📐</span> Rumus Kunci & Konsep
+          {/* Rumus: bersifat click to view (gausah ditulis teksnya, pake icon aja) */}
+          {solution.keyFormula && !showKeyFormula && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowKeyFormula(true)}
+                className="flex items-center justify-center h-8 w-8 rounded-lg border border-border bg-surface-muted/60 text-text-muted hover:text-text hover:bg-surface hover:border-blue-400 transition-colors cursor-pointer"
+                title="Lihat Rumus"
+                aria-label="Lihat Rumus"
+              >
+                <Sigma className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {solution.keyFormula && showKeyFormula && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="flex items-center justify-between pb-1 mb-1 border-b border-blue-200/50">
+                <span className="flex items-center justify-center h-5 w-5 rounded bg-blue-100 text-blue-700">
+                  <Sigma className="w-3.5 h-3.5" />
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowKeyFormula(false)}
+                  className="text-text-muted hover:text-text p-0.5 rounded cursor-pointer"
+                  title="Tutup Rumus"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
               <div
-                className="text-xs font-mono text-text-body overflow-x-auto py-1"
+                className="text-xs sm:text-sm font-mono text-blue-950 overflow-x-auto py-1 text-center"
                 dangerouslySetInnerHTML={{
                   __html: renderMathContent(solution.keyFormula, {
                     animatedHighlights: false,
