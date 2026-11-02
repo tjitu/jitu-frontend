@@ -2,16 +2,13 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import {
-  Calendar,
   Users,
   ArrowRight,
   Check,
   Clock,
-  BookOpen,
   TrendingUp,
   Camera,
   Loader2,
-  Ticket,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -162,8 +159,8 @@ const DashboardModule = () => {
       toast.success(data.message || "Terdaftar di tryout.");
       setRegisterModalOpen(false);
       loadDashboardData();
-    } catch (err: any) {
-      setRegisterError(err.message);
+    } catch (err: unknown) {
+      setRegisterError(err instanceof Error ? err.message : "Gagal mendaftar tryout.");
     } finally {
       setRegisterLoading(false);
     }
@@ -713,39 +710,7 @@ const DashboardModule = () => {
         </Tabs>
       </section>
 
-      {/* 4. BOTTOM: Coin Balance & Buy Coin Strip */}
-      <section className="bg-surface rounded-lg border border-border p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <div className="text-label text-text-muted flex items-center gap-2">
-            <PixelCoin size={18} />
-            <span>Saldo coin pembahasan</span>
-          </div>
-          <div className="flex flex-wrap items-baseline gap-3">
-            <span className="font-bold text-[32px] leading-none text-text tabular-nums">
-              {userStats?.tokenBalance ?? 0} coin
-            </span>
-            <span className="text-[14px] text-text-muted">
-              (1 coin = 1 pembahasan tryout · mulai Rp8.900)
-            </span>
-          </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/shop/past")}
-          >
-            Riwayat transaksi
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => router.push("/shop")}
-          >
-            <span>Beli coin</span>
-            <ArrowRight className="w-4 h-4 stroke-[1.75]" />
-          </Button>
-        </div>
-      </section>
 
       <RegisterModal
         isOpen={registerModalOpen}
