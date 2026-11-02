@@ -340,10 +340,11 @@ export function LatihanModule() {
 
       {/* ============================================================
           MAIN ARENA CONTAINER (QUESTION-FIRST, EXPANDABLE SIDE-BY-SIDE)
+          User Request: question : solution = 1 : 2 when solution is open
           ============================================================ */}
       <main
         className={`mx-auto px-4 sm:px-6 pt-6 transition-all duration-300 ${
-          showSolutionCard ? "max-w-[1440px]" : "max-w-4xl"
+          showSolutionCard ? "max-w-[1580px]" : "max-w-4xl"
         }`}
       >
         {loading ? (
@@ -463,11 +464,11 @@ export function LatihanModule() {
               }`}
             >
               {/* ============================================================
-                  KIRI: CARD SOAL
+                  KIRI: CARD SOAL (1/3 LEBAR - QUESTION : SOLUTION = 1 : 2)
                   ============================================================ */}
               <div
-                className={`bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 ${
-                  showSolutionCard ? "lg:col-span-6" : "w-full"
+                className={`bg-surface border border-border rounded-2xl p-6 sm:p-7 shadow-xs space-y-6 ${
+                  showSolutionCard ? "lg:col-span-4 lg:sticky lg:top-6" : "w-full"
                 }`}
               >
                 {/* Question Metadata Header */}
@@ -702,11 +703,10 @@ export function LatihanModule() {
               </div>
 
               {/* ============================================================
-                  KANAN: CARD PEMBAHASAN (SETARA DENGAN CARD SOAL)
-                  User Request: "tapi lebih ke card yang setara dengan card soal, habis itu bisa di close lagi"
+                  KANAN: CARD PEMBAHASAN (2/3 LEBAR - QUESTION : SOLUTION = 1 : 2)
                   ============================================================ */}
               {isSolutionOpen && currentAttempt && currentAttempt.solution && (
-                <div className="lg:col-span-6 animate-in fade-in duration-200">
+                <div className="lg:col-span-8 animate-in fade-in duration-200">
                   <div className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">
                     <InteractiveSolutionDeck
                       solution={currentAttempt.solution}
