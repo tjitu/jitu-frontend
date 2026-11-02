@@ -10,6 +10,7 @@ import {
   Layers,
   CheckCircle2,
   Check,
+  X,
 } from "lucide-react";
 import katex from "katex";
 import type { SolutionStep, QuestionSolutionData } from "@/lib/practice-store";
@@ -83,12 +84,14 @@ interface InteractiveSolutionDeckProps {
   solution: QuestionSolutionData;
   className?: string;
   onStepChange?: (stepIndex: number, totalSteps: number) => void;
+  onClose?: () => void;
 }
 
 export function InteractiveSolutionDeck({
   solution,
   className = "",
   onStepChange,
+  onClose,
 }: InteractiveSolutionDeckProps) {
   const steps = solution.steps || [];
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -174,36 +177,51 @@ export function InteractiveSolutionDeck({
           </div>
         </div>
 
-        {/* Quick Stepper Counter & Prev/Next chevrons */}
-        {hasSteps && (
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[11px] font-mono font-bold px-2 py-1 rounded-md bg-surface-muted text-text-body border border-border">
-              {currentSlide + 1} / {steps.length}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={currentSlide === 0}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                aria-label="Langkah sebelumnya"
-                title="Langkah sebelumnya (◀)"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={currentSlide >= steps.length - 1}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                aria-label="Langkah selanjutnya"
-                title="Langkah selanjutnya (▶)"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+        {/* Quick Stepper Counter, Prev/Next chevrons & Optional Close button */}
+        <div className="flex items-center gap-2 shrink-0">
+          {hasSteps && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-mono font-bold px-2 py-1 rounded-md bg-surface-muted text-text-body border border-border">
+                {currentSlide + 1} / {steps.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  disabled={currentSlide === 0}
+                  className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  aria-label="Langkah sebelumnya"
+                  title="Langkah sebelumnya (◀)"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={currentSlide >= steps.length - 1}
+                  className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  aria-label="Langkah selanjutnya"
+                  title="Langkah selanjutnya (▶)"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-border text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-muted hover:border-text transition-colors cursor-pointer ml-0.5"
+              aria-label="Tutup Pembahasan"
+              title="Tutup Pembahasan"
+            >
+              <span>Tutup</span>
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ============================================================

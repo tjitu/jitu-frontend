@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
-  ArrowLeft,
   RotateCcw,
   Sparkles,
   Layers,
@@ -71,7 +70,7 @@ export function LatihanModule() {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Slide-over sidebar drawer state
+  // Inline solution card toggle (appears setara dengan card soal)
   const [isSolutionOpen, setIsSolutionOpen] = useState(false);
 
   // Load questions from API
@@ -127,40 +126,25 @@ export function LatihanModule() {
       const existing = attempts[activeQuestion.id];
       if (existing) {
         setSelectedOptionId(existing.selectedOptionId);
+        // If already answered, keep solution open if previously open or default closed
       } else {
         setSelectedOptionId(null);
+        setIsSolutionOpen(false);
       }
-      // Close sidebar by default when switching questions unless already open
-      setIsSolutionOpen(false);
     }
   }, [activeQuestionId]);
 
-  // Lock body scroll when slide-over sidebar is open
-  useEffect(() => {
-    if (isSolutionOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isSolutionOpen]);
-
-  // Keyboard listener: Escape closes the sidebar; A-E picks options when sidebar is closed
+  // Keyboard shortcut listener: A-E picks options when question is unanswered
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
 
-      if (e.key === "Escape") {
-        if (isSolutionOpen) {
-          setIsSolutionOpen(false);
-        }
+      if (e.key === "Escape" && isSolutionOpen) {
+        setIsSolutionOpen(false);
         return;
       }
 
-      // If sidebar is closed and question is unanswered, allow picking options via A-E
-      if (!isSolutionOpen && activeQuestion && !currentAttempt) {
+      if (activeQuestion && !currentAttempt) {
         const key = e.key.toUpperCase();
         const optionIndex = OPTION_LETTERS.indexOf(key);
         if (optionIndex !== -1 && activeQuestion.options[optionIndex]) {
@@ -192,7 +176,7 @@ export function LatihanModule() {
     }
   };
 
-  // Submit answer for evaluation -> auto opens the slide-over sidebar!
+  // Submit answer for evaluation -> automatically opens the side-by-side solution card!
   const handleSubmitAnswer = async () => {
     if (!activeQuestion || !selectedOptionId) {
       toast.info("Pilih salah satu opsi jawaban terlebih dahulu");
@@ -225,13 +209,13 @@ export function LatihanModule() {
           [activeQuestion.id]: newAttempt,
         }));
 
-        // Requirement: "baru pas habis jawab bisa lihat pembahasan, jadi kayak bisa muncul dari sidebar"
+        // Open solution card beside the question card
         setIsSolutionOpen(true);
 
         if (data.isCorrect) {
-          toast.success("Jawaban kamu benar! 🎉 Pembahasan interaktif terbuka.");
+          toast.success("Jawaban kamu benar! 🎉 Pembahasan terbuka di samping.");
         } else {
-          toast.error("Jawaban belum tepat. Simak langkah solusi di sidebar.");
+          toast.error("Jawaban belum tepat. Cek pembahasan di kartu samping.");
         }
       } else {
         toast.error(data.message || "Gagal memeriksa jawaban");
@@ -275,7 +259,7 @@ export function LatihanModule() {
         }));
 
         setIsSolutionOpen(true);
-        toast.info("Pembahasan interaktif terbuka di sidebar.");
+        toast.info("Pembahasan interaktif terbuka di kartu samping.");
       } else {
         toast.error(data.message || "Gagal membuka pembahasan");
       }
@@ -299,11 +283,6 @@ export function LatihanModule() {
     setIsSolutionOpen(false);
   };
 
-  // Calculate overall answered count
-  const answeredCount = useMemo(() => {
-    return Object.keys(attempts).length;
-  }, [attempts]);
-
   // Find user's selected option object & correct option object for recap
   const selectedOptionObj = activeQuestion?.options.find(
     (o) => o.id === (currentAttempt?.selectedOptionId || selectedOptionId)
@@ -312,13 +291,16 @@ export function LatihanModule() {
     (o) => o.id === currentAttempt?.correctOptionId
   );
 
+  // Check if side-by-side solution card should be rendered
+  const showSolutionCard = Boolean(isSolutionOpen && currentAttempt?.solution);
+
   return (
     <div className="min-h-screen bg-bg pb-24 text-text selection:bg-blue-100 selection:text-blue-900">
       {/* ============================================================
           TOP HEADER & SUBTEST FILTER STRIP
           ============================================================ */}
       <div className="bg-surface border-b border-border shadow-2xs">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
@@ -361,9 +343,13 @@ export function LatihanModule() {
       </div>
 
       {/* ============================================================
-          MAIN ARENA CONTAINER (1ST VIEW: QUESTION DIRECTLY)
+          MAIN ARENA CONTAINER (QUESTION-FIRST, EXPANDABLE SIDE-BY-SIDE)
           ============================================================ */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6">
+      <main
+        className={`mx-auto px-4 sm:px-6 pt-6 transition-all duration-300 ${
+          showSolutionCard ? "max-w-[1440px]" : "max-w-4xl"
+        }`}
+      >
         {loading ? (
           <div className="space-y-4">
             <div className="h-14 rounded-2xl bg-surface border border-border animate-pulse" />
@@ -470,390 +456,348 @@ export function LatihanModule() {
             </div>
 
             {/* ------------------------------------------------------------
-                PRIMARY QUESTION CARD (CLEAN & CENTERED)
+                CARDS GRID: CARD SOAL (KIRI) + CARD PEMBAHASAN (KANAN)
+                User Request: "bukan sidebar sebagai new window gini, tapi lebih ke card yang setara dengan card soal"
                 ------------------------------------------------------------ */}
-            <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
-              {/* Question Metadata Header */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
-                    Soal {activeQuestionIndex + 1} · {activeQuestion.subtest.replace(/_/g, " ")}
-                  </span>
-                  <span
-                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
-                      DIFFICULTIES.find((d) => d.id === activeQuestion.difficulty)?.color ||
-                      "text-gray-700 bg-gray-50 border-gray-200"
-                    }`}
-                  >
-                    {activeQuestion.difficulty}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
-                    <Layers className="h-3.5 w-3.5" /> {activeQuestion.stepsCount} Slides
-                  </span>
-                  {activeQuestion.hasTrick && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-yellow-800 bg-yellow-50 px-2.5 py-0.5 rounded-md border border-yellow-200">
-                      <Zap className="h-3.5 w-3.5 text-yellow-600 fill-yellow-500" /> Trik Jitu
+            <div
+              className={`grid gap-6 items-start transition-all duration-300 ${
+                showSolutionCard
+                  ? "grid-cols-1 lg:grid-cols-12"
+                  : "grid-cols-1"
+              }`}
+            >
+              {/* ============================================================
+                  KIRI: CARD SOAL
+                  ============================================================ */}
+              <div
+                className={`bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 ${
+                  showSolutionCard ? "lg:col-span-6" : "w-full"
+                }`}
+              >
+                {/* Question Metadata Header */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                      Soal {activeQuestionIndex + 1} · {activeQuestion.subtest.replace(/_/g, " ")}
                     </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Topic / Subtopic Breadcrumb */}
-              {activeQuestion.topicTitle && (
-                <div className="text-xs font-medium text-text-muted">
-                  Topik: <span className="text-text font-semibold">{activeQuestion.topicTitle}</span>
-                  {activeQuestion.subtopicTitle && (
-                    <span> › {activeQuestion.subtopicTitle}</span>
-                  )}
-                </div>
-              )}
-
-              {/* Stimulus / Narration Box (if available) */}
-              {activeQuestion.narration && (
-                <div className="rounded-xl bg-blue-50/50 border border-blue-200/80 p-4 sm:p-5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 uppercase tracking-wide mb-2.5">
-                    <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Wacana / Stimulus Soal
+                    <span
+                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        DIFFICULTIES.find((d) => d.id === activeQuestion.difficulty)?.color ||
+                        "text-gray-700 bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      {activeQuestion.difficulty}
+                    </span>
                   </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
+                      <Layers className="h-3.5 w-3.5" /> {activeQuestion.stepsCount} Slides
+                    </span>
+                    {activeQuestion.hasTrick && (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-yellow-800 bg-yellow-50 px-2.5 py-0.5 rounded-md border border-yellow-200">
+                        <Zap className="h-3.5 w-3.5 text-yellow-600 fill-yellow-500" /> Trik Jitu
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Topic / Subtopic Breadcrumb */}
+                {activeQuestion.topicTitle && (
+                  <div className="text-xs font-medium text-text-muted">
+                    Topik: <span className="text-text font-semibold">{activeQuestion.topicTitle}</span>
+                    {activeQuestion.subtopicTitle && (
+                      <span> › {activeQuestion.subtopicTitle}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Stimulus / Narration Box (if available) */}
+                {activeQuestion.narration && (
+                  <div className="rounded-xl bg-blue-50/50 border border-blue-200/80 p-4 sm:p-5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 uppercase tracking-wide mb-2.5">
+                      <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Wacana / Stimulus Soal
+                    </div>
+                    <div
+                      className="text-sm sm:text-[15px] text-blue-950 leading-relaxed font-sans"
+                      dangerouslySetInnerHTML={{
+                        __html: renderMathContent(activeQuestion.narration, {
+                          animatedHighlights: false,
+                        }),
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Main Question Content */}
+                <div className="text-base sm:text-lg font-semibold text-text leading-relaxed">
                   <div
-                    className="text-sm sm:text-[15px] text-blue-950 leading-relaxed font-sans"
                     dangerouslySetInnerHTML={{
-                      __html: renderMathContent(activeQuestion.narration, {
+                      __html: renderMathContent(activeQuestion.content, {
                         animatedHighlights: false,
                       }),
                     }}
                   />
                 </div>
-              )}
 
-              {/* Main Question Content */}
-              <div className="text-base sm:text-lg font-semibold text-text leading-relaxed">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: renderMathContent(activeQuestion.content, {
-                      animatedHighlights: false,
-                    }),
-                  }}
-                />
-              </div>
+                {/* Options List A - E */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-text-muted">
+                    <span>PILIH SALAH SATU JAWABAN:</span>
+                    <span className="hidden sm:inline font-mono">Bisa tekan A - E di keyboard</span>
+                  </div>
 
-              {/* Options List A - E */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-text-muted">
-                  <span>PILIH SALAH SATU JAWABAN:</span>
-                  <span className="hidden sm:inline font-mono">Bisa tekan A - E di keyboard</span>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {activeQuestion.options.map((opt, idx) => {
+                      const letter = OPTION_LETTERS[idx] || String.fromCharCode(65 + idx);
+                      const isSelected = (currentAttempt?.selectedOptionId || selectedOptionId) === opt.id;
+                      const isEvaluated = Boolean(currentAttempt);
+                      const isCorrectAnswer =
+                        isEvaluated && currentAttempt?.correctOptionId === opt.id;
+                      const isSelectedWrong =
+                        isEvaluated && isSelected && !currentAttempt?.isCorrect;
+
+                      let optionBorderClass =
+                        "border-border bg-surface hover:border-blue-400 hover:bg-blue-50/30";
+                      let badgeClass = "bg-surface-muted text-text border-border";
+
+                      if (isEvaluated) {
+                        if (isCorrectAnswer) {
+                          optionBorderClass =
+                            "border-emerald-500 bg-emerald-50/90 ring-1 ring-emerald-500";
+                          badgeClass = "bg-emerald-600 text-white border-emerald-600";
+                        } else if (isSelectedWrong) {
+                          optionBorderClass =
+                            "border-rose-400 bg-rose-50/90 ring-1 ring-rose-400";
+                          badgeClass = "bg-rose-600 text-white border-rose-600";
+                        } else {
+                          optionBorderClass = "border-border/60 bg-surface/50 opacity-60";
+                        }
+                      } else if (isSelected) {
+                        optionBorderClass =
+                          "border-primary bg-blue-50/70 ring-2 ring-primary/20";
+                        badgeClass = "bg-primary text-on-primary border-primary font-bold";
+                      }
+
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          disabled={isEvaluated}
+                          onClick={() => setSelectedOptionId(opt.id)}
+                          className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all duration-150 flex items-start gap-3.5 cursor-pointer disabled:cursor-default ${optionBorderClass}`}
+                        >
+                          <span
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition-colors ${badgeClass}`}
+                          >
+                            {letter}
+                          </span>
+
+                          <div className="flex-1 pt-0.5 text-sm sm:text-base text-text">
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: renderMathContent(opt.content, {
+                                  animatedHighlights: false,
+                                }),
+                              }}
+                            />
+                          </div>
+
+                          {/* State Checkmark / Cross icon */}
+                          {isEvaluated && isCorrectAnswer && (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shrink-0">
+                              <CheckCircle2 className="w-4 h-4" />
+                            </span>
+                          )}
+                          {isEvaluated && isSelectedWrong && (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 shrink-0">
+                              <XCircle className="w-4 h-4" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-2.5">
-                  {activeQuestion.options.map((opt, idx) => {
-                    const letter = OPTION_LETTERS[idx] || String.fromCharCode(65 + idx);
-                    const isSelected = (currentAttempt?.selectedOptionId || selectedOptionId) === opt.id;
-                    const isEvaluated = Boolean(currentAttempt);
-                    const isCorrectAnswer =
-                      isEvaluated && currentAttempt?.correctOptionId === opt.id;
-                    const isSelectedWrong =
-                      isEvaluated && isSelected && !currentAttempt?.isCorrect;
-
-                    let optionBorderClass =
-                      "border-border bg-surface hover:border-blue-400 hover:bg-blue-50/30";
-                    let badgeClass = "bg-surface-muted text-text border-border";
-
-                    if (isEvaluated) {
-                      if (isCorrectAnswer) {
-                        optionBorderClass =
-                          "border-emerald-500 bg-emerald-50/90 ring-1 ring-emerald-500";
-                        badgeClass = "bg-emerald-600 text-white border-emerald-600";
-                      } else if (isSelectedWrong) {
-                        optionBorderClass =
-                          "border-rose-400 bg-rose-50/90 ring-1 ring-rose-400";
-                        badgeClass = "bg-rose-600 text-white border-rose-600";
-                      } else {
-                        optionBorderClass = "border-border/60 bg-surface/50 opacity-60";
-                      }
-                    } else if (isSelected) {
-                      optionBorderClass =
-                        "border-primary bg-blue-50/70 ring-2 ring-primary/20";
-                      badgeClass = "bg-primary text-on-primary border-primary font-bold";
-                    }
-
-                    return (
+                {/* ------------------------------------------------------------
+                    BOTTOM ACTION TOOLBAR OF CARD SOAL
+                    ------------------------------------------------------------ */}
+                <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
+                  {!currentAttempt ? (
+                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                       <button
-                        key={opt.id}
                         type="button"
-                        disabled={isEvaluated}
-                        onClick={() => setSelectedOptionId(opt.id)}
-                        className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all duration-150 flex items-start gap-3.5 cursor-pointer disabled:cursor-default ${optionBorderClass}`}
+                        disabled={!selectedOptionId || submitting}
+                        onClick={handleSubmitAnswer}
+                        className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                       >
-                        <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition-colors ${badgeClass}`}
-                        >
-                          {letter}
-                        </span>
-
-                        <div className="flex-1 pt-0.5 text-sm sm:text-base text-text">
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: renderMathContent(opt.content, {
-                                animatedHighlights: false,
-                              }),
-                            }}
-                          />
-                        </div>
-
-                        {/* State Checkmark / Cross icon */}
-                        {isEvaluated && isCorrectAnswer && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shrink-0">
-                            <CheckCircle2 className="w-4 h-4" />
-                          </span>
-                        )}
-                        {isEvaluated && isSelectedWrong && (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 shrink-0">
-                            <XCircle className="w-4 h-4" />
-                          </span>
+                        {submitting ? (
+                          <>Memeriksa Jawaban...</>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" /> Periksa Jawaban
+                          </>
                         )}
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
 
-              {/* ------------------------------------------------------------
-                  BOTTOM ACTION TOOLBAR & PERSISTENT RE-OPEN BUTTON
-                  ------------------------------------------------------------ */}
-              <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
-                {!currentAttempt ? (
-                  <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      disabled={!selectedOptionId || submitting}
-                      onClick={handleSubmitAnswer}
-                      className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                      <button
+                        type="button"
+                        disabled={submitting}
+                        onClick={handleRevealSolution}
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-xs font-semibold text-text hover:bg-surface-muted transition-colors cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-primary" /> Buka Pembahasan Langsung
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                      {/* If Card Pembahasan is closed, show button to re-open it */}
+                      {!showSolutionCard && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSolutionOpen(true)}
+                          className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs sm:text-sm shadow-sm transition-all duration-150 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Lightbulb className="w-4 h-4 fill-yellow-300 text-yellow-300" />
+                          Buka Pembahasan Interaktif ({activeQuestion.stepsCount} Slide)
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleResetAttempt}
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-xs font-bold text-text hover:bg-surface-muted transition-colors cursor-pointer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> Coba Lagi
+                      </button>
+
+                      {activeQuestionIndex < questions.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={handleNextQuestion}
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-primary/40 bg-blue-50/60 hover:bg-blue-50 text-primary text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Soal Berikutnya <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Score Status Pill */}
+                  {currentAttempt && (
+                    <div
+                      className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold ${
+                        currentAttempt.isCorrect
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                          : currentAttempt.isRevealOnly
+                          ? "bg-blue-50 text-blue-800 border border-blue-300"
+                          : "bg-rose-50 text-rose-800 border border-rose-300"
+                      }`}
                     >
-                      {submitting ? (
-                        <>Memeriksa Jawaban...</>
+                      {currentAttempt.isCorrect ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          Jawaban Benar (+{activeQuestion.points} Poin)
+                        </>
+                      ) : currentAttempt.isRevealOnly ? (
+                        <>
+                          <Sparkles className="w-4 h-4 text-primary" />
+                          Mode Pembahasan Mandiri
+                        </>
                       ) : (
                         <>
-                          <Check className="w-4 h-4" /> Periksa Jawaban
+                          <XCircle className="w-4 h-4 text-rose-600" />
+                          Jawaban Belum Tepat
                         </>
                       )}
-                    </button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                    <button
-                      type="button"
-                      disabled={submitting}
-                      onClick={handleRevealSolution}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-xs font-semibold text-text hover:bg-surface-muted transition-colors cursor-pointer"
+              {/* ============================================================
+                  KANAN: CARD PEMBAHASAN (SETARA DENGAN CARD SOAL)
+                  User Request: "tapi lebih ke card yang setara dengan card soal, habis itu bisa di close lagi"
+                  ============================================================ */}
+              {isSolutionOpen && currentAttempt && currentAttempt.solution && (
+                <div className="lg:col-span-6 space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  {/* Top Answer Recap Banner */}
+                  {!currentAttempt.isRevealOnly && (
+                    <div
+                      className={`p-4 rounded-2xl border text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs ${
+                        currentAttempt.isCorrect
+                          ? "bg-emerald-50/90 border-emerald-200 text-emerald-950"
+                          : "bg-rose-50/90 border-rose-200 text-rose-950"
+                      }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-primary" /> Buka Pembahasan Langsung
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                    {/* User-requested: "baru pas habis jawab bisa lihat pembahasan, jadi kayak bisa muncul dari sidebar, habis itu bisa di close lagi" */}
-                    <button
-                      type="button"
-                      onClick={() => setIsSolutionOpen(true)}
-                      className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs sm:text-sm shadow-sm transition-all duration-150 flex items-center gap-2 cursor-pointer"
-                    >
-                      <Lightbulb className="w-4 h-4 fill-yellow-300 text-yellow-300" />
-                      Buka Pembahasan Interaktif ({activeQuestion.stepsCount} Slide)
-                    </button>
+                      <div className="flex items-center gap-2">
+                        {currentAttempt.isCorrect ? (
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs">
+                            ✓
+                          </span>
+                        ) : (
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-600 text-white font-bold text-xs">
+                            ✕
+                          </span>
+                        )}
+                        <span className="font-bold">
+                          {currentAttempt.isCorrect
+                            ? "Jawaban kamu tepat! Pelajari konsep & trik cepatnya di bawah:"
+                            : "Jawaban belum tepat. Simak langkah penyelesaian berikut:"}
+                        </span>
+                      </div>
 
-                    <button
-                      type="button"
-                      onClick={handleResetAttempt}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-xs font-bold text-text hover:bg-surface-muted transition-colors cursor-pointer"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" /> Coba Lagi
-                    </button>
-
-                    {activeQuestionIndex < questions.length - 1 && (
+                      {/* Close button pill for quick dismissal */}
                       <button
                         type="button"
-                        onClick={handleNextQuestion}
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-primary/40 bg-blue-50/60 hover:bg-blue-50 text-primary text-xs font-bold transition-colors cursor-pointer"
+                        onClick={() => setIsSolutionOpen(false)}
+                        className="self-end sm:self-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border/80 bg-surface/80 hover:bg-surface text-text text-xs font-semibold transition-colors cursor-pointer"
+                        title="Tutup Card Pembahasan"
                       >
-                        Soal Berikutnya <ArrowRight className="w-3.5 h-3.5" />
+                        <X className="w-3.5 h-3.5" /> Tutup
                       </button>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                {/* Score Status Pill */}
-                {currentAttempt && (
-                  <div
-                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold ${
-                      currentAttempt.isCorrect
-                        ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                        : currentAttempt.isRevealOnly
-                        ? "bg-blue-50 text-blue-800 border border-blue-300"
-                        : "bg-rose-50 text-rose-800 border border-rose-300"
-                    }`}
-                  >
-                    {currentAttempt.isCorrect ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        Jawaban Benar (+{activeQuestion.points} Poin)
-                      </>
-                    ) : currentAttempt.isRevealOnly ? (
-                      <>
-                        <Sparkles className="w-4 h-4 text-primary" />
-                        Mode Pembahasan Mandiri
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 text-rose-600" />
-                        Jawaban Belum Tepat
-                      </>
-                    )}
+                  {/* Interactive Solution Deck Card */}
+                  <div className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">
+                    <InteractiveSolutionDeck
+                      solution={currentAttempt.solution}
+                      onClose={() => setIsSolutionOpen(false)}
+                      className="border-0 shadow-none rounded-none"
+                    />
+
+                    {/* Card Pembahasan Bottom Controls */}
+                    <div className="p-4 sm:p-5 border-t border-border bg-surface flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsSolutionOpen(false)}
+                        className="px-3.5 py-1.5 rounded-xl border border-border text-xs font-semibold text-text hover:bg-surface-muted transition-colors cursor-pointer"
+                      >
+                        Tutup Pembahasan
+                      </button>
+
+                      {activeQuestionIndex < questions.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleNextQuestion();
+                            setIsSolutionOpen(false);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
+                        >
+                          Lanjut ke Soal Berikutnya <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         ) : null}
       </main>
-
-      {/* ============================================================
-          SLIDE-OVER SIDEBAR (DRAWER) FOR INTERACTIVE SOLUTION DECK
-          Appears smoothly from the right, dismissible via X, overlay, or ESC
-          ============================================================ */}
-      {/* 1. Backdrop Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ${
-          isSolutionOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setIsSolutionOpen(false)}
-        aria-hidden="true"
-      />
-
-      {/* 2. Slide-Over Panel Container */}
-      <aside
-        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[580px] md:w-[680px] lg:w-[740px] bg-surface border-l border-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
-          isSolutionOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Pembahasan Interaktif"
-      >
-        {/* Sidebar Header */}
-        <div className="p-4 sm:p-5 border-b border-border bg-surface flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3">
-            <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
-                currentAttempt?.isCorrect
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-600"
-                  : currentAttempt?.isRevealOnly
-                  ? "bg-blue-50 border-blue-200 text-primary"
-                  : "bg-rose-50 border-rose-200 text-rose-600"
-              }`}
-            >
-              {currentAttempt?.isCorrect ? (
-                <CheckCircle2 className="w-5 h-5" />
-              ) : currentAttempt?.isRevealOnly ? (
-                <Lightbulb className="w-5 h-5" />
-              ) : (
-                <XCircle className="w-5 h-5" />
-              )}
-            </span>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-extrabold text-text m-0">
-                  {currentAttempt?.isCorrect
-                    ? "Jawaban Benar! 🎉"
-                    : currentAttempt?.isRevealOnly
-                    ? "Pembahasan Mandiri"
-                    : "Jawaban Kurang Tepat"}
-                </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                  Slide Deck
-                </span>
-              </div>
-              <p className="text-xs text-text-muted m-0 mt-0.5">
-                Soal {activeQuestionIndex + 1} · {activeQuestion?.subtest.replace(/_/g, " ")}
-              </p>
-            </div>
-          </div>
-
-          {/* Close Button X (with Escape tooltip) */}
-          <button
-            type="button"
-            onClick={() => setIsSolutionOpen(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-text hover:bg-surface-muted hover:border-text-muted transition-colors cursor-pointer group"
-            title="Tutup Pembahasan (Esc)"
-            aria-label="Tutup Pembahasan"
-          >
-            <X className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          </button>
-        </div>
-
-        {/* Sidebar Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-          {/* Answer Choice Recap Card */}
-          {currentAttempt && !currentAttempt.isRevealOnly && (
-            <div
-              className={`p-4 rounded-xl border text-xs sm:text-sm space-y-1.5 ${
-                currentAttempt.isCorrect
-                  ? "bg-emerald-50/80 border-emerald-200 text-emerald-950"
-                  : "bg-rose-50/80 border-rose-200 text-rose-950"
-              }`}
-            >
-              <div className="flex items-center justify-between font-bold">
-                <span>Pilihan Kamu:</span>
-                <span className="font-mono">
-                  {selectedOptionObj
-                    ? `Opsi (${OPTION_LETTERS[activeQuestion?.options.indexOf(selectedOptionObj) ?? 0]})`
-                    : "-"}
-                </span>
-              </div>
-              {!currentAttempt.isCorrect && correctOptionObj && (
-                <div className="flex items-center justify-between font-bold text-emerald-800 pt-1 border-t border-rose-200">
-                  <span>Kunci Jawaban Benar:</span>
-                  <span className="font-mono">
-                    Opsi ({OPTION_LETTERS[activeQuestion?.options.indexOf(correctOptionObj) ?? 0]})
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Mount the InteractiveSolutionDeck Component */}
-          {currentAttempt?.solution ? (
-            <InteractiveSolutionDeck solution={currentAttempt.solution} />
-          ) : (
-            <div className="p-8 text-center text-xs text-text-muted border border-border rounded-2xl bg-surface-muted">
-              Memuat pembahasan interaktif...
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar Footer Controls */}
-        <div className="p-4 sm:p-5 border-t border-border bg-surface flex items-center justify-between gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsSolutionOpen(false)}
-            className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-text hover:bg-surface-muted transition-colors cursor-pointer"
-          >
-            Tutup Pembahasan
-          </button>
-
-          {activeQuestionIndex < questions.length - 1 && (
-            <button
-              type="button"
-              onClick={() => {
-                handleNextQuestion();
-                setIsSolutionOpen(false);
-              }}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
-            >
-              Lanjut ke Soal Berikutnya <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </aside>
     </div>
   );
 }
