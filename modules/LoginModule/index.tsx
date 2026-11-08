@@ -88,23 +88,6 @@ const LoginModule = () => {
     );
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signIn.social({
-        provider: "google",
-        callbackURL: `${window.location.origin}/dashboard`,
-      });
-    } catch (error: unknown) {
-      const fbErr = error as { code?: string; message?: string };
-      if (fbErr?.code === "auth/popup-closed-by-user" || fbErr?.code === "auth/cancelled-popup-request") {
-        return;
-      }
-      const msg = error instanceof Error ? error.message : "Gagal masuk dengan Google. Coba lagi.";
-      setErrors({ form: msg });
-      toast.error(msg);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-bg text-text-body py-12 px-4 flex flex-col items-center justify-center">
       <div className="w-full max-w-[420px] space-y-6">
@@ -233,33 +216,6 @@ const LoginModule = () => {
             >
               <span>{loading ? "Memproses…" : "Masuk"}</span>
               {!loading && <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />}
-            </button>
-
-            {/* Divider */}
-            <div className="relative py-1">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-3 bg-surface text-label text-text-muted">
-                  Atau
-                </span>
-              </div>
-            </div>
-
-            {/* Google Login Button */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="w-full min-h-[44px] px-4 py-2.5 rounded-md border border-border bg-surface text-text text-[14px] font-semibold inline-flex items-center justify-center gap-2.5 hover:bg-surface-muted transition-colors duration-[120ms] cursor-pointer"
-            >
-              <Image
-                src="/icons/google.svg"
-                alt=""
-                width={18}
-                height={18}
-              />
-              <span>Masuk dengan Google</span>
             </button>
           </form>
 

@@ -4,13 +4,11 @@ import { useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   EmailAuthProvider,
-  GoogleAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
   signOut as firebaseSignOut,
   updatePassword,
   updateProfile,
@@ -195,16 +193,6 @@ export const signIn = {
         throw new Error(firebaseErr?.message || 'Gagal masuk. Periksa kembali email dan kata sandi.');
       }
     }, callbacks),
-  social: async (input: { provider: 'google'; callbackURL?: string }) => {
-    if (DEMO_MODE) {
-      if (input.callbackURL) window.location.assign(input.callbackURL);
-      return { data: { user: DEMO_USER }, error: null };
-    }
-    const credential = await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
-    await getAppUser(credential.user);
-    if (input.callbackURL) window.location.assign(input.callbackURL);
-    return { data: credential, error: null };
-  },
 };
 
 export const signUp = {
