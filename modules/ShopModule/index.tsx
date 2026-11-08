@@ -290,6 +290,63 @@ const ShopModule = () => {
     return null;
   };
 
+  const triggerSnapPayment = (snapToken?: string, redirectUrl?: string) => {
+    if (!snapToken && !redirectUrl) return;
+
+    const launch = () => {
+      if (typeof window !== "undefined" && (window as any).snap && snapToken) {
+        (window as any).snap.pay(snapToken, {
+          onSuccess: function () {
+            toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
+            setIsModalOpened(false);
+            getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
+            setTimeout(() => router.refresh(), 1000);
+          },
+          onPending: function () {
+            toast.info("Menunggu pembayaran diselesaikan.");
+          },
+          onError: function () {
+            toast.error("Pembayaran gagal atau dibatalkan.");
+          },
+          onClose: function () {
+            toast.info("Jendela pembayaran ditutup.");
+          },
+        });
+        return true;
+      }
+      return false;
+    };
+
+    if (launch()) return;
+
+    if (typeof window !== "undefined") {
+      const scriptId = "midtrans-snap-script";
+      let script = document.getElementById(scriptId) as HTMLScriptElement;
+      if (!script) {
+        script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://app.midtrans.com/snap/snap.js";
+        script.setAttribute(
+          "data-client-key",
+          process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-f_SyejAdwBpQXUPj",
+        );
+        document.body.appendChild(script);
+      }
+
+      script.onload = () => {
+        if (!launch() && redirectUrl) {
+          window.open(redirectUrl, "_blank");
+        }
+      };
+
+      setTimeout(() => {
+        if (!(window as any).snap && redirectUrl) {
+          window.open(redirectUrl, "_blank");
+        }
+      }, 1500);
+    }
+  };
+
   const handlePurchaseClick = async (pkg: TokenPackage) => {
     setSelectedPkg(pkg);
     setCheckingPending(true);
@@ -325,24 +382,8 @@ const ShopModule = () => {
       setIsModalLoading(false);
       setShowContact(false);
 
-      if (data.snapToken && typeof window !== "undefined" && (window as any).snap) {
-        (window as any).snap.pay(data.snapToken, {
-          onSuccess: function () {
-            toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
-            setIsModalOpened(false);
-            getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
-            setTimeout(() => router.refresh(), 1000);
-          },
-          onPending: function () {
-            toast.info("Menunggu pembayaran diselesaikan.");
-          },
-          onError: function () {
-            toast.error("Pembayaran gagal atau dibatalkan.");
-          },
-          onClose: function () {
-            toast.info("Jendela pembayaran ditutup.");
-          },
-        });
+      if (data.snapToken || data.redirectUrl) {
+        triggerSnapPayment(data.snapToken, data.redirectUrl);
       } else if (isMobile && data.deeplinkUrl) {
         toast.info("Membuka aplikasi GoPay...");
         window.location.href = data.deeplinkUrl;
@@ -410,24 +451,8 @@ const ShopModule = () => {
     setShowPendingDialog(false);
     setIsModalOpened(true);
 
-    if (snapTok && typeof window !== "undefined" && (window as any).snap) {
-      (window as any).snap.pay(snapTok, {
-        onSuccess: function () {
-          toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
-          setIsModalOpened(false);
-          getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
-          setTimeout(() => router.refresh(), 1000);
-        },
-        onPending: function () {
-          toast.info("Menunggu pembayaran diselesaikan.");
-        },
-        onError: function () {
-          toast.error("Pembayaran gagal.");
-        },
-        onClose: function () {
-          toast.info("Jendela pembayaran ditutup.");
-        },
-      });
+    if (snapTok || redirectUrl) {
+      triggerSnapPayment(snapTok, redirectUrl);
     } else if (isMobile && pendingPayment.metadata?.deeplink_url) {
       window.location.href = pendingPayment.metadata.deeplink_url;
     }
@@ -915,43 +940,21 @@ const ShopModule = () => {
                 </div>
               )}
 
-              {paymentData?.snapToken && (
-                <div className="w-full flex flex-col gap-2">
+              {(paymentData?.snapToken || paymentData?.redirectUrl) && (
+                <div className="w-full flex flex-col gap-2.5">
                   <Button
-                    onClick={() => {
-                      if (paymentData?.snapToken && typeof window !== "undefined" && (window as any).snap) {
-                        (window as any).snap.pay(paymentData.snapToken, {
-                          onSuccess: function () {
-                            toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
-                            setIsModalOpened(false);
-                            getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
-                            setTimeout(() => router.refresh(), 1000);
-                          },
-                          onPending: function () {
-                            toast.info("Menunggu pembayaran diselesaikan.");
-                          },
-                          onError: function () {
-                            toast.error("Pembayaran gagal.");
-                          },
-                          onClose: function () {
-                            toast.info("Jendela pembayaran ditutup.");
-                          },
-                        });
-                      } else if (paymentData?.redirectUrl) {
-                        window.open(paymentData.redirectUrl, "_blank");
-                      }
-                    }}
+                    onClick={() => triggerSnapPayment(paymentData.snapToken, paymentData.redirectUrl)}
                     variant="default"
-                    className="w-full font-bold"
+                    className="w-full h-11 text-base font-bold bg-[#1C4ED8] hover:bg-[#1E40AF]"
                   >
-                    Buka Pop-up QRIS
+                    Buka Pop-up QRIS Midtrans
                   </Button>
                   {paymentData?.redirectUrl && (
                     <a
                       href={paymentData.redirectUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-center text-primary underline hover:text-primary/80"
+                      className="text-xs text-center text-primary underline hover:text-primary/80 font-medium py-1"
                     >
                       Buka halaman bayar di tab baru (jika pop-up tidak muncul)
                     </a>
