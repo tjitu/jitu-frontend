@@ -59,4 +59,4 @@ jobs:
         run: pnpm dlx vercel build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy Vercel production output
-        run: pnpm dlx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: pnpm dlx vercel deploy --prebuilt --archive=tgz --prod --token="$VERCEL_TOKEN"
