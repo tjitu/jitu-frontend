@@ -126,6 +126,51 @@ const ShopModule = () => {
   const passCardRef = useRef<HTMLDivElement>(null);
   const [isPassSelected, setIsPassSelected] = useState(false);
 
+  // Voucher / Referral Code state
+  const [voucherInput, setVoucherInput] = useState("");
+  const [validatingVoucher, setValidatingVoucher] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    code: string;
+    discountPercent: number;
+    discountAmount: number;
+    finalPrice: number;
+    originalPrice: number;
+    description?: string;
+    referrerName?: string;
+  } | null>(null);
+
+  const handleApplyVoucher = async () => {
+    if (!voucherInput.trim() || !selectedPkg) return;
+    setValidatingVoucher(true);
+    try {
+      const res = await fetch("/api/proxy/shop/voucher/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: voucherInput.trim(),
+          packageId: selectedPkg.id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        throw new Error(data.message || "Kode voucher tidak valid.");
+      }
+      setAppliedVoucher(data);
+      toast.success(
+        `Voucher ${data.code} berhasil diterapkan! Diskon ${data.discountPercent}%`
+      );
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menerapkan kode voucher.");
+    } finally {
+      setValidatingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherInput("");
+  };
+
   const router = useRouter();
 
   useEffect(() => {
@@ -367,7 +412,11 @@ const ShopModule = () => {
     try {
       const res = await fetch(`${BACKEND_URL}/shop/create/${selectedPkg?.id}`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({
+          voucherCode: appliedVoucher?.code,
+        }),
       });
 
       if (!res.ok) {
@@ -376,6 +425,14 @@ const ShopModule = () => {
       }
 
       const data: EWalletPaymentResponse = await res.json();
+
+      if (data.status === "CONFIRMED") {
+        toast.success("Pembayaran berhasil dan manfaat paket langsung aktif!");
+        setIsModalOpened(false);
+        setTimeout(() => router.refresh(), 1000);
+        return;
+      }
+
       setPaymentData(data);
       setTransactionId(data.transactionId);
       setPendingCount((prev) => prev + 1);
