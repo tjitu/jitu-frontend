@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Script from "next/script";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,8 @@ interface EWalletPaymentResponse {
   deeplinkUrl?: string;
   expiryTime?: string;
   packageName: string;
+  snapToken?: string;
+  redirectUrl?: string;
 }
 
 interface PendingPayment {
@@ -68,9 +71,12 @@ interface PendingPayment {
     tokenAmount: number;
     price: number;
   };
+  snapToken?: string;
   metadata?: {
     qr_code_url?: string;
     deeplink_url?: string;
+    redirect_url?: string;
+    snap_token?: string;
     midtrans_transaction_id?: string;
   };
 }
@@ -135,19 +141,13 @@ const ShopModule = () => {
   }, []);
 
   const handleActivatePremiumPass = () => {
-    setIsActivatingPass(true);
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("jitu_ptn_premium_pass", "true");
-        localStorage.setItem("jitu_is_premium", "true");
-      }
-      setIsPremiumUser(true);
-      setIsActivatingPass(false);
-      setIsPremiumModalOpen(false);
-      toast.success(
-        "Selamat! PTN Premium Pass aktif. Nikmati latihan unlimited tanpa batas dan buka semua pembahasan!",
-      );
-    }, 1200);
+    setIsPremiumModalOpen(false);
+    handlePurchaseClick({
+      id: "f5f69e7c-9a5f-4214-917e-213a3cb000d9",
+      name: "PTN Premium Pass",
+      tokenAmount: 1000,
+      price: 55000,
+    });
   };
 
   useEffect(() => {
@@ -325,7 +325,25 @@ const ShopModule = () => {
       setIsModalLoading(false);
       setShowContact(false);
 
-      if (isMobile && data.deeplinkUrl) {
+      if (data.snapToken && typeof window !== "undefined" && (window as any).snap) {
+        (window as any).snap.pay(data.snapToken, {
+          onSuccess: function () {
+            toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
+            setIsModalOpened(false);
+            getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
+            setTimeout(() => router.refresh(), 1000);
+          },
+          onPending: function () {
+            toast.info("Menunggu pembayaran diselesaikan.");
+          },
+          onError: function () {
+            toast.error("Pembayaran gagal atau dibatalkan.");
+          },
+          onClose: function () {
+            toast.info("Jendela pembayaran ditutup.");
+          },
+        });
+      } else if (isMobile && data.deeplinkUrl) {
         toast.info("Membuka aplikasi GoPay...");
         window.location.href = data.deeplinkUrl;
       }
@@ -365,10 +383,13 @@ const ShopModule = () => {
   };
 
   const handleContinuePendingPayment = () => {
-    if (!pendingPayment?.metadata) {
+    if (!pendingPayment) {
       toast.error("Data transaksi tidak lengkap.");
       return;
     }
+
+    const snapTok = pendingPayment.snapToken || pendingPayment.metadata?.snap_token;
+    const redirectUrl = pendingPayment.metadata?.redirect_url;
 
     setPaymentData({
       transactionId: pendingPayment.id,
@@ -377,8 +398,10 @@ const ShopModule = () => {
       tokenAmount: pendingPayment.tokenAmount,
       status: pendingPayment.status,
       paymentMethod: pendingPayment.paymentMethod,
-      qrCodeUrl: pendingPayment.metadata.qr_code_url,
-      deeplinkUrl: pendingPayment.metadata.deeplink_url,
+      qrCodeUrl: pendingPayment.metadata?.qr_code_url,
+      deeplinkUrl: pendingPayment.metadata?.deeplink_url,
+      snapToken: snapTok,
+      redirectUrl,
       expiryTime: pendingPayment.expiresAt,
       packageName: pendingPayment.tokenPackage.name,
     });
@@ -387,7 +410,25 @@ const ShopModule = () => {
     setShowPendingDialog(false);
     setIsModalOpened(true);
 
-    if (isMobile && pendingPayment.metadata.deeplink_url) {
+    if (snapTok && typeof window !== "undefined" && (window as any).snap) {
+      (window as any).snap.pay(snapTok, {
+        onSuccess: function () {
+          toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
+          setIsModalOpened(false);
+          getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
+          setTimeout(() => router.refresh(), 1000);
+        },
+        onPending: function () {
+          toast.info("Menunggu pembayaran diselesaikan.");
+        },
+        onError: function () {
+          toast.error("Pembayaran gagal.");
+        },
+        onClose: function () {
+          toast.info("Jendela pembayaran ditutup.");
+        },
+      });
+    } else if (isMobile && pendingPayment.metadata?.deeplink_url) {
       window.location.href = pendingPayment.metadata.deeplink_url;
     }
   };
@@ -874,6 +915,50 @@ const ShopModule = () => {
                 </div>
               )}
 
+              {paymentData?.snapToken && (
+                <div className="w-full flex flex-col gap-2">
+                  <Button
+                    onClick={() => {
+                      if (paymentData?.snapToken && typeof window !== "undefined" && (window as any).snap) {
+                        (window as any).snap.pay(paymentData.snapToken, {
+                          onSuccess: function () {
+                            toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
+                            setIsModalOpened(false);
+                            getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
+                            setTimeout(() => router.refresh(), 1000);
+                          },
+                          onPending: function () {
+                            toast.info("Menunggu pembayaran diselesaikan.");
+                          },
+                          onError: function () {
+                            toast.error("Pembayaran gagal.");
+                          },
+                          onClose: function () {
+                            toast.info("Jendela pembayaran ditutup.");
+                          },
+                        });
+                      } else if (paymentData?.redirectUrl) {
+                        window.open(paymentData.redirectUrl, "_blank");
+                      }
+                    }}
+                    variant="default"
+                    className="w-full font-bold"
+                  >
+                    Buka Pop-up QRIS
+                  </Button>
+                  {paymentData?.redirectUrl && (
+                    <a
+                      href={paymentData.redirectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-center text-primary underline hover:text-primary/80"
+                    >
+                      Buka halaman bayar di tab baru (jika pop-up tidak muncul)
+                    </a>
+                  )}
+                </div>
+              )}
+
               <div className="w-full bg-blue-50 border border-blue-200 rounded-md p-3 flex items-center justify-between text-[13px]">
                 <span className="inline-flex items-center gap-2 text-blue-800 font-medium">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
@@ -1057,6 +1142,12 @@ const ShopModule = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Script
+        src="https://app.midtrans.com/snap/snap.js"
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-f_SyejAdwBpQXUPj"}
+        strategy="lazyOnload"
+      />
     </div>
   );
 };
