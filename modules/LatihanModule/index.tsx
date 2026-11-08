@@ -18,7 +18,7 @@ import {
   Flame,
   X,
   Lightbulb,
-  Shuffle,
+  Loader2,
   Crown,
   HelpCircle,
 } from "lucide-react";
@@ -92,8 +92,8 @@ export function LatihanModule() {
   // Inline solution card toggle (appears setara dengan card soal)
   const [isSolutionOpen, setIsSolutionOpen] = useState(false);
 
-  // 1-second random question loading animation
-  const [isShufflingQuestion, setIsShufflingQuestion] = useState(false);
+  // 1-second question loading animation
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
 
   // Daily Limit for Free Account
   const [dailyAnsweredCount, setDailyAnsweredCount] = useState(0);
@@ -208,22 +208,22 @@ export function LatihanModule() {
   // Switch to another question with 1-second loading animation
   const handleSelectQuestion = (qId: string) => {
     if (qId === activeQuestionId) return;
-    setIsShufflingQuestion(true);
+    setIsLoadingQuestion(true);
     setIsSolutionOpen(false);
     setTimeout(() => {
       setActiveQuestionId(qId);
-      setIsShufflingQuestion(false);
+      setIsLoadingQuestion(false);
     }, 1000);
   };
 
   const handleNextQuestion = () => {
     if (activeQuestionIndex < questions.length - 1) {
       const nextQ = questions[activeQuestionIndex + 1];
-      setIsShufflingQuestion(true);
+      setIsLoadingQuestion(true);
       setIsSolutionOpen(false);
       setTimeout(() => {
         setActiveQuestionId(nextQ.id);
-        setIsShufflingQuestion(false);
+        setIsLoadingQuestion(false);
       }, 1000);
     }
   };
@@ -231,28 +231,13 @@ export function LatihanModule() {
   const handlePrevQuestion = () => {
     if (activeQuestionIndex > 0) {
       const prevQ = questions[activeQuestionIndex - 1];
-      setIsShufflingQuestion(true);
+      setIsLoadingQuestion(true);
       setIsSolutionOpen(false);
       setTimeout(() => {
         setActiveQuestionId(prevQ.id);
-        setIsShufflingQuestion(false);
+        setIsLoadingQuestion(false);
       }, 1000);
     }
-  };
-
-  // Pick a random question with 1-second loading animation
-  const handleRandomQuestion = () => {
-    if (questions.length <= 1) return;
-    const remaining = questions.filter((q) => q.id !== activeQuestionId);
-    const randomQ = remaining[Math.floor(Math.random() * remaining.length)];
-    if (!randomQ) return;
-
-    setIsShufflingQuestion(true);
-    setIsSolutionOpen(false);
-    setTimeout(() => {
-      setActiveQuestionId(randomQ.id);
-      setIsShufflingQuestion(false);
-    }, 1000);
   };
 
   // Record daily practice count in localStorage
@@ -659,7 +644,7 @@ export function LatihanModule() {
                 </div>
               )}
 
-              {/* Prev / Next & Acak Soal Buttons */}
+              {/* Prev / Next Navigation Buttons */}
               <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border ml-auto">
                 <span className="text-xs font-medium text-text-muted sm:hidden">
                   {activeQuestionIndex + 1} / {questions.length}
@@ -668,17 +653,9 @@ export function LatihanModule() {
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={handleRandomQuestion}
-                    className="px-3 py-1.5 rounded-lg border border-primary/30 bg-blue-50/70 hover:bg-blue-100/70 text-xs font-bold text-primary transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                    title="Acak dan ganti soal secara random"
-                  >
-                    <Shuffle className="h-3.5 w-3.5" /> Acak Soal
-                  </button>
-                  <button
-                    type="button"
                     onClick={handlePrevQuestion}
                     disabled={activeQuestionIndex === 0}
-                    className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-3.5 py-1.5 rounded-lg border border-border text-xs font-semibold text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <ChevronLeft className="h-4 w-4" /> Prev
                   </button>
@@ -686,7 +663,7 @@ export function LatihanModule() {
                     type="button"
                     onClick={handleNextQuestion}
                     disabled={activeQuestionIndex >= questions.length - 1}
-                    className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-3.5 py-1.5 rounded-lg border border-border text-xs font-semibold text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1"
                   >
                     Next <ChevronRight className="h-4 w-4" />
                   </button>
@@ -713,23 +690,18 @@ export function LatihanModule() {
                   showSolutionCard ? "lg:col-span-4 lg:sticky lg:top-6" : "w-full"
                 }`}
               >
-                {/* 1-Second Loading Animation for Random Questions */}
-                {isShufflingQuestion ? (
+                {/* 1-Second Loading Animation when switching questions */}
+                {isLoadingQuestion ? (
                   <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in duration-200">
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-primary shadow-inner">
-                        <Shuffle className="w-8 h-8 animate-spin [animation-duration:1s]" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 text-black text-[10px] font-black flex items-center justify-center animate-ping">
-                        ✦
-                      </div>
+                    <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-primary shadow-inner">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     </div>
                     <div className="space-y-1">
                       <div className="text-base font-bold text-text flex items-center justify-center gap-2">
-                        <span>Mengacak Soal Latihan...</span>
+                        <span>Memuat Soal Latihan...</span>
                       </div>
                       <p className="text-xs text-text-muted max-w-xs mx-auto">
-                        Memilih soal UTBK SNBT terbaik untuk latihanmu
+                        Menyiapkan soal UTBK SNBT terbaik untuk latihanmu
                       </p>
                     </div>
                     <div className="w-48 h-1.5 bg-surface-muted rounded-full overflow-hidden">
@@ -753,15 +725,6 @@ export function LatihanModule() {
                           {activeQuestion.difficulty}
                         </span>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={handleRandomQuestion}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-text-muted hover:text-primary transition-colors cursor-pointer"
-                        title="Acak soal lain"
-                      >
-                        <Shuffle className="w-3.5 h-3.5" /> Acak Soal
-                      </button>
                     </div>
 
                     {/* Topic / Subtopic Breadcrumb */}
@@ -928,13 +891,16 @@ export function LatihanModule() {
                             <RotateCcw className="w-3.5 h-3.5" /> Coba Lagi
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={handleRandomQuestion}
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-primary/40 bg-blue-50/60 hover:bg-blue-50 text-primary text-xs font-bold transition-colors cursor-pointer"
-                          >
-                            <Shuffle className="w-3.5 h-3.5" /> Soal Acak Lainnya
-                          </button>
+                          {activeQuestionIndex < questions.length - 1 && (
+                            <button
+                              type="button"
+                              onClick={handleNextQuestion}
+                              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-primary/40 bg-blue-50/60 hover:bg-blue-50 text-primary text-xs font-bold transition-colors cursor-pointer"
+                            >
+                              <span>Soal Berikutnya</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       )}
 
@@ -994,16 +960,19 @@ export function LatihanModule() {
                         Tutup Pembahasan
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleRandomQuestion();
-                          setIsSolutionOpen(false);
-                        }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
-                      >
-                        <Shuffle className="w-3.5 h-3.5" /> Lanjut ke Soal Acak Berikutnya <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
+                      {activeQuestionIndex < questions.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleNextQuestion();
+                            setIsSolutionOpen(false);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
+                        >
+                          <span>Lanjut ke Soal Berikutnya</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
