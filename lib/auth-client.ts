@@ -4,11 +4,13 @@ import { useSyncExternalStore } from 'react';
 import {
   createUserWithEmailAndPassword,
   EmailAuthProvider,
+  GoogleAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut as firebaseSignOut,
   updatePassword,
   updateProfile,
@@ -268,6 +270,13 @@ export const signIn = {
         throw new Error(firebaseErr?.message || 'Gagal masuk. Periksa kembali email dan kata sandi.');
       }
     }, callbacks),
+  google: async () =>
+    resultFrom(async () => {
+      if (DEMO_MODE) return { user: DEMO_USER };
+      const provider = new GoogleAuthProvider();
+      const credential = await signInWithPopup(getFirebaseAuth(), provider);
+      return { user: await getAppUser(credential.user) };
+    }),
 };
 
 export const signUp = {

@@ -1,6 +1,6 @@
 # Jitu Main Firebase Authentication
 
-Jitu Main uses Firebase Authentication for email/password sign-in. The frontend sends Firebase ID tokens to the Main backend as bearer tokens. The backend verifies each token and maps its Firebase UID to the existing PostgreSQL `user` record, retaining the app's current user ID, role, and related data.
+Jitu Main uses Firebase Authentication for email/password and Google sign-in. The frontend sends Firebase ID tokens to the Main backend as bearer tokens. The backend verifies each token and maps its Firebase UID to the existing PostgreSQL `user` record, retaining the app's current user ID, role, and related data.
 
 ## Firebase project
 
@@ -9,7 +9,7 @@ Jitu Main uses Firebase Authentication for email/password sign-in. The frontend 
 - Provider config: `firebase.json`
 - Project selection: `.firebaserc`
 
-Auth providers are managed from the Firebase console. The Firebase Authorized domains should include `jituptn.com`, `www.jituptn.com`, `jitu-frontend.vercel.app`, and `localhost`.
+Auth providers are managed from the Firebase console. Enable Email/Password and Google sign-in. The Firebase Authorized domains should include `jituptn.com`, `www.jituptn.com`, `jitu-frontend.vercel.app`, and `localhost`.
 
 ## Environment
 

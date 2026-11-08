@@ -19,6 +19,7 @@ import { UserWithRole } from "@/lib/types";
 const LoginModule = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -86,6 +87,41 @@ const LoginModule = () => {
         },
       }
     );
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setErrors((prev) => ({ ...prev, form: undefined }));
+
+    const result = await signIn.google();
+    setGoogleLoading(false);
+
+    if (result.error) {
+      if (
+        result.error.message.includes("auth/popup-closed-by-user") ||
+        result.error.message.includes("auth/cancelled-popup-request")
+      ) {
+        return;
+      }
+      const message = result.error.message || "Gagal masuk dengan Google. Coba lagi.";
+      setErrors({ form: message });
+      toast.error(message);
+      return;
+    }
+
+    const user = result.data?.user;
+    if (!user) {
+      const message = "Gagal masuk dengan Google. Coba lagi.";
+      setErrors({ form: message });
+      toast.error(message);
+      return;
+    }
+
+    if (user.role === "ADMIN") {
+      router.push("/admin");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   return (
@@ -211,11 +247,27 @@ const LoginModule = () => {
             {/* Primary CTA */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || googleLoading}
               className="w-full min-h-[44px] px-4 py-2.5 rounded-md bg-primary text-on-primary text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-primary-hover active:bg-primary-pressed disabled:bg-blue-300 transition-colors duration-[120ms] cursor-pointer"
             >
               <span>{loading ? "Memproses…" : "Masuk"}</span>
               {!loading && <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />}
+            </button>
+
+            <div className="relative flex items-center justify-center py-1">
+              <span className="h-px flex-1 bg-border" aria-hidden="true" />
+              <span className="px-3 text-[13px] text-text-muted">Atau</span>
+              <span className="h-px flex-1 bg-border" aria-hidden="true" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading || googleLoading}
+              className="w-full min-h-[44px] px-4 py-2.5 rounded-md border border-border bg-surface text-text text-[14px] font-semibold inline-flex items-center justify-center gap-2.5 hover:bg-surface-muted disabled:opacity-60 transition-colors duration-[120ms] cursor-pointer"
+            >
+              <Image src="/icons/google.svg" alt="" width={18} height={18} />
+              <span>{googleLoading ? "Menghubungkan…" : "Masuk dengan Google"}</span>
             </button>
           </form>
 
