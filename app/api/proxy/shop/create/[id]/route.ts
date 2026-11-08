@@ -65,6 +65,74 @@ export async function POST(
       );
     }
 
+    // Parse optional voucher / referral code
+    const body = await req.json().catch(() => ({}));
+    const rawVoucherCode = String(
+      body?.voucherCode || req.nextUrl.searchParams.get("voucher_code") || ""
+    ).trim().toUpperCase();
+
+    let voucherId: string | null = null;
+    let appliedVoucherCode: string | null = null;
+    let discountAmount = 0;
+    let finalPrice = pkg.price;
+
+    if (rawVoucherCode) {
+      const vRes = await pool.query(
+        `SELECT id, code, "discountPercent", "maxDiscount", "minPurchase", "maxUsage", "usedCount", "isActive", "expiresAt"
+         FROM "Voucher"
+         WHERE code = $1 LIMIT 1`,
+        [rawVoucherCode]
+      ).catch(() => ({ rows: [] }));
+
+      if (vRes.rows.length === 0) {
+        return NextResponse.json(
+          { message: "Kode voucher / referal tidak ditemukan." },
+          { status: 400 }
+        );
+      }
+
+      const v = vRes.rows[0];
+      if (!v.isActive) {
+        return NextResponse.json(
+          { message: "Kode voucher / referal sudah tidak aktif." },
+          { status: 400 }
+        );
+      }
+
+      const now = new Date();
+      if (v.expiresAt && new Date(v.expiresAt) < now) {
+        return NextResponse.json(
+          { message: "Kode voucher / referal sudah kedaluwarsa." },
+          { status: 400 }
+        );
+      }
+
+      if (v.maxUsage !== null && v.maxUsage !== undefined && Number(v.usedCount) >= Number(v.maxUsage)) {
+        return NextResponse.json(
+          { message: "Kuota penggunaan kode voucher ini sudah habis." },
+          { status: 400 }
+        );
+      }
+
+      const minPurchase = Number(v.minPurchase || 0);
+      if (minPurchase > 0 && pkg.price < minPurchase) {
+        return NextResponse.json(
+          { message: `Minimal pembelian untuk kode ini adalah Rp ${minPurchase.toLocaleString("id-ID")}.` },
+          { status: 400 }
+        );
+      }
+
+      const discountPercent = Number(v.discountPercent);
+      discountAmount = Math.round((pkg.price * discountPercent) / 100);
+      const maxDiscount = v.maxDiscount ? Number(v.maxDiscount) : null;
+      if (maxDiscount && discountAmount > maxDiscount) {
+        discountAmount = maxDiscount;
+      }
+      finalPrice = Math.max(0, pkg.price - discountAmount);
+      voucherId = v.id;
+      appliedVoucherCode = v.code;
+    }
+
     // 2. Check for existing pending transaction for this user
     const pendingRes = await pool.query(
       `SELECT id, "orderId", "snapToken", metadata, "createdAt"
@@ -110,16 +178,78 @@ export async function POST(
     // 3. Create unique order ID
     const orderId = `ORDER-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // 4. Request Midtrans Snap + QRIS
+    // If 100% discount (free voucher): confirm immediately
+    if (finalPrice === 0) {
+      const paymentId = crypto.randomUUID();
+      const isPass = pkg.name.toLowerCase().includes("pass");
+      await pool.query(
+        `INSERT INTO "Payment" (id, "userId", "tokenPackageId", "orderId", amount, "originalAmount", "discountAmount", "voucherId", "voucherCode", "tokenAmount", status, "paymentMethod", "createdAt", "updatedAt", metadata)
+         VALUES ($1, $2, $3, $4, 0, $5, $6, $7, $8, $9, 'CONFIRMED', 'FREE_VOUCHER', NOW(), NOW(), $10)`,
+        [
+          paymentId,
+          user.id,
+          pkg.id,
+          orderId,
+          pkg.price,
+          discountAmount,
+          voucherId,
+          appliedVoucherCode,
+          pkg.tokenAmount,
+          JSON.stringify({ package_name: pkg.name, created_via: "free_voucher" }),
+        ]
+      );
+
+      if (isPass) {
+        await pool.query(
+          `UPDATE "user" SET "tokenBalance" = "tokenBalance" + $1, "isPremium" = true, "premiumExpiresAt" = NOW() + INTERVAL '30 days' WHERE id = $2`,
+          [pkg.tokenAmount, user.id]
+        );
+      } else {
+        await pool.query(
+          `UPDATE "user" SET "tokenBalance" = "tokenBalance" + $1 WHERE id = $2`,
+          [pkg.tokenAmount, user.id]
+        );
+      }
+
+      if (voucherId) {
+        await pool.query(
+          `UPDATE "Voucher" SET "usedCount" = "usedCount" + 1, "updatedAt" = NOW() WHERE id = $1`,
+          [voucherId]
+        ).catch(() => {});
+        await pool.query(
+          `INSERT INTO "VoucherUsage" (id, "voucherId", "userId", "paymentId", discount, "createdAt")
+           VALUES ($1, $2, $3, $4, $5, NOW())`,
+          [crypto.randomUUID(), voucherId, user.id, paymentId, discountAmount]
+        ).catch(() => {});
+      }
+
+      return NextResponse.json(
+        {
+          transactionId: paymentId,
+          orderId,
+          amount: 0,
+          originalAmount: pkg.price,
+          discountAmount,
+          voucherCode: appliedVoucherCode,
+          tokenAmount: pkg.tokenAmount,
+          status: "CONFIRMED",
+          paymentMethod: "FREE_VOUCHER",
+          packageName: pkg.name,
+        },
+        { status: 200 }
+      );
+    }
+
+    // 4. Request Midtrans Snap + QRIS with discounted final price
     const qrisResult = await createQrisTransaction({
       orderId,
-      grossAmount: pkg.price,
+      grossAmount: finalPrice,
       itemDetails: [
         {
           id: pkg.id,
-          price: pkg.price,
+          price: finalPrice,
           quantity: 1,
-          name: pkg.name,
+          name: `${pkg.name}${discountAmount > 0 ? ` (${appliedVoucherCode})` : ""}`.slice(0, 50),
         },
       ],
       customerDetails: {
@@ -135,18 +265,25 @@ export async function POST(
       qr_code_url: qrisResult.qr_url,
       qr_string: qrisResult.qr_string,
       package_name: pkg.name,
+      original_amount: pkg.price,
+      discount_amount: discountAmount,
+      voucher_code: appliedVoucherCode,
       created_via: "web_qris",
     };
 
     await pool.query(
-      `INSERT INTO "Payment" (id, "userId", "tokenPackageId", "orderId", amount, "tokenAmount", status, "paymentMethod", "snapToken", "createdAt", "updatedAt", metadata)
-       VALUES ($1, $2, $3, $4, $5, $6, 'PENDING', 'QRIS', $7, NOW(), NOW(), $8)`,
+      `INSERT INTO "Payment" (id, "userId", "tokenPackageId", "orderId", amount, "originalAmount", "discountAmount", "voucherId", "voucherCode", "tokenAmount", status, "paymentMethod", "snapToken", "createdAt", "updatedAt", metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'PENDING', 'QRIS', $11, NOW(), NOW(), $12)`,
       [
         paymentId,
         user.id,
         pkg.id,
         orderId,
+        finalPrice,
         pkg.price,
+        discountAmount,
+        voucherId,
+        appliedVoucherCode,
         pkg.tokenAmount,
         qrisResult.token,
         JSON.stringify(metadata),
@@ -157,7 +294,10 @@ export async function POST(
       {
         transactionId: paymentId,
         orderId,
-        amount: pkg.price,
+        amount: finalPrice,
+        originalAmount: pkg.price,
+        discountAmount,
+        voucherCode: appliedVoucherCode || undefined,
         tokenAmount: pkg.tokenAmount,
         status: "PENDING",
         paymentMethod: "QRIS",

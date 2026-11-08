@@ -34,13 +34,15 @@ export default function PageVisitTracker() {
     const startedAt = Date.now();
     visitRef.current = { visitId, path: pathname, startedAt };
 
-    // Record initial page view
-    fetch("/api/analytics/visit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visitId, path: pathname, visitorId, durationSec: 0 }),
-      keepalive: true,
-    }).catch(() => {});
+    // Defer initial page view POST so it never competes with route-transition data fetches
+    const initialTimer = setTimeout(() => {
+      fetch("/api/analytics/visit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitId, path: pathname, visitorId, durationSec: 0 }),
+        keepalive: true,
+      }).catch(() => {});
+    }, 1500);
 
     const flushDuration = () => {
       const current = visitRef.current;
@@ -68,6 +70,7 @@ export default function PageVisitTracker() {
 
     window.addEventListener("pagehide", flushDuration);
     return () => {
+      clearTimeout(initialTimer);
       flushDuration();
       window.removeEventListener("pagehide", flushDuration);
     };

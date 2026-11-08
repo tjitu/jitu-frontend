@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
 import { PixelCoin } from "@/components/ui/pixel-coin";
-import ArsipSoalTeaserSection from "@/components/arsip-soal-teaser";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 2-7)  */
@@ -274,7 +273,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const navLinks = [
     { href: "#jadwal", label: "Tryout" },
-    { href: "/arsip-soal", label: "Arsip Soal", isRoute: true },
+    { href: "/soal-asli", label: "Soal Asli", isRoute: true },
     { href: "#belajar", label: "Belajar" },
     { href: "#latihan", label: "Latihan" },
     { href: "/blog", label: "Blog", isRoute: true },
@@ -1661,10 +1660,6 @@ const LandingPageModule = () => {
           </div>
         </section>
 
-        {/* ================================================================== */}
-        {/* 4b. Arsip Soal Asli UTBK/SNBT Tahun-Tahun Sebelumnya               */}
-        {/* ================================================================== */}
-        <ArsipSoalTeaserSection />
 
         {/* ================================================================== */}
         {/* 5. Pricing — Harga & Paket Coin (DESIGN.md §5 & WRITING.md §7)     */}
@@ -1805,10 +1800,10 @@ const LandingPageModule = () => {
                 Jadwal
               </a>
               <Link
-                href="/arsip-soal"
+                href="/soal-asli"
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
               >
-                Arsip Soal
+                Soal Asli
               </Link>
               <a
                 href="#faq"

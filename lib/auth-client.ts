@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import {
   createUserWithEmailAndPassword,
   EmailAuthProvider,
@@ -52,7 +52,11 @@ const ensureAuthenticatedFetch = () => {
       return nativeFetch(input, init);
     }
 
-    const token = await getFirebaseAuth().currentUser?.getIdToken();
+    const auth = getFirebaseAuth();
+    // Wait for Firebase to restore the persisted user (resolves instantly once known),
+    // so requests fired from an optimistically-hydrated session still carry a token.
+    await auth.authStateReady();
+    const token = await auth.currentUser?.getIdToken();
     if (!token) return nativeFetch(input, init);
     const headers = new Headers(input instanceof Request ? input.headers : undefined);
     new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
@@ -91,57 +95,121 @@ const resultFrom = async <T>(
   }
 };
 
+/* -------------------------------------------------------------------------- */
+/* Shared session store                                                       */
+/* One Firebase listener + one /auth/me request for the whole app, instead of */
+/* one per component. Last known user is cached in sessionStorage so pages    */
+/* render instantly on navigation/reload while we revalidate in background.   */
+/* -------------------------------------------------------------------------- */
+
+type SessionSnapshot = { data: { user: JituUser } | null; isPending: boolean };
+
+const SESSION_CACHE_KEY = 'jitu_session_user_v1';
+const PENDING_SNAPSHOT: SessionSnapshot = { data: null, isPending: true };
+
+let sessionSnapshot: SessionSnapshot = PENDING_SNAPSHOT;
+let sessionStarted = false;
+let currentFirebaseUser: User | null = null;
+let sessionRevision = 0;
+let lastSessionFetchAt = 0;
+const SESSION_REVALIDATE_MS = 60_000;
+const sessionListeners = new Set<() => void>();
+
+const emitSession = (next: SessionSnapshot) => {
+  sessionSnapshot = next;
+  try {
+    if (next.data?.user) sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(next.data.user));
+    else if (!next.isPending) sessionStorage.removeItem(SESSION_CACHE_KEY);
+  } catch {
+    // storage unavailable
+  }
+  sessionListeners.forEach((listener) => listener());
+};
+
+const loadAppUser = async (firebaseUser: User) => {
+  const revision = ++sessionRevision;
+  lastSessionFetchAt = Date.now();
+  try {
+    const user = await getAppUser(firebaseUser);
+    if (revision === sessionRevision) emitSession({ data: { user }, isPending: false });
+  } catch {
+    if (revision === sessionRevision) emitSession({ data: null, isPending: false });
+  }
+};
+
+const startSession = () => {
+  if (sessionStarted || typeof window === 'undefined') return;
+  sessionStarted = true;
+
+  if (DEMO_MODE) {
+    sessionSnapshot = { data: { user: DEMO_USER }, isPending: false };
+    return;
+  }
+
+  // Optimistic hydrate from last known user (revalidated below)
+  try {
+    const cached = sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (cached) sessionSnapshot = { data: { user: JSON.parse(cached) as JituUser }, isPending: false };
+  } catch {
+    // ignore
+  }
+
+  let auth: ReturnType<typeof getFirebaseAuth>;
+  try {
+    ensureAuthenticatedFetch();
+    auth = getFirebaseAuth();
+  } catch {
+    sessionSnapshot = { data: null, isPending: false };
+    return;
+  }
+
+  onAuthStateChanged(auth, (firebaseUser) => {
+    const previousUid = currentFirebaseUser?.uid;
+    currentFirebaseUser = firebaseUser;
+    if (!firebaseUser) {
+      sessionRevision++;
+      emitSession({ data: null, isPending: false });
+      return;
+    }
+    if (previousUid === firebaseUser.uid && sessionSnapshot.data) return;
+    void loadAppUser(firebaseUser);
+  });
+
+  // Revalidate profile (token balance, name, etc.) when the tab regains focus
+  document.addEventListener('visibilitychange', () => {
+    if (
+      document.visibilityState === 'visible' &&
+      currentFirebaseUser &&
+      Date.now() - lastSessionFetchAt > SESSION_REVALIDATE_MS
+    ) {
+      void loadAppUser(currentFirebaseUser);
+    }
+  });
+};
+
+const subscribeSession = (listener: () => void) => {
+  startSession();
+  sessionListeners.add(listener);
+  return () => {
+    sessionListeners.delete(listener);
+  };
+};
+
+const getSessionSnapshot = () => {
+  startSession();
+  return sessionSnapshot;
+};
+
+const getServerSessionSnapshot = () => PENDING_SNAPSHOT;
+
+/** Re-fetch /auth/me (e.g. after token balance or profile changes). */
+export async function refreshSession() {
+  if (DEMO_MODE || !currentFirebaseUser) return;
+  await loadAppUser(currentFirebaseUser);
+}
+
 export function useSession() {
-  const [data, setData] = useState<{ user: JituUser } | null>(null);
-  const [isPending, setIsPending] = useState(true);
-
-  useEffect(() => {
-    if (DEMO_MODE) {
-      setData({ user: DEMO_USER });
-      setIsPending(false);
-      return;
-    }
-    try {
-      ensureAuthenticatedFetch();
-    } catch {
-      setIsPending(false);
-      return;
-    }
-    let active = true;
-    let revision = 0;
-    let auth: ReturnType<typeof getFirebaseAuth>;
-    try {
-      auth = getFirebaseAuth();
-    } catch {
-      setIsPending(false);
-      return;
-    }
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      const currentRevision = ++revision;
-      if (!firebaseUser) {
-        if (active) {
-          setData(null);
-          setIsPending(false);
-        }
-        return;
-      }
-      try {
-        const user = await getAppUser(firebaseUser);
-        if (active && currentRevision === revision) setData({ user });
-      } catch {
-        if (active && currentRevision === revision) setData(null);
-      } finally {
-        if (active && currentRevision === revision) setIsPending(false);
-      }
-    });
-
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, []);
-
-  return { data, isPending };
+  return useSyncExternalStore(subscribeSession, getSessionSnapshot, getServerSessionSnapshot);
 }
 
 export const signIn = {
@@ -154,7 +222,11 @@ export const signIn = {
           input.email.trim(),
           input.password
         );
-        return { user: await getAppUser(credential.user) };
+        currentFirebaseUser = credential.user;
+        const user = await getAppUser(credential.user);
+        lastSessionFetchAt = Date.now();
+        emitSession({ data: { user }, isPending: false });
+        return { user };
       } catch (err: unknown) {
         const firebaseErr = err as { code?: string; message?: string };
         const code = firebaseErr?.code || '';
@@ -171,7 +243,10 @@ export const signIn = {
               input.email.trim(),
               input.password
             );
+            currentFirebaseUser = signupCred.user;
             const user = await getAppUser(signupCred.user);
+            lastSessionFetchAt = Date.now();
+            emitSession({ data: { user }, isPending: false });
             return { user };
           } catch (signupErr: unknown) {
             const sErr = signupErr as { code?: string; message?: string };
@@ -216,7 +291,10 @@ export const signUp = {
           url: `${window.location.origin}/login?emailVerified=1`,
         }).catch((e) => console.warn('Email verification send skipped:', e));
 
+        currentFirebaseUser = credential.user;
         const user = await getAppUser(credential.user);
+        lastSessionFetchAt = Date.now();
+        emitSession({ data: { user }, isPending: false });
         return { user };
       } catch (err: unknown) {
         const firebaseErr = err as { code?: string; message?: string };
@@ -233,6 +311,11 @@ export const signUp = {
 
 export async function signOut(options?: { fetchOptions?: { onSuccess?: () => void } }) {
   if (!DEMO_MODE) await firebaseSignOut(getFirebaseAuth());
+  try {
+    sessionStorage.removeItem(SESSION_CACHE_KEY);
+  } catch {
+    // ignore
+  }
   options?.fetchOptions?.onSuccess?.();
   return { data: null, error: null };
 }

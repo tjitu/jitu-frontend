@@ -12,6 +12,35 @@ import {
 
 export * from "./soal-asli-types";
 
+const PACKAGES_TTL_MS = 5 * 60_000;
+let cachedAllPackages: SoalAsliPackage[] | null = null;
+let cachedPackagesAt = 0;
+const cachedPackageDetails = new Map<string, SoalAsliPackageDetail>();
+
+function applyPackageFilters(
+  list: SoalAsliPackage[],
+  filters?: { year?: number; subtest?: string; search?: string }
+): SoalAsliPackage[] {
+  let result = list;
+  if (filters?.year) {
+    result = result.filter((p) => p.year === filters.year);
+  }
+  if (filters?.subtest && filters.subtest !== "ALL") {
+    const sub = filters.subtest.toUpperCase();
+    result = result.filter((p) => p.subtest.toUpperCase() === sub);
+  }
+  if (filters?.search && filters.search.trim()) {
+    const q = filters.search.trim().toLowerCase();
+    result = result.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.dateLabel.toLowerCase().includes(q) ||
+        p.subtestName.toLowerCase().includes(q)
+    );
+  }
+  return result;
+}
+
 /**
  * Fetch all packages from PostgreSQL or fallback to JSON file
  */
@@ -20,46 +49,38 @@ export async function getSoalAsliPackages(filters?: {
   subtest?: string;
   search?: string;
 }): Promise<SoalAsliPackage[]> {
+  if (cachedAllPackages && Date.now() - cachedPackagesAt < PACKAGES_TTL_MS) {
+    return applyPackageFilters(cachedAllPackages, filters);
+  }
+
   try {
     const pool = getDbPool();
-    const whereClauses: string[] = ["1=1"];
-    const values: any[] = [];
-    let pIdx = 1;
-
-    if (filters?.year) {
-      whereClauses.push(`year = $${pIdx++}`);
-      values.push(filters.year);
-    }
-    if (filters?.subtest && filters.subtest !== "ALL") {
-      whereClauses.push(`subtest = $${pIdx++}`);
-      values.push(filters.subtest.toUpperCase());
-    }
-    if (filters?.search && filters.search.trim()) {
-      whereClauses.push(`(title ILIKE $${pIdx} OR date_label ILIKE $${pIdx} OR subtest_name ILIKE $${pIdx})`);
-      values.push(`%${filters.search.trim()}%`);
-      pIdx++;
-    }
-
     const query = `
       SELECT 
         id, slug, title, subtest, subtest_name as "subtestName",
         year, date_label as "dateLabel", duration_minutes as "durationMinutes",
         question_count as "questionCount", archive_label as "archiveLabel", source_url as "sourceUrl"
       FROM "soal_asli_packages"
-      WHERE ${whereClauses.join(" AND ")}
       ORDER BY year DESC, subtest ASC, id ASC;
     `;
 
-    const { rows } = await pool.query(query, values);
+    const { rows } = await pool.query(query);
     if (rows && rows.length > 0) {
-      return rows;
+      cachedAllPackages = rows;
+      cachedPackagesAt = Date.now();
+      return applyPackageFilters(rows, filters);
     }
   } catch (err) {
     console.warn("DB query for soal_asli_packages failed, falling back to JSON:", err);
   }
 
   // Fallback to reading pintarly_soal_asli.json
-  return loadPackagesFromJson(filters);
+  const jsonAll = loadPackagesFromJson();
+  if (jsonAll.length > 0) {
+    cachedAllPackages = jsonAll;
+    cachedPackagesAt = Date.now();
+  }
+  return applyPackageFilters(jsonAll, filters);
 }
 
 /**
@@ -68,6 +89,9 @@ export async function getSoalAsliPackages(filters?: {
 export async function getSoalAsliPackageDetail(
   packageIdOrSlug: string
 ): Promise<SoalAsliPackageDetail | null> {
+  const cached = cachedPackageDetails.get(packageIdOrSlug);
+  if (cached) return cached;
+
   try {
     const pool = getDbPool();
     // 1. Get package
@@ -133,17 +157,25 @@ export async function getSoalAsliPackageDetail(
         };
       });
 
-      return {
+      const detail: SoalAsliPackageDetail = {
         ...pkg,
         questions,
       };
+      cachedPackageDetails.set(pkg.id, detail);
+      if (pkg.slug) cachedPackageDetails.set(pkg.slug, detail);
+      return detail;
     }
   } catch (err) {
     console.warn("DB query for package detail failed, falling back to JSON:", err);
   }
 
   // Fallback to JSON
-  return loadPackageDetailFromJson(packageIdOrSlug);
+  const fallbackDetail = loadPackageDetailFromJson(packageIdOrSlug);
+  if (fallbackDetail) {
+    cachedPackageDetails.set(fallbackDetail.id, fallbackDetail);
+    if (fallbackDetail.slug) cachedPackageDetails.set(fallbackDetail.slug, fallbackDetail);
+  }
+  return fallbackDetail;
 }
 
 /**

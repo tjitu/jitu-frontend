@@ -13,29 +13,23 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { PixelCoin } from "@/components/ui/pixel-coin";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
 import { subtests } from "./payload";
 import { ScoreData } from "./interface";
 import { UserWithRole } from "@/lib/types";
-import { useSession } from "@/lib/auth-client";
+import { useSession, refreshSession } from "@/lib/auth-client";
 import {
   getUserStats,
   getOngoingTryouts,
   getAvailableTryouts,
   getScoreHistory,
+  getCachedDashboardData,
+  isDashboardCacheFresh,
+  setCachedDashboardData,
+  invalidateDashboardCache,
   UserStats,
   OngoingTryout,
   AvailableTryout,
@@ -46,14 +40,14 @@ import { RegisterModal } from "./components/RegisterModal";
 import { BACKEND_URL } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
+const ScoreHistoryChart = dynamic(
+  () => import("./components/ScoreHistoryChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full rounded-lg jitu-skeleton" />
+    ),
+  }
 );
 
 /**
@@ -79,13 +73,20 @@ const DashboardModule = () => {
   const router = useRouter();
   const [activeSubtests, setActiveSubtests] = useState<string[]>(["total"]);
   const { data: session, isPending } = useSession();
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [ongoingTryouts, setOngoingTryouts] = useState<OngoingTryout[]>([]);
+  const cachedInitial = getCachedDashboardData();
+  const [userStats, setUserStats] = useState<UserStats | null>(
+    cachedInitial?.stats ?? null
+  );
+  const [ongoingTryouts, setOngoingTryouts] = useState<OngoingTryout[]>(
+    cachedInitial?.ongoing ?? []
+  );
   const [availableTryoutsData, setAvailableTryoutsData] = useState<
     AvailableTryout[]
-  >([]);
-  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
-  const [loading, setLoading] = useState(true);
+  >(cachedInitial?.available ?? []);
+  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>(
+    cachedInitial?.history ?? []
+  );
+  const [loading, setLoading] = useState(!cachedInitial);
 
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [selectedTryout, setSelectedTryout] = useState<OngoingTryout | null>(
@@ -103,15 +104,15 @@ const DashboardModule = () => {
         router.push("/login");
       } else if ((session.user as unknown as UserWithRole).role === "ADMIN") {
         router.push("/admin");
-      } else {
-        loadDashboardData();
+      } else if (!isDashboardCacheFresh()) {
+        void loadDashboardData(!getCachedDashboardData());
       }
     }
   }, [session, isPending, router]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (showSkeleton = false) => {
     try {
-      setLoading(true);
+      if (showSkeleton) setLoading(true);
       const [stats, ongoing, available, history] = await Promise.all([
         getUserStats(),
         getOngoingTryouts(),
@@ -123,9 +124,12 @@ const DashboardModule = () => {
       setOngoingTryouts(ongoing);
       setAvailableTryoutsData(available);
       setScoreHistory(history);
+      setCachedDashboardData({ stats, ongoing, available, history });
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
-      toast.error("Gagal memuat data beranda. Coba muat ulang.");
+      if (showSkeleton) {
+        toast.error("Gagal memuat data beranda. Coba muat ulang.");
+      }
     } finally {
       setLoading(false);
     }
@@ -159,7 +163,8 @@ const DashboardModule = () => {
 
       toast.success(data.message || "Terdaftar di tryout.");
       setRegisterModalOpen(false);
-      loadDashboardData();
+      invalidateDashboardCache();
+      void loadDashboardData(false);
     } catch (err: unknown) {
       setRegisterError(err instanceof Error ? err.message : "Gagal mendaftar tryout.");
     } finally {
@@ -185,7 +190,7 @@ const DashboardModule = () => {
       if (!res.ok) throw new Error("Gagal mengunggah foto.");
 
       toast.success("Foto profil diperbarui.");
-      window.location.reload();
+      await refreshSession();
     } catch {
       toast.error("Gagal mengunggah foto. Coba lagi.");
     } finally {
@@ -237,7 +242,7 @@ const DashboardModule = () => {
         return {
           label: subtest.label,
           data: scoreHistory.map(
-            (score) => score[subtest.id as keyof ScoreData]
+            (score) => Number(score[subtest.id as keyof ScoreData]) || 0
           ),
           borderColor: stroke,
           backgroundColor: stroke,
@@ -495,10 +500,10 @@ const DashboardModule = () => {
 
           <div className="shrink-0 flex items-center gap-3">
             <Link
-              href="/arsip-soal"
+              href="/soal-asli"
               className="min-h-[44px] px-5 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[14px] font-semibold inline-flex items-center gap-2 shadow-xs transition-colors"
             >
-              <span>Buka Arsip Soal</span>
+              <span>Buka Soal Asli</span>
               <ArrowRight className="w-4 h-4 stroke-[2]" />
             </Link>
           </div>
@@ -729,7 +734,7 @@ const DashboardModule = () => {
 
               <div className="h-[340px] w-full">
                 {scoreHistory.length > 0 ? (
-                  <Line data={chartData} options={chartOptions} />
+                  <ScoreHistoryChart data={chartData} options={chartOptions} />
                 ) : (
                   <div className="h-full rounded-lg border border-dashed border-border bg-surface-muted flex flex-col items-center justify-center p-6 text-center gap-3">
                     <TrendingUp className="w-8 h-8 stroke-[1.75] text-text-muted" />

@@ -15,15 +15,67 @@ const FALLBACK_PACKAGES = [
 export async function GET() {
   try {
     const pool = getDbPool();
-    const res = await pool.query(
-      `SELECT id, name, "tokenAmount", price, "isActive"
-       FROM "TokenPackage"
-       WHERE "isActive" = true
-       ORDER BY price ASC`
-    );
+    // Try to join with Discount if the Discount table exists
+    let res;
+    try {
+      res = await pool.query(
+        `SELECT p.id, p.name, p."tokenAmount", p.price, p."isActive",
+                d.id AS "discountId", d.name AS "discountName", d.type AS "discountType",
+                d.value AS "discountValue", d."badgeText", d."badgeStyle"
+         FROM "TokenPackage" p
+         LEFT JOIN "Discount" d ON (
+           (d."packageId" = p.id OR d."packageId" IS NULL)
+           AND d."isActive" = true
+           AND d."startDate" <= NOW()
+           AND d."endDate" >= NOW()
+         )
+         WHERE p."isActive" = true
+         ORDER BY p.price ASC`
+      );
+    } catch {
+      // Fallback if Discount table does not exist yet
+      res = await pool.query(
+        `SELECT id, name, "tokenAmount", price, "isActive"
+         FROM "TokenPackage"
+         WHERE "isActive" = true
+         ORDER BY price ASC`
+      );
+    }
 
     if (res.rows.length > 0) {
-      return NextResponse.json(res.rows, { status: 200 });
+      // If any discount is active, calculate discounted price
+      const packages = res.rows.map((row: any) => {
+        if (row.discountId && row.discountValue) {
+          const originalPrice = row.price;
+          let finalPrice = row.price;
+          if (row.discountType === 'PERCENTAGE') {
+            finalPrice = Math.max(1000, Math.round(row.price * (1 - Number(row.discountValue) / 100)));
+          } else if (row.discountType === 'FIXED') {
+            finalPrice = Math.max(1000, row.price - Number(row.discountValue));
+          }
+          return {
+            id: row.id,
+            name: row.name,
+            tokenAmount: row.tokenAmount,
+            price: finalPrice,
+            originalPrice,
+            discountId: row.discountId,
+            discountName: row.discountName,
+            badgeText: row.badgeText,
+            badgeStyle: row.badgeStyle,
+            isActive: row.isActive,
+          };
+        }
+        return {
+          id: row.id,
+          name: row.name,
+          tokenAmount: row.tokenAmount,
+          price: row.price,
+          isActive: row.isActive,
+        };
+      });
+
+      return NextResponse.json(packages, { status: 200 });
     }
 
     return NextResponse.json(FALLBACK_PACKAGES, { status: 200 });

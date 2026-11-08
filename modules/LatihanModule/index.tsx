@@ -30,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getUserStats } from "@/lib/api/DashboardApi";
+import { getUserStats, getCachedDashboardData } from "@/lib/api/DashboardApi";
 import {
   InteractiveSolutionDeck,
   renderMathContent,
@@ -41,6 +41,7 @@ import type {
 } from "@/lib/practice-store";
 
 const DAILY_FREE_LIMIT = 10;
+const practiceQuestionsCache = new Map<string, PracticeQuestionSummary[]>();
 
 function getTodayDateKey(): string {
   const d = new Date();
@@ -75,13 +76,18 @@ interface QuestionAttempt {
 }
 
 export function LatihanModule() {
-  const [questions, setQuestions] = useState<PracticeQuestionSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const initialCache = practiceQuestionsCache.get("ALL:ALL");
+  const [questions, setQuestions] = useState<PracticeQuestionSummary[]>(
+    initialCache ?? []
+  );
+  const [loading, setLoading] = useState(!initialCache);
   const [selectedSubtest, setSelectedSubtest] = useState("ALL");
   const [selectedDifficulty, setSelectedDifficulty] = useState("ALL");
 
   // Active question ID
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
+    initialCache && initialCache.length > 0 ? initialCache[0].id : null
+  );
 
   // Per-question attempts map so state is preserved when switching questions
   const [attempts, setAttempts] = useState<Record<string, QuestionAttempt>>({});
@@ -110,17 +116,22 @@ export function LatihanModule() {
         localStorage.getItem("jitu_is_premium") === "true";
       setIsPremiumUser(hasPass);
 
-      getUserStats()
-        .then((stats) => {
-          if (typeof stats.isPremium === "boolean") {
-            setIsPremiumUser(stats.isPremium);
-            localStorage.setItem(
-              "jitu_ptn_premium_pass",
-              stats.isPremium ? "true" : "false",
-            );
-          }
-        })
-        .catch(() => {});
+      const cachedStats = getCachedDashboardData()?.stats;
+      if (cachedStats && typeof cachedStats.isPremium === "boolean") {
+        setIsPremiumUser(cachedStats.isPremium);
+      } else {
+        getUserStats()
+          .then((stats) => {
+            if (typeof stats.isPremium === "boolean") {
+              setIsPremiumUser(stats.isPremium);
+              localStorage.setItem(
+                "jitu_ptn_premium_pass",
+                stats.isPremium ? "true" : "false",
+              );
+            }
+          })
+          .catch(() => {});
+      }
 
       const todayKey = getTodayDateKey();
       const stored = localStorage.getItem(`jitu_daily_practice_${todayKey}`);
@@ -139,8 +150,17 @@ export function LatihanModule() {
     }
   }, []);
 
-  // Load questions from API (Randomized via SQL ORDER BY RANDOM())
+  // Load questions from API (cached per subtest + difficulty key for instant switching)
   const fetchQuestions = useCallback(async () => {
+    const cacheKey = `${selectedSubtest}:${selectedDifficulty}`;
+    const cached = practiceQuestionsCache.get(cacheKey);
+    if (cached) {
+      setQuestions(cached);
+      setActiveQuestionId(cached.length > 0 ? cached[0].id : null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -150,6 +170,7 @@ export function LatihanModule() {
       const res = await fetch(`/api/practice?${params.toString()}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.questions)) {
+        practiceQuestionsCache.set(cacheKey, data.questions);
         setQuestions(data.questions);
         if (data.questions.length > 0) {
           setActiveQuestionId(data.questions[0].id);
@@ -218,38 +239,24 @@ export function LatihanModule() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [isSolutionOpen, activeQuestion, currentAttempt]);
 
-  // Switch to another question with 1-second loading animation
+  // Switch to another question instantly (questions are already loaded in memory)
   const handleSelectQuestion = (qId: string) => {
     if (qId === activeQuestionId) return;
-    setIsLoadingQuestion(true);
     setIsSolutionOpen(false);
-    setTimeout(() => {
-      setActiveQuestionId(qId);
-      setIsLoadingQuestion(false);
-    }, 1000);
+    setActiveQuestionId(qId);
   };
 
   const handleNextQuestion = () => {
     if (activeQuestionIndex < questions.length - 1) {
-      const nextQ = questions[activeQuestionIndex + 1];
-      setIsLoadingQuestion(true);
       setIsSolutionOpen(false);
-      setTimeout(() => {
-        setActiveQuestionId(nextQ.id);
-        setIsLoadingQuestion(false);
-      }, 1000);
+      setActiveQuestionId(questions[activeQuestionIndex + 1].id);
     }
   };
 
   const handlePrevQuestion = () => {
     if (activeQuestionIndex > 0) {
-      const prevQ = questions[activeQuestionIndex - 1];
-      setIsLoadingQuestion(true);
       setIsSolutionOpen(false);
-      setTimeout(() => {
-        setActiveQuestionId(prevQ.id);
-        setIsLoadingQuestion(false);
-      }, 1000);
+      setActiveQuestionId(questions[activeQuestionIndex - 1].id);
     }
   };
 

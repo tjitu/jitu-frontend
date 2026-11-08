@@ -28,9 +28,25 @@ const TokenCard = ({
               {pkg.tokenAmount} coin
             </span>
           </div>
-          {isBestValue ? (
-            <span className="h-6 rounded-full bg-yellow-300 text-ink-900 px-2.5 text-[12px] font-semibold inline-flex items-center">
-              Paling hemat
+          {pkg.badge ? (
+            <span
+              className={`h-6 rounded-full px-2.5 text-[11px] font-extrabold uppercase tracking-wide inline-flex items-center shadow-xs ${
+                pkg.badgeStyle === 'RED_FIRE'
+                  ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white'
+                  : pkg.badgeStyle === 'GOLD_PREMIUM'
+                  ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black font-black'
+                  : pkg.badgeStyle === 'EMERALD_SAVE'
+                  ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white'
+                  : pkg.badgeStyle === 'CYAN_ELECTRIC'
+                  ? 'bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white'
+                  : pkg.badgeStyle === 'PURPLE_ROYAL'
+                  ? 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white'
+                  : isBestValue
+                  ? 'bg-yellow-300 text-ink-900'
+                  : 'bg-primary text-white'
+              }`}
+            >
+              {pkg.badge}
             </span>
           ) : (
             <span className="h-6 rounded-full bg-surface-muted border border-border text-text-muted px-2.5 text-[12px] font-semibold inline-flex items-center">
@@ -40,6 +56,16 @@ const TokenCard = ({
         </div>
 
         <div className="mb-5">
+          {pkg.originalPrice > pkg.finalPrice && (
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs line-through text-text-muted font-medium tabular-nums">
+                Rp{pkg.originalPrice.toLocaleString("id-ID")}
+              </span>
+              <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                Hemat Rp{pkg.savings.toLocaleString("id-ID")}
+              </span>
+            </div>
+          )}
           <div className="font-bold text-[28px] leading-tight tracking-[-0.02em] text-text tabular-nums">
             Rp{pkg.finalPrice.toLocaleString("id-ID")}
           </div>

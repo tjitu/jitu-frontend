@@ -58,13 +58,18 @@ interface SoalAsliSectionProps {
   variant?: "landing" | "dashboard" | "page";
 }
 
+// Module-level client caches so switching between pages or reopening a package modal is instant (0ms)
+let clientPackagesCache: SoalAsliPackage[] | null = null;
+let clientGroupedCache: YearGroupedPackages[] | null = null;
+const clientDetailCache = new Map<string, SoalAsliPackageDetail>();
+
 export default function SoalAsliSection({ variant = "landing" }: SoalAsliSectionProps) {
   const isDashboard = variant === "dashboard";
   const isPage = variant === "page";
 
-  const [packages, setPackages] = useState<SoalAsliPackage[]>([]);
-  const [groupedYears, setGroupedYears] = useState<YearGroupedPackages[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [packages, setPackages] = useState<SoalAsliPackage[]>(clientPackagesCache ?? []);
+  const [groupedYears, setGroupedYears] = useState<YearGroupedPackages[]>(clientGroupedCache ?? []);
+  const [loading, setLoading] = useState(!clientPackagesCache);
   const [selectedYear, setSelectedYear] = useState<number | "ALL">("ALL");
   const [selectedSubtest, setSelectedSubtest] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -83,6 +88,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [flaggedQuestions, setFlaggedQuestions] = useState<Record<string, boolean>>({});
+  const [savedCountsMap, setSavedCountsMap] = useState<Record<string, number>>({});
 
   // Dashboard exam mode specific state
   const [timerSeconds, setTimerSeconds] = useState<number>(30 * 60);
@@ -93,8 +99,12 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
   // Local progress storage key
   const getStorageKey = (pkgId: string) => `jitu_soal_asli_answers_${pkgId}`;
 
-  // Fetch packages list on load
+  // Fetch packages list on load (skipped if already cached in memory)
   useEffect(() => {
+    if (clientPackagesCache && clientGroupedCache) {
+      setLoading(false);
+      return;
+    }
     let active = true;
     async function loadData() {
       try {
@@ -103,8 +113,12 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
         if (res.ok) {
           const data = await res.json();
           if (active && data.success) {
-            setPackages(data.packages || []);
-            setGroupedYears(data.grouped || []);
+            const pkgs = data.packages || [];
+            const grps = data.grouped || [];
+            clientPackagesCache = pkgs;
+            clientGroupedCache = grps;
+            setPackages(pkgs);
+            setGroupedYears(grps);
           }
         }
       } catch (err) {
@@ -118,6 +132,22 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
       active = false;
     };
   }, []);
+
+  // Pre-compute saved answer counts once when packages load (avoids 163 localStorage.getItem + JSON.parse calls per render)
+  useEffect(() => {
+    if (!isDashboard || packages.length === 0) return;
+    const map: Record<string, number> = {};
+    try {
+      for (const pkg of packages) {
+        const raw = localStorage.getItem(getStorageKey(pkg.id));
+        if (raw) {
+          const count = Object.keys(JSON.parse(raw)).length;
+          if (count > 0) map[pkg.id] = count;
+        }
+      }
+    } catch {}
+    setSavedCountsMap(map);
+  }, [isDashboard, packages]);
 
   // Timer countdown for dashboard practice mode
   useEffect(() => {
@@ -148,6 +178,8 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
         const pickedOpt = currentQ.options[optIndex];
         setUserAnswers((prev) => {
           const updated = { ...prev, [currentQ.id]: pickedOpt.id };
+          const count = Object.keys(updated).length;
+          setSavedCountsMap((m) => ({ ...m, [activePackageModal.id]: count }));
           try {
             localStorage.setItem(getStorageKey(activePackageModal.id), JSON.stringify(updated));
           } catch {}
@@ -193,7 +225,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
   // Handle open package detail modal
   const handleOpenPackage = async (pkg: SoalAsliPackage) => {
     setActivePackageModal(pkg);
-    setLoadingDetail(true);
     setCurrentQuestionIndex(0);
     setShowFinishSummary(false);
     setTimerSeconds((pkg.durationMinutes || 30) * 60);
@@ -211,11 +242,20 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
       setUserAnswers({});
     }
 
+    const cachedDetail = clientDetailCache.get(pkg.id);
+    if (cachedDetail) {
+      setActiveDetail(cachedDetail);
+      setLoadingDetail(false);
+      return;
+    }
+
+    setLoadingDetail(true);
     try {
       const res = await fetch(`/api/soal-asli/${pkg.id}`);
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.package) {
+          clientDetailCache.set(pkg.id, data.package);
           setActiveDetail(data.package);
         }
       }
@@ -237,6 +277,8 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     setUserAnswers((prev) => {
       const updated = { ...prev, [questionId]: optionId };
       if (activePackageModal) {
+        const count = Object.keys(updated).length;
+        setSavedCountsMap((m) => ({ ...m, [activePackageModal.id]: count }));
         try {
           localStorage.setItem(getStorageKey(activePackageModal.id), JSON.stringify(updated));
         } catch {}
@@ -940,12 +982,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                           border: "border-border",
                         };
 
-                      // Check if student has saved answers for this package
-                      let savedAnswersCount = 0;
-                      try {
-                        const saved = localStorage.getItem(getStorageKey(pkg.id));
-                        if (saved) savedAnswersCount = Object.keys(JSON.parse(saved)).length;
-                      } catch {}
+                      const savedAnswersCount = savedCountsMap[pkg.id] ?? 0;
 
                       return (
                         <div

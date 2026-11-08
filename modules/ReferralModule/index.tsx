@@ -17,12 +17,9 @@ const ReferralModule = () => {
 
   const handleCheck = () => {
     setIsChecking(true);
-
-    setTimeout(() => {
-      const result = checkReferralCode(referralCode);
-      setCheckResult(result);
-      setIsChecking(false);
-    }, 400);
+    const result = checkReferralCode(referralCode);
+    setCheckResult(result);
+    setIsChecking(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

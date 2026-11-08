@@ -52,36 +52,48 @@ const navItems = [
   },
 ];
 
+// Module-level cache: survives remounts so the coin chip never flashes empty,
+// and we only revalidate when the cached value is stale.
+let cachedBalance: number | null = null;
+let balanceFetchedAt = 0;
+const BALANCE_STALE_MS = 30_000;
+
 const Navbar = () => {
   const path = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
-  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(cachedBalance);
+  const userId = session?.user?.id;
+  const sessionBalance = session?.user?.tokenBalance;
 
   useEffect(() => {
-    let mounted = true;
-    const loadBalance = async () => {
-      try {
-        const res = await fetch(`${BACKEND_URL}/dashboard`, {
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (mounted && typeof data?.tokenBalance === "number") {
-            setTokenBalance(data.tokenBalance);
-          }
-        }
-      } catch {
-        // Ignore network errors in header chip
-      }
-    };
-    if (session) {
-      loadBalance();
+    if (typeof sessionBalance === "number" && cachedBalance === null) {
+      cachedBalance = sessionBalance;
+      setTokenBalance(sessionBalance);
     }
+  }, [sessionBalance]);
+
+  useEffect(() => {
+    if (!userId) return;
+    if (Date.now() - balanceFetchedAt < BALANCE_STALE_MS) return;
+    let mounted = true;
+    balanceFetchedAt = Date.now();
+    fetch(`${BACKEND_URL}/dashboard`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (typeof data?.tokenBalance === "number") {
+          cachedBalance = data.tokenBalance;
+          if (mounted) setTokenBalance(data.tokenBalance);
+        }
+      })
+      .catch(() => {
+        // Ignore network errors in header chip
+        balanceFetchedAt = 0;
+      });
     return () => {
       mounted = false;
     };
-  }, [session, path]);
+  }, [userId, path]);
 
   const hidden = ["/login", "/register", "/admin"];
   const isExamPage = path.includes("/exam/") || path.includes("/break/");

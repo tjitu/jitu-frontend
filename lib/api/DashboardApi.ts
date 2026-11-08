@@ -48,6 +48,30 @@ export interface ScoreHistory {
   pm: number;
 }
 
+export interface DashboardSnapshot {
+  stats: UserStats;
+  ongoing: OngoingTryout[];
+  available: AvailableTryout[];
+  history: ScoreHistory[];
+  fetchedAt: number;
+}
+
+const DASHBOARD_STALE_MS = 30_000;
+let dashboardSnapshot: DashboardSnapshot | null = null;
+
+export const getCachedDashboardData = (): DashboardSnapshot | null => dashboardSnapshot;
+
+export const isDashboardCacheFresh = (): boolean =>
+  Boolean(dashboardSnapshot && Date.now() - dashboardSnapshot.fetchedAt < DASHBOARD_STALE_MS);
+
+export const setCachedDashboardData = (data: Omit<DashboardSnapshot, "fetchedAt">) => {
+  dashboardSnapshot = { ...data, fetchedAt: Date.now() };
+};
+
+export const invalidateDashboardCache = () => {
+  dashboardSnapshot = null;
+};
+
 export const getUserStats = async (): Promise<UserStats> => {
   const response = await fetch(`${BACKEND_URL}/dashboard/stats`, {
     method: "GET",

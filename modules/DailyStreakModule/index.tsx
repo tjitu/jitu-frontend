@@ -13,35 +13,76 @@ import {
 } from "@/lib/api/DailyApi";
 import { toast } from "sonner";
 
+interface CachedDailyData {
+  streak: number;
+  bestStreak: number;
+  totalProblemsSolved: number;
+  currentProblem: APIDailyQuestion | null;
+  isAnswered: boolean;
+  isCorrect: boolean;
+  selectedAnswer: string | null;
+  explanation: string | null;
+  fetchedAt: number;
+}
+
+let cachedDailyData: CachedDailyData | null = null;
+const DAILY_STALE_MS = 60_000;
+
 const DailyStreakModule = () => {
-  const [streak, setStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
-  const [totalProblemsSolved, setTotalProblemsSolved] = useState(0);
+  const [streak, setStreak] = useState(cachedDailyData?.streak ?? 0);
+  const [bestStreak, setBestStreak] = useState(cachedDailyData?.bestStreak ?? 0);
+  const [totalProblemsSolved, setTotalProblemsSolved] = useState(
+    cachedDailyData?.totalProblemsSolved ?? 0
+  );
   const [currentProblem, setCurrentProblem] =
-    useState<APIDailyQuestion | null>(null);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [explanation, setExplanation] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+    useState<APIDailyQuestion | null>(cachedDailyData?.currentProblem ?? null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(
+    cachedDailyData?.selectedAnswer ?? null
+  );
+  const [isAnswered, setIsAnswered] = useState(
+    cachedDailyData?.isAnswered ?? false
+  );
+  const [isCorrect, setIsCorrect] = useState(
+    cachedDailyData?.isCorrect ?? false
+  );
+  const [explanation, setExplanation] = useState<string | null>(
+    cachedDailyData?.explanation ?? null
+  );
+  const [loading, setLoading] = useState(!cachedDailyData);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    loadDailyData();
+    if (cachedDailyData && Date.now() - cachedDailyData.fetchedAt < DAILY_STALE_MS) {
+      setLoading(false);
+      return;
+    }
+    void loadDailyData(!cachedDailyData);
   }, []);
 
-  const loadDailyData = async () => {
+  const loadDailyData = async (showSpinner = false) => {
     try {
-      setLoading(true);
+      if (showSpinner) setLoading(true);
 
-      const streakData = await getUserStreak();
+      const [streakData, questionData] = await Promise.all([
+        getUserStreak(),
+        getDailyQuestion(),
+      ]);
+
       setStreak(streakData.currentStreak);
       setBestStreak(streakData.bestStreak);
       setTotalProblemsSolved(streakData.totalProblemsSolved);
 
-      const questionData = await getDailyQuestion();
       setCurrentProblem(questionData.question);
       setIsAnswered(questionData.alreadyAnswered);
+
+      const nextIsCorrect =
+        questionData.alreadyAnswered && questionData.isCorrect !== undefined
+          ? questionData.isCorrect
+          : false;
+      const nextSelectedAnswer =
+        questionData.alreadyAnswered && questionData.userAnswer
+          ? questionData.userAnswer
+          : null;
 
       if (questionData.alreadyAnswered) {
         if (questionData.isCorrect !== undefined) {
@@ -51,9 +92,23 @@ const DailyStreakModule = () => {
           setSelectedAnswer(questionData.userAnswer);
         }
       }
+
+      cachedDailyData = {
+        streak: streakData.currentStreak,
+        bestStreak: streakData.bestStreak,
+        totalProblemsSolved: streakData.totalProblemsSolved,
+        currentProblem: questionData.question,
+        isAnswered: questionData.alreadyAnswered,
+        isCorrect: nextIsCorrect,
+        selectedAnswer: nextSelectedAnswer,
+        explanation: null,
+        fetchedAt: Date.now(),
+      };
     } catch (error) {
       console.error("Failed to load daily data:", error);
-      toast.error("Data gagal dimuat. Muat ulang halaman.");
+      if (showSpinner) {
+        toast.error("Data gagal dimuat. Muat ulang halaman.");
+      }
     } finally {
       setLoading(false);
     }
@@ -67,17 +122,38 @@ const DailyStreakModule = () => {
       const result = await submitAnswerApi(currentProblem.id, selectedAnswer);
 
       if (result.success) {
-        setIsCorrect(result.isCorrect || false);
+        const nextCorrect = result.isCorrect || false;
+        const nextExplanation = result.explanation || null;
+        const nextStreak =
+          result.newStreak !== undefined ? result.newStreak : streak;
+        const nextBest =
+          result.newStreak !== undefined
+            ? Math.max(bestStreak, result.newStreak)
+            : bestStreak;
+        const nextSolved = nextCorrect
+          ? totalProblemsSolved + 1
+          : totalProblemsSolved;
+
+        setIsCorrect(nextCorrect);
         setIsAnswered(true);
-        setExplanation(result.explanation || null);
+        setExplanation(nextExplanation);
+        setStreak(nextStreak);
+        setBestStreak(nextBest);
+        setTotalProblemsSolved(nextSolved);
 
-        if (result.newStreak !== undefined) {
-          setStreak(result.newStreak);
-          setBestStreak(Math.max(bestStreak, result.newStreak));
-        }
+        cachedDailyData = {
+          streak: nextStreak,
+          bestStreak: nextBest,
+          totalProblemsSolved: nextSolved,
+          currentProblem,
+          isAnswered: true,
+          isCorrect: nextCorrect,
+          selectedAnswer,
+          explanation: nextExplanation,
+          fetchedAt: Date.now(),
+        };
 
-        if (result.isCorrect) {
-          setTotalProblemsSolved(totalProblemsSolved + 1);
+        if (nextCorrect) {
           toast.success("Jawaban benar. Streak harian bertambah.");
         } else {
           toast.error("Jawaban belum tepat. Cek pembahasan di bawah.");

@@ -10,5 +10,6 @@ export interface TokenPackage {
   pricePerToken?: string;
   popular?: boolean;
   badge?: string;
+  badgeStyle?: string;
   categoryBg: string;
 }

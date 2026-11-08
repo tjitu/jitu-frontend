@@ -35,7 +35,7 @@ import { Label } from "@/components/ui/label";
 import PendingTransactionList from "../PendingTransactionsModule/components/PendingTransactionList";
 import PastTransactionList from "../PastTransactionsModule/components/PastTransactionList";
 import { useRouter } from "next/navigation";
-import { useSession, signOut, changePassword, setPassword } from "@/lib/auth-client";
+import { useSession, signOut, changePassword, setPassword, refreshSession } from "@/lib/auth-client";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -54,6 +54,9 @@ interface ProfileStats {
   streak: number;
 }
 
+let cachedProfileData: { stats: ProfileStats; attempts: Attempt[]; fetchedAt: number } | null = null;
+const PROFILE_STALE_MS = 30_000;
+
 export default function ProfileModule() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -62,14 +65,18 @@ export default function ProfileModule() {
     "overview" | "history" | "transactions" | "settings"
   >("overview");
 
-  const [stats, setStats] = useState<ProfileStats>({
-    lastScore: 0,
-    averageScore: 0,
-    streak: 0,
-    totalTryout: 0,
-  });
-  const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [stats, setStats] = useState<ProfileStats>(
+    cachedProfileData?.stats ?? {
+      lastScore: 0,
+      averageScore: 0,
+      streak: 0,
+      totalTryout: 0,
+    }
+  );
+  const [attempts, setAttempts] = useState<Attempt[]>(
+    cachedProfileData?.attempts ?? []
+  );
+  const [isLoadingData, setIsLoadingData] = useState(!cachedProfileData);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -106,7 +113,7 @@ export default function ProfileModule() {
       if (!res.ok) throw new Error("Gagal mengunggah foto.");
 
       toast.success("Foto profil diperbarui.");
-      window.location.reload();
+      await refreshSession();
     } catch {
       toast.error("Gagal mengunggah foto.");
     } finally {
@@ -117,7 +124,11 @@ export default function ProfileModule() {
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!session) return;
-      setIsLoadingData(true);
+      if (cachedProfileData && Date.now() - cachedProfileData.fetchedAt < PROFILE_STALE_MS) {
+        setIsLoadingData(false);
+        return;
+      }
+      if (!cachedProfileData) setIsLoadingData(true);
       try {
         const res = await fetch(`${BACKEND_URL}/profile`, {
           method: "GET",
@@ -126,8 +137,15 @@ export default function ProfileModule() {
 
         if (res.ok) {
           const data = await res.json();
+          const nextStats = data.stats ?? stats;
+          const nextAttempts = data.attempts ?? attempts;
           if (data.stats) setStats(data.stats);
           if (data.attempts) setAttempts(data.attempts);
+          cachedProfileData = {
+            stats: nextStats,
+            attempts: nextAttempts,
+            fetchedAt: Date.now(),
+          };
 
           setFormData({
             name: session.user.name || "",
@@ -199,8 +217,8 @@ export default function ProfileModule() {
 
       toast.success("Profil disimpan.");
       setIsEditOpen(false);
+      await refreshSession();
       router.refresh();
-      window.location.reload();
     } catch (error) {
       console.error(error);
       toast.error("Gagal menyimpan perubahan.");

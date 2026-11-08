@@ -36,12 +36,18 @@ interface TryOutData {
   isRegistered?: boolean;
 }
 
+const TRYOUT_STALE_MS = 30_000;
+let cachedTryouts: TryOutData[] | null = null;
+let cachedTryoutsAt = 0;
+
 const TryoutModule = () => {
   const router = useRouter();
 
-  const [tryouts, setTryouts] = useState<TryOutData[]>([]);
-  const [filteredTryouts, setFilteredTryouts] = useState<TryOutData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [tryouts, setTryouts] = useState<TryOutData[]>(cachedTryouts ?? []);
+  const [filteredTryouts, setFilteredTryouts] = useState<TryOutData[]>(
+    cachedTryouts ?? []
+  );
+  const [isLoading, setIsLoading] = useState(!cachedTryouts);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<
@@ -50,10 +56,15 @@ const TryoutModule = () => {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
   useEffect(() => {
+    if (cachedTryouts && Date.now() - cachedTryoutsAt < TRYOUT_STALE_MS) {
+      setIsLoading(false);
+      return;
+    }
+
     let active = true;
     const fetchTryouts = async () => {
       try {
-        setIsLoading(true);
+        if (!cachedTryouts) setIsLoading(true);
         const res = await fetch(`${BACKEND_URL}/tryout`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -61,7 +72,7 @@ const TryoutModule = () => {
         });
 
         if (!res.ok) {
-          if (active) {
+          if (active && !cachedTryouts) {
             setTryouts([]);
             setFilteredTryouts([]);
           }
@@ -70,7 +81,7 @@ const TryoutModule = () => {
 
         const data = await res.json();
         if (!Array.isArray(data)) {
-          if (active) {
+          if (active && !cachedTryouts) {
             setTryouts([]);
             setFilteredTryouts([]);
           }
@@ -90,13 +101,16 @@ const TryoutModule = () => {
           isRegistered: item.isRegistered ?? false,
         }));
 
+        cachedTryouts = mappedData;
+        cachedTryoutsAt = Date.now();
+
         if (active) {
           setTryouts(mappedData);
           setFilteredTryouts(mappedData);
         }
       } catch (error) {
         console.error("Error fetching tryouts:", error);
-        if (active) {
+        if (active && !cachedTryouts) {
           setTryouts([]);
           setFilteredTryouts([]);
         }

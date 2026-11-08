@@ -28,7 +28,7 @@ import TokenCard from "./components/TokenCard";
 import { PixelCoin } from "@/components/ui/pixel-coin";
 import { contactInfos, tokenPackages as fallbackTokenPackages } from "./payload";
 import { BACKEND_URL } from "@/lib/api";
-import { getUserStats } from "@/lib/api/DashboardApi";
+import { getUserStats, getCachedDashboardData } from "@/lib/api/DashboardApi";
 import PendingTransactionList from "../PendingTransactionsModule/components/PendingTransactionList";
 import PastTransactionList from "../PastTransactionsModule/components/PastTransactionList";
 
@@ -37,7 +37,12 @@ interface TokenPackage {
   name: string;
   tokenAmount: number;
   price: number;
+  originalPrice?: number;
+  badgeText?: string;
+  badgeStyle?: string;
 }
+
+let cachedShopPackages: TokenPackage[] | null = null;
 
 interface EWalletPaymentResponse {
   transactionId: string;
@@ -83,9 +88,14 @@ interface PendingPayment {
 }
 
 const ShopModule = () => {
-  const [packages, setPackages] = useState<TokenPackage[]>([]);
-  const [loadingPackages, setLoadingPackages] = useState(true);
-  const [userBalance, setUserBalance] = useState<number>(0);
+  const initialDashboardStats = getCachedDashboardData()?.stats;
+  const [packages, setPackages] = useState<TokenPackage[]>(
+    cachedShopPackages ?? []
+  );
+  const [loadingPackages, setLoadingPackages] = useState(!cachedShopPackages);
+  const [userBalance, setUserBalance] = useState<number>(
+    initialDashboardStats?.tokenBalance ?? 0
+  );
   const [pendingCount, setPendingCount] = useState<number>(0);
 
   const [isModalOpened, setIsModalOpened] = useState(false);
@@ -247,43 +257,47 @@ const ShopModule = () => {
   }, [transactionId, router]);
 
   useEffect(() => {
+    if (cachedShopPackages && cachedShopPackages.length > 0) {
+      setLoadingPackages(false);
+      return;
+    }
+
     const fetchPackages = async () => {
       try {
         const res = await fetch(`${BACKEND_URL}/shop/packages`);
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setPackages(data);
-          } else {
-            setPackages(
-              fallbackTokenPackages.map((p) => ({
-                id: String(p.id),
-                name: p.title,
-                tokenAmount: p.tokenAmount,
-                price: p.finalPrice,
-              })),
-            );
-          }
+          const resolved: TokenPackage[] =
+            Array.isArray(data) && data.length > 0
+              ? data
+              : fallbackTokenPackages.map((p) => ({
+                  id: String(p.id),
+                  name: p.title,
+                  tokenAmount: p.tokenAmount,
+                  price: p.finalPrice,
+                }));
+          cachedShopPackages = resolved;
+          setPackages(resolved);
         } else {
-          setPackages(
-            fallbackTokenPackages.map((p) => ({
-              id: String(p.id),
-              name: p.title,
-              tokenAmount: p.tokenAmount,
-              price: p.finalPrice,
-            })),
-          );
-        }
-      } catch (error) {
-        console.error(error);
-        setPackages(
-          fallbackTokenPackages.map((p) => ({
+          const fallback = fallbackTokenPackages.map((p) => ({
             id: String(p.id),
             name: p.title,
             tokenAmount: p.tokenAmount,
             price: p.finalPrice,
-          })),
-        );
+          }));
+          cachedShopPackages = fallback;
+          setPackages(fallback);
+        }
+      } catch (error) {
+        console.error(error);
+        const fallback = fallbackTokenPackages.map((p) => ({
+          id: String(p.id),
+          name: p.title,
+          tokenAmount: p.tokenAmount,
+          price: p.finalPrice,
+        }));
+        cachedShopPackages = fallback;
+        setPackages(fallback);
       } finally {
         setLoadingPackages(false);
       }
@@ -525,7 +539,24 @@ const ShopModule = () => {
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      {premiumPassPkg.badgeText && (
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs ${
+                          premiumPassPkg.badgeStyle === 'RED_FIRE'
+                            ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white'
+                            : premiumPassPkg.badgeStyle === 'GOLD_PREMIUM'
+                            ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black'
+                            : premiumPassPkg.badgeStyle === 'EMERALD_SAVE'
+                            ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white'
+                            : premiumPassPkg.badgeStyle === 'CYAN_ELECTRIC'
+                            ? 'bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white'
+                            : premiumPassPkg.badgeStyle === 'PURPLE_ROYAL'
+                            ? 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white'
+                            : 'bg-red-600 text-white'
+                        }`}>
+                          {premiumPassPkg.badgeText}
+                        </span>
+                      )}
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFD13B] text-black text-[11px] font-black uppercase tracking-wider shadow-xs">
                         <Sparkles className="w-3 h-3 fill-black" />
                         Paling Hemat · Rekomendasi
@@ -577,6 +608,16 @@ const ShopModule = () => {
               {/* Right: Price & CTA */}
               <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-center gap-4 shrink-0 pt-4 lg:pt-0 border-t border-blue-400/30 lg:border-t-0">
                 <div className="text-left lg:text-right">
+                  {premiumPassPkg.originalPrice && premiumPassPkg.originalPrice > premiumPassPkg.price && (
+                    <div className="flex items-center lg:justify-end gap-2 mb-1">
+                      <span className="text-sm line-through text-blue-200/80 font-bold tabular-nums">
+                        Rp{premiumPassPkg.originalPrice.toLocaleString("id-ID")}
+                      </span>
+                      <span className="text-[11px] font-black text-yellow-300 bg-yellow-400/20 px-2 py-0.5 rounded">
+                        Hemat Rp{(premiumPassPkg.originalPrice - premiumPassPkg.price).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                  )}
                   <div className="inline-flex items-baseline gap-1.5">
                     <span className="text-[32px] sm:text-[38px] lg:text-[40px] font-black text-white leading-none tracking-tight tabular-nums">
                       Rp{premiumPassPkg.price.toLocaleString("id-ID")}
@@ -633,7 +674,7 @@ const ShopModule = () => {
               {coinPackages.map((pkg, index) => {
                 const basePerToken = 15000;
                 const standardPrice = basePerToken * pkg.tokenAmount;
-                const originalPrice = Math.max(
+                const originalPrice = pkg.originalPrice || Math.max(
                   standardPrice,
                   Math.round(pkg.price * 1.2),
                 );
@@ -674,7 +715,8 @@ const ShopModule = () => {
                       pricePerToken: String(pricePerToken),
                       categoryBg: "",
                       popular: false,
-                      badge: isBestValue ? "Paling hemat" : undefined,
+                      badge: pkg.badgeText || (isBestValue ? "Paling hemat" : undefined),
+                      badgeStyle: pkg.badgeStyle,
                     }}
                     onPressBuy={() => handlePurchaseClick(pkg)}
                   />
