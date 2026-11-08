@@ -98,6 +98,52 @@ export async function createSnapTransaction(params: MidtransSnapParams) {
   return (await response.json()) as { token: string; redirect_url: string };
 }
 
+export async function createQrisTransaction(params: MidtransSnapParams) {
+  const config = getMidtransConfig();
+  const snapResult = await createSnapTransaction(params);
+
+  const chargeUrl = config.isProduction
+    ? `https://app.midtrans.com/snap/v2/transactions/${snapResult.token}/charge`
+    : `https://app.sandbox.midtrans.com/snap/v2/transactions/${snapResult.token}/charge`;
+
+  try {
+    const chargeRes = await fetch(chargeUrl, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        payment_type: "qris",
+        payment_params: {
+          acquirer: ["gopay"],
+        },
+      }),
+    });
+
+    if (chargeRes.ok) {
+      const chargeData = await chargeRes.json();
+      return {
+        token: snapResult.token,
+        redirect_url: snapResult.redirect_url,
+        qr_string: chargeData.qr_string,
+        qr_url: chargeData.qris_url,
+        expiry_time: chargeData.expiry_time || new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      };
+    }
+  } catch (e) {
+    console.error("Failed to charge QRIS directly:", e);
+  }
+
+  return {
+    token: snapResult.token,
+    redirect_url: snapResult.redirect_url,
+    qr_string: undefined,
+    qr_url: undefined,
+    expiry_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+  };
+}
+
 export function verifyMidtransSignature(
   orderId: string,
   statusCode: string,

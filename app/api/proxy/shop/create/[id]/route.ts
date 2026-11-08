@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
-import { createSnapTransaction } from "@/lib/midtrans-server";
+import { createQrisTransaction } from "@/lib/midtrans-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -97,6 +97,8 @@ export async function POST(
             paymentMethod: "QRIS",
             snapToken: existing.snapToken,
             redirectUrl: meta.redirect_url,
+            qrCodeUrl: meta.qr_code_url,
+            qrCode: meta.qr_string,
             expiryTime: new Date(new Date(existing.createdAt).getTime() + 15 * 60 * 1000).toISOString(),
             packageName: pkg.name,
           },
@@ -108,8 +110,8 @@ export async function POST(
     // 3. Create unique order ID
     const orderId = `ORDER-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // 4. Request Midtrans Snap Transaction
-    const snapResult = await createSnapTransaction({
+    // 4. Request Midtrans Snap + QRIS
+    const qrisResult = await createQrisTransaction({
       orderId,
       grossAmount: pkg.price,
       itemDetails: [
@@ -129,12 +131,13 @@ export async function POST(
     // 5. Insert record into Payment table
     const paymentId = crypto.randomUUID();
     const metadata = {
-      redirect_url: snapResult.redirect_url,
+      redirect_url: qrisResult.redirect_url,
+      qr_code_url: qrisResult.qr_url,
+      qr_string: qrisResult.qr_string,
       package_name: pkg.name,
-      created_via: "web_snap",
+      created_via: "web_qris",
     };
 
-    // If packageId is an ad-hoc key, ensure we link safely or insert
     await pool.query(
       `INSERT INTO "Payment" (id, "userId", "tokenPackageId", "orderId", amount, "tokenAmount", status, "paymentMethod", "snapToken", "createdAt", "updatedAt", metadata)
        VALUES ($1, $2, $3, $4, $5, $6, 'PENDING', 'QRIS', $7, NOW(), NOW(), $8)`,
@@ -145,12 +148,10 @@ export async function POST(
         orderId,
         pkg.price,
         pkg.tokenAmount,
-        snapResult.token,
+        qrisResult.token,
         JSON.stringify(metadata),
       ]
     );
-
-    const expiryTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     return NextResponse.json(
       {
@@ -160,9 +161,11 @@ export async function POST(
         tokenAmount: pkg.tokenAmount,
         status: "PENDING",
         paymentMethod: "QRIS",
-        snapToken: snapResult.token,
-        redirectUrl: snapResult.redirect_url,
-        expiryTime,
+        snapToken: qrisResult.token,
+        redirectUrl: qrisResult.redirect_url,
+        qrCodeUrl: qrisResult.qr_url,
+        qrCode: qrisResult.qr_string,
+        expiryTime: qrisResult.expiry_time,
         packageName: pkg.name,
       },
       { status: 200 }

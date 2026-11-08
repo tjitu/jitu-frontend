@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Script from "next/script";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +47,7 @@ interface EWalletPaymentResponse {
   status: string;
   paymentMethod: string;
   qrCodeUrl?: string;
+  qrCode?: string;
   deeplinkUrl?: string;
   expiryTime?: string;
   packageName: string;
@@ -74,6 +74,7 @@ interface PendingPayment {
   snapToken?: string;
   metadata?: {
     qr_code_url?: string;
+    qr_string?: string;
     deeplink_url?: string;
     redirect_url?: string;
     snap_token?: string;
@@ -290,63 +291,6 @@ const ShopModule = () => {
     return null;
   };
 
-  const triggerSnapPayment = (snapToken?: string, redirectUrl?: string) => {
-    if (!snapToken && !redirectUrl) return;
-
-    const launch = () => {
-      if (typeof window !== "undefined" && (window as any).snap && snapToken) {
-        (window as any).snap.pay(snapToken, {
-          onSuccess: function () {
-            toast.success("Pembayaran berhasil! Koin telah ditambahkan ke akunmu.");
-            setIsModalOpened(false);
-            getUserStats().then((s) => setUserBalance(s.tokenBalance ?? 0));
-            setTimeout(() => router.refresh(), 1000);
-          },
-          onPending: function () {
-            toast.info("Menunggu pembayaran diselesaikan.");
-          },
-          onError: function () {
-            toast.error("Pembayaran gagal atau dibatalkan.");
-          },
-          onClose: function () {
-            toast.info("Jendela pembayaran ditutup.");
-          },
-        });
-        return true;
-      }
-      return false;
-    };
-
-    if (launch()) return;
-
-    if (typeof window !== "undefined") {
-      const scriptId = "midtrans-snap-script";
-      let script = document.getElementById(scriptId) as HTMLScriptElement;
-      if (!script) {
-        script = document.createElement("script");
-        script.id = scriptId;
-        script.src = "https://app.midtrans.com/snap/snap.js";
-        script.setAttribute(
-          "data-client-key",
-          process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-f_SyejAdwBpQXUPj",
-        );
-        document.body.appendChild(script);
-      }
-
-      script.onload = () => {
-        if (!launch() && redirectUrl) {
-          window.open(redirectUrl, "_blank");
-        }
-      };
-
-      setTimeout(() => {
-        if (!(window as any).snap && redirectUrl) {
-          window.open(redirectUrl, "_blank");
-        }
-      }, 1500);
-    }
-  };
-
   const handlePurchaseClick = async (pkg: TokenPackage) => {
     setSelectedPkg(pkg);
     setCheckingPending(true);
@@ -381,13 +325,6 @@ const ShopModule = () => {
       setTransactionId(data.transactionId);
       setIsModalLoading(false);
       setShowContact(false);
-
-      if (data.snapToken || data.redirectUrl) {
-        triggerSnapPayment(data.snapToken, data.redirectUrl);
-      } else if (isMobile && data.deeplinkUrl) {
-        toast.info("Membuka aplikasi GoPay...");
-        window.location.href = data.deeplinkUrl;
-      }
     } catch (e: Error | any) {
       setIsModalLoading(false);
       toast.error(e.message || "Gagal membuat kode QRIS.");
@@ -429,9 +366,7 @@ const ShopModule = () => {
       return;
     }
 
-    const snapTok = pendingPayment.snapToken || pendingPayment.metadata?.snap_token;
-    const redirectUrl = pendingPayment.metadata?.redirect_url;
-
+    const meta = pendingPayment.metadata || {};
     setPaymentData({
       transactionId: pendingPayment.id,
       orderId: pendingPayment.orderId,
@@ -439,10 +374,11 @@ const ShopModule = () => {
       tokenAmount: pendingPayment.tokenAmount,
       status: pendingPayment.status,
       paymentMethod: pendingPayment.paymentMethod,
-      qrCodeUrl: pendingPayment.metadata?.qr_code_url,
-      deeplinkUrl: pendingPayment.metadata?.deeplink_url,
-      snapToken: snapTok,
-      redirectUrl,
+      qrCodeUrl: meta.qr_code_url,
+      qrCode: meta.qr_string,
+      deeplinkUrl: meta.deeplink_url,
+      snapToken: pendingPayment.snapToken || meta.snap_token,
+      redirectUrl: meta.redirect_url,
       expiryTime: pendingPayment.expiresAt,
       packageName: pendingPayment.tokenPackage.name,
     });
@@ -450,12 +386,6 @@ const ShopModule = () => {
     setTransactionId(pendingPayment.id);
     setShowPendingDialog(false);
     setIsModalOpened(true);
-
-    if (snapTok || redirectUrl) {
-      triggerSnapPayment(snapTok, redirectUrl);
-    } else if (isMobile && pendingPayment.metadata?.deeplink_url) {
-      window.location.href = pendingPayment.metadata.deeplink_url;
-    }
   };
 
   const handleManualCheck = async () => {
@@ -902,100 +832,100 @@ const ShopModule = () => {
             </div>
           )}
 
-          {!isModalLoading && transactionId && !showContact && (
-            <div className="flex flex-col items-center gap-4">
-              <div className="text-center">
-                <p className="font-mono text-xs uppercase tracking-[0.06em] text-primary">
-                  ORDER #{paymentData?.orderId}
-                </p>
-                <h2 className="text-[20px] font-bold text-text mt-1">
-                  Scan QRIS untuk bayar
-                </h2>
-                <div className="font-mono text-2xl font-bold text-text mt-1 tabular-nums">
-                  Rp{(paymentData?.amount ?? selectedPkg?.price ?? 0).toLocaleString("id-ID")}
+          {!isModalLoading && transactionId && !showContact && (() => {
+            const qrImageUrl =
+              paymentData?.qrCodeUrl ||
+              (paymentData?.qrCode
+                ? `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(paymentData.qrCode)}&size=300x300`
+                : paymentData?.snapToken
+                ? `https://app.midtrans.com/snap/v1/transactions/${paymentData.snapToken}/qr-code`
+                : null);
+
+            return (
+              <div className="flex flex-col items-center gap-4 py-2">
+                <div className="text-center">
+                  <p className="font-mono text-xs font-bold uppercase tracking-[0.08em] text-primary">
+                    PEMBAYARAN QRIS
+                  </p>
+                  <h2 className="text-[20px] font-bold text-text mt-1">
+                    Scan QRIS untuk bayar
+                  </h2>
+                  <div className="font-mono text-2xl font-bold text-text mt-1 tabular-nums">
+                    Rp{(paymentData?.amount ?? selectedPkg?.price ?? 0).toLocaleString("id-ID")}
+                  </div>
                 </div>
-              </div>
 
-              {isMobile && paymentData?.deeplinkUrl && (
-                <Button
-                  onClick={() => {
-                    if (paymentData?.deeplinkUrl) {
-                      window.location.href = paymentData.deeplinkUrl;
-                    }
-                  }}
-                  variant="default"
-                  className="w-full"
-                >
-                  Buka aplikasi GoPay
-                </Button>
-              )}
-
-              {paymentData?.qrCodeUrl && (
-                <div className="p-4 border border-border rounded-lg bg-surface">
-                  <img
-                    src={paymentData.qrCodeUrl}
-                    alt="Kode QRIS"
-                    className="w-60 h-60 object-contain"
-                  />
-                </div>
-              )}
-
-              {(paymentData?.snapToken || paymentData?.redirectUrl) && (
-                <div className="w-full flex flex-col gap-2.5">
-                  <Button
-                    onClick={() => triggerSnapPayment(paymentData.snapToken, paymentData.redirectUrl)}
-                    variant="default"
-                    className="w-full h-11 text-base font-bold bg-[#1C4ED8] hover:bg-[#1E40AF]"
-                  >
-                    Buka Pop-up QRIS Midtrans
-                  </Button>
-                  {paymentData?.redirectUrl && (
-                    <a
-                      href={paymentData.redirectUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-center text-primary underline hover:text-primary/80 font-medium py-1"
-                    >
-                      Buka halaman bayar di tab baru (jika pop-up tidak muncul)
-                    </a>
+                <div className="w-full max-w-[280px] p-4 bg-white border border-border rounded-2xl flex items-center justify-center shadow-sm">
+                  {qrImageUrl ? (
+                    <img
+                      src={qrImageUrl}
+                      alt="Kode QRIS"
+                      className="w-56 h-56 object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-56 h-56 flex flex-col items-center justify-center text-text-muted gap-2">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <span className="text-xs">Memuat kode QRIS...</span>
+                    </div>
                   )}
                 </div>
-              )}
 
-              <div className="w-full bg-blue-50 border border-blue-200 rounded-md p-3 flex items-center justify-between text-[13px]">
-                <span className="inline-flex items-center gap-2 text-blue-800 font-medium">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                  {paymentStatus === "PENDING" || paymentStatus === "pending"
-                    ? "Menunggu pembayaran…"
-                    : paymentStatus}
-                </span>
-                <span className="font-mono text-xs text-text-muted">
-                  Batas:{" "}
-                  {paymentData?.expiryTime
-                    ? new Date(paymentData.expiryTime).toLocaleTimeString(
-                        "id-ID",
-                      )
-                    : "15 menit"}
-                </span>
-              </div>
+                <div className="text-center">
+                  <p className="font-mono text-xs text-text-muted">
+                    ID transaksi: <span className="text-text font-medium">{paymentData?.orderId || transactionId}</span>
+                  </p>
+                </div>
 
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleManualCheck}
-                disabled={isCheckingStatus}
-              >
-                {isCheckingStatus ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Memeriksa...
-                  </>
-                ) : (
-                  "Cek status bayar"
+                <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex items-center justify-between text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-blue-800 font-medium">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    {paymentStatus === "PENDING" || paymentStatus === "pending"
+                      ? "Menunggu pembayaran…"
+                      : paymentStatus}
+                  </span>
+                  <span className="font-mono text-text-muted">
+                    Batas:{" "}
+                    {paymentData?.expiryTime
+                      ? new Date(paymentData.expiryTime).toLocaleTimeString(
+                          "id-ID",
+                        )
+                      : "15 menit"}
+                  </span>
+                </div>
+
+                {isMobile && paymentData?.deeplinkUrl && (
+                  <Button
+                    onClick={() => {
+                      if (paymentData?.deeplinkUrl) {
+                        window.location.href = paymentData.deeplinkUrl;
+                      }
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                  >
+                    Buka di aplikasi GoPay
+                  </Button>
                 )}
-              </Button>
-            </div>
-          )}
+
+                <Button
+                  variant="default"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl text-sm shadow-sm"
+                  onClick={handleManualCheck}
+                  disabled={isCheckingStatus}
+                >
+                  {isCheckingStatus ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Memeriksa...
+                    </>
+                  ) : (
+                    "Cek status bayar"
+                  )}
+                </Button>
+              </div>
+            );
+          })()}
 
           {!isModalLoading && transactionId && showContact && (
             <div className="space-y-4">
@@ -1145,12 +1075,6 @@ const ShopModule = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      <Script
-        src="https://app.midtrans.com/snap/snap.js"
-        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-f_SyejAdwBpQXUPj"}
-        strategy="lazyOnload"
-      />
     </div>
   );
 };
