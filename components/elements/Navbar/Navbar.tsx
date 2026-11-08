@@ -36,8 +36,8 @@ const navItems = [
     icon: NotebookPen,
   },
   {
-    title: "Soal Asli",
-    path: "soal-asli",
+    title: "Arsip Soal",
+    path: "arsip-soal",
     icon: BookOpen,
   },
   {
@@ -93,7 +93,7 @@ const Navbar = () => {
   const bottomNavItems = [
     { title: "Beranda", path: "dashboard", icon: Home },
     { title: "Tryout", path: "tryout", icon: NotebookPen },
-    { title: "Soal Asli", path: "soal-asli", icon: BookOpen },
+    { title: "Arsip Soal", path: "arsip-soal", icon: BookOpen },
     { title: "Latihan", path: "latihan", icon: Flame },
     { title: "Coin", path: "shop", icon: ShoppingBag },
     { title: "Akun", path: "profile", icon: User },

@@ -7,6 +7,8 @@ export interface UserStats {
   weeklyActivity: number;
   totalFinished: number;
   currentStreak: number;
+  isPremium?: boolean;
+  premiumExpiresAt?: string | null;
 }
 
 export interface OngoingTryout {

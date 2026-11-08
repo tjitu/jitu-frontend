@@ -142,16 +142,16 @@ const ShopModule = () => {
   }, []);
 
   const premiumPassPkg = packages.find(
-    (p) => p.name.toLowerCase().includes("pass") || p.tokenAmount >= 100,
+    (p) => p.name.toLowerCase().includes("pass"),
   ) || {
     id: "f5f69e7c-9a5f-4214-917e-213a3cb000d9",
     name: "PTN Premium Pass",
-    tokenAmount: 1000,
+    tokenAmount: 4,
     price: 55000,
   };
 
   const coinPackages = packages.filter(
-    (p) => !p.name.toLowerCase().includes("pass") && p.tokenAmount < 100,
+    (p) => !p.name.toLowerCase().includes("pass"),
   );
 
   const handleActivatePremiumPass = () => {
@@ -172,6 +172,15 @@ const ShopModule = () => {
       try {
         const stats = await getUserStats();
         setUserBalance(stats.tokenBalance ?? 0);
+        if (typeof stats.isPremium === "boolean") {
+          setIsPremiumUser(stats.isPremium);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(
+              "jitu_ptn_premium_pass",
+              stats.isPremium ? "true" : "false",
+            );
+          }
+        }
       } catch (e) {
         console.error(e);
       }
@@ -535,7 +544,7 @@ const ShopModule = () => {
                       </span>
                     </h2>
                     <p className="text-[13px] sm:text-[14px] text-blue-100 mt-1 max-w-[55ch]">
-                      Satu tiket langganan untuk akses penuh fitur tryout, latihan ribuan soal tanpa batasan 10 soal/hari, dan pembahasan tanpa coin.
+                      Satu tiket langganan untuk bonus 4 coins, latihan ribuan soal tanpa batasan 10 soal/hari, dan bebas buka materi serta pembahasan tanpa coin.
                     </p>
                   </div>
                 </div>
@@ -546,21 +555,21 @@ const ShopModule = () => {
                     <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
                       <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
-                    <span>Latihan soal unlimited tanpa batas 10 soal/hari</span>
+                    <span>Bonus 4 Coins langsung aktif di akunmu</span>
                   </div>
 
                   <div className="flex items-center gap-2.5 text-[13px] text-blue-50 font-medium bg-white/10 rounded-xl p-2.5 border border-white/10 backdrop-blur-xs">
                     <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
                       <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
-                    <span>Bebas buka seluruh pembahasan tanpa coin</span>
+                    <span>Latihan ribuan soal unlimited tanpa batas 10 soal/hari</span>
                   </div>
 
                   <div className="flex items-center gap-2.5 text-[13px] text-blue-50 font-medium bg-white/10 rounded-xl p-2.5 border border-white/10 backdrop-blur-xs">
                     <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
                       <Check className="w-3.5 h-3.5 stroke-[3]" />
                     </div>
-                    <span>Analisis skor IRT & ranking prediksi nasional</span>
+                    <span>Bebas buka seluruh materi & pembahasan tanpa coin</span>
                   </div>
                 </div>
               </div>
@@ -1071,7 +1080,7 @@ const ShopModule = () => {
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                   <span>
-                    <strong>Latihan Soal Unlimited:</strong> Bebas akses latihan tanpa limit 10 soal per hari
+                    <strong>Bonus 4 Coins:</strong> Otomatis masuk ke saldo untuk tryout khusus
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -1079,7 +1088,15 @@ const ShopModule = () => {
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                   <span>
-                    <strong>Bebas Buka Pembahasan:</strong> Semua pembahasan tryout terbuka tanpa potong koin
+                    <strong>Latihan Soal Unlimited:</strong> Bebas akses ribuan bank soal tanpa limit 10 soal per hari
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                  <span>
+                    <strong>Unlimited Materi & Pembahasan:</strong> Bebas buka seluruh materi dan pembahasan tryout tanpa coin
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5">

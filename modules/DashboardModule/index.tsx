@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Camera,
   Loader2,
+  BookOpen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -469,6 +470,39 @@ const DashboardModule = () => {
             <Button onClick={() => router.push("/tryout")}>Lihat jadwal</Button>
           </div>
         )}
+      </section>
+
+      {/* 2b. Bank Soal Asli UTBK (2010 - 2026) Highlight Card */}
+      <section aria-label="Bank Soal Asli UTBK">
+        <div className="bg-surface rounded-xl border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-blue-300 transition-colors shadow-2xs">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-bold inline-flex items-center gap-1.5 border border-blue-200">
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Naskah Ujian Asli</span>
+              </span>
+              <span className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-800 text-[12px] font-semibold border border-yellow-200">
+                163 Paket · 2010 – 2026
+              </span>
+            </div>
+            <h2 className="text-[20px] font-bold text-text">
+              Arsip Soal Asli UTBK & SNBT
+            </h2>
+            <p className="text-[14px] text-text-body max-w-2xl leading-relaxed">
+              Pelajari dan latih kemampuanmu langsung dari naskah asli ujian tahun-tahun sebelumnya. Lengkap dengan lembar jawab digital, timer simulasi 30 menit, dan arsip 7 subtes.
+            </p>
+          </div>
+
+          <div className="shrink-0 flex items-center gap-3">
+            <Link
+              href="/arsip-soal"
+              className="min-h-[44px] px-5 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[14px] font-semibold inline-flex items-center gap-2 shadow-xs transition-colors"
+            >
+              <span>Buka Arsip Soal</span>
+              <ArrowRight className="w-4 h-4 stroke-[2]" />
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* 3. MIDDLE: Tryout Schedule Grid & Tabs */}

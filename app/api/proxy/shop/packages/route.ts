@@ -9,7 +9,7 @@ const FALLBACK_PACKAGES = [
   { id: "6f7a07c2-2080-4afe-9582-c9bfb88b438c", name: "3 coin", tokenAmount: 3, price: 39000 },
   { id: "fc9e0493-4812-4165-8e60-9db89c436b31", name: "5 coin", tokenAmount: 5, price: 59000 },
   { id: "10-coins-pack-best-value", name: "10 coin", tokenAmount: 10, price: 89000 },
-  { id: "f5f69e7c-9a5f-4214-917e-213a3cb000d9", name: "PTN Premium Pass", tokenAmount: 1000, price: 55000 },
+  { id: "f5f69e7c-9a5f-4214-917e-213a3cb000d9", name: "PTN Premium Pass", tokenAmount: 4, price: 55000 },
 ];
 
 export async function GET() {

@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
 import { PixelCoin } from "@/components/ui/pixel-coin";
-import SoalAsliSection from "@/components/soal-asli-section";
+import ArsipSoalTeaserSection from "@/components/arsip-soal-teaser";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 2-7)  */
@@ -274,7 +274,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const navLinks = [
     { href: "#jadwal", label: "Tryout" },
-    { href: "#soal-asli", label: "Soal Asli" },
+    { href: "/arsip-soal", label: "Arsip Soal", isRoute: true },
     { href: "#belajar", label: "Belajar" },
     { href: "#latihan", label: "Latihan" },
     { href: "/blog", label: "Blog", isRoute: true },
@@ -1664,7 +1664,7 @@ const LandingPageModule = () => {
         {/* ================================================================== */}
         {/* 4b. Arsip Soal Asli UTBK/SNBT Tahun-Tahun Sebelumnya               */}
         {/* ================================================================== */}
-        <SoalAsliSection />
+        <ArsipSoalTeaserSection />
 
         {/* ================================================================== */}
         {/* 5. Pricing — Harga & Paket Coin (DESIGN.md §5 & WRITING.md §7)     */}
@@ -1804,12 +1804,12 @@ const LandingPageModule = () => {
               >
                 Jadwal
               </a>
-              <a
-                href="#soal-asli"
+              <Link
+                href="/arsip-soal"
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
               >
-                Soal Asli
-              </a>
+                Arsip Soal
+              </Link>
               <a
                 href="#faq"
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"

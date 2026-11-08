@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getUserStats } from "@/lib/api/DashboardApi";
 import {
   InteractiveSolutionDeck,
   renderMathContent,
@@ -101,13 +102,25 @@ export function LatihanModule() {
   const [isDailyLimitModalOpen, setIsDailyLimitModalOpen] = useState(false);
   const [showProgressTooltip, setShowProgressTooltip] = useState(false);
 
-  // Check premium status & initialize daily attempt count from localStorage
+  // Check premium status & initialize daily attempt count from localStorage & backend
   useEffect(() => {
     if (typeof window !== "undefined") {
       const hasPass =
         localStorage.getItem("jitu_ptn_premium_pass") === "true" ||
         localStorage.getItem("jitu_is_premium") === "true";
       setIsPremiumUser(hasPass);
+
+      getUserStats()
+        .then((stats) => {
+          if (typeof stats.isPremium === "boolean") {
+            setIsPremiumUser(stats.isPremium);
+            localStorage.setItem(
+              "jitu_ptn_premium_pass",
+              stats.isPremium ? "true" : "false",
+            );
+          }
+        })
+        .catch(() => {});
 
       const todayKey = getTodayDateKey();
       const stored = localStorage.getItem(`jitu_daily_practice_${todayKey}`);

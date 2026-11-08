@@ -19,7 +19,7 @@ const FALLBACK_PACKAGES: Record<
   "3": { name: "5 coin", tokenAmount: 5, price: 59000 },
   "10-coins-pack-best-value": { name: "10 coin", tokenAmount: 10, price: 89000 },
   "4": { name: "10 coin", tokenAmount: 10, price: 89000 },
-  "f5f69e7c-9a5f-4214-917e-213a3cb000d9": { name: "PTN Premium Pass", tokenAmount: 1000, price: 55000 },
+  "f5f69e7c-9a5f-4214-917e-213a3cb000d9": { name: "PTN Premium Pass", tokenAmount: 4, price: 55000 },
 };
 
 export async function POST(

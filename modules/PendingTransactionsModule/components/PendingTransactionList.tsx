@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { AlertCircleIcon, Loader2, Clock, XCircle } from "lucide-react";
@@ -25,6 +25,11 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
+  const onCountChangeRef = useRef(onCountChange);
+  useEffect(() => {
+    onCountChangeRef.current = onCountChange;
+  }, [onCountChange]);
+
   useEffect(() => {
     async function fetchPendingTransactions() {
       setIsLoading(true);
@@ -41,7 +46,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
         const data = await response.json();
         const list = Array.isArray(data) ? data : [];
         setTransactions(list);
-        onCountChange?.(list.length);
+        onCountChangeRef.current?.(list.length);
       } catch (error: any) {
         toast.error(error.message || "Data gagal dimuat.");
       } finally {
@@ -50,7 +55,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
     }
 
     fetchPendingTransactions();
-  }, [onCountChange]);
+  }, []);
 
   const handleOpenQris = (txId: string) => {
     setIsModalLoading(true);
@@ -102,11 +107,9 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
         setTransactionId(null);
       }
 
-      setTransactions((prev) => {
-        const updated = prev.filter((t) => t.id !== id);
-        onCountChange?.(updated.length);
-        return updated;
-      });
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      const nextCount = transactions.filter((t) => t.id !== id).length;
+      onCountChangeRef.current?.(nextCount);
     } catch (err: any) {
       toast.error(err.message || "Gagal membatalkan transaksi.");
     } finally {
