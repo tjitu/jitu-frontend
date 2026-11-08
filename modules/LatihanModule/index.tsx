@@ -431,18 +431,14 @@ export function LatihanModule() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
-                  <Flame className="w-3.5 h-3.5 text-blue-600" />
-                  Mode Latihan Interaktif
-                </span>
-                {isPremiumUser && (
+              {isPremiumUser && (
+                <div className="mb-1.5">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-300 text-xs font-bold">
                     <Crown className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
                     PTN Premium Pass
                   </span>
-                )}
-              </div>
+                </div>
+              )}
               <h1 className="text-xl sm:text-2xl font-extrabold text-text tracking-tight m-0">
                 Latihan Soal SNBT & UTBK
               </h1>
@@ -460,7 +456,7 @@ export function LatihanModule() {
                     }
                   }}
                 >
-                  <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-surface-muted/60 border border-border hover:border-primary/50 transition-colors shadow-2xs">
+                  <div className="flex items-center gap-2.5 py-1">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-text whitespace-nowrap">
                       <Zap
                         className={`w-3.5 h-3.5 ${
@@ -476,7 +472,7 @@ export function LatihanModule() {
                     </div>
 
                     {/* Progressive Bar */}
-                    <div className="w-20 sm:w-28 h-2 rounded-full bg-border overflow-hidden">
+                    <div className="w-20 sm:w-28 h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
                       <div
                         className={`h-full transition-all duration-500 rounded-full ${
                           dailyAnsweredCount >= DAILY_FREE_LIMIT
@@ -493,18 +489,6 @@ export function LatihanModule() {
                         }}
                       />
                     </div>
-
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                        dailyAnsweredCount >= DAILY_FREE_LIMIT
-                          ? "bg-rose-100 text-rose-800 border border-rose-300 animate-pulse"
-                          : "bg-blue-100/70 text-blue-800 border border-blue-200"
-                      }`}
-                    >
-                      {dailyAnsweredCount >= DAILY_FREE_LIMIT
-                        ? "Habis"
-                        : "Akun Free"}
-                    </span>
                   </div>
 
                   {/* Hover Info Tooltip (direct to PTN Premium Pass) */}
@@ -515,7 +499,7 @@ export function LatihanModule() {
                       </div>
                       <div>
                         <h4 className="text-xs font-bold text-text">
-                          Batas 10 Soal Harian (Akun Free)
+                          Batas 10 Soal Harian
                         </h4>
                         <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
                           Kamu sudah mengerjakan{" "}
@@ -554,7 +538,7 @@ export function LatihanModule() {
               )}
 
               {/* Subtest Quick Filter */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {SUBTESTS.slice(0, 4).map((sub) => {
                   const isActive = selectedSubtest === sub.id;
                   return (
@@ -614,59 +598,69 @@ export function LatihanModule() {
         ) : activeQuestion ? (
           <div className="space-y-5">
             {/* ------------------------------------------------------------
-                QUESTION NAVIGATOR STRIP (Numbers 1, 2, 3... & Acak Soal)
+                QUESTION NAVIGATOR STRIP
+                Premium: Navigasi Soal (1, 2, 3...) + Prev / Next
+                Free: No navigasi soal (cuma ada Prev & Next)
                 ------------------------------------------------------------ */}
-            <div className="bg-surface border border-border rounded-2xl p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                <span className="text-xs font-semibold text-text-muted mr-1 whitespace-nowrap">
-                  Navigasi Soal:
-                </span>
-                {questions.map((q, idx) => {
-                  const isActive = q.id === activeQuestion.id;
-                  const attempt = attempts[q.id];
-                  const isAnswered = Boolean(attempt);
-                  const isCorrect = attempt?.isCorrect;
+            <div className="bg-surface border border-border rounded-2xl p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {isPremiumUser ? (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  <span className="text-xs font-semibold text-text-muted mr-1 whitespace-nowrap">
+                    Navigasi Soal:
+                  </span>
+                  {questions.map((q, idx) => {
+                    const isActive = q.id === activeQuestion.id;
+                    const attempt = attempts[q.id];
+                    const isAnswered = Boolean(attempt);
+                    const isCorrect = attempt?.isCorrect;
 
-                  let badgeStyles =
-                    "bg-surface-muted text-text-body border-border hover:border-blue-400";
+                    let badgeStyles =
+                      "bg-surface-muted text-text-body border-border hover:border-blue-400";
 
-                  if (isActive) {
-                    badgeStyles =
-                      "bg-primary text-on-primary border-primary ring-2 ring-primary/30 shadow-xs font-bold";
-                  } else if (isAnswered) {
-                    if (isCorrect) {
+                    if (isActive) {
                       badgeStyles =
-                        "bg-emerald-50 text-emerald-700 border-emerald-300 font-bold";
-                    } else {
-                      badgeStyles =
-                        "bg-rose-50 text-rose-700 border-rose-300 font-bold";
+                        "bg-primary text-on-primary border-primary ring-2 ring-primary/30 shadow-xs font-bold";
+                    } else if (isAnswered) {
+                      if (isCorrect) {
+                        badgeStyles =
+                          "bg-emerald-50 text-emerald-700 border-emerald-300 font-bold";
+                      } else {
+                        badgeStyles =
+                          "bg-rose-50 text-rose-700 border-rose-300 font-bold";
+                      }
                     }
-                  }
 
-                  return (
-                    <button
-                      key={q.id}
-                      type="button"
-                      onClick={() => handleSelectQuestion(q.id)}
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-xs transition-all cursor-pointer ${badgeStyles}`}
-                      title={`Soal ${idx + 1} (${q.subtest.replace(/_/g, " ")})`}
-                    >
-                      {isAnswered && !isActive ? (
-                        isCorrect ? (
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => handleSelectQuestion(q.id)}
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-xs transition-all cursor-pointer ${badgeStyles}`}
+                        title={`Soal ${idx + 1} (${q.subtest.replace(/_/g, " ")})`}
+                      >
+                        {isAnswered && !isActive ? (
+                          isCorrect ? (
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          ) : (
+                            <X className="w-3.5 h-3.5 stroke-[3]" />
+                          )
                         ) : (
-                          <X className="w-3.5 h-3.5 stroke-[3]" />
-                        )
-                      ) : (
-                        idx + 1
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                          idx + 1
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-text-muted">
+                    Latihan Soal UTBK
+                  </span>
+                </div>
+              )}
 
               {/* Prev / Next & Acak Soal Buttons */}
-              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border">
+              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border ml-auto">
                 <span className="text-xs font-medium text-text-muted sm:hidden">
                   {activeQuestionIndex + 1} / {questions.length}
                 </span>
@@ -805,9 +799,8 @@ export function LatihanModule() {
 
                     {/* Options List A - E */}
                     <div className="space-y-3 pt-2">
-                      <div className="flex items-center justify-between text-xs font-semibold text-text-muted">
+                      <div className="text-xs font-semibold text-text-muted">
                         <span>PILIH SALAH SATU JAWABAN:</span>
-                        <span className="hidden sm:inline font-mono">Bisa tekan A - E di keyboard</span>
                       </div>
 
                       <div className="grid grid-cols-1 gap-2.5">
