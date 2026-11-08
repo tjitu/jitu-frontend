@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
 import { PixelCoin } from "@/components/ui/pixel-coin";
+import SoalAsliSection from "@/components/soal-asli-section";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 2-7)  */
@@ -273,6 +274,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const navLinks = [
     { href: "#jadwal", label: "Tryout" },
+    { href: "#soal-asli", label: "Soal Asli" },
     { href: "#belajar", label: "Belajar" },
     { href: "#latihan", label: "Latihan" },
     { href: "/blog", label: "Blog", isRoute: true },
@@ -1660,6 +1662,11 @@ const LandingPageModule = () => {
         </section>
 
         {/* ================================================================== */}
+        {/* 4b. Arsip Soal Asli UTBK/SNBT Tahun-Tahun Sebelumnya               */}
+        {/* ================================================================== */}
+        <SoalAsliSection />
+
+        {/* ================================================================== */}
         {/* 5. Pricing — Harga & Paket Coin (DESIGN.md §5 & WRITING.md §7)     */}
         {/* ================================================================== */}
         <section id="harga" className="py-16 lg:py-24 bg-white border-b border-border relative overflow-hidden">
@@ -1796,6 +1803,12 @@ const LandingPageModule = () => {
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
               >
                 Jadwal
+              </a>
+              <a
+                href="#soal-asli"
+                className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
+              >
+                Soal Asli
               </a>
               <a
                 href="#faq"

@@ -141,14 +141,22 @@ const ShopModule = () => {
     }
   }, []);
 
+  const premiumPassPkg = packages.find(
+    (p) => p.name.toLowerCase().includes("pass") || p.tokenAmount >= 100,
+  ) || {
+    id: "f5f69e7c-9a5f-4214-917e-213a3cb000d9",
+    name: "PTN Premium Pass",
+    tokenAmount: 1000,
+    price: 55000,
+  };
+
+  const coinPackages = packages.filter(
+    (p) => !p.name.toLowerCase().includes("pass") && p.tokenAmount < 100,
+  );
+
   const handleActivatePremiumPass = () => {
     setIsPremiumModalOpen(false);
-    handlePurchaseClick({
-      id: "f5f69e7c-9a5f-4214-917e-213a3cb000d9",
-      name: "PTN Premium Pass",
-      tokenAmount: 1000,
-      price: 55000,
-    });
+    handlePurchaseClick(premiumPassPkg);
   };
 
   useEffect(() => {
@@ -323,6 +331,7 @@ const ShopModule = () => {
       const data: EWalletPaymentResponse = await res.json();
       setPaymentData(data);
       setTransactionId(data.transactionId);
+      setPendingCount((prev) => prev + 1);
       setIsModalLoading(false);
       setShowContact(false);
     } catch (e: Error | any) {
@@ -459,8 +468,15 @@ const ShopModule = () => {
       <Tabs defaultValue="buy" className="space-y-6">
         <TabsList>
           <TabsTrigger value="buy">Beli coin</TabsTrigger>
-          <TabsTrigger value="pending">
-            Menunggu ({pendingCount})
+          <TabsTrigger value="pending" className="flex items-center gap-1.5">
+            <span>Menunggu</span>
+            {pendingCount > 0 ? (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shadow-xs animate-pulse">
+                {pendingCount}
+              </span>
+            ) : (
+              <span className="text-xs text-text-muted">(0)</span>
+            )}
           </TabsTrigger>
           <TabsTrigger value="history">Riwayat</TabsTrigger>
         </TabsList>
@@ -554,7 +570,7 @@ const ShopModule = () => {
                 <div className="text-left lg:text-right">
                   <div className="inline-flex items-baseline gap-1.5">
                     <span className="text-[32px] sm:text-[38px] lg:text-[40px] font-black text-white leading-none tracking-tight tabular-nums">
-                      Rp55.000
+                      Rp{premiumPassPkg.price.toLocaleString("id-ID")}
                     </span>
                     <span className="text-[14px] sm:text-[15px] font-bold text-blue-200">
                       /bulan
@@ -605,7 +621,7 @@ const ShopModule = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {packages.map((pkg, index) => {
+              {coinPackages.map((pkg, index) => {
                 const basePerToken = 15000;
                 const standardPrice = basePerToken * pkg.tokenAmount;
                 const originalPrice = Math.max(
@@ -660,7 +676,7 @@ const ShopModule = () => {
         </TabsContent>
 
         <TabsContent value="pending">
-          <PendingTransactionList />
+          <PendingTransactionList onCountChange={setPendingCount} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -923,6 +939,48 @@ const ShopModule = () => {
                     "Cek status bayar"
                   )}
                 </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  disabled={cancellingPayment}
+                  onClick={async () => {
+                    if (!transactionId) return;
+                    setCancellingPayment(true);
+                    try {
+                      const res = await fetch(
+                        `${BACKEND_URL}/shop/cancel/${transactionId}`,
+                        {
+                          method: "POST",
+                          credentials: "include",
+                        },
+                      );
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.message || "Gagal membatalkan transaksi.");
+                      }
+                      toast.success("Transaksi berhasil dibatalkan.");
+                      setIsModalOpened(false);
+                      setTransactionId(null);
+                      setPaymentData(null);
+                      setPendingCount((prev) => Math.max(0, prev - 1));
+                    } catch (err: any) {
+                      toast.error(err.message || "Gagal membatalkan transaksi.");
+                    } finally {
+                      setCancellingPayment(false);
+                    }
+                  }}
+                >
+                  {cancellingPayment ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                      Membatalkan...
+                    </>
+                  ) : (
+                    "Batalkan transaksi ini"
+                  )}
+                </Button>
               </div>
             );
           })()}
@@ -1039,7 +1097,7 @@ const ShopModule = () => {
               <span className="text-blue-200">Biaya Langganan:</span>
               <div className="flex items-baseline gap-1">
                 <span className="text-lg sm:text-xl font-black text-white">
-                  Rp55.000
+                  Rp{premiumPassPkg.price.toLocaleString("id-ID")}
                 </span>
                 <span className="text-xs text-blue-200">/bulan</span>
               </div>
@@ -1067,7 +1125,7 @@ const ShopModule = () => {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 fill-black" />
-                    <span>Bayar & Aktifkan Sekarang (Rp55.000)</span>
+                    <span>Bayar & Aktifkan Sekarang (Rp{premiumPassPkg.price.toLocaleString("id-ID")})</span>
                   </>
                 )}
               </button>

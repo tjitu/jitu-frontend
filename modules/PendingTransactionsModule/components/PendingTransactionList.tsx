@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { AlertCircleIcon, Loader2, Clock } from "lucide-react";
+import { AlertCircleIcon, Loader2, Clock, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,7 +10,11 @@ import { contactInfos } from "../../ShopModule/payload";
 import { PendingTransaction, TransactionData } from "../interface";
 import { BACKEND_URL } from "@/lib/api";
 
-const PendingTransactionList = () => {
+interface PendingTransactionListProps {
+  onCountChange?: (count: number) => void;
+}
+
+const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<PendingTransaction[]>([]);
   const [isModalOpened, setIsModalOpened] = useState(false);
@@ -19,6 +23,7 @@ const PendingTransactionList = () => {
   const [showContact, setShowContact] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPendingTransactions() {
@@ -34,7 +39,9 @@ const PendingTransactionList = () => {
         }
 
         const data = await response.json();
-        setTransactions(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : [];
+        setTransactions(list);
+        onCountChange?.(list.length);
       } catch (error: any) {
         toast.error(error.message || "Data gagal dimuat.");
       } finally {
@@ -43,7 +50,69 @@ const PendingTransactionList = () => {
     }
 
     fetchPendingTransactions();
-  }, []);
+  }, [onCountChange]);
+
+  const handleOpenQris = (txId: string) => {
+    setIsModalLoading(true);
+    setIsModalOpened(true);
+
+    fetch(`${BACKEND_URL}/shop/data/${txId}`, {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(res.statusText);
+        }
+        return res.json();
+      })
+      .then((data: TransactionData) => {
+        setIsModalLoading(false);
+        setTransactionId(data.id);
+        setQrCode(data.qris);
+        if (data.metadata?.qr_code_url) {
+          setQrCodeUrl(data.metadata.qr_code_url);
+        } else {
+          setQrCodeUrl(null);
+        }
+        setShowContact(false);
+      })
+      .catch(() => {
+        setIsModalLoading(false);
+        toast.error("Gagal mengambil kode QRIS.");
+      });
+  };
+
+  const handleCancel = async (id: string) => {
+    setCancellingId(id);
+    try {
+      const res = await fetch(`${BACKEND_URL}/shop/cancel/${id}`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Gagal membatalkan transaksi.");
+      }
+
+      toast.success("Transaksi berhasil dibatalkan.");
+      if (transactionId === id) {
+        setIsModalOpened(false);
+        setTransactionId(null);
+      }
+
+      setTransactions((prev) => {
+        const updated = prev.filter((t) => t.id !== id);
+        onCountChange?.(updated.length);
+        return updated;
+      });
+    } catch (err: any) {
+      toast.error(err.message || "Gagal membatalkan transaksi.");
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -66,37 +135,7 @@ const PendingTransactionList = () => {
           {transactions.map((tx) => (
             <div
               key={tx.id}
-              onClick={() => {
-                setIsModalLoading(true);
-                setIsModalOpened(true);
-
-                fetch(`${BACKEND_URL}/shop/data/${tx.id}`, {
-                  method: "GET",
-                  credentials: "include",
-                })
-                  .then((res) => {
-                    if (!res.ok) {
-                      throw new Error(res.statusText);
-                    }
-                    return res.json();
-                  })
-                  .then((data: TransactionData) => {
-                    setIsModalLoading(false);
-                    setTransactionId(data.id);
-                    setQrCode(data.qris);
-                    if (data.metadata?.qr_code_url) {
-                      setQrCodeUrl(data.metadata.qr_code_url);
-                    } else {
-                      setQrCodeUrl(null);
-                    }
-                    setShowContact(false);
-                  })
-                  .catch(() => {
-                    setIsModalLoading(false);
-                    toast.error("Gagal mengambil kode QRIS.");
-                  });
-              }}
-              className="bg-surface border border-border rounded-lg p-5 cursor-pointer hover:border-blue-300 transition-colors flex flex-col justify-between gap-4"
+              className="bg-surface border border-border rounded-xl p-5 hover:border-slate-300 transition-colors flex flex-col justify-between gap-4 shadow-2xs"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -124,6 +163,39 @@ const PendingTransactionList = () => {
                     minute: "2-digit",
                   })}
                 </span>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                  disabled={cancellingId === tx.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancel(tx.id);
+                  }}
+                >
+                  {cancellingId === tx.id ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                      Membatalkan...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-3.5 h-3.5 mr-1" />
+                      Batalkan
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="text-xs flex-1 bg-primary hover:bg-primary/90 text-white font-medium"
+                  onClick={() => handleOpenQris(tx.id)}
+                >
+                  Bayar Sekarang
+                </Button>
               </div>
             </div>
           ))}
@@ -155,9 +227,9 @@ const PendingTransactionList = () => {
           )}
 
           {!isModalLoading && transactionId && !showContact && (
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4 py-2">
               <div className="text-center">
-                <p className="text-label text-primary">
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.08em] text-primary">
                   PEMBAYARAN QRIS
                 </p>
                 <h2 className="text-[20px] font-bold text-text mt-1">
@@ -165,23 +237,23 @@ const PendingTransactionList = () => {
                 </h2>
               </div>
 
-              <div className="flex justify-center items-center p-4 w-full border border-border rounded-lg bg-surface">
+              <div className="w-full max-w-[280px] p-4 bg-white border border-border rounded-2xl flex items-center justify-center shadow-sm">
                 {qrCodeUrl ? (
                   <img
                     src={qrCodeUrl}
                     alt="Kode QRIS"
-                    className="w-60 h-60 object-contain"
+                    className="w-56 h-56 object-contain rounded-lg"
                   />
                 ) : qrCode ? (
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
                       qrCode,
-                    )}`}
+                    )}&size=300x300`}
                     alt="Kode QRIS"
-                    className="w-48 h-48 object-contain"
+                    className="w-56 h-56 object-contain rounded-lg"
                   />
                 ) : (
-                  <p className="text-sm text-text-muted py-12">
+                  <p className="text-sm text-text-muted py-12 text-center">
                     Waktu bayar habis. Buat kode QRIS baru untuk lanjut.
                   </p>
                 )}
@@ -191,13 +263,31 @@ const PendingTransactionList = () => {
                 ID transaksi: {transactionId}
               </p>
 
-              <Button
-                variant="default"
-                className="w-full"
-                onClick={() => setShowContact(true)}
-              >
-                Cek status bayar
-              </Button>
+              <div className="w-full flex flex-col gap-2 pt-1">
+                <Button
+                  variant="default"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl text-sm shadow-sm"
+                  onClick={() => setShowContact(true)}
+                >
+                  Cek status bayar
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  disabled={cancellingId === transactionId}
+                  onClick={() => transactionId && handleCancel(transactionId)}
+                >
+                  {cancellingId === transactionId ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                      Membatalkan transaksi...
+                    </>
+                  ) : (
+                    "Batalkan transaksi ini"
+                  )}
+                </Button>
+              </div>
             </div>
           )}
 

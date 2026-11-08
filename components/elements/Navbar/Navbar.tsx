@@ -9,6 +9,7 @@ import {
   LogOut,
   User,
   Ticket,
+  BookOpen,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -33,6 +34,11 @@ const navItems = [
     title: "Tryout",
     path: "tryout",
     icon: NotebookPen,
+  },
+  {
+    title: "Soal Asli",
+    path: "soal-asli",
+    icon: BookOpen,
   },
   {
     title: "Latihan",
@@ -87,6 +93,7 @@ const Navbar = () => {
   const bottomNavItems = [
     { title: "Beranda", path: "dashboard", icon: Home },
     { title: "Tryout", path: "tryout", icon: NotebookPen },
+    { title: "Soal Asli", path: "soal-asli", icon: BookOpen },
     { title: "Latihan", path: "latihan", icon: Flame },
     { title: "Coin", path: "shop", icon: ShoppingBag },
     { title: "Akun", path: "profile", icon: User },
