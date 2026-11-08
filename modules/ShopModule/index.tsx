@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,10 @@ import {
   Smartphone,
   Monitor,
   XCircle,
+  Check,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -95,7 +100,55 @@ const ShopModule = () => {
   const [checkingPending, setCheckingPending] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
+  // PTN Premium Pass State
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isHighlightPass, setIsHighlightPass] = useState(false);
+  const [isActivatingPass, setIsActivatingPass] = useState(false);
+
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const active =
+        localStorage.getItem("jitu_ptn_premium_pass") === "true" ||
+        localStorage.getItem("jitu_is_premium") === "true";
+      setIsPremiumUser(active);
+
+      const params = new URLSearchParams(window.location.search);
+      if (
+        params.get("highlight") === "premium-pass" ||
+        window.location.hash === "#ptn-premium-pass-card"
+      ) {
+        setIsHighlightPass(true);
+        setTimeout(() => {
+          const el = document.getElementById("ptn-premium-pass-card");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 200);
+        setTimeout(() => {
+          setIsHighlightPass(false);
+        }, 5000);
+      }
+    }
+  }, []);
+
+  const handleActivatePremiumPass = () => {
+    setIsActivatingPass(true);
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("jitu_ptn_premium_pass", "true");
+        localStorage.setItem("jitu_is_premium", "true");
+      }
+      setIsPremiumUser(true);
+      setIsActivatingPass(false);
+      setIsPremiumModalOpen(false);
+      toast.success(
+        "Selamat! PTN Premium Pass aktif. Nikmati latihan unlimited tanpa batas dan buka semua pembahasan!",
+      );
+    }, 1200);
+  };
 
   useEffect(() => {
     setIsMobile(
@@ -416,7 +469,140 @@ const ShopModule = () => {
           <TabsTrigger value="history">Riwayat</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="buy">
+        <TabsContent value="buy" className="space-y-8">
+          {/* PTN Premium Pass Hero Card */}
+          <div
+            id="ptn-premium-pass-card"
+            className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1C4ED8] via-[#2563EB] to-[#1E40AF] p-6 sm:p-8 lg:p-9 shadow-xl border border-blue-400/30 transition-all duration-300 ${
+              isHighlightPass
+                ? "ring-4 ring-yellow-400 ring-offset-4 ring-offset-bg shadow-2xl scale-[1.01]"
+                : ""
+            }`}
+          >
+            {/* Background Glows & Accent Doodles */}
+            <div
+              aria-hidden="true"
+              className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-blue-400/25 blur-3xl pointer-events-none"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-yellow-400/20 blur-3xl pointer-events-none"
+            />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8">
+              {/* Left: Info, Golden Ticket & 3 Benefits */}
+              <div className="space-y-4 max-w-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-14 sm:w-20 sm:h-16 shrink-0 relative select-none animate-ticket-float">
+                    <Image
+                      src="/icons/golden-pass-ticket.png"
+                      alt="Tiket Golden Pass PTN Premium Pass"
+                      fill
+                      className="object-contain drop-shadow-md select-none pointer-events-none"
+                      priority
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFD13B] text-black text-[11px] font-black uppercase tracking-wider shadow-xs">
+                        <Sparkles className="w-3 h-3 fill-black" />
+                        Paling Hemat · Rekomendasi
+                      </span>
+                      {isPremiumUser && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 text-[11px] font-bold">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Pass Aktif
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-[26px] sm:text-[32px] lg:text-[36px] font-black text-white tracking-tight leading-tight">
+                      PTN{" "}
+                      <span className="bg-[#FFD13B] text-black px-2 py-0.5 rounded-sm">
+                        PREMIUM PASS
+                      </span>
+                    </h2>
+                    <p className="text-[13px] sm:text-[14px] text-blue-100 mt-1 max-w-[55ch]">
+                      Satu tiket langganan untuk akses penuh fitur tryout, latihan ribuan soal tanpa batasan 10 soal/hari, dan pembahasan tanpa coin.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3 Checkmark Benefits */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3.5 pt-1">
+                  <div className="flex items-center gap-2.5 text-[13px] text-blue-50 font-medium bg-white/10 rounded-xl p-2.5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                    <span>Latihan soal unlimited tanpa batas 10 soal/hari</span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 text-[13px] text-blue-50 font-medium bg-white/10 rounded-xl p-2.5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                    <span>Bebas buka seluruh pembahasan tanpa coin</span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 text-[13px] text-blue-50 font-medium bg-white/10 rounded-xl p-2.5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                    <span>Analisis skor IRT & ranking prediksi nasional</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Price & CTA */}
+              <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-center gap-4 shrink-0 pt-4 lg:pt-0 border-t border-blue-400/30 lg:border-t-0">
+                <div className="text-left lg:text-right">
+                  <div className="inline-flex items-baseline gap-1.5">
+                    <span className="text-[32px] sm:text-[38px] lg:text-[40px] font-black text-white leading-none tracking-tight tabular-nums">
+                      Rp55.000
+                    </span>
+                    <span className="text-[14px] sm:text-[15px] font-bold text-blue-200">
+                      /bulan
+                    </span>
+                  </div>
+                  <div className="text-[12px] text-blue-200/80 font-medium mt-1">
+                    Langganan fleksibel · Bisa batalkan kapan saja
+                  </div>
+                </div>
+
+                {isPremiumUser ? (
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 font-bold text-[14px]">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <span>PTN Premium Pass Kamu Aktif</span>
+                  </div>
+                ) : (
+                  <div className="relative p-[2.5px] rounded-xl overflow-hidden shadow-lg group/btn hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150">
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-[-200%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,rgba(255,255,255,0.95)_80%,#FFD13B_92%,transparent_100%)] pointer-events-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsPremiumModalOpen(true)}
+                      className="relative w-full sm:w-auto min-h-[48px] px-8 py-3 rounded-[10px] bg-[#FFD13B] hover:bg-[#ffc81f] active:bg-[#e6b315] text-black font-extrabold text-[15px] inline-flex items-center justify-center gap-2 transition-colors duration-120 cursor-pointer"
+                    >
+                      <span>Ambil Premium Pass</span>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Section Divider: Atau Beli Paket Coin */}
+          <div className="flex items-center gap-3">
+            <div className="h-px bg-border flex-1" />
+            <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
+              Atau Beli Paket Coin (Bayar Sekali Tanpa Langganan)
+            </span>
+            <div className="h-px bg-border flex-1" />
+          </div>
+
           {loadingPackages ? (
             <div className="bg-surface border border-border rounded-lg p-12 text-center text-[13px] font-medium text-text-muted">
               Memuat paket coin...
@@ -759,6 +945,116 @@ const ShopModule = () => {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* PTN Premium Pass Purchase Modal */}
+      <Dialog open={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen}>
+        <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden bg-gradient-to-br from-[#1C4ED8] via-[#2563EB] to-[#1E40AF] border-blue-400/30 text-white shadow-2xl">
+          <div className="relative p-6 sm:p-7 space-y-5">
+            <div
+              aria-hidden="true"
+              className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-blue-400/20 blur-3xl pointer-events-none"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-yellow-400/15 blur-3xl pointer-events-none"
+            />
+
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-14 sm:w-20 sm:h-16 relative shrink-0 select-none animate-ticket-float">
+                <Image
+                  src="/icons/golden-pass-ticket.png"
+                  alt="Tiket Golden Pass PTN Premium Pass"
+                  fill
+                  className="object-contain drop-shadow-lg"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFD13B] text-black text-[11px] font-black uppercase tracking-wider">
+                  <Sparkles className="w-3 h-3 fill-black" />
+                  Konfirmasi Aktivasi
+                </span>
+                <DialogTitle className="text-xl sm:text-2xl font-black text-white leading-tight">
+                  Aktivasi PTN Premium Pass
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-blue-200">
+                  Dapatkan akses unlimited latihan soal dan bebas buka pembahasan tryout sekarang.
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-white/[0.08] border border-white/15 p-4 sm:p-5 space-y-3 backdrop-blur-xs">
+              <div className="text-xs font-bold uppercase tracking-wider text-yellow-300">
+                Benefit yang Langsung Kamu Dapatkan:
+              </div>
+              <div className="space-y-2.5 text-xs sm:text-[13px] text-blue-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                  <span>
+                    <strong>Latihan Soal Unlimited:</strong> Bebas akses latihan tanpa limit 10 soal per hari
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                  <span>
+                    <strong>Bebas Buka Pembahasan:</strong> Semua pembahasan tryout terbuka tanpa potong koin
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                  <span>
+                    <strong>Analisis Skor IRT & Prediksi Kelulusan:</strong> Pantau target PTN impianmu
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-950/40 rounded-xl p-3.5 border border-white/10 flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-blue-200">Biaya Langganan:</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg sm:text-xl font-black text-white">
+                  Rp55.000
+                </span>
+                <span className="text-xs text-blue-200">/bulan</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setIsPremiumModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl border border-white/20 hover:bg-white/10 text-xs font-semibold text-white transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleActivatePremiumPass}
+                disabled={isActivatingPass}
+                className="px-6 py-2.5 rounded-xl bg-[#FFD13B] hover:bg-[#ffc81f] text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                {isActivatingPass ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-black" />
+                    <span>Mengaktifkan Pass...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 fill-black" />
+                    <span>Bayar & Aktifkan Sekarang (Rp55.000)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
