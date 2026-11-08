@@ -540,38 +540,10 @@ const ShopModule = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Top Summary Bar: Current Coin Balance */}
-      <div className="bg-surface border border-border rounded-lg p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <p className="text-label text-primary mb-1">
-            BELI COIN TRYOUT · BAYAR SEKALI VIA QRIS
-          </p>
-          <h1 className="text-h2 font-bold text-text">
-            Paket coin tanpa langganan
-          </h1>
-          <p className="text-[14px] text-text-muted mt-1 max-w-[58ch]">
-            1 coin membuka skor IRT dan pembahasan 155 soal untuk 1 tryout.
-            Berlaku sampai 21 Apr 2027.
-          </p>
-        </div>
-
-        <div className="bg-surface-muted border border-border rounded-md px-5 py-3.5 shrink-0">
-          <div className="text-label text-text-muted mb-1">
-            SALDO COIN KAMU
-          </div>
-          <div className="flex items-center gap-2">
-            <PixelCoin size={24} />
-            <div className="font-mono text-[26px] leading-tight font-bold text-text tabular-nums">
-              {userBalance} coin
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs: Beli Coin | Menunggu (n) | Riwayat */}
+      {/* Tabs: Beli | Menunggu (n) | Riwayat */}
       <Tabs defaultValue="buy" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="buy">Beli coin</TabsTrigger>
+          <TabsTrigger value="buy">Beli</TabsTrigger>
           <TabsTrigger value="pending" className="flex items-center gap-1.5">
             <span>Menunggu</span>
             {pendingCount > 0 ? (
@@ -1043,6 +1015,9 @@ const ShopModule = () => {
             setShowContact(false);
             setPaymentData(null);
             setPaymentStatus("pending");
+            setVoucherInput("");
+            setAppliedVoucher(null);
+            setValidatingVoucher(false);
           }
         }}
         modal
@@ -1059,13 +1034,92 @@ const ShopModule = () => {
                 </DialogTitle>
                 <DialogDescription className="text-[14px] text-text-body">
                   Total tagihan{" "}
-                  <span className="font-mono font-semibold text-text">
-                    Rp{(selectedPkg?.price ?? 0).toLocaleString("id-ID")}
-                  </span>
+                  {appliedVoucher ? (
+                    <>
+                      <span className="font-mono text-text-muted line-through mr-1.5">
+                        Rp{(selectedPkg?.price ?? 0).toLocaleString("id-ID")}
+                      </span>
+                      <span className="font-mono font-bold text-emerald-500 text-base">
+                        Rp{appliedVoucher.finalPrice.toLocaleString("id-ID")}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="font-mono font-semibold text-text">
+                      Rp{(selectedPkg?.price ?? 0).toLocaleString("id-ID")}
+                    </span>
+                  )}
                   . Bisa dibayar pakai GoPay, OVO, DANA, ShopeePay, atau
                   m-banking.
                 </DialogDescription>
               </DialogHeader>
+
+              {/* Voucher / Referral Code Input Box */}
+              {!appliedVoucher ? (
+                <div className="mt-2 p-3 rounded-xl border border-border bg-surface-muted/50">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-text mb-2">
+                    <Ticket className="w-3.5 h-3.5 text-primary" />
+                    <span>Punya Kode Voucher / Referal?</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Masukkan kode..."
+                      className="flex-1 uppercase font-mono text-xs px-3 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-1 focus:ring-primary placeholder:normal-case placeholder:font-sans"
+                      value={voucherInput}
+                      onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleApplyVoucher();
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleApplyVoucher}
+                      disabled={!voucherInput.trim() || validatingVoucher}
+                      className="h-8 text-xs font-semibold px-3"
+                    >
+                      {validatingVoucher ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        "Gunakan"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-2 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs">
+                      %
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-emerald-400">
+                        <span>{appliedVoucher.code}</span>
+                        <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                          Hemat {appliedVoucher.discountPercent}%
+                        </span>
+                      </div>
+                      <small className="text-[11px] text-text-muted block mt-0.5">
+                        Potongan Rp{appliedVoucher.discountAmount.toLocaleString("id-ID")}
+                        {appliedVoucher.referrerName ? ` • Referal: ${appliedVoucher.referrerName}` : ""}
+                      </small>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveVoucher}
+                    className="text-text-muted hover:text-red-400 text-xs px-2 py-1 rounded transition-colors"
+                    title="Hapus voucher"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
               <div className="pt-2">
                 <Button
                   className="w-full"
