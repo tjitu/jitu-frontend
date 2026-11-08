@@ -78,10 +78,15 @@ const RegisterModule = () => {
         name: registerData.name,
       },
       {
-        onSuccess: () => {
+        onSuccess: (ctx) => {
           setLoading(false);
-          toast.success("Akun berhasil dibuat. Verifikasi emailmu sebelum masuk.");
-          router.push("/login");
+          toast.success("Akun berhasil dibuat! Selamat datang di Jitu.");
+          const user = ctx.data.user as { role?: string };
+          if (user?.role === "ADMIN") {
+            router.push("/admin");
+          } else {
+            router.push("/dashboard");
+          }
         },
         onError: (ctx) => {
           setLoading(false);

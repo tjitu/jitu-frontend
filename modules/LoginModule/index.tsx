@@ -94,7 +94,11 @@ const LoginModule = () => {
         provider: "google",
         callbackURL: `${window.location.origin}/dashboard`,
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const fbErr = error as { code?: string; message?: string };
+      if (fbErr?.code === "auth/popup-closed-by-user" || fbErr?.code === "auth/cancelled-popup-request") {
+        return;
+      }
       const msg = error instanceof Error ? error.message : "Gagal masuk dengan Google. Coba lagi.";
       setErrors({ form: msg });
       toast.error(msg);

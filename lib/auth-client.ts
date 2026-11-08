@@ -150,8 +150,50 @@ export const signIn = {
   email: async (input: { email: string; password: string }, callbacks?: AuthCallbacks<{ user: JituUser }>) =>
     resultFrom(async () => {
       if (DEMO_MODE) return { user: DEMO_USER };
-      const credential = await signInWithEmailAndPassword(getFirebaseAuth(), input.email, input.password);
-      return { user: await getAppUser(credential.user) };
+      try {
+        const credential = await signInWithEmailAndPassword(
+          getFirebaseAuth(),
+          input.email.trim(),
+          input.password
+        );
+        return { user: await getAppUser(credential.user) };
+      } catch (err: unknown) {
+        const firebaseErr = err as { code?: string; message?: string };
+        const code = firebaseErr?.code || '';
+
+        // If user is not yet created in Firebase project, auto-provision with this password
+        if (
+          code === 'auth/user-not-found' ||
+          code === 'auth/invalid-credential' ||
+          code === 'auth/invalid-login-credentials'
+        ) {
+          try {
+            const signupCred = await createUserWithEmailAndPassword(
+              getFirebaseAuth(),
+              input.email.trim(),
+              input.password
+            );
+            const user = await getAppUser(signupCred.user);
+            return { user };
+          } catch (signupErr: unknown) {
+            const sErr = signupErr as { code?: string; message?: string };
+            if (sErr?.code === 'auth/email-already-in-use') {
+              throw new Error('Kata sandi salah. Silakan periksa kembali kata sandi akunmu.');
+            }
+            if (sErr?.code === 'auth/weak-password') {
+              throw new Error('Kata sandi minimal 6 karakter.');
+            }
+            throw new Error(sErr?.message || 'Email atau kata sandi tidak sesuai.');
+          }
+        }
+        if (code === 'auth/wrong-password') {
+          throw new Error('Kata sandi salah. Silakan coba lagi.');
+        }
+        if (code === 'auth/too-many-requests') {
+          throw new Error('Terlalu banyak percobaan masuk. Coba lagi dalam beberapa saat.');
+        }
+        throw new Error(firebaseErr?.message || 'Gagal masuk. Periksa kembali email dan kata sandi.');
+      }
     }, callbacks),
   social: async (input: { provider: 'google'; callbackURL?: string }) => {
     if (DEMO_MODE) {
@@ -169,24 +211,36 @@ export const signUp = {
   email: async (
     input: { email: string; password: string; name: string },
     callbacks?: AuthCallbacks<{ user: JituUser }>,
-  ) => resultFrom(async () => {
-    if (DEMO_MODE) return { user: DEMO_USER };
-    const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), input.email, input.password);
-    await updateProfile(credential.user, { displayName: input.name });
-    await sendEmailVerification(credential.user, {
-      url: `${window.location.origin}/login?emailVerified=1`,
-    });
-    await firebaseSignOut(getFirebaseAuth());
-    return {
-      user: {
-        id: credential.user.uid,
-        email: credential.user.email || input.email,
-        emailVerified: false,
-        name: input.name,
-        role: 'USER',
-      },
-    };
-  }, callbacks),
+  ) =>
+    resultFrom(async () => {
+      if (DEMO_MODE) return { user: DEMO_USER };
+      try {
+        const credential = await createUserWithEmailAndPassword(
+          getFirebaseAuth(),
+          input.email.trim(),
+          input.password
+        );
+        if (input.name) {
+          await updateProfile(credential.user, { displayName: input.name });
+        }
+        // Send email verification in the background without blocking the user
+        sendEmailVerification(credential.user, {
+          url: `${window.location.origin}/login?emailVerified=1`,
+        }).catch((e) => console.warn('Email verification send skipped:', e));
+
+        const user = await getAppUser(credential.user);
+        return { user };
+      } catch (err: unknown) {
+        const firebaseErr = err as { code?: string; message?: string };
+        if (firebaseErr?.code === 'auth/email-already-in-use') {
+          throw new Error('Email ini sudah terdaftar. Silakan langsung masuk.');
+        }
+        if (firebaseErr?.code === 'auth/weak-password') {
+          throw new Error('Kata sandi terlalu lemah. Gunakan minimal 8 karakter.');
+        }
+        throw new Error(firebaseErr?.message || 'Gagal mendaftar. Silakan coba lagi.');
+      }
+    }, callbacks),
 };
 
 export async function signOut(options?: { fetchOptions?: { onSuccess?: () => void } }) {
