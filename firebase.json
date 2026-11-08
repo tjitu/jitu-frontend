@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Jitu Academy",
+        "supportEmail": "team@jituptn.com",
+        "authorizedRedirectUris": [
+          "https://jitu-ptn-main-auth-2026.firebaseapp.com/__/auth/handler",
+          "https://jitu-ptn-main-auth-2026.web.app/__/auth/handler",
+          "https://jituptn.com/__/auth/handler",
+          "https://www.jituptn.com/__/auth/handler",
+          "https://jitu-frontend.vercel.app/__/auth/handler",
+          "http://localhost"
+        ]
+      }
+    }
+  }
+}

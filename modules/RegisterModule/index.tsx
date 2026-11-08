@@ -80,7 +80,8 @@ const RegisterModule = () => {
       {
         onSuccess: () => {
           setLoading(false);
-          router.push("/dashboard");
+          toast.success("Akun berhasil dibuat. Verifikasi emailmu sebelum masuk.");
+          router.push("/login");
         },
         onError: (ctx) => {
           setLoading(false);
@@ -99,10 +100,16 @@ const RegisterModule = () => {
   };
 
   const handleGoogleRegister = async () => {
-    await signIn.social({
-      provider: "google",
-      callbackURL: `${window.location.origin}/dashboard`,
-    });
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: `${window.location.origin}/dashboard`,
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Gagal daftar dengan Google. Coba lagi.";
+      setErrors({ form: msg });
+      toast.error(msg);
+    }
   };
 
   return (

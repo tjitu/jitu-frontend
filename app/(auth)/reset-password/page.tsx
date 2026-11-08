@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { resetPassword } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const actionCode = searchParams.get("oobCode");
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,32 +35,19 @@ function ResetPasswordContent() {
 
     setLoading(true);
     try {
-      await authClient.resetPassword(
-        {
-          newPassword: password,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Kata sandi berhasil diperbarui. Silakan masuk.");
-            router.push("/login");
-          },
-          onError: (ctx: { error?: { message?: string } }) => {
-            const msg =
-              ctx?.error?.message ||
-              "Tautan atur ulang sudah kedaluwarsa. Minta tautan baru.";
-            setErrorMsg(msg);
-            toast.error(msg);
-          },
-        }
-      );
-    } catch {
-      setErrorMsg("Gagal menyimpan kata sandi. Coba lagi.");
+      await resetPassword(password, actionCode!);
+      toast.success("Kata sandi berhasil diperbarui. Silakan masuk.");
+      router.push("/login");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Tautan atur ulang sudah kedaluwarsa. Minta tautan baru.";
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!token) {
+  if (!actionCode) {
     return (
       <div className="p-6 space-y-4">
         <div className="p-4 rounded-md border border-danger/30 bg-danger-soft text-danger-text text-[14px] flex items-start gap-2.5">

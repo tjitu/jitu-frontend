@@ -35,7 +35,7 @@ import { Label } from "@/components/ui/label";
 import PendingTransactionList from "../PendingTransactionsModule/components/PendingTransactionList";
 import PastTransactionList from "../PastTransactionsModule/components/PastTransactionList";
 import { useRouter } from "next/navigation";
-import { useSession, signOut, changePassword } from "@/lib/auth-client";
+import { useSession, signOut, changePassword, setPassword } from "@/lib/auth-client";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -243,7 +243,6 @@ export default function ProfileModule() {
           {
             currentPassword: passwordForm.currentPassword,
             newPassword: passwordForm.newPassword,
-            revokeOtherSessions: true,
           },
           {
             onSuccess: () => {
@@ -256,18 +255,7 @@ export default function ProfileModule() {
           },
         );
       } else {
-        const res = await fetch(`${BACKEND_URL}/profile/set-password`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ password: passwordForm.newPassword }),
-        });
-
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.message || "Gagal membuat password.");
-        }
+        await setPassword(passwordForm.newPassword);
 
         toast.success("Password berhasil dibuat.");
         resetPasswordModal();

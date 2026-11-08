@@ -1,6 +1,6 @@
 export const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
-const DEMO_USER = {
+export const DEMO_USER = {
   id: "demo-user-001",
   name: "Alya Pratama",
   email: "alya@demo.jitu.test",
@@ -124,14 +124,6 @@ export function installDemoFetch() {
     const method = (init?.method || (typeof input !== "string" && !(input instanceof URL) ? input.method : "GET")).toUpperCase();
 
     if (!url.pathname.startsWith("/api/") || url.pathname.startsWith("/api/hiring")) return originalFetch(input, init);
-
-    if (url.pathname.includes("/api/auth/get-session")) {
-      return json({ user: DEMO_USER, session: { id: "demo-session", userId: DEMO_USER.id } });
-    }
-    if (url.pathname.includes("/api/auth/sign-in") || url.pathname.includes("/api/auth/sign-up")) {
-      return json({ user: DEMO_USER, session: { id: "demo-session", userId: DEMO_USER.id } });
-    }
-    if (url.pathname.includes("/api/auth/sign-out")) return json({ success: true });
 
     if (path === "/dashboard/stats") {
       return json({ tokenBalance: 25, lastScore: 742, personalBest: 781, weeklyActivity: 5, totalFinished: 8, currentStreak: 6 });

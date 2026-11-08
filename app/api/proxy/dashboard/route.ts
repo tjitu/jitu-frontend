@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { getDbPool } from "@/lib/db";
+import { getAuthenticatedAppUser } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const user = await getAuthenticatedAppUser(req);
 
-    if (!session || !session.user) {
+    if (!user) {
       return NextResponse.json({ tokenBalance: 0 }, { status: 200 });
     }
 
     const pool = getDbPool();
     const { rows } = await pool.query(
       `SELECT "tokenBalance" FROM "user" WHERE id = $1`,
-      [session.user.id]
+      [user.id]
     );
 
     const tokenBalance = rows[0]?.tokenBalance ?? 0;

@@ -89,10 +89,16 @@ const LoginModule = () => {
   };
 
   const handleGoogleLogin = async () => {
-    await signIn.social({
-      provider: "google",
-      callbackURL: `${window.location.origin}/dashboard`,
-    });
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: `${window.location.origin}/dashboard`,
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Gagal masuk dengan Google. Coba lagi.";
+      setErrors({ form: msg });
+      toast.error(msg);
+    }
   };
 
   return (

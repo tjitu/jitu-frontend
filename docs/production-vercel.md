@@ -9,15 +9,18 @@ Target production shape:
 
 ## Required Vercel Environment
 
-Use `.env.production.example` as the Vercel env checklist:
+Use `.env.example` and `docs/firebase-auth.md` as the Vercel env checklist:
 
 - `NEXT_PUBLIC_FRONTEND_URL=https://YOUR_VERCEL_DOMAIN`
 - `NEXT_PUBLIC_BACKEND_URL=https://YOUR_BACKEND_CLOUD_RUN_URL`
 - `ARTICLES_API_URL=https://YOUR_TEAM_BACKEND_VERCEL_DOMAIN/api`
+- `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`,
+  `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`,
+  `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, and
+  `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` from `firebase apps:sdkconfig WEB`
 
 The app uses Next rewrites:
 
-- `/api/auth/:path*` -> `${NEXT_PUBLIC_BACKEND_URL}/api/auth/:path*`
 - `/api/proxy/:path*` -> `${NEXT_PUBLIC_BACKEND_URL}/:path*`
 
 That means browser requests stay same-origin on Vercel while the rewrite forwards to the backend.
@@ -60,10 +63,9 @@ The workflow typechecks the Next app, pulls Vercel production settings, builds w
 
 ## Backend CORS Pairing
 
-The backend Cloud Run env must include the Vercel domain:
+The backend Cloud Run env must include the Vercel domain for CORS if the frontend ever calls it directly:
 
 - `FRONTEND_URL=https://YOUR_VERCEL_DOMAIN`
 - `ALLOWED_ORIGINS=https://YOUR_VERCEL_DOMAIN`
-- `TRUSTED_ORIGINS=https://YOUR_VERCEL_DOMAIN`
 
-Use the exact Vercel production URL, then add custom domain later if needed.
+Firebase Authentication authorized domains must include the deployed frontend host(s), including the Jitu custom domain.
