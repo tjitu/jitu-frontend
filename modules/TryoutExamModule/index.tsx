@@ -237,7 +237,7 @@ export default function TryoutExamModule() {
         type: s(q?.type),
         solution: s(q?.solution),
         correctAnswerId: s(q?.correctAnswerId),
-        correctAnswerText: s(q?.correctAnswerText),
+        correctAnswerText: s(q?.correctAnswerText || q?.correctAnswer || q?.correct_answer_short_answer),
         userAnswer: valUserAnswer,
       };
     });
@@ -892,100 +892,119 @@ export default function TryoutExamModule() {
                 />
               </div>
 
-              {/* Options A–E */}
-              <div className="space-y-2.5 mb-6">
-                {currentQuestion.options.map((opt, idx) => {
-                  const userAnswerId = answers[currentQuestion.id];
-                  const isSelected = userAnswerId === opt.id;
-                  const isCorrectKey =
-                    currentQuestion.correctAnswerId === opt.id;
-                  const letter = String.fromCharCode(65 + idx);
+              {/* Options A–E (Pilihan Ganda) */}
+              {currentQuestion.type !== "ISIAN_SINGKAT" && currentQuestion.options.length > 0 && (
+                <div className="space-y-2.5 mb-6">
+                  {currentQuestion.options.map((opt, idx) => {
+                    const userAnswerId = answers[currentQuestion.id];
+                    const isSelected = userAnswerId === opt.id;
+                    const isCorrectKey =
+                      currentQuestion.correctAnswerId === opt.id;
+                    const letter = String.fromCharCode(65 + idx);
 
-                  let rowClass =
-                    "bg-surface border border-border hover:bg-surface-muted hover:border-ink-300 text-text";
-                  let badgeClass =
-                    "bg-surface-muted border border-border text-text-body";
+                    let rowClass =
+                      "bg-surface border border-border hover:bg-surface-muted hover:border-ink-300 text-text";
+                    let badgeClass =
+                      "bg-surface-muted border border-border text-text-body";
 
-                  if (isReviewMode) {
-                    if (isCorrectKey) {
+                    if (isReviewMode) {
+                      if (isCorrectKey) {
+                        rowClass =
+                          "bg-success-soft border border-success text-success-text font-semibold";
+                        badgeClass =
+                          "bg-success border-success text-white";
+                      } else if (isSelected && !isCorrectKey) {
+                        rowClass =
+                          "bg-danger-soft border border-danger text-danger-text";
+                        badgeClass =
+                          "bg-danger border-danger text-white";
+                      } else {
+                        rowClass =
+                          "bg-surface border border-border text-text-muted opacity-60";
+                      }
+                    } else if (isSelected) {
                       rowClass =
-                        "bg-success-soft border border-success text-success-text font-semibold";
-                      badgeClass =
-                        "bg-success border-success text-white";
-                    } else if (isSelected && !isCorrectKey) {
-                      rowClass =
-                        "bg-danger-soft border border-danger text-danger-text";
-                      badgeClass =
-                        "bg-danger border-danger text-white";
-                    } else {
-                      rowClass =
-                        "bg-surface border border-border text-text-muted opacity-60";
+                        "bg-blue-50 border border-primary text-text font-medium ring-1 ring-primary/30";
+                      badgeClass = "bg-primary border-primary text-white";
                     }
-                  } else if (isSelected) {
-                    rowClass =
-                      "bg-blue-50 border border-primary text-text font-medium ring-1 ring-primary/30";
-                    badgeClass = "bg-primary border-primary text-white";
-                  }
 
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleAnswerSelect(opt.id)}
-                      disabled={isReviewMode}
-                      className={`w-full min-h-[56px] px-4 py-3 rounded-md text-left flex items-center gap-3.5 transition-colors duration-[120ms] cursor-pointer ${rowClass}`}
-                    >
-                      <span
-                        className={`w-8 h-8 rounded-sm shrink-0 font-mono text-sm font-semibold flex items-center justify-center ${badgeClass}`}
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => handleAnswerSelect(opt.id)}
+                        disabled={isReviewMode}
+                        className={`w-full min-h-[56px] px-4 py-3 rounded-md text-left flex items-center gap-3.5 transition-colors duration-[120ms] cursor-pointer ${rowClass}`}
                       >
-                        {letter}
-                      </span>
-                      <div
-                        className="flex-1 option-text leading-[1.55]"
-                        style={{ fontSize: `${fontSize}px` }}
-                        dangerouslySetInnerHTML={{ __html: opt.text }}
-                      />
-                      {isReviewMode && isCorrectKey && (
-                        <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-                      )}
-                      {isReviewMode && isSelected && !isCorrectKey && (
-                        <XCircle className="w-5 h-5 text-danger shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-
-                {/* Short-answer / Fill-in Question */}
-                {currentQuestion.options.length === 0 && (
-                  <div className="space-y-3">
-                    <label className="block text-label text-text-muted">
-                      Jawaban isian singkat
-                    </label>
-                    <input
-                      className={`w-full h-11 px-3 rounded-md bg-surface border font-mono text-base outline-none transition-colors ${
-                        isReviewMode
-                          ? isQuestionCorrect(currentQuestion)
-                            ? "border-success bg-success-soft text-success-text font-medium"
-                            : "border-danger bg-danger-soft text-danger-text"
-                          : "border-border focus:border-primary focus:ring-3 focus:ring-blue-200"
-                      }`}
-                      placeholder="Ketik jawaban singkat..."
-                      style={{ fontSize: `${fontSize}px` }}
-                      value={answers[currentQuestion.id] || ""}
-                      onChange={(e) => handleAnswerSelect(e.target.value)}
-                      disabled={isReviewMode}
-                    />
-                    {isReviewMode && currentQuestion.correctAnswerText && (
-                      <div className="p-3 rounded-md bg-success-soft border border-success/30 font-mono text-xs text-success-text flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 shrink-0 text-success" />
-                        <span>
-                          Kunci jawaban: {currentQuestion.correctAnswerText}
+                        <span
+                          className={`w-8 h-8 rounded-sm shrink-0 font-mono text-sm font-semibold flex items-center justify-center ${badgeClass}`}
+                        >
+                          {letter}
                         </span>
-                      </div>
-                    )}
+                        <div
+                          className="flex-1 option-text leading-[1.55]"
+                          style={{ fontSize: `${fontSize}px` }}
+                          dangerouslySetInnerHTML={{ __html: opt.text }}
+                        />
+                        {isReviewMode && isCorrectKey && (
+                          <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+                        )}
+                        {isReviewMode && isSelected && !isCorrectKey && (
+                          <XCircle className="w-5 h-5 text-danger shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Short-answer / Fill-in Question (Isian Singkat) */}
+              {(currentQuestion.type === "ISIAN_SINGKAT" || currentQuestion.options.length === 0) && (
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-semibold text-text">
+                      Jawaban Isian Singkat
+                    </label>
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded bg-blue-500/10 text-primary border border-blue-500/20">
+                      Standar Resmi BPPP SNBT
+                    </span>
                   </div>
-                )}
-              </div>
+
+                  {!isReviewMode && (
+                    <div className="p-3.5 rounded-lg bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40 text-xs text-text leading-relaxed flex items-start gap-2.5">
+                      <span className="text-primary font-bold text-sm leading-none shrink-0 mt-0.5">ℹ️</span>
+                      <div>
+                        <strong className="text-primary font-semibold block mb-0.5">Petunjuk Format Menjawab:</strong>
+                        Tuliskan jawaban akhir hanya dalam bentuk <strong>bilangan bulat (0-9999)</strong>. Jangan menyertakan satuan (seperti <em>cm, kg, jam</em>), koma, desimal, atau teks penjelasan. Jawaban tidak terpengaruh oleh spasi ekstra.
+                      </div>
+                    </div>
+                  )}
+
+                  <input
+                    className={`w-full h-12 px-4 rounded-md bg-surface border font-mono text-lg outline-none transition-colors ${
+                      isReviewMode
+                        ? isQuestionCorrect(currentQuestion)
+                          ? "border-success bg-success-soft text-success-text font-bold"
+                          : "border-danger bg-danger-soft text-danger-text font-bold"
+                        : "border-border focus:border-primary focus:ring-3 focus:ring-blue-200"
+                    }`}
+                    placeholder="Masukkan angka jawaban akhir (contoh: 42)..."
+                    style={{ fontSize: `${fontSize + 2}px` }}
+                    value={answers[currentQuestion.id] || ""}
+                    onChange={(e) => handleAnswerSelect(e.target.value)}
+                    disabled={isReviewMode}
+                  />
+
+                  {isReviewMode && currentQuestion.correctAnswerText && (
+                    <div className="p-3 rounded-md bg-success-soft border border-success/30 font-mono text-xs text-success-text flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-success" />
+                      <span>
+                        Kunci jawaban resmi: <strong>{currentQuestion.correctAnswerText}</strong>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Solution Box in Review Mode */}
               {isReviewMode && currentQuestion.solution && (

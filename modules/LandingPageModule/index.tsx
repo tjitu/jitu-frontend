@@ -1141,7 +1141,21 @@ function Metode3PSection() {
 /* PTN Premium Pass Card Component (First-Appearance Animation & Animated Beam)*/
 /* -------------------------------------------------------------------------- */
 
-function PtnPremiumPassCard({ isLoggedIn }: { isLoggedIn: boolean }) {
+function PtnPremiumPassCard({
+  isLoggedIn,
+  campaignName,
+  badgeText,
+  badgeStyle,
+  discountedPrice,
+  savings,
+}: {
+  isLoggedIn: boolean;
+  campaignName?: string;
+  badgeText?: string;
+  badgeStyle?: string;
+  discountedPrice?: number;
+  savings?: number;
+}) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isSelected, setIsSelected] = useState(false);
 
@@ -1295,6 +1309,36 @@ function PtnPremiumPassCard({ isLoggedIn }: { isLoggedIn: boolean }) {
             </div>
 
             <div>
+              {(campaignName || badgeText) && (
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  {campaignName && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 text-yellow-300 border border-yellow-300/30 text-[11px] font-bold uppercase tracking-wider backdrop-blur-xs">
+                      <Sparkles className="w-3 h-3 fill-yellow-300 text-yellow-300" />
+                      {campaignName}
+                    </span>
+                  )}
+                  {badgeText && (
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs ${
+                        badgeStyle === "RED_FIRE"
+                          ? "bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white"
+                          : badgeStyle === "GOLD_PREMIUM"
+                          ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black"
+                          : badgeStyle === "EMERALD_SAVE"
+                          ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white"
+                          : badgeStyle === "CYAN_ELECTRIC"
+                          ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white"
+                          : badgeStyle === "PURPLE_ROYAL"
+                          ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                    >
+                      {badgeText}
+                    </span>
+                  )}
+                </div>
+              )}
+
               <h3 className="text-[28px] sm:text-[34px] lg:text-[38px] xl:text-[42px] font-black text-white tracking-tight leading-tight flex flex-wrap items-center gap-2.5">
                 <span>PTN</span>
                 {/* Scroll-driven selection badge */}
@@ -1347,9 +1391,19 @@ function PtnPremiumPassCard({ isLoggedIn }: { isLoggedIn: boolean }) {
         {/* Right: Price & CTA Button with Continuous Spinning Border Beam Animation */}
         <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-center gap-4 shrink-0 pt-4 lg:pt-0 border-t border-blue-400/30 lg:border-t-0">
           <div className="text-left lg:text-right">
+            {discountedPrice && savings && savings > 0 && (
+              <div className="flex items-center lg:justify-end gap-2 mb-1">
+                <span className="text-sm line-through text-blue-200/80 font-bold tabular-nums">
+                  Rp55.000
+                </span>
+                <span className="text-[11px] font-black text-yellow-300 bg-yellow-400/20 px-2 py-0.5 rounded">
+                  Hemat Rp{savings.toLocaleString("id-ID")}
+                </span>
+              </div>
+            )}
             <div className="inline-flex items-baseline gap-1.5">
               <span className="text-[32px] sm:text-[38px] lg:text-[40px] font-black text-white leading-none tracking-tight tabular-nums">
-                Rp55.000
+                Rp{(discountedPrice || 55000).toLocaleString("id-ID")}
               </span>
               <span className="text-[14px] sm:text-[15px] font-bold text-blue-200">
                 /bulan
@@ -1535,6 +1589,50 @@ const LandingPageModule = () => {
   const { data: session } = useSession();
   const isLoggedIn = Boolean(session);
 
+  const [activePromo, setActivePromo] = useState<{
+    campaignName?: string;
+    badgeText?: string;
+    badgeStyle?: string;
+    passDiscountedPrice?: number;
+    passSavings?: number;
+    packDiscounts?: Record<number, { finalPrice: number; originalPrice: number; savings: number; badge?: string; badgeStyle?: string; campaignName?: string }>;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/proxy/shop/packages")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: any[]) => {
+        if (!Array.isArray(data)) return;
+        const pass = data.find((p) => p.name?.toLowerCase().includes("pass"));
+        const coinPacks: Record<number, any> = {};
+        data.forEach((p) => {
+          if (!p.name?.toLowerCase().includes("pass")) {
+            coinPacks[p.tokenAmount] = {
+              finalPrice: p.price,
+              originalPrice: p.originalPrice || p.price,
+              savings: p.savings || 0,
+              badge: p.badgeText,
+              badgeStyle: p.badgeStyle,
+              campaignName: p.campaignName,
+            };
+          }
+        });
+
+        const activeItem = data.find((p) => p.campaignName || p.badgeText);
+        if (activeItem || pass) {
+          setActivePromo({
+            campaignName: activeItem?.campaignName || pass?.campaignName,
+            badgeText: pass?.badgeText || activeItem?.badgeText,
+            badgeStyle: pass?.badgeStyle || activeItem?.badgeStyle,
+            passDiscountedPrice: pass?.price,
+            passSavings: pass?.savings,
+            packDiscounts: coinPacks,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg text-text-body flex flex-col selection:bg-yellow-200 selection:text-ink-900 relative">
       {/* 1. Navigation */}
@@ -1683,7 +1781,10 @@ const LandingPageModule = () => {
             {/* 4 Plan Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {QUOTA_PACKS.map((pack) => {
+                const promo = activePromo?.packDiscounts?.[pack.quota];
                 const isRecommended = Boolean(pack.isBestValue);
+                const finalPrice = promo ? promo.finalPrice : pack.totalPrice;
+                const originalPrice = promo && promo.savings > 0 ? promo.originalPrice : null;
 
                 return (
                   <div
@@ -1703,17 +1804,47 @@ const LandingPageModule = () => {
                             {pack.quota} coin
                           </span>
                         </div>
-                        {isRecommended && (
+                        {promo?.campaignName || promo?.badge ? (
+                          <span
+                            className={`h-6 px-2.5 rounded-full text-[11px] font-extrabold uppercase tracking-wide inline-flex items-center shadow-xs ${
+                              promo.badgeStyle === "RED_FIRE"
+                                ? "bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white"
+                                : promo.badgeStyle === "GOLD_PREMIUM"
+                                ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black font-black"
+                                : promo.badgeStyle === "EMERALD_SAVE"
+                                ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white"
+                                : promo.badgeStyle === "CYAN_ELECTRIC"
+                                ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white"
+                                : promo.badgeStyle === "PURPLE_ROYAL"
+                                ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white"
+                                : isRecommended
+                                ? "bg-yellow-300 text-ink-900"
+                                : "bg-primary text-white"
+                            }`}
+                          >
+                            {promo.badge || promo.campaignName}
+                          </span>
+                        ) : isRecommended ? (
                           <span className="h-6 px-2.5 rounded-full bg-yellow-300 text-ink-900 text-[11px] font-bold inline-flex items-center">
                             Paling hemat
                           </span>
-                        )}
+                        ) : null}
                       </div>
 
                       {/* Price */}
                       <div className="pt-2 border-t border-ink-100">
+                        {originalPrice && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs line-through text-text-muted font-medium tabular-nums">
+                              {formatRupiah(originalPrice)}
+                            </span>
+                            <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                              Hemat {formatRupiah(promo?.savings || 0)}
+                            </span>
+                          </div>
+                        )}
                         <div className="text-[28px] font-bold text-text leading-tight tabular-nums">
-                          {formatRupiah(pack.totalPrice)}
+                          {formatRupiah(finalPrice)}
                         </div>
                       </div>
 
@@ -1747,7 +1878,14 @@ const LandingPageModule = () => {
             </div>
 
             {/* PTN PREMIUM PASS — Animated Blue Gradient Card with Floating Golden Pass Ticket */}
-            <PtnPremiumPassCard isLoggedIn={isLoggedIn} />
+            <PtnPremiumPassCard
+              isLoggedIn={isLoggedIn}
+              campaignName={activePromo?.campaignName}
+              badgeText={activePromo?.badgeText}
+              badgeStyle={activePromo?.badgeStyle}
+              discountedPrice={activePromo?.passDiscountedPrice}
+              savings={activePromo?.passSavings}
+            />
           </div>
         </section>
 

@@ -28,31 +28,38 @@ const TokenCard = ({
               {pkg.tokenAmount} coin
             </span>
           </div>
-          {pkg.badge ? (
-            <span
-              className={`h-6 rounded-full px-2.5 text-[11px] font-extrabold uppercase tracking-wide inline-flex items-center shadow-xs ${
-                pkg.badgeStyle === 'RED_FIRE'
-                  ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white'
-                  : pkg.badgeStyle === 'GOLD_PREMIUM'
-                  ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black font-black'
-                  : pkg.badgeStyle === 'EMERALD_SAVE'
-                  ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white'
-                  : pkg.badgeStyle === 'CYAN_ELECTRIC'
-                  ? 'bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white'
-                  : pkg.badgeStyle === 'PURPLE_ROYAL'
-                  ? 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white'
-                  : isBestValue
-                  ? 'bg-yellow-300 text-ink-900'
-                  : 'bg-primary text-white'
-              }`}
-            >
-              {pkg.badge}
-            </span>
-          ) : (
-            <span className="h-6 rounded-full bg-surface-muted border border-border text-text-muted px-2.5 text-[12px] font-semibold inline-flex items-center">
-              {pkg.tokenAmount}x tryout
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-1">
+            {pkg.campaignName && (
+              <span className="text-[10px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">
+                {pkg.campaignName}
+              </span>
+            )}
+            {pkg.badge ? (
+              <span
+                className={`h-6 rounded-full px-2.5 text-[11px] font-extrabold uppercase tracking-wide inline-flex items-center shadow-xs ${
+                  pkg.badgeStyle === 'RED_FIRE'
+                    ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white'
+                    : pkg.badgeStyle === 'GOLD_PREMIUM'
+                    ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black font-black'
+                    : pkg.badgeStyle === 'EMERALD_SAVE'
+                    ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white'
+                    : pkg.badgeStyle === 'CYAN_ELECTRIC'
+                    ? 'bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white'
+                    : pkg.badgeStyle === 'PURPLE_ROYAL'
+                    ? 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white'
+                    : isBestValue
+                    ? 'bg-yellow-300 text-ink-900'
+                    : 'bg-primary text-white'
+                }`}
+              >
+                {pkg.badge}
+              </span>
+            ) : (
+              <span className="h-6 rounded-full bg-surface-muted border border-border text-text-muted px-2.5 text-[12px] font-semibold inline-flex items-center">
+                {pkg.tokenAmount}x tryout
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="mb-5">

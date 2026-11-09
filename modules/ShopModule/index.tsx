@@ -691,8 +691,14 @@ const ShopModule = () => {
                   </div>
 
                   <div>
-                    {(premiumPassPkg.badgeText || isPremiumUser) && (
+                    {((premiumPassPkg as any).campaignName || premiumPassPkg.badgeText || isPremiumUser) && (
                       <div className="flex flex-wrap items-center gap-2 mb-1">
+                        {(premiumPassPkg as any).campaignName && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 text-yellow-300 border border-yellow-300/30 text-[11px] font-bold uppercase tracking-wider backdrop-blur-xs">
+                            <Sparkles className="w-3 h-3 fill-yellow-300 text-yellow-300" />
+                            {(premiumPassPkg as any).campaignName}
+                          </span>
+                        )}
                         {premiumPassPkg.badgeText && (
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs ${
@@ -883,6 +889,7 @@ const ShopModule = () => {
                       popular: false,
                       badge: pkg.badgeText || (isBestValue ? "Paling hemat" : undefined),
                       badgeStyle: pkg.badgeStyle,
+                      campaignName: (pkg as any).campaignName,
                     }}
                     onPressBuy={() => handlePurchaseClick(pkg)}
                   />

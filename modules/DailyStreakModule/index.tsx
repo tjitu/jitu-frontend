@@ -269,14 +269,28 @@ const DailyStreakModule = () => {
 
             {/* Answer Area */}
             {currentProblem.type === "ISIAN_SINGKAT" ? (
-              <div className="space-y-2">
-                <label className="block text-[13px] font-medium text-text">
-                  Jawaban singkat
-                </label>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[13px] font-semibold text-text">
+                    Jawaban Isian Singkat
+                  </label>
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-blue-50 text-primary border border-blue-200">
+                    Standar BPPP SNBT
+                  </span>
+                </div>
+                {!isAnswered && (
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 leading-relaxed flex items-start gap-2">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold shrink-0">ℹ️</span>
+                    <div>
+                      <strong className="block mb-0.5">Petunjuk Format Pengisian:</strong>
+                      Tuliskan hanya nilai jawaban akhir berupa <strong>bilangan bulat (0-9999)</strong>. Jangan sertakan satuan (misal <em>cm, kg, detik</em>), tanda koma/titik, atau simbol variabel.
+                    </div>
+                  </div>
+                )}
                 <input
                   type="text"
                   className="w-full h-11 px-3.5 rounded-md bg-surface border border-border font-mono text-base text-text outline-none hover:border-ink-300 focus:border-primary focus:ring-3 focus:ring-blue-200 transition-colors"
-                  placeholder="Ketik jawaban kamu..."
+                  placeholder="Ketik jawaban angka (contoh: 42)..."
                   value={selectedAnswer || ""}
                   onChange={(e) =>
                     !isAnswered && setSelectedAnswer(e.target.value)

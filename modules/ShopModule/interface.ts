@@ -12,4 +12,5 @@ export interface TokenPackage {
   badge?: string;
   badgeStyle?: string;
   categoryBg: string;
+  campaignName?: string;
 }
