@@ -10,14 +10,9 @@ import {
   Menu,
   Sparkles,
   X,
-  BookOpen,
-  TrendingUp,
-  Target,
   Play,
   CheckCircle2,
   Lightbulb,
-  FileText,
-  ChevronRight,
   Plus,
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
@@ -131,16 +126,6 @@ const QUOTA_PACKS: QuotaPack[] = [
     note: "Paket lengkap persiapan intensif agar makin percaya diri.",
     isBestValue: true,
   },
-];
-
-const SUBTEST_SAMPLE_SCORES = [
-  { code: "PU", name: "Penalaran Umum", score: 672, barClass: "bg-primary", vHeight: "78%" },
-  { code: "PPU", name: "Pengetahuan dan Pemahaman Umum", score: 634, barClass: "bg-blue-400", vHeight: "68%" },
-  { code: "PBM", name: "Pemahaman Bacaan dan Menulis", score: 658, barClass: "bg-primary", vHeight: "75%" },
-  { code: "PK", name: "Pengetahuan Kuantitatif", score: 594, barClass: "bg-danger", vHeight: "52%", isLow: true },
-  { code: "LBI", name: "Literasi dalam Bahasa Indonesia", score: 688, barClass: "bg-blue-800", vHeight: "88%" },
-  { code: "LBE", name: "Literasi dalam Bahasa Inggris", score: 645, barClass: "bg-blue-400", vHeight: "72%" },
-  { code: "PM", name: "Penalaran Matematika", score: 648, barClass: "bg-yellow-400", vHeight: "74%", highlight: true },
 ];
 
 function formatRupiah(amount: number): string {
@@ -492,8 +477,8 @@ function CounterStat({
     if (typeof window === "undefined") return;
 
     if (!("IntersectionObserver" in window)) {
-      setHasAnimated(true);
-      return;
+      const fallbackFrame = requestAnimationFrame(() => setHasAnimated(true));
+      return () => cancelAnimationFrame(fallbackFrame);
     }
 
     const observer = new IntersectionObserver(
@@ -656,9 +641,11 @@ function PtnAcceptanceMarquee() {
                 title={`${ptn.name} (${ptn.acronym})`}
               >
                 <div className="relative h-14 w-14 sm:h-18 sm:w-18 md:h-20 md:w-20 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-115">
-                  <img
+                  <Image
                     src={ptn.src}
                     alt={ptn.name}
+                    fill
+                    sizes="80px"
                     className="max-h-full max-w-full object-contain filter grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 drop-shadow-xs group-hover:drop-shadow-md"
                     loading="lazy"
                   />
@@ -1303,8 +1290,8 @@ function PtnPremiumPassCard({
                 src="/icons/golden-pass-ticket.png"
                 alt="Tiket Golden Pass PTN Premium Pass"
                 fill
+                sizes="(max-width: 639px) 56px, (max-width: 1023px) 64px, 80px"
                 className="object-contain select-none pointer-events-none drop-shadow-md"
-                priority
               />
             </div>
 
@@ -1903,9 +1890,12 @@ const LandingPageModule = () => {
       <footer className="bg-[#0C1F52] text-white pt-14 sm:pt-16 lg:pt-20 pb-8 sm:pb-12 lg:pb-16 relative overflow-hidden border-t border-blue-900/50">
         {/* Background Photo from /careers with Deepened Blue Gradient Tint */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          <img
+          <Image
             src="/hiring-header-photo.jpg"
             alt=""
+            fill
+            sizes="100vw"
+            loading="lazy"
             className="w-full h-full object-cover object-center filter saturate-125 contrast-110 brightness-95"
           />
           {/* Deepened Blue Multiply Layer */}
