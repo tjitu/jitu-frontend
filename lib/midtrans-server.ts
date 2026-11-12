@@ -148,20 +148,34 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
     );
   }
 
+  const transactionId = chargeData.transaction_id;
   const qrUrl = chargeData.actions?.find(
     (action) =>
       action.name === "generate-qr-code-v2" ||
       action.name === "generate-qr-code",
   )?.url;
-  if (!qrUrl) {
-    throw new Error("Midtrans tidak mengembalikan URL kode QRIS.");
+
+  // Midtrans documents the QR image endpoint as /v2/qris/{transaction_id}/qr-code.
+  // Some successful charge responses omit `actions`, so build the documented
+  // URL from the transaction ID instead of discarding a valid pending charge.
+  const resolvedQrUrl =
+    qrUrl ||
+    (transactionId
+      ? `${config.coreApiUrl}/qris/${encodeURIComponent(transactionId)}/qr-code`
+      : undefined);
+  if (!resolvedQrUrl) {
+    throw new Error(
+      chargeData.status_message ||
+        chargeData.message ||
+        "Midtrans membuat transaksi tetapi tidak mengembalikan data QRIS yang dapat ditampilkan.",
+    );
   }
 
   return {
-    token: chargeData.transaction_id || params.orderId,
-    redirect_url: qrUrl,
+    token: transactionId || params.orderId,
+    redirect_url: resolvedQrUrl,
     qr_string: chargeData.qr_string,
-    qr_url: qrUrl,
+    qr_url: resolvedQrUrl,
     expiry_time:
       chargeData.expiry_time ||
       new Date(Date.now() + 15 * 60 * 1000).toISOString(),
