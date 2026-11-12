@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 type SnapClient = {
   embed: (
@@ -11,6 +11,7 @@ type SnapClient = {
       onError: () => void;
       onPending: () => void;
       onSuccess: () => void;
+      onClose: () => void;
     },
   ) => void;
   hide: () => void;
@@ -26,14 +27,25 @@ export default function SnapQrisEmbed({
   token,
   clientKey,
   paymentId,
+  onClose,
+  onShowClose,
 }: {
   token: string;
   clientKey: string;
   paymentId: string;
+  onClose?: () => void;
+  onShowClose?: () => void;
 }) {
   const embedId = `snap-qris-${useId().replace(/:/g, "")}`;
   const [error, setError] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const onCloseRef = useRef(onClose);
+  const onShowCloseRef = useRef(onShowClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    onShowCloseRef.current = onShowClose;
+  }, [onClose, onShowClose]);
 
   useEffect(() => {
     if (!token || !clientKey) {
@@ -45,14 +57,22 @@ export default function SnapQrisEmbed({
       if (!active) return;
       if (!window.snap) {
         setError("Halaman QRIS Midtrans gagal dimuat.");
+        onShowCloseRef.current?.();
         return;
       }
       window.snap.embed(token, {
         embedId,
         uiMode: "qr",
-        onError: () => setError("Kode QRIS gagal dimuat oleh Midtrans."),
+        onError: () => {
+          if (!active) return;
+          setError("Kode QRIS gagal dimuat oleh Midtrans.");
+          onShowCloseRef.current?.();
+        },
         onPending: () => {},
         onSuccess: () => {},
+        onClose: () => {
+          if (active) onCloseRef.current?.();
+        },
       });
     };
 
@@ -69,7 +89,10 @@ export default function SnapQrisEmbed({
       script.async = true;
       script.addEventListener("load", showQr);
       script.addEventListener("error", () => {
-        if (active) setError("Skrip QRIS Midtrans gagal dimuat.");
+        if (active) {
+          setError("Skrip QRIS Midtrans gagal dimuat.");
+          onShowCloseRef.current?.();
+        }
       });
       document.body.appendChild(script);
     }
@@ -103,7 +126,10 @@ export default function SnapQrisEmbed({
               (url.hostname.endsWith(".midtrans.com") ||
                 url.hostname.endsWith(".veritrans.co.id"))
             ) {
-              if (active) setQrCodeUrl(url.toString());
+              if (active) {
+                setQrCodeUrl(url.toString());
+                onShowCloseRef.current?.();
+              }
               return;
             }
           }

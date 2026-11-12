@@ -105,6 +105,7 @@ const ShopModule = () => {
   const [pendingCount, setPendingCount] = useState<number>(0);
 
   const [isModalOpened, setIsModalOpened] = useState(false);
+  const [showOuterSnapClose, setShowOuterSnapClose] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState<TokenPackage | null>(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [transactionId, setTransactionId] = useState<string | null>(null);
@@ -466,6 +467,7 @@ const ShopModule = () => {
       }
 
       setPaymentData(data);
+      setShowOuterSnapClose(false);
       setTransactionId(data.transactionId);
       setPendingCount((prev) => prev + 1);
       setIsModalLoading(false);
@@ -512,6 +514,7 @@ const ShopModule = () => {
     }
 
     const meta = pendingPayment.metadata || {};
+    setShowOuterSnapClose(false);
     setPaymentData({
       transactionId: pendingPayment.id,
       orderId: pendingPayment.orderId,
@@ -532,6 +535,22 @@ const ShopModule = () => {
     setTransactionId(pendingPayment.id);
     setShowPendingDialog(false);
     setIsModalOpened(true);
+  };
+
+  const handlePaymentModalOpenChange = (state: boolean) => {
+    setIsModalOpened(state);
+    if (!state) {
+      setIsModalLoading(false);
+      setTransactionId(null);
+      setSelectedPkg(null);
+      setShowContact(false);
+      setPaymentData(null);
+      setPaymentStatus("pending");
+      setShowOuterSnapClose(false);
+      setVoucherInput("");
+      setAppliedVoucher(null);
+      setValidatingVoucher(false);
+    }
   };
 
   const handleManualCheck = async () => {
@@ -1045,24 +1064,13 @@ const ShopModule = () => {
       {/* QRIS Payment Modal */}
       <Dialog
         open={isModalOpened}
-        onOpenChange={(state) => {
-          setIsModalOpened(state);
-
-          if (!state) {
-            setIsModalLoading(false);
-            setTransactionId(null);
-            setSelectedPkg(null);
-            setShowContact(false);
-            setPaymentData(null);
-            setPaymentStatus("pending");
-            setVoucherInput("");
-            setAppliedVoucher(null);
-            setValidatingVoucher(false);
-          }
-        }}
+        onOpenChange={handlePaymentModalOpenChange}
         modal
       >
-        <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto"
+          showCloseButton={!(transactionId && !isModalLoading && !showContact && paymentData?.redirectUrl && paymentData?.snapToken && !paymentData?.qrCodeUrl && !paymentData?.qrCode && !showOuterSnapClose)}
+        >
           {!isModalLoading && !transactionId && (
             <>
               <DialogHeader>
@@ -1201,6 +1209,8 @@ const ShopModule = () => {
                   token={paymentData.snapToken}
                   clientKey={paymentData.clientKey || ""}
                   paymentId={transactionId}
+                  onClose={() => handlePaymentModalOpenChange(false)}
+                  onShowClose={() => setShowOuterSnapClose(true)}
                 />
               );
             }

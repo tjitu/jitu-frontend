@@ -19,6 +19,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<PendingTransaction[]>([]);
   const [isModalOpened, setIsModalOpened] = useState(false);
+  const [showOuterSnapClose, setShowOuterSnapClose] = useState(false);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [showContact, setShowContact] = useState(false);
@@ -63,6 +64,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
 
   const handleOpenQris = (txId: string) => {
     setIsModalLoading(true);
+    setShowOuterSnapClose(false);
     setIsModalOpened(true);
 
     fetch(`${BACKEND_URL}/shop/data/${txId}`, {
@@ -121,6 +123,20 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
       toast.error(err.message || "Gagal membatalkan transaksi.");
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const handlePaymentModalOpenChange = (state: boolean) => {
+    setIsModalOpened(state);
+    if (!state) {
+      setTransactionId(null);
+      setQrCode("");
+      setQrCodeUrl(null);
+      setRedirectUrl(null);
+      setSnapToken(null);
+      setClientKey(null);
+      setShowContact(false);
+      setShowOuterSnapClose(false);
     }
   };
 
@@ -214,22 +230,14 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
 
       <Dialog
         open={isModalOpened}
-        onOpenChange={(state) => {
-          setIsModalOpened(state);
-          if (!state) {
-            setTransactionId(null);
-            setQrCode("");
-            setQrCodeUrl(null);
-            setRedirectUrl(null);
-            setSnapToken(null);
-            setClientKey(null);
-            setShowContact(false);
-          }
-        }}
+        onOpenChange={handlePaymentModalOpenChange}
         modal
       >
         <DialogTitle className="sr-only">Pembayaran QRIS</DialogTitle>
-        <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto"
+          showCloseButton={!(transactionId && !isModalLoading && !showContact && redirectUrl && snapToken && !qrCodeUrl && !qrCode && !showOuterSnapClose)}
+        >
           {isModalLoading && (
             <div className="flex flex-col items-center justify-center py-10">
               <Loader2 className="w-7 h-7 animate-spin text-primary mb-3" />
@@ -240,7 +248,13 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
           )}
 
           {!isModalLoading && transactionId && !showContact && redirectUrl && snapToken && !qrCodeUrl && !qrCode && (
-            <SnapQrisEmbed token={snapToken} clientKey={clientKey || ""} paymentId={transactionId} />
+            <SnapQrisEmbed
+              token={snapToken}
+              clientKey={clientKey || ""}
+              paymentId={transactionId}
+              onClose={() => handlePaymentModalOpenChange(false)}
+              onShowClose={() => setShowOuterSnapClose(true)}
+            />
           )}
 
           {!isModalLoading && transactionId && !showContact && (qrCodeUrl || qrCode) && (
