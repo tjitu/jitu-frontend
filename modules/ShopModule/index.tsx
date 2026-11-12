@@ -1168,9 +1168,8 @@ const ShopModule = () => {
               paymentData?.qrCodeUrl ||
               (paymentData?.qrCode
                 ? `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(paymentData.qrCode)}&size=300x300`
-                : paymentData?.snapToken
-                ? `https://app.midtrans.com/snap/v1/transactions/${paymentData.snapToken}/qr-code`
                 : null);
+            const usesSnapCheckout = Boolean(paymentData?.redirectUrl && !qrImageUrl);
 
             return (
               <div className="flex flex-col items-center gap-4 py-2">
@@ -1179,7 +1178,9 @@ const ShopModule = () => {
                     PEMBAYARAN QRIS
                   </p>
                   <h2 className="text-[20px] font-bold text-text mt-1">
-                    Scan QRIS untuk bayar
+                    {usesSnapCheckout
+                      ? "Selesaikan pembayaran di Midtrans"
+                      : "Scan QRIS untuk bayar"}
                   </h2>
                   <div className="font-mono text-2xl font-bold text-text mt-1 tabular-nums">
                     Rp{(paymentData?.amount ?? selectedPkg?.price ?? 0).toLocaleString("id-ID")}
@@ -1193,6 +1194,20 @@ const ShopModule = () => {
                       alt="Kode QRIS"
                       className="w-56 h-56 object-contain rounded-lg"
                     />
+                  ) : usesSnapCheckout ? (
+                    <div className="w-full flex flex-col items-center gap-3 text-center">
+                      <p className="text-sm text-slate-600">
+                        Buka halaman pembayaran Midtrans untuk melihat QRIS atau opsi GoPay yang tersedia di perangkatmu.
+                      </p>
+                      <a
+                        href={paymentData?.redirectUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
+                      >
+                        Lanjutkan pembayaran
+                      </a>
+                    </div>
                   ) : (
                     <div className="w-56 h-56 flex flex-col items-center justify-center text-text-muted gap-2">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />

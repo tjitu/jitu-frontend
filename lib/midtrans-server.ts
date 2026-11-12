@@ -74,7 +74,8 @@ export async function createSnapTransaction(params: MidtransSnapParams) {
       order_id: params.orderId,
       gross_amount: Math.round(params.grossAmount),
     },
-    enabled_payments: ["gopay", "qris", "other_qris"],
+    // Snap exposes GoPay QRIS through the `gopay` payment channel.
+    enabled_payments: ["gopay"],
     item_details: params.itemDetails,
     customer_details: params.customerDetails
       ? {
@@ -149,10 +150,14 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
       statusCode === "402" &&
       /payment channel is not activated/i.test(statusMessage)
     ) {
-      const reference = chargeData.id ? ` Ref: ${chargeData.id}.` : "";
-      throw new Error(
-        `QRIS GoPay belum diaktifkan untuk Core API produksi di akun Midtrans ini. Minta aktivasi QRIS Core API ke Midtrans Support.${reference}`,
-      );
+      // Core API Production can be unavailable even when GoPay QRIS is active
+      // for Snap. Fall back to Midtrans-hosted checkout so payment can proceed.
+      const snapResult = await createSnapTransaction(params);
+      return {
+        token: snapResult.token,
+        redirect_url: snapResult.redirect_url,
+        expiry_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      };
     }
 
     throw new Error(

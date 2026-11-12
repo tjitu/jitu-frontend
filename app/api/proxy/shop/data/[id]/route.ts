@@ -43,9 +43,10 @@ export async function GET(
         createdAt: row.createdAt,
         userId: row.userId,
         totalPrice: row.totalPrice,
-        qris: row.snapToken || "",
+        qris: metadata.qr_string || "",
         metadata: {
           qr_code_url: metadata.qr_code_url,
+          qr_string: metadata.qr_string,
           deeplink_url: metadata.deeplink_url,
           redirect_url: metadata.redirect_url,
           snap_token: row.snapToken,

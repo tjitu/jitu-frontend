@@ -23,6 +23,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
   const [showContact, setShowContact] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const onCountChangeRef = useRef(onCountChange);
@@ -80,6 +81,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
         } else {
           setQrCodeUrl(null);
         }
+        setRedirectUrl(data.metadata?.redirect_url || null);
         setShowContact(false);
       })
       .catch(() => {
@@ -255,6 +257,20 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
                     alt="Kode QRIS"
                     className="w-56 h-56 object-contain rounded-lg"
                   />
+                ) : redirectUrl ? (
+                  <div className="w-full flex flex-col items-center gap-3 text-center py-8">
+                    <p className="text-sm text-slate-600">
+                      Buka halaman Midtrans untuk melanjutkan pembayaran.
+                    </p>
+                    <a
+                      href={redirectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
+                    >
+                      Lanjutkan pembayaran
+                    </a>
+                  </div>
                 ) : (
                   <p className="text-sm text-text-muted py-12 text-center">
                     Waktu bayar habis. Buat kode QRIS baru untuk lanjut.
