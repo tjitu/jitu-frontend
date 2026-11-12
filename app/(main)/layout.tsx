@@ -1,20 +1,24 @@
 "use client";
 
+import { Suspense } from "react";
 import Navbar from "@/components/elements/Navbar/Navbar";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const HIDDEN_NAVBAR_ROUTES = ["/"];
 
-export default function MainLayout({
+function MainLayoutInner({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isExamOrBreak =
     pathname.includes("/exam/") || pathname.includes("/break/");
+  const isLandingArsip =
+    pathname === "/arsip-soal" && searchParams.get("from") === "landing";
   const hideNavbar =
-    HIDDEN_NAVBAR_ROUTES.includes(pathname) || isExamOrBreak;
+    HIDDEN_NAVBAR_ROUTES.includes(pathname) || isExamOrBreak || isLandingArsip;
 
   return (
     <div className="min-h-screen w-full bg-bg text-text-body flex flex-col">
@@ -23,5 +27,23 @@ export default function MainLayout({
         {children}
       </main>
     </div>
+  );
+}
+
+export default function MainLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full bg-bg text-text-body flex flex-col">
+          <main className="flex-1 w-full">{children}</main>
+        </div>
+      }
+    >
+      <MainLayoutInner>{children}</MainLayoutInner>
+    </Suspense>
   );
 }

@@ -65,7 +65,7 @@ export async function verifyFirebaseIdToken(token: string): Promise<FirebaseToke
     const expectedProject =
       process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
       process.env.FIREBASE_PROJECT_ID ||
-      "jitu-ptn-main-auth-2026";
+      "jitu-ptn-main-auth";
 
     // 1. Check expiration
     const nowSec = Math.floor(Date.now() / 1000);

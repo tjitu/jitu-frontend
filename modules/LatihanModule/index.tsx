@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { Suspense, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   BookOpen,
   CheckCircle2,
   XCircle,
   ArrowRight,
-  RotateCcw,
   Sparkles,
   Layers,
   Check,
@@ -21,7 +21,14 @@ import {
   Loader2,
   Crown,
   HelpCircle,
+  History,
+  Lock,
+  SkipForward,
+  FlaskConical,
+  RotateCcw,
+  ShieldAlert,
 } from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -30,32 +37,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getUserStats, getCachedDashboardData } from "@/lib/api/DashboardApi";
+import { getFirebaseAuth } from "@/lib/firebase";
 import {
   InteractiveSolutionDeck,
   renderMathContent,
 } from "@/components/interactive-solution-deck";
+import { PracticeHistoryTab } from "./PracticeHistoryTab";
 import type {
   PracticeQuestionSummary,
   QuestionSolutionData,
 } from "@/lib/practice-store";
 
 const DAILY_FREE_LIMIT = 10;
-const practiceQuestionsCache = new Map<string, PracticeQuestionSummary[]>();
-
-function getTodayDateKey(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 const SUBTESTS = [
   { id: "ALL", label: "Semua Subtes" },
-  { id: "PENALARAN_MATEMATIKA", label: "Penalaran Matematika" },
-  { id: "PENGETAHUAN_KUANTITATIF", label: "Pengetahuan Kuantitatif" },
-  { id: "PENALARAN_UMUM", label: "Penalaran Umum" },
-  { id: "LITERASI_INDONESIA", label: "Literasi B. Indonesia" },
-  { id: "LITERASI_INGGRIS", label: "Literasi B. Inggris" },
-  { id: "PEMAHAMAN_BACAAN", label: "Pemahaman Bacaan & Menulis" },
+  { id: "PENALARAN_UMUM", label: "PU" },
+  { id: "PENGETAHUAN_KUANTITATIF", label: "PK" },
+  { id: "PENALARAN_MATEMATIKA", label: "PM" },
+  { id: "PEMAHAMAN_BACAAN_MENULIS", label: "PBM" },
+  { id: "PENGETAHUAN_PEMAHAMAN_UMUM", label: "PPU" },
+  { id: "LITERASI_INDONESIA", label: "LBI" },
+  { id: "LITERASI_INGGRIS", label: "LBE" },
 ];
 
 const DIFFICULTIES = [
@@ -67,34 +70,59 @@ const DIFFICULTIES = [
 
 const OPTION_LETTERS = ["A", "B", "C", "D", "E"];
 
+const SANDBOX_TOKEN_STORAGE_KEY = "jitu_sandbox_preview_token";
+
 interface QuestionAttempt {
   selectedOptionId: string | null;
+  inputText?: string | null;
   isCorrect: boolean;
   correctOptionId: string | null;
+  correctAnswerText?: string | null;
   solution: QuestionSolutionData | null;
   isRevealOnly?: boolean;
 }
 
-export function LatihanModule() {
-  const initialCache = practiceQuestionsCache.get("ALL:ALL");
-  const [questions, setQuestions] = useState<PracticeQuestionSummary[]>(
-    initialCache ?? []
-  );
-  const [loading, setLoading] = useState(!initialCache);
+export interface LatihanModuleProps {
+  forceSandboxMode?: boolean;
+}
+
+function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) {
+  const searchParams = useSearchParams();
+  const isSandboxMode =
+    forceSandboxMode || (searchParams.get("target") || "").toUpperCase() === "SANDBOX";
+  const urlQuestionId = searchParams.get("questionId") || null;
+  const urlToken = searchParams.get("token") || null;
+
+  const [questions, setQuestions] = useState<PracticeQuestionSummary[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedSubtest, setSelectedSubtest] = useState("ALL");
   const [selectedDifficulty, setSelectedDifficulty] = useState("ALL");
+  const [selectedBatch, setSelectedBatch] = useState("ALL");
+  const [availableBatches, setAvailableBatches] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"PRACTICE" | "HISTORY">("PRACTICE");
+
+  // Sandbox preview token & auth state
+  const [sandboxToken, setSandboxToken] = useState<string | null>(null);
+  const [sandboxTokenReady, setSandboxTokenReady] = useState(!isSandboxMode);
+  const [sandboxAuthorized, setSandboxAuthorized] = useState(true);
+  const autoRevealedIdRef = useRef<string | null>(null);
+
+  // Firebase Auth sync
+  const [authUid, setAuthUid] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
 
   // Active question ID
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(
-    initialCache && initialCache.length > 0 ? initialCache[0].id : null
-  );
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
 
-  // Per-question attempts map so state is preserved when switching questions
+  // Per-question attempts map in current view before advancing
   const [attempts, setAttempts] = useState<Record<string, QuestionAttempt>>({});
 
   // Current selection for the active question (pending submission)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [shortAnswerInput, setShortAnswerInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [skipping, setSkipping] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   // Inline solution card toggle (appears setara dengan card soal)
   const [isSolutionOpen, setIsSolutionOpen] = useState(false);
@@ -102,81 +130,101 @@ export function LatihanModule() {
   // 1-second question loading animation
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
 
-  // Daily Limit for Free Account
+  // Daily Limit & Server Synced Context
   const [dailyAnsweredCount, setDailyAnsweredCount] = useState(0);
+  const [totalAnswered, setTotalAnswered] = useState(0);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [isDailyLimitModalOpen, setIsDailyLimitModalOpen] = useState(false);
   const [showProgressTooltip, setShowProgressTooltip] = useState(false);
 
-  // Check premium status & initialize daily attempt count from localStorage & backend
+  // Capture signed preview token from URL into sessionStorage and strip it from address bar
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hasPass =
-        localStorage.getItem("jitu_ptn_premium_pass") === "true" ||
-        localStorage.getItem("jitu_is_premium") === "true";
-      setIsPremiumUser(hasPass);
-
-      const cachedStats = getCachedDashboardData()?.stats;
-      if (cachedStats && typeof cachedStats.isPremium === "boolean") {
-        setIsPremiumUser(cachedStats.isPremium);
-      } else {
-        getUserStats()
-          .then((stats) => {
-            if (typeof stats.isPremium === "boolean") {
-              setIsPremiumUser(stats.isPremium);
-              localStorage.setItem(
-                "jitu_ptn_premium_pass",
-                stats.isPremium ? "true" : "false",
-              );
-            }
-          })
-          .catch(() => {});
-      }
-
-      const todayKey = getTodayDateKey();
-      const stored = localStorage.getItem(`jitu_daily_practice_${todayKey}`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            setDailyAnsweredCount(parsed.length);
-          } else if (typeof parsed === "number") {
-            setDailyAnsweredCount(parsed);
-          }
-        } catch {
-          // ignore error
-        }
-      }
-    }
-  }, []);
-
-  // Load questions from API (cached per subtest + difficulty key for instant switching)
-  const fetchQuestions = useCallback(async () => {
-    const cacheKey = `${selectedSubtest}:${selectedDifficulty}`;
-    const cached = practiceQuestionsCache.get(cacheKey);
-    if (cached) {
-      setQuestions(cached);
-      setActiveQuestionId(cached.length > 0 ? cached[0].id : null);
-      setLoading(false);
+    if (!isSandboxMode) {
+      setSandboxToken(null);
+      setSandboxTokenReady(true);
       return;
     }
 
+    if (typeof window === "undefined") return;
+
+    if (urlToken) {
+      window.sessionStorage.setItem(SANDBOX_TOKEN_STORAGE_KEY, urlToken);
+      setSandboxToken(urlToken);
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete("token");
+      window.history.replaceState({}, "", `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+    } else {
+      const saved = window.sessionStorage.getItem(SANDBOX_TOKEN_STORAGE_KEY);
+      setSandboxToken(saved || null);
+    }
+    setSandboxTokenReady(true);
+  }, [isSandboxMode, urlToken]);
+
+  // Sync Firebase auth session cleanly before loading user-specific question feed
+  useEffect(() => {
+    const auth = getFirebaseAuth();
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setAuthUid(user?.uid || null);
+      setAuthReady(true);
+    });
+    return () => unsub();
+  }, []);
+
+  const getAuthHeaders = useCallback(async (): Promise<Record<string, string>> => {
+    const headers: Record<string, string> = {};
+    if (isSandboxMode && sandboxToken) {
+      headers["x-sandbox-token"] = sandboxToken;
+    }
+    try {
+      const auth = getFirebaseAuth();
+      if (auth.currentUser) {
+        const token = await auth.currentUser.getIdToken();
+        if (token) headers.Authorization = `Bearer ${token}`;
+      }
+    } catch {
+      // ignore token errors and fall back to sandbox/anonymous headers
+    }
+    return headers;
+  }, [isSandboxMode, sandboxToken]);
+
+  // Load questions from API (excluding already answered questions for this user in normal mode)
+  const fetchQuestions = useCallback(async () => {
+    if (!authReady || !sandboxTokenReady) return;
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (selectedSubtest !== "ALL") params.set("subtest", selectedSubtest);
       if (selectedDifficulty !== "ALL") params.set("difficulty", selectedDifficulty);
+      if (isSandboxMode && selectedBatch !== "ALL") params.set("batch", selectedBatch);
+      if (isSandboxMode) {
+        params.set("target", "SANDBOX");
+        if (urlQuestionId) params.set("questionId", urlQuestionId);
+      }
 
-      const res = await fetch(`/api/practice?${params.toString()}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/practice?${params.toString()}`, { headers });
       const data = await res.json();
+      if (typeof data.sandboxAuthorized === "boolean") {
+        setSandboxAuthorized(data.sandboxAuthorized);
+      } else {
+        setSandboxAuthorized(true);
+      }
+      if (Array.isArray(data.availableBatches)) {
+        setAvailableBatches(data.availableBatches);
+      }
+
       if (data.success && Array.isArray(data.questions)) {
-        practiceQuestionsCache.set(cacheKey, data.questions);
         setQuestions(data.questions);
-        if (data.questions.length > 0) {
-          setActiveQuestionId(data.questions[0].id);
-        } else {
-          setActiveQuestionId(null);
-        }
+        const preferred =
+          isSandboxMode && urlQuestionId
+            ? data.questions.find((q: PracticeQuestionSummary) => q.id === urlQuestionId)
+            : null;
+        setActiveQuestionId(
+          preferred ? preferred.id : data.questions.length > 0 ? data.questions[0].id : null
+        );
+        if (typeof data.isPremium === "boolean") setIsPremiumUser(data.isPremium);
+        if (typeof data.dailyAnsweredCount === "number") setDailyAnsweredCount(data.dailyAnsweredCount);
+        if (typeof data.totalAnswered === "number") setTotalAnswered(data.totalAnswered);
       } else {
         toast.error("Gagal memuat bank latihan soal");
       }
@@ -186,10 +234,20 @@ export function LatihanModule() {
     } finally {
       setLoading(false);
     }
-  }, [selectedSubtest, selectedDifficulty]);
+  }, [
+    authReady,
+    sandboxTokenReady,
+    authUid,
+    selectedSubtest,
+    selectedDifficulty,
+    selectedBatch,
+    isSandboxMode,
+    urlQuestionId,
+    getAuthHeaders,
+  ]);
 
   useEffect(() => {
-    fetchQuestions();
+    void fetchQuestions();
   }, [fetchQuestions]);
 
   // Current active question
@@ -200,17 +258,26 @@ export function LatihanModule() {
 
   const activeQuestion = activeQuestionIndex !== -1 ? questions[activeQuestionIndex] : null;
 
+  const isActiveShortAnswer = Boolean(
+    activeQuestion &&
+      (activeQuestion.type === "SHORT_ANSWER" ||
+        activeQuestion.type === "ISIAN_SINGKAT" ||
+        activeQuestion.options.length === 0)
+  );
+
   // Active question's evaluated attempt (if any)
   const currentAttempt = activeQuestion ? attempts[activeQuestion.id] || null : null;
 
-  // Keep pending selectedOptionId synced when switching questions
+  // Keep pending selectedOptionId & shortAnswerInput synced when switching questions
   useEffect(() => {
     if (activeQuestion) {
       const existing = attempts[activeQuestion.id];
       if (existing) {
         setSelectedOptionId(existing.selectedOptionId);
+        setShortAnswerInput(existing.inputText || "");
       } else {
         setSelectedOptionId(null);
+        setShortAnswerInput("");
         setIsSolutionOpen(false);
       }
     }
@@ -226,7 +293,7 @@ export function LatihanModule() {
         return;
       }
 
-      if (activeQuestion && !currentAttempt) {
+      if (activeQuestion && !currentAttempt && !isActiveShortAnswer) {
         const key = e.key.toUpperCase();
         const optionIndex = OPTION_LETTERS.indexOf(key);
         if (optionIndex !== -1 && activeQuestion.options[optionIndex]) {
@@ -237,93 +304,154 @@ export function LatihanModule() {
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isSolutionOpen, activeQuestion, currentAttempt]);
+  }, [isSolutionOpen, activeQuestion, currentAttempt, isActiveShortAnswer]);
 
-  // Switch to another question instantly (questions are already loaded in memory)
+  // Switch to another question
   const handleSelectQuestion = (qId: string) => {
     if (qId === activeQuestionId) return;
-    setIsSolutionOpen(false);
+    if (!isSandboxMode && activeQuestion && attempts[activeQuestion.id]) {
+      setQuestions((prev) => prev.filter((q) => q.id !== activeQuestion.id));
+    }
+    setIsSolutionOpen(Boolean(isSandboxMode && attempts[qId]?.solution));
     setActiveQuestionId(qId);
   };
 
   const handleNextQuestion = () => {
-    if (activeQuestionIndex < questions.length - 1) {
+    if (!activeQuestion) return;
+    setSelectedOptionId(null);
+    setShortAnswerInput("");
+
+    if (!isSandboxMode && attempts[activeQuestion.id]) {
       setIsSolutionOpen(false);
-      setActiveQuestionId(questions[activeQuestionIndex + 1].id);
+      const remaining = questions.filter((q) => q.id !== activeQuestion.id);
+      setQuestions(remaining);
+      if (remaining.length > 0) {
+        const nextIdx = Math.min(activeQuestionIndex, remaining.length - 1);
+        setActiveQuestionId(remaining[nextIdx].id);
+      } else {
+        setActiveQuestionId(null);
+      }
+      return;
+    }
+
+    if (activeQuestionIndex < questions.length - 1) {
+      const nextQ = questions[activeQuestionIndex + 1];
+      setIsSolutionOpen(Boolean(isSandboxMode && attempts[nextQ.id]?.solution));
+      setActiveQuestionId(nextQ.id);
     }
   };
 
   const handlePrevQuestion = () => {
     if (activeQuestionIndex > 0) {
-      setIsSolutionOpen(false);
-      setActiveQuestionId(questions[activeQuestionIndex - 1].id);
+      const prevQ = questions[activeQuestionIndex - 1];
+      setIsSolutionOpen(Boolean(isSandboxMode && attempts[prevQ.id]?.solution));
+      setActiveQuestionId(prevQ.id);
     }
   };
 
-  // Record daily practice count in localStorage
-  const recordDailyAttempt = useCallback((qId: string) => {
-    if (isPremiumUser) return;
-    try {
-      const todayKey = getTodayDateKey();
-      const stored = localStorage.getItem(`jitu_daily_practice_${todayKey}`);
-      let answeredIds: string[] = [];
-      if (stored) {
-        try {
-          answeredIds = JSON.parse(stored);
-          if (!Array.isArray(answeredIds)) answeredIds = [];
-        } catch {
-          answeredIds = [];
-        }
-      }
+  const handleResetSandboxAttempt = (questionId: string) => {
+    setAttempts((prev) => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
+    });
+    setSelectedOptionId(null);
+    setShortAnswerInput("");
+    setIsSolutionOpen(false);
+  };
 
-      if (!answeredIds.includes(qId)) {
-        answeredIds.push(qId);
-        localStorage.setItem(`jitu_daily_practice_${todayKey}`, JSON.stringify(answeredIds));
-        const count = answeredIds.length;
-        setDailyAnsweredCount(count);
-
-        if (count >= DAILY_FREE_LIMIT) {
-          setTimeout(() => {
-            setIsDailyLimitModalOpen(true);
-          }, 1200);
-        }
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [isPremiumUser]);
-
-  // Submit answer for evaluation -> checks daily limit and opens side-by-side solution card!
-  const handleSubmitAnswer = async () => {
-    if (!activeQuestion || !selectedOptionId) {
-      toast.info("Pilih salah satu opsi jawaban terlebih dahulu");
+  const handleSkipQuestion = async () => {
+    if (!activeQuestion || currentAttempt || skipping) return;
+    if (questions.length <= 1) {
+      toast.info("Ini satu-satunya soal yang tersisa di filter ini.");
       return;
     }
 
-    // Free account daily limit check
-    if (!isPremiumUser && dailyAnsweredCount >= DAILY_FREE_LIMIT && !attempts[activeQuestion.id]) {
+    const skippedId = activeQuestion.id;
+    const rest = questions.filter((q) => q.id !== skippedId);
+    const reordered = [...rest, { ...activeQuestion, isPreviouslySkipped: true }];
+    setQuestions(reordered);
+    setActiveQuestionId(reordered[0].id);
+    setSelectedOptionId(null);
+    setShortAnswerInput("");
+    setIsSolutionOpen(false);
+    toast.info("Soal dilewati & dipindahkan ke antrean belakang.");
+
+    if (!isSandboxMode && authUid) {
+      try {
+        setSkipping(true);
+        const headers = await getAuthHeaders();
+        await fetch("/api/practice/skip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...headers },
+          body: JSON.stringify({ questionId: skippedId }),
+        });
+      } catch {
+        // Queue already updated in UI; DB skip is best-effort
+      } finally {
+        setSkipping(false);
+      }
+    }
+  };
+
+  // Submit answer for evaluation -> enforces 10/day quota for free users and permanently records ANSWERED (non-destructive in Sandbox)
+  const handleSubmitAnswer = async () => {
+    if (!activeQuestion) return;
+    if (!isActiveShortAnswer && !selectedOptionId) {
+      toast.info("Pilih salah satu opsi jawaban terlebih dahulu");
+      return;
+    }
+    if (isActiveShortAnswer && !shortAnswerInput.trim()) {
+      toast.info("Tuliskan jawaban terlebih dahulu");
+      return;
+    }
+
+    if (
+      !isSandboxMode &&
+      !isPremiumUser &&
+      dailyAnsweredCount >= DAILY_FREE_LIMIT &&
+      !attempts[activeQuestion.id]
+    ) {
       setIsDailyLimitModalOpen(true);
-      toast.error("Batas kuota 10 soal harian tercapai! Beralih ke PTN Premium Pass.");
+      toast.error("Batas kuota 10 soal harian tercapai! Upgrade ke PTN Premium Pass untuk lanjut.");
       return;
     }
 
     try {
       setSubmitting(true);
+      const authHeaders = await getAuthHeaders();
       const res = await fetch("/api/practice", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({
           questionId: activeQuestion.id,
-          selectedOptionId,
+          selectedOptionId: isActiveShortAnswer ? null : selectedOptionId,
+          inputText: isActiveShortAnswer ? shortAnswerInput.trim() : null,
+          sandbox: isSandboxMode,
         }),
       });
 
       const data = await res.json();
+      if (res.status === 401 || data.requiresAuth) {
+        toast.error(data.error || "Silakan login ke akun terlebih dahulu untuk menjawab soal.");
+        return;
+      }
+      if (!isSandboxMode && (res.status === 403 || data.limitReached)) {
+        if (typeof data.dailyAnsweredCount === "number") {
+          setDailyAnsweredCount(data.dailyAnsweredCount);
+        }
+        setIsDailyLimitModalOpen(true);
+        toast.error("Kuota harian 10 soal akun gratis sudah habis hari ini.");
+        return;
+      }
+
       if (data.success) {
         const newAttempt: QuestionAttempt = {
-          selectedOptionId,
+          selectedOptionId: isActiveShortAnswer ? null : selectedOptionId,
+          inputText: isActiveShortAnswer ? shortAnswerInput.trim() : null,
           isCorrect: data.isCorrect,
           correctOptionId: data.correctOptionId,
+          correctAnswerText: data.correctAnswerText || null,
           solution: data.solution,
           isRevealOnly: false,
         };
@@ -333,10 +461,10 @@ export function LatihanModule() {
           [activeQuestion.id]: newAttempt,
         }));
 
-        // Record attempt toward daily free limit
-        recordDailyAttempt(activeQuestion.id);
+        if (typeof data.dailyAnsweredCount === "number") setDailyAnsweredCount(data.dailyAnsweredCount);
+        if (typeof data.totalAnswered === "number") setTotalAnswered(data.totalAnswered);
+        if (typeof data.isPremium === "boolean") setIsPremiumUser(data.isPremium);
 
-        // Open solution card beside the question card
         setIsSolutionOpen(true);
 
         if (data.isCorrect) {
@@ -345,7 +473,7 @@ export function LatihanModule() {
           toast.error("Jawaban belum tepat. Cek pembahasan di kartu samping.");
         }
       } else {
-        toast.error(data.message || "Gagal memeriksa jawaban");
+        toast.error(data.error || data.message || "Gagal memeriksa jawaban");
       }
     } catch (err) {
       console.error("Submit answer error:", err);
@@ -355,66 +483,168 @@ export function LatihanModule() {
     }
   };
 
-  // Direct reveal solution for self-study mode
-  const handleRevealSolution = async () => {
-    if (!activeQuestion) return;
+  // Direct reveal solution -> counts as answered in normal mode, non-destructive in Sandbox mode
+  const handleRevealSolution = useCallback(
+    async (targetQuestionArg?: PracticeQuestionSummary | null, silent = false) => {
+      const targetQ = targetQuestionArg || activeQuestion;
+      if (!targetQ) return;
 
-    if (!isPremiumUser && dailyAnsweredCount >= DAILY_FREE_LIMIT && !attempts[activeQuestion.id]) {
-      setIsDailyLimitModalOpen(true);
-      toast.error("Batas kuota 10 soal harian tercapai! Beralih ke PTN Premium Pass.");
+      if (
+        !isSandboxMode &&
+        !isPremiumUser &&
+        dailyAnsweredCount >= DAILY_FREE_LIMIT &&
+        !attempts[targetQ.id]
+      ) {
+        setIsDailyLimitModalOpen(true);
+        toast.error("Batas kuota 10 soal harian tercapai! Upgrade ke PTN Premium Pass.");
+        return;
+      }
+
+      try {
+        setSubmitting(true);
+        const authHeaders = await getAuthHeaders();
+        const res = await fetch("/api/practice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeaders },
+          body: JSON.stringify({
+            questionId: targetQ.id,
+            revealOnly: true,
+            sandbox: isSandboxMode,
+          }),
+        });
+
+        const data = await res.json();
+        if (res.status === 401 || data.requiresAuth) {
+          if (!silent) toast.error(data.error || "Silakan login terlebih dahulu untuk melihat pembahasan.");
+          return;
+        }
+        if (!isSandboxMode && (res.status === 403 || data.limitReached)) {
+          if (typeof data.dailyAnsweredCount === "number") {
+            setDailyAnsweredCount(data.dailyAnsweredCount);
+          }
+          setIsDailyLimitModalOpen(true);
+          return;
+        }
+
+        if (data.success) {
+          const newAttempt: QuestionAttempt = {
+            selectedOptionId: null,
+            isCorrect: false,
+            correctOptionId: data.correctOptionId,
+            correctAnswerText: data.correctAnswerText || null,
+            solution: data.solution,
+            isRevealOnly: true,
+          };
+
+          setAttempts((prev) => ({
+            ...prev,
+            [targetQ.id]: newAttempt,
+          }));
+
+          if (typeof data.dailyAnsweredCount === "number") setDailyAnsweredCount(data.dailyAnsweredCount);
+          if (typeof data.totalAnswered === "number") setTotalAnswered(data.totalAnswered);
+          if (typeof data.isPremium === "boolean") setIsPremiumUser(data.isPremium);
+
+          if (data.solution) {
+            setIsSolutionOpen(true);
+            if (!silent) toast.info("Pembahasan interaktif terbuka di kartu samping.");
+          } else if (!silent) {
+            toast.info("Kunci jawaban ditampilkan. Soal ini belum memiliki catatan pembahasan.");
+          }
+        } else if (!silent) {
+          toast.error(data.error || data.message || "Gagal membuka pembahasan");
+        }
+      } catch (err) {
+        console.error("Reveal solution error:", err);
+        if (!silent) toast.error("Terjadi kesalahan saat memuat pembahasan");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [
+      activeQuestion,
+      isSandboxMode,
+      isPremiumUser,
+      dailyAnsweredCount,
+      attempts,
+      getAuthHeaders,
+    ]
+  );
+
+  const handleApproveSandboxQuestion = async (targetQ: PracticeQuestionSummary | null) => {
+    if (!isSandboxMode || !targetQ || approvingId) return;
+    const wasSolutionOpen = isSolutionOpen;
+    try {
+      setApprovingId(targetQ.id);
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch("/api/practice/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        body: JSON.stringify({ questionId: targetQ.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Gagal meng-ACC soal ke status Ready.");
+        return;
+      }
+
+      toast.success("Soal berhasil di-ACC dan dipindahkan ke status Ready!");
+
+      const idx = questions.findIndex((q) => q.id === targetQ.id);
+      const remaining = questions.filter((q) => q.id !== targetQ.id);
+
+      setAttempts((prev) => {
+        const next = { ...prev };
+        delete next[targetQ.id];
+        return next;
+      });
+      setQuestions(remaining);
+      setSelectedOptionId(null);
+      setShortAnswerInput("");
+
+      if (remaining.length > 0) {
+        const nextQ = remaining[Math.min(Math.max(idx, 0), remaining.length - 1)];
+        setActiveQuestionId(nextQ.id);
+        if (wasSolutionOpen) {
+          if (attempts[nextQ.id]?.solution) {
+            setIsSolutionOpen(true);
+          } else {
+            void handleRevealSolution(nextQ, true);
+          }
+        }
+      } else {
+        setActiveQuestionId(null);
+        setIsSolutionOpen(false);
+      }
+    } catch (err) {
+      console.error("Approve sandbox question error:", err);
+      toast.error("Terjadi kesalahan jaringan saat meng-ACC soal.");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  // Auto-open Question + Pembahasan side-by-side when opening a targeted QC question in Sandbox mode
+  useEffect(() => {
+    if (!isSandboxMode || !sandboxAuthorized || !urlQuestionId || !activeQuestion) return;
+    if (activeQuestion.id !== urlQuestionId) return;
+    if (autoRevealedIdRef.current === activeQuestion.id) return;
+    if (attempts[activeQuestion.id]) {
+      autoRevealedIdRef.current = activeQuestion.id;
+      if (attempts[activeQuestion.id].solution) setIsSolutionOpen(true);
       return;
     }
 
-    try {
-      setSubmitting(true);
-      const res = await fetch("/api/practice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          questionId: activeQuestion.id,
-          revealOnly: true,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success && data.solution) {
-        const newAttempt: QuestionAttempt = {
-          selectedOptionId: null,
-          isCorrect: false,
-          correctOptionId: data.correctOptionId,
-          solution: data.solution,
-          isRevealOnly: true,
-        };
-
-        setAttempts((prev) => ({
-          ...prev,
-          [activeQuestion.id]: newAttempt,
-        }));
-
-        recordDailyAttempt(activeQuestion.id);
-        setIsSolutionOpen(true);
-        toast.info("Pembahasan interaktif terbuka di kartu samping.");
-      } else {
-        toast.error(data.message || "Gagal membuka pembahasan");
-      }
-    } catch (err) {
-      console.error("Reveal solution error:", err);
-      toast.error("Terjadi kesalahan saat memuat pembahasan");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  // Reset current question attempt
-  const handleResetAttempt = () => {
-    if (!activeQuestion) return;
-    setAttempts((prev) => {
-      const next = { ...prev };
-      delete next[activeQuestion.id];
-      return next;
-    });
-    setSelectedOptionId(null);
-    setIsSolutionOpen(false);
-  };
+    autoRevealedIdRef.current = activeQuestion.id;
+    void handleRevealSolution(activeQuestion, true);
+  }, [
+    isSandboxMode,
+    sandboxAuthorized,
+    urlQuestionId,
+    activeQuestion,
+    attempts,
+    handleRevealSolution,
+  ]);
 
   // Find user's selected option object & correct option object for recap
   const selectedOptionObj = activeQuestion?.options.find(
@@ -436,23 +666,80 @@ export function LatihanModule() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              {isPremiumUser && (
+              {isSandboxMode ? (
+                <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 border border-amber-300 text-xs font-bold">
+                    <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
+                    Sandbox QC
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-surface-muted text-text-muted border border-border text-[11px] font-semibold">
+                    Pratinjau Antrean QC · Non-destruktif
+                  </span>
+                </div>
+              ) : isPremiumUser ? (
                 <div className="mb-1.5">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-300 text-xs font-bold">
                     <Crown className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
                     PTN Premium Pass
                   </span>
                 </div>
-              )}
+              ) : null}
               <h1 className="text-xl sm:text-2xl font-extrabold text-text tracking-tight m-0">
-                Latihan Soal SNBT & UTBK
+                {isSandboxMode
+                  ? "Sandbox Preview · Soal & Pembahasan"
+                  : "Latihan Soal SNBT & UTBK"}
               </h1>
+
+              {/* Primary Mode Switcher: Kerjakan Soal vs Riwayat & Pembahasan (hidden in Sandbox mode) */}
+              {!isSandboxMode && (
+                <div className="mt-3 inline-flex items-center p-1 rounded-xl bg-surface-muted border border-border gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("PRACTICE")}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      viewMode === "PRACTICE"
+                        ? "bg-surface text-text shadow-2xs"
+                        : "text-text-muted hover:text-text"
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Kerjakan Soal</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("HISTORY")}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      viewMode === "HISTORY"
+                        ? "bg-surface text-text shadow-2xs"
+                        : "text-text-muted hover:text-text"
+                    }`}
+                  >
+                    {isPremiumUser ? (
+                      <Crown className="w-3.5 h-3.5 text-amber-600" />
+                    ) : (
+                      <Lock className="w-3.5 h-3.5 text-amber-600" />
+                    )}
+                    <span>Riwayat & Pembahasan</span>
+                    {totalAnswered > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-extrabold">
+                        {totalAnswered}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Right Group: Progressive Bar & Filter Chips */}
+            {/* Right Group: Progressive Bar / Sandbox Pill & Filter Chips */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              {/* Daily Limit Progressive Bar for Free Account */}
-              {!isPremiumUser ? (
+              {isSandboxMode ? (
+                sandboxAuthorized ? (
+                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs whitespace-nowrap">
+                    <FlaskConical className="w-4 h-4 text-amber-600" />
+                    <span>{questions.length} Soal Antrean QC</span>
+                  </div>
+                ) : null
+              ) : !isPremiumUser ? (
                 <div
                   className="relative group cursor-pointer"
                   onClick={() => {
@@ -511,7 +798,7 @@ export function LatihanModule() {
                           <strong>
                             {dailyAnsweredCount} dari {DAILY_FREE_LIMIT} soal
                           </strong>{" "}
-                          hari ini. Kuota direset otomatis tiap tengah malam.
+                          hari ini. Kuota direset otomatis tiap tengah malam WIB.
                         </p>
                       </div>
                     </div>
@@ -522,7 +809,7 @@ export function LatihanModule() {
                       </div>
                       <p className="text-blue-800/90 leading-relaxed">
                         Upgrade ke <strong>PTN Premium Pass</strong> untuk latihan
-                        unlimited, bebas buka pembahasan, dan analisis skor IRT.
+                        unlimited, bebas buka riwayat pembahasan, dan analisis skor IRT.
                       </p>
                     </div>
 
@@ -542,26 +829,44 @@ export function LatihanModule() {
                 </div>
               )}
 
-              {/* Subtest Quick Filter */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {SUBTESTS.slice(0, 4).map((sub) => {
-                  const isActive = selectedSubtest === sub.id;
-                  return (
-                    <button
-                      key={sub.id}
-                      type="button"
-                      onClick={() => setSelectedSubtest(sub.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer ${
-                        isActive
-                          ? "bg-primary text-on-primary shadow-xs"
-                          : "bg-surface-muted text-text hover:bg-border/60"
-                      }`}
+              {/* Subtest & Sandbox Batch Quick Filter */}
+              {viewMode === "PRACTICE" && (!isSandboxMode || sandboxAuthorized) && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  {isSandboxMode && (
+                    <select
+                      aria-label="Filter Batch QC"
+                      value={selectedBatch}
+                      onChange={(e) => setSelectedBatch(e.target.value)}
+                      className="h-8 px-2.5 rounded-full text-xs font-semibold bg-surface-muted text-text border border-border cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
                     >
-                      {sub.label}
-                    </button>
-                  );
-                })}
-              </div>
+                      <option value="ALL">Semua Batch</option>
+                      <option value="__NONE__">Tanpa Batch</option>
+                      {availableBatches.map((batchName) => (
+                        <option key={batchName} value={batchName}>
+                          Batch: {batchName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {SUBTESTS.map((sub) => {
+                    const isActive = selectedSubtest === sub.id;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => setSelectedSubtest(sub.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                          isActive
+                            ? "bg-primary text-on-primary shadow-xs"
+                            : "bg-surface-muted text-text hover:bg-border/60"
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -573,13 +878,53 @@ export function LatihanModule() {
           ============================================================ */}
       <main
         className={`mx-auto px-4 sm:px-6 pt-6 transition-all duration-300 ${
-          showSolutionCard ? "max-w-[1580px]" : "max-w-4xl"
+          !isSandboxMode && viewMode === "HISTORY"
+            ? "max-w-5xl"
+            : showSolutionCard
+            ? "max-w-[1580px]"
+            : "max-w-4xl"
         }`}
       >
-        {loading ? (
+        {!isSandboxMode && viewMode === "HISTORY" ? (
+          <PracticeHistoryTab
+            isPremium={isPremiumUser}
+            totalAnswered={totalAnswered}
+            isAuthenticated={Boolean(authUid)}
+            getAuthHeaders={getAuthHeaders}
+          />
+        ) : loading ? (
           <div className="space-y-4">
             <div className="h-14 rounded-2xl bg-surface border border-border animate-pulse" />
             <div className="h-96 rounded-2xl bg-surface border border-border animate-pulse p-8" />
+          </div>
+        ) : isSandboxMode && !sandboxAuthorized ? (
+          <div className="text-center py-16 bg-surface border border-border rounded-2xl p-8 max-w-xl mx-auto">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 mx-auto mb-4">
+              <ShieldAlert className="h-7 w-7" />
+            </div>
+            <h3 className="text-lg font-extrabold text-text mb-2">
+              Akses Sandbox QC Diperlukan
+            </h3>
+            <p className="text-xs sm:text-sm text-text-muted max-w-md mx-auto leading-relaxed mb-6">
+              Halaman pratinjau Antrean QC hanya dapat dibuka melalui tombol{" "}
+              <strong className="text-text">Buka di Sandbox</strong> dari Control Center,
+              atau dengan login menggunakan akun Sandbox JITU resmi.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/login"
+                className="px-5 py-2.5 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors"
+              >
+                Login Akun Sandbox
+              </Link>
+              <button
+                type="button"
+                onClick={() => void fetchQuestions()}
+                className="px-4 py-2.5 rounded-xl border border-border text-xs font-semibold text-text hover:bg-surface-muted transition-colors cursor-pointer"
+              >
+                Muat Ulang
+              </button>
+            </div>
           </div>
         ) : questions.length === 0 ? (
           <div className="text-center py-20 bg-surface border border-border rounded-2xl p-8">
@@ -587,28 +932,41 @@ export function LatihanModule() {
               <BookOpen className="h-7 w-7" />
             </div>
             <h3 className="text-base font-bold text-text mb-1">
-              Belum ada soal untuk kategori ini
+              {isSandboxMode
+                ? selectedSubtest !== "ALL" || selectedDifficulty !== "ALL" || selectedBatch !== "ALL"
+                  ? "Belum ada soal QC untuk filter ini"
+                  : "Belum ada soal di Antrean QC"
+                : "Belum ada soal untuk kategori ini"}
             </h3>
             <p className="text-xs text-text-muted max-w-sm mx-auto mb-4">
-              Coba ganti filter subtes untuk menemukan soal latihan lainnya.
+              {isSandboxMode
+                ? selectedSubtest !== "ALL" || selectedBatch !== "ALL"
+                  ? "Coba ganti filter subtes atau batch untuk melihat soal Antrean QC lainnya."
+                  : "Saat ini tidak ada soal berstatus QC_SANDBOX yang menunggu tinjauan."
+                : "Coba ganti filter subtes untuk menemukan soal latihan lainnya."}
             </p>
-            <button
-              type="button"
-              onClick={() => setSelectedSubtest("ALL")}
-              className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors cursor-pointer"
-            >
-              Tampilkan Semua Subtes
-            </button>
+            {(!isSandboxMode || selectedSubtest !== "ALL" || selectedBatch !== "ALL") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedSubtest("ALL");
+                  setSelectedBatch("ALL");
+                }}
+                className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors cursor-pointer"
+              >
+                {isSandboxMode ? "Reset Filter QC" : "Tampilkan Semua Subtes"}
+              </button>
+            )}
           </div>
         ) : activeQuestion ? (
           <div className="space-y-5">
             {/* ------------------------------------------------------------
                 QUESTION NAVIGATOR STRIP
-                Premium: Navigasi Soal (1, 2, 3...) + Prev / Next
+                Premium / Sandbox: Navigasi Soal (1, 2, 3...) + Prev / Next
                 Free: No navigasi soal (cuma ada Prev & Next)
                 ------------------------------------------------------------ */}
             <div className="bg-surface border border-border rounded-2xl p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              {isPremiumUser ? (
+              {isPremiumUser || isSandboxMode ? (
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   <span className="text-xs font-semibold text-text-muted mr-1 whitespace-nowrap">
                     Navigasi Soal:
@@ -696,23 +1054,25 @@ export function LatihanModule() {
                 User Request: "bukan sidebar sebagai new window gini, tapi lebih ke card yang setara dengan card soal"
                 ------------------------------------------------------------ */}
             <div
-              className={`grid gap-6 items-start transition-all duration-300 ${
+              className={`grid transition-all duration-300 ${
                 showSolutionCard
-                  ? "grid-cols-1 lg:grid-cols-12"
-                  : "grid-cols-1"
+                  ? "grid-cols-1 lg:grid-cols-12 gap-5 items-start"
+                  : "grid-cols-1 gap-6 items-start"
               }`}
             >
               {/* ============================================================
-                  KIRI: CARD SOAL (1/3 LEBAR - QUESTION : SOLUTION = 1 : 2)
+                  KIRI: CARD SOAL (5/12 LEBAR SAAT SPLIT - COMPACT & SEIMBANG)
                   ============================================================ */}
               <div
-                className={`bg-surface border border-border rounded-2xl p-6 sm:p-7 shadow-xs space-y-6 ${
-                  showSolutionCard ? "lg:col-span-4 lg:sticky lg:top-6" : "w-full"
+                className={`bg-surface border border-border rounded-2xl shadow-xs ${
+                  showSolutionCard
+                    ? "lg:col-span-5 p-5 flex flex-col gap-4"
+                    : "w-full p-6 sm:p-7 space-y-6"
                 }`}
               >
                 {/* 1-Second Loading Animation when switching questions */}
                 {isLoadingQuestion ? (
-                  <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in duration-200">
+                  <div className="flex-1 py-20 flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in duration-200">
                     <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-primary shadow-inner">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     </div>
@@ -731,7 +1091,11 @@ export function LatihanModule() {
                 ) : (
                   <>
                     {/* Question Metadata Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                    <div
+                      className={`flex flex-wrap items-center justify-between gap-2.5 border-b border-border ${
+                        showSolutionCard ? "pb-3" : "pb-4"
+                      }`}
+                    >
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
                           Soal {activeQuestionIndex + 1} · {activeQuestion.subtest.replace(/_/g, " ")}
@@ -744,9 +1108,43 @@ export function LatihanModule() {
                         >
                           {activeQuestion.difficulty}
                         </span>
+                        {isSandboxMode && activeQuestion.batch && (
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                            Batch: {activeQuestion.batch}
+                          </span>
+                        )}
                       </div>
+
+                      {isSandboxMode && (
+                        <button
+                          type="button"
+                          disabled={Boolean(approvingId)}
+                          onClick={() => void handleApproveSandboxQuestion(activeQuestion)}
+                          title="Lolos QC dan langsung ubah status soal ke READY"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ml-auto"
+                        >
+                          {approvingId === activeQuestion.id ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Menyimpan...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>ACC ke Ready</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
 
+                    <div
+                      className={
+                        showSolutionCard
+                          ? "flex-1 flex flex-col space-y-3.5"
+                          : "space-y-6"
+                      }
+                    >
                     {/* Topic / Subtopic Breadcrumb */}
                     {activeQuestion.topicTitle && (
                       <div className="text-xs font-medium text-text-muted">
@@ -761,9 +1159,16 @@ export function LatihanModule() {
                         UNIFIED QUESTION CONTENT (Wacana/Stimulus + Pertanyaan)
                         User Request: "gaperlu di kasih tau kalo itu wacana/stimulus soal, textnya samain stylenya kayak pertanyaan"
                         ============================================================ */}
-                    <div className="space-y-4 text-base sm:text-lg font-semibold text-text leading-relaxed">
+                    <div
+                      className={`font-semibold text-text leading-relaxed ${
+                        showSolutionCard
+                          ? "space-y-2.5 text-sm sm:text-[15px]"
+                          : "space-y-4 text-base sm:text-lg"
+                      }`}
+                    >
                       {activeQuestion.narration && (
                         <div
+                          className="whitespace-pre-wrap"
                           dangerouslySetInnerHTML={{
                             __html: renderMathContent(activeQuestion.narration, {
                               animatedHighlights: false,
@@ -772,102 +1177,151 @@ export function LatihanModule() {
                         />
                       )}
                       <div
+                        className="whitespace-pre-wrap"
                         dangerouslySetInnerHTML={{
                           __html: renderMathContent(activeQuestion.content, {
                             animatedHighlights: false,
                           }),
                         }}
                       />
+                      {activeQuestion.imageUrl && (
+                        <div className="pt-1">
+                          <img
+                            src={activeQuestion.imageUrl}
+                            alt="Ilustrasi soal"
+                            className="max-h-96 w-auto rounded-xl border border-border object-contain bg-surface"
+                          />
+                        </div>
+                      )}
                     </div>
 
-                    {/* Options List A - E */}
-                    <div className="space-y-3 pt-2">
-                      <div className="text-xs font-semibold text-text-muted">
-                        <span>PILIH SALAH SATU JAWABAN:</span>
+                    {/* Options List A - E or Short Answer Input */}
+                    {isActiveShortAnswer ? (
+                      <div className={showSolutionCard ? "space-y-2 pt-1" : "space-y-3 pt-2"}>
+                        <div className="text-xs font-semibold text-text-muted">
+                          <span>TULISKAN JAWABAN SINGKAT:</span>
+                        </div>
+                        <input
+                          type="text"
+                          disabled={Boolean(currentAttempt)}
+                          value={currentAttempt?.inputText ?? shortAnswerInput}
+                          onChange={(e) => setShortAnswerInput(e.target.value)}
+                          placeholder="Masukkan jawaban akhir (misal: 42)"
+                          className="w-full sm:max-w-xs px-4 py-3 rounded-xl border border-border bg-surface text-sm font-mono font-bold text-text focus:outline-none focus:border-primary disabled:opacity-75"
+                        />
+                        {currentAttempt && currentAttempt.correctAnswerText && (
+                          <div className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-xl inline-block">
+                            Kunci Jawaban Benar: <span className="font-mono font-bold">{currentAttempt.correctAnswerText}</span>
+                          </div>
+                        )}
                       </div>
+                    ) : (
+                      <div className={showSolutionCard ? "space-y-2 pt-1" : "space-y-3 pt-2"}>
+                        <div className="text-xs font-semibold text-text-muted">
+                          <span>PILIH SALAH SATU JAWABAN:</span>
+                        </div>
 
-                      <div className="grid grid-cols-1 gap-2.5">
-                        {activeQuestion.options.map((opt, idx) => {
-                          const letter = OPTION_LETTERS[idx] || String.fromCharCode(65 + idx);
-                          const isSelected = (currentAttempt?.selectedOptionId || selectedOptionId) === opt.id;
-                          const isEvaluated = Boolean(currentAttempt);
-                          const isCorrectAnswer =
-                            isEvaluated && currentAttempt?.correctOptionId === opt.id;
-                          const isSelectedWrong =
-                            isEvaluated && isSelected && !currentAttempt?.isCorrect;
+                        <div className={`grid grid-cols-1 ${showSolutionCard ? "gap-1.5" : "gap-2.5"}`}>
+                          {activeQuestion.options.map((opt, idx) => {
+                            const letter = OPTION_LETTERS[idx] || String.fromCharCode(65 + idx);
+                            const isSelected = (currentAttempt?.selectedOptionId || selectedOptionId) === opt.id;
+                            const isEvaluated = Boolean(currentAttempt);
+                            const isCorrectAnswer =
+                              isEvaluated && currentAttempt?.correctOptionId === opt.id;
+                            const isSelectedWrong =
+                              isEvaluated && isSelected && !currentAttempt?.isCorrect;
 
-                          let optionBorderClass =
-                            "border-border bg-surface hover:border-blue-400 hover:bg-blue-50/30";
-                          let badgeClass = "bg-surface-muted text-text border-border";
+                            let optionBorderClass =
+                              "border-border bg-surface hover:border-blue-400 hover:bg-blue-50/30";
+                            let badgeClass = "bg-surface-muted text-text border-border";
 
-                          if (isEvaluated) {
-                            if (isCorrectAnswer) {
+                            if (isEvaluated) {
+                              if (isCorrectAnswer) {
+                                optionBorderClass =
+                                  "border-emerald-500 bg-emerald-50/90 ring-1 ring-emerald-500";
+                                badgeClass = "bg-emerald-600 text-white border-emerald-600";
+                              } else if (isSelectedWrong) {
+                                optionBorderClass =
+                                  "border-rose-400 bg-rose-50/90 ring-1 ring-rose-400";
+                                badgeClass = "bg-rose-600 text-white border-rose-600";
+                              } else {
+                                optionBorderClass = "border-border/60 bg-surface/50 opacity-60";
+                              }
+                            } else if (isSelected) {
                               optionBorderClass =
-                                "border-emerald-500 bg-emerald-50/90 ring-1 ring-emerald-500";
-                              badgeClass = "bg-emerald-600 text-white border-emerald-600";
-                            } else if (isSelectedWrong) {
-                              optionBorderClass =
-                                "border-rose-400 bg-rose-50/90 ring-1 ring-rose-400";
-                              badgeClass = "bg-rose-600 text-white border-rose-600";
-                            } else {
-                              optionBorderClass = "border-border/60 bg-surface/50 opacity-60";
+                                "border-primary bg-blue-50/70 ring-2 ring-primary/20";
+                              badgeClass = "bg-primary text-on-primary border-primary font-bold";
                             }
-                          } else if (isSelected) {
-                            optionBorderClass =
-                              "border-primary bg-blue-50/70 ring-2 ring-primary/20";
-                            badgeClass = "bg-primary text-on-primary border-primary font-bold";
-                          }
 
-                          return (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              disabled={isEvaluated}
-                              onClick={() => setSelectedOptionId(opt.id)}
-                              className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all duration-150 flex items-start gap-3.5 cursor-pointer disabled:cursor-default ${optionBorderClass}`}
-                            >
-                              <span
-                                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition-colors ${badgeClass}`}
+                            return (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                disabled={isEvaluated}
+                                onClick={() => setSelectedOptionId(opt.id)}
+                                className={`w-full text-left rounded-xl border transition-all duration-150 flex items-center cursor-pointer disabled:cursor-default ${
+                                  showSolutionCard
+                                    ? "px-3.5 py-2.5 gap-3"
+                                    : "p-3.5 sm:p-4 gap-3.5 items-start"
+                                } ${optionBorderClass}`}
                               >
-                                {letter}
-                              </span>
-
-                              <div className="flex-1 pt-0.5 text-sm sm:text-base text-text">
                                 <span
-                                  dangerouslySetInnerHTML={{
-                                    __html: renderMathContent(opt.content, {
-                                      animatedHighlights: false,
-                                    }),
-                                  }}
-                                />
-                              </div>
+                                  className={`flex shrink-0 items-center justify-center rounded-lg border font-bold transition-colors ${
+                                    showSolutionCard ? "h-6 w-6 text-[11px]" : "h-7 w-7 text-xs"
+                                  } ${badgeClass}`}
+                                >
+                                  {letter}
+                                </span>
 
-                              {/* State Checkmark / Cross icon */}
-                              {isEvaluated && isCorrectAnswer && (
-                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shrink-0">
-                                  <CheckCircle2 className="w-4 h-4" />
-                                </span>
-                              )}
-                              {isEvaluated && isSelectedWrong && (
-                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 shrink-0">
-                                  <XCircle className="w-4 h-4" />
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
+                                <div
+                                  className={`flex-1 text-text ${
+                                    showSolutionCard ? "text-sm" : "pt-0.5 text-sm sm:text-base"
+                                  }`}
+                                >
+                                  <span
+                                    dangerouslySetInnerHTML={{
+                                      __html: renderMathContent(opt.content, {
+                                        animatedHighlights: false,
+                                      }),
+                                    }}
+                                  />
+                                </div>
+
+                                {/* State Checkmark / Cross icon */}
+                                {isEvaluated && isCorrectAnswer && (
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shrink-0">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                  </span>
+                                )}
+                                {isEvaluated && isSelectedWrong && (
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 shrink-0">
+                                    <XCircle className="w-4 h-4" />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
+                    )}
                     </div>
 
                     {/* ------------------------------------------------------------
                         BOTTOM ACTION TOOLBAR OF CARD SOAL
                         ------------------------------------------------------------ */}
-                    <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
+                    <div
+                      className={`border-t border-border flex flex-wrap items-center justify-between gap-2.5 ${
+                        showSolutionCard ? "pt-3 mt-auto" : "pt-4"
+                      }`}
+                    >
                       {!currentAttempt ? (
-                        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                           <button
                             type="button"
-                            disabled={!selectedOptionId || submitting}
+                            disabled={
+                              submitting ||
+                              (isActiveShortAnswer ? !shortAnswerInput.trim() : !selectedOptionId)
+                            }
                             onClick={handleSubmitAnswer}
                             className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                           >
@@ -883,10 +1337,20 @@ export function LatihanModule() {
                           <button
                             type="button"
                             disabled={submitting}
-                            onClick={handleRevealSolution}
+                            onClick={() => void handleRevealSolution()}
                             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-xs font-semibold text-text hover:bg-surface-muted transition-colors cursor-pointer"
                           >
                             <Sparkles className="w-3.5 h-3.5 text-primary" /> Buka Pembahasan Langsung
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={submitting || skipping || questions.length <= 1}
+                            onClick={() => void handleSkipQuestion()}
+                            title="Lewati sementara soal ini untuk dikerjakan nanti"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-border text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          >
+                            <SkipForward className="w-3.5 h-3.5" /> Lewati (Skip)
                           </button>
                         </div>
                       ) : (
@@ -903,21 +1367,33 @@ export function LatihanModule() {
                             </button>
                           )}
 
-                          <button
-                            type="button"
-                            onClick={handleResetAttempt}
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-xs font-bold text-text hover:bg-surface-muted transition-colors cursor-pointer"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" /> Coba Lagi
-                          </button>
+                          {isSandboxMode && (
+                            <button
+                              type="button"
+                              onClick={() => handleResetSandboxAttempt(activeQuestion.id)}
+                              className={`inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface hover:bg-surface-muted text-text text-xs font-bold transition-colors cursor-pointer ${
+                                showSolutionCard ? "px-3.5 py-2" : "px-4 py-2.5"
+                              }`}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" /> Uji Jawab Ulang
+                            </button>
+                          )}
 
-                          {activeQuestionIndex < questions.length - 1 && (
+                          {(!isSandboxMode || activeQuestionIndex < questions.length - 1) && (
                             <button
                               type="button"
                               onClick={handleNextQuestion}
-                              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-primary/40 bg-blue-50/60 hover:bg-blue-50 text-primary text-xs font-bold transition-colors cursor-pointer"
+                              className={`inline-flex items-center gap-1.5 rounded-xl border border-primary/40 bg-blue-50/60 hover:bg-blue-50 text-primary text-xs font-bold transition-colors cursor-pointer ${
+                                showSolutionCard ? "px-3.5 py-2" : "px-4 py-2.5"
+                              }`}
                             >
-                              <span>Soal Berikutnya</span>
+                              <span>
+                                {isSandboxMode
+                                  ? "Soal QC Berikutnya"
+                                  : questions.length > 1
+                                  ? "Soal Berikutnya"
+                                  : "Selesaikan Soal Ini"}
+                              </span>
                               <ChevronRight className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -925,13 +1401,13 @@ export function LatihanModule() {
                       )}
 
                       {/* Score Status Pill */}
-                      {currentAttempt && (
+                      {currentAttempt && !currentAttempt.isRevealOnly && (
                         <div
-                          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold ${
+                          className={`inline-flex items-center gap-1.5 rounded-xl text-xs font-bold ${
+                            showSolutionCard ? "px-3 py-1.5" : "px-3.5 py-1.5"
+                          } ${
                             currentAttempt.isCorrect
                               ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                              : currentAttempt.isRevealOnly
-                              ? "bg-blue-50 text-blue-800 border border-blue-300"
                               : "bg-rose-50 text-rose-800 border border-rose-300"
                           }`}
                         >
@@ -939,11 +1415,6 @@ export function LatihanModule() {
                             <>
                               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                               Jawaban Benar (+{activeQuestion.points} Poin)
-                            </>
-                          ) : currentAttempt.isRevealOnly ? (
-                            <>
-                              <Sparkles className="w-4 h-4 text-primary" />
-                              Mode Pembahasan Mandiri
                             </>
                           ) : (
                             <>
@@ -959,11 +1430,11 @@ export function LatihanModule() {
               </div>
 
               {/* ============================================================
-                  KANAN: CARD PEMBAHASAN (2/3 LEBAR - QUESTION : SOLUTION = 1 : 2)
+                  KANAN: CARD PEMBAHASAN (7/12 LEBAR - QUESTION : SOLUTION = 5 : 7)
                   ============================================================ */}
               {isSolutionOpen && currentAttempt && currentAttempt.solution && (
-                <div className="lg:col-span-8 animate-in fade-in duration-200">
-                  <div className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">
+                <div className="lg:col-span-7 lg:sticky lg:top-20 animate-in fade-in duration-200">
+                  <div className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden flex flex-col">
                     <InteractiveSolutionDeck
                       solution={currentAttempt.solution}
                       onClose={() => setIsSolutionOpen(false)}
@@ -971,7 +1442,7 @@ export function LatihanModule() {
                     />
 
                     {/* Card Pembahasan Bottom Controls */}
-                    <div className="p-4 sm:p-5 border-t border-border bg-surface flex items-center justify-between gap-3">
+                    <div className="px-5 py-3.5 sm:py-4 border-t border-border bg-surface flex items-center justify-between gap-3">
                       <button
                         type="button"
                         onClick={() => setIsSolutionOpen(false)}
@@ -980,19 +1451,19 @@ export function LatihanModule() {
                         Tutup Pembahasan
                       </button>
 
-                      {activeQuestionIndex < questions.length - 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleNextQuestion();
-                            setIsSolutionOpen(false);
-                          }}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
-                        >
-                          <span>Lanjut ke Soal Berikutnya</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleNextQuestion();
+                          setIsSolutionOpen(false);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <span>
+                          {questions.length > 1 ? "Lanjut ke Soal Berikutnya" : "Selesaikan Soal Ini"}
+                        </span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1101,6 +1572,23 @@ export function LatihanModule() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export function LatihanModule(props: LatihanModuleProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-bg pb-24">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 space-y-4">
+            <div className="h-20 rounded-2xl bg-surface border border-border animate-pulse" />
+            <div className="h-96 rounded-2xl bg-surface border border-border animate-pulse" />
+          </div>
+        </div>
+      }
+    >
+      <LatihanModuleContent {...props} />
+    </Suspense>
   );
 }
 

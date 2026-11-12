@@ -68,7 +68,7 @@ export function TransitionView({
                   Jeda antar subtes
                 </p>
                 <div className="font-mono text-5xl font-bold text-primary leading-none my-3 tabular-nums">
-                  00:{String(breakTimeRemainingSec ?? 0).padStart(2, "0")}
+                  {String(Math.floor((breakTimeRemainingSec ?? 0) / 60)).padStart(2, "0")}:{String((breakTimeRemainingSec ?? 0) % 60).padStart(2, "0")}
                 </div>
                 <div className="pt-3 mt-3 border-t border-border">
                   <div className="text-label text-text-muted">

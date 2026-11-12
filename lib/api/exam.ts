@@ -1,10 +1,15 @@
 import { BACKEND_URL } from "@/lib/api";
+import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
 
 export const startTryoutAttempt = async (
   tryoutId: string,
   userId: string,
 ): Promise<string> => {
-  const res = await fetch(`${BACKEND_URL}/exam/${tryoutId}/start`, {
+  const sandboxToken = getActiveTryoutSandboxToken();
+  const qs = sandboxToken
+    ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
+    : "";
+  const res = await fetch(`${BACKEND_URL}/exam/${tryoutId}/start${qs}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -29,7 +34,11 @@ export const startTryoutAttempt = async (
 };
 
 export const registerTryout = async (tryoutId: string) => {
-  const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}/register`, {
+  const sandboxToken = getActiveTryoutSandboxToken();
+  const qs = sandboxToken
+    ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
+    : "";
+  const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}/register${qs}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

@@ -1,14 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
+  ArrowLeft,
+  ArrowRight,
   Zap,
-  Sparkles,
-  BookOpen,
-  Layers,
-  CheckCircle2,
   Check,
   X,
   Sigma,
@@ -28,23 +24,23 @@ export function renderMathContent(
 
   const { animatedHighlights = false } = options;
 
-  // 1. Replace block math $$...$$ with prominent, cinematic math card
+  // 1. Replace block math $$...$$ with compact, balanced math card
   let processed = content.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
     try {
       const rendered = katex.renderToString(math.trim(), {
         displayMode: true,
         throwOnError: false,
       });
-      return `<div class="step-math-card my-5 py-4 px-5 rounded-2xl bg-surface-muted/90 border border-primary/25 text-center overflow-x-auto text-lg sm:text-xl md:text-2xl shadow-xs">${rendered}</div>`;
+      return `<div class="step-math-card my-2.5 py-2.5 px-4 rounded-xl bg-surface-muted/85 border border-primary/20 text-center overflow-x-auto text-sm sm:text-base">${rendered}</div>`;
     } catch {
-      return `<div class="step-math-card my-5 py-4 px-5 rounded-2xl bg-surface-muted/90 border border-primary/25 font-mono text-center overflow-x-auto text-lg">$$${math}$$</div>`;
+      return `<div class="step-math-card my-2.5 py-2.5 px-4 rounded-xl bg-surface-muted/85 border border-primary/20 font-mono text-center overflow-x-auto text-sm sm:text-base">$$${math}$$</div>`;
     }
   });
 
-  // 2. Replace inline math $...$
+  // 2. Replace inline math $...$ naturally in prose flow without boxy badges
   processed = processed.replace(/\$([^\$\n]+?)\$/g, (_, math) => {
     try {
-      return `<span class="inline-math font-mono text-text font-bold px-1.5 py-0.5 rounded bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/50">${katex.renderToString(
+      return `<span class="inline-math px-0.5">${katex.renderToString(
         math.trim(),
         { displayMode: false, throwOnError: false }
       )}</span>`;
@@ -56,8 +52,8 @@ export function renderMathContent(
   // 3. Special callout for checklist / conclusion lines starting with ✅
   processed = processed.replace(
     /^✅\s*(.*?)$/gm,
-    `<div class="flex items-start gap-3 p-4 sm:p-5 my-4 rounded-2xl bg-emerald-50/90 border-2 border-emerald-300 text-emerald-950 font-bold text-base sm:text-lg leading-snug shadow-2xs">
-      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-xs mt-0.5">✓</span>
+    `<div class="flex items-start gap-2.5 p-3 sm:p-3.5 my-2.5 rounded-xl bg-emerald-50/90 border border-emerald-300 text-emerald-950 font-semibold text-sm sm:text-[15px] leading-snug">
+      <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-[11px] mt-0.5">✓</span>
       <div class="flex-1">$1</div>
     </div>`
   );
@@ -65,18 +61,32 @@ export function renderMathContent(
   // 4. Blockquotes > ...
   processed = processed.replace(
     /^>\s*(.*?)$/gm,
-    `<blockquote class="border-l-4 border-primary pl-4 py-2.5 my-3.5 bg-blue-50/50 rounded-r-xl text-base sm:text-lg text-text-body italic leading-relaxed">$1</blockquote>`
+    `<blockquote class="border-l-4 border-primary pl-3.5 py-2 my-2.5 bg-blue-50/50 rounded-r-xl text-sm sm:text-[15px] text-text-body italic leading-relaxed">$1</blockquote>`
   );
 
-  // 5. Convert bold markdown **text** with marker sweep animation
+  // Clean extra newlines directly adjacent to block-level HTML cards so whitespace-pre-wrap stays crisp
+  processed = processed
+    .replace(/\n+(<(?:div|blockquote)\b)/g, "$1")
+    .replace(/(<\/(?:div|blockquote)>)\n+/g, "$1");
+
+  // 5. Highlight syntax ==text== -> yellow animated stabilo ONLY for truly crucial insights
   if (animatedHighlights) {
     processed = processed.replace(
-      /\*\*(.*?)\*\*/g,
+      /(?<!=)==([^\n]+?)(?<!=)==(?!=)/g,
       `<mark class="step-highlight-animated">$1</mark>`
     );
   } else {
-    processed = processed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    processed = processed.replace(
+      /(?<!=)==([^\n]+?)(?<!=)==(?!=)/g,
+      `<mark class="px-1 py-0.5 rounded bg-yellow-100 font-semibold text-text">$1</mark>`
+    );
   }
+
+  // 6. Standard markdown **text** -> clean bold without yellow stabilo
+  processed = processed.replace(
+    /\*\*(.*?)\*\*/g,
+    `<strong class="font-bold text-text">$1</strong>`
+  );
 
   return processed;
 }
@@ -97,8 +107,8 @@ export function InteractiveSolutionDeck({
   const steps = solution.steps || [];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState<"next" | "prev">("next");
-  const [showFullStatic, setShowFullStatic] = useState(false);
   const [showKeyFormula, setShowKeyFormula] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const hasSteps = steps.length > 0;
   const currentStep = hasSteps ? steps[currentSlide] : null;
@@ -233,41 +243,12 @@ export function InteractiveSolutionDeck({
             </button>
           )}
 
-          {/* Stepper counter & navigation */}
-          {hasSteps && (
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-mono font-bold px-2 py-1 rounded-md bg-surface text-text-body border border-border">
-                {currentSlide + 1}/{steps.length}
-              </span>
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={currentSlide === 0}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                aria-label="Langkah sebelumnya"
-                title="Langkah sebelumnya"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={currentSlide >= steps.length - 1}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-text hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                aria-label="Langkah selanjutnya"
-                title="Langkah selanjutnya"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-
           {/* Close button X */}
           {onClose && (
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-text-muted hover:text-text hover:bg-surface hover:border-text transition-colors cursor-pointer ml-1"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-text-muted hover:text-text hover:bg-surface hover:border-text transition-colors cursor-pointer"
               aria-label="Tutup Pembahasan"
               title="Tutup Pembahasan"
             >
@@ -305,160 +286,141 @@ export function InteractiveSolutionDeck({
       )}
 
       {/* ============================================================
-          CURRENT STEP CARD BODY (LARGE, CINEMATIC VIDEO-EXPLAINER FEEL)
+          CURRENT STEP CARD BODY (SWIPEABLE ON MOBILE + ICON-ONLY STEPPER)
           ============================================================ */}
-      <div className="p-6 sm:p-8 lg:p-9 space-y-6">
-        {hasSteps && currentStep ? (
-          <div
-            key={currentSlide}
-            className="space-y-5 animate-write-in"
-          >
-            {/* Step Category Badge & Progress Header */}
-            <div className="flex items-center justify-between gap-3 pb-3 border-b border-border">
-              <div className="flex items-center gap-2.5">
-                <span className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
-                  {currentStep.category || `Langkah ${currentStep.stepNumber}`}
-                </span>
-                <span className="text-sm font-semibold text-text-muted">
-                  Langkah {currentStep.stepNumber} dari {steps.length}
-                </span>
-              </div>
-              <span className="text-xs text-text-muted font-medium hidden sm:inline">
-                Tekan ◀ ▶ di keyboard
-              </span>
-            </div>
-
-            {/* Step Title: Large, bold, video slide style */}
-            <h3 className="text-xl sm:text-2xl lg:text-[25px] font-black text-text tracking-tight leading-snug m-0">
-              {currentStep.title}
-            </h3>
-
-            {/* Step Content: Large, spacious font for video-explainer feel */}
+      <div
+        className="p-5 sm:p-6 flex flex-col gap-4"
+        onTouchStart={(e) => {
+          if (e.touches.length !== 1) return;
+          if ((e.target as HTMLElement | null)?.closest('.step-math-card')) {
+            touchStartRef.current = null;
+            return;
+          }
+          const t = e.touches[0];
+          touchStartRef.current = { x: t.clientX, y: t.clientY };
+        }}
+        onTouchEnd={(e) => {
+          const start = touchStartRef.current;
+          touchStartRef.current = null;
+          if (!start || e.changedTouches.length !== 1 || !hasSteps) return;
+          const t = e.changedTouches[0];
+          const dx = t.clientX - start.x;
+          const dy = t.clientY - start.y;
+          if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+            if (dx < 0) handleNext();
+            else handlePrev();
+          }
+        }}
+      >
+        <div>
+          {hasSteps && currentStep ? (
             <div
-              className="text-base sm:text-lg lg:text-[19px] text-text-body leading-relaxed space-y-4 whitespace-pre-wrap font-sans"
-              dangerouslySetInnerHTML={{
-                __html: renderMathContent(currentStep.content, {
-                  animatedHighlights: true,
-                }),
-              }}
-            />
-          </div>
-        ) : (
-          <div className="p-6 rounded-2xl bg-surface-muted border border-border text-sm text-text-muted italic">
-            Belum ada langkah bertahap untuk soal ini.
-          </div>
-        )}
+              key={currentSlide}
+              className="space-y-2.5 animate-write-in"
+            >
+              {/* Step Title */}
+              <h3 className="text-base sm:text-lg font-extrabold text-text tracking-tight leading-snug m-0">
+                {currentStep.title}
+              </h3>
 
-        {/* ============================================================
-            Companion Cards: Rumus Kunci & Trik Jitu
-            ============================================================ */}
-        <div className="space-y-4 pt-2">
-          {/* Rumus: bersifat click to view (gausah ditulis teksnya, pake icon aja) */}
-          {solution.keyFormula && !showKeyFormula && (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowKeyFormula(true)}
-                className="flex items-center justify-center h-9 w-9 rounded-xl border border-border bg-surface-muted/60 text-text-muted hover:text-text hover:bg-surface hover:border-blue-400 transition-colors cursor-pointer"
-                title="Lihat Rumus"
-                aria-label="Lihat Rumus"
-              >
-                <Sigma className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-
-          {solution.keyFormula && showKeyFormula && (
-            <div className="rounded-2xl border-2 border-blue-200 bg-blue-50/70 p-4 animate-in fade-in slide-in-from-top-1 duration-150">
-              <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-blue-200/50">
-                <span className="flex items-center justify-center h-6 w-6 rounded-lg bg-blue-100 text-blue-700">
-                  <Sigma className="w-4 h-4" />
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowKeyFormula(false)}
-                  className="text-text-muted hover:text-text p-1 rounded-md cursor-pointer"
-                  title="Tutup Rumus"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+              {/* Step Content: Balanced reading scale matching Card Soal */}
               <div
-                className="text-sm sm:text-base font-mono text-blue-950 overflow-x-auto py-2 text-center"
+                className="text-sm sm:text-[15px] text-text-body leading-relaxed space-y-2.5 whitespace-pre-wrap font-sans"
                 dangerouslySetInnerHTML={{
-                  __html: renderMathContent(solution.keyFormula, {
-                    animatedHighlights: false,
+                  __html: renderMathContent(currentStep.content, {
+                    animatedHighlights: true,
                   }),
                 }}
               />
             </div>
-          )}
-
-          {/* Trik Jitu Cepat Companion Card */}
-          {solution.quickTrick && (
-            <div className="rounded-2xl border-2 border-yellow-300 bg-yellow-50/80 p-4 sm:p-5 shadow-2xs">
-              <div className="flex items-center gap-2 text-sm font-bold text-yellow-900 mb-1.5">
-                <Zap className="w-4 h-4 text-yellow-600 fill-yellow-500" /> Trik Jitu Cepat
-              </div>
-              <p className="text-sm sm:text-base text-yellow-950 font-medium leading-relaxed m-0">
-                {solution.quickTrick}
-              </p>
+          ) : solution.staticContent ? (
+            <div
+              className="text-sm sm:text-[15px] text-text-body leading-relaxed space-y-2.5 whitespace-pre-wrap font-sans"
+              dangerouslySetInnerHTML={{
+                __html: renderMathContent(solution.staticContent, {
+                  animatedHighlights: false,
+                }),
+              }}
+            />
+          ) : (
+            <div className="p-5 rounded-xl bg-surface-muted border border-border text-sm text-text-muted italic">
+              Belum ada langkah bertahap untuk soal ini.
             </div>
           )}
         </div>
 
         {/* ============================================================
-            Collapsible Full Conventional Text Solution Fallback
+            Companion Card: Trik Cepat (Hanya tampil di slide kesimpulan / akhir)
             ============================================================ */}
-        {solution.staticContent && (
-          <div className="pt-2 border-t border-border">
-            <button
-              type="button"
-              onClick={() => setShowFullStatic((prev) => !prev)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text transition-colors cursor-pointer py-1"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              {showFullStatic
-                ? "Sembunyikan Versi Teks Lengkap"
-                : "Lihat Pembahasan Versi Teks Lengkap"}
-            </button>
-
-            {showFullStatic && (
-              <div className="mt-2.5 p-4 rounded-xl bg-surface-muted border border-border text-sm text-text-body leading-relaxed whitespace-pre-wrap font-sans">
-                {solution.staticContent}
-              </div>
-            )}
+        {solution.quickTrick && (!hasSteps || currentSlide === steps.length - 1) && (
+          <div className="rounded-lg border border-yellow-300 bg-yellow-50/80 p-3.5 sm:p-4 shadow-2xs">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-yellow-900 mb-1">
+              <Zap className="w-3.5 h-3.5 text-yellow-600 fill-yellow-500" /> Trik Cepat
+            </div>
+            <div
+              className="text-xs sm:text-sm text-yellow-950 font-medium leading-relaxed whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{
+                __html: renderMathContent(solution.quickTrick, {
+                  animatedHighlights: false,
+                }),
+              }}
+            />
           </div>
         )}
 
-        {/* ============================================================
-            VIDEO PLAYER STYLE SLIDE CONTROLS FOOTER
-            ============================================================ */}
-        {hasSteps && (
-          <div className="pt-6 border-t border-border flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={currentSlide === 0}
-              className="px-4 py-2.5 rounded-xl border border-border text-xs sm:text-sm font-bold text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <ChevronLeft className="w-4 h-4" /> Langkah Sebelumnya
-            </button>
+        {/* Icon-Only Bottom Step Navigation (Progress Dots + ArrowLeft + Primary ArrowRight Pill) */}
+        {hasSteps && steps.length > 1 && (
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="flex items-center gap-1" role="tablist" aria-label="Progres langkah pembahasan">
+              {steps.map((st, idx) => {
+                const isActive = idx === currentSlide;
+                const isCompleted = idx < currentSlide;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => goToSlide(idx)}
+                    aria-label={`Langkah ${idx + 1}: ${st.category || st.title}`}
+                    title={`Langkah ${idx + 1}: ${st.category || st.title}`}
+                    className="py-1.5 px-0.5 flex items-center justify-center cursor-pointer focus:outline-none group"
+                  >
+                    <span
+                      className={`block h-2 rounded-full transition-all duration-200 ${
+                        isActive
+                          ? "w-6 bg-primary"
+                          : isCompleted
+                          ? "w-2 bg-primary/45 group-hover:bg-primary/70"
+                          : "w-2 bg-border group-hover:bg-text-muted/60"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
 
-            <div className="flex items-center gap-2">
-              {currentSlide < steps.length - 1 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-2"
-                >
-                  Langkah Selanjutnya <ChevronRight className="w-4 h-4" />
-                </button>
-              ) : (
-                <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Semua Langkah Selesai
-                </div>
-              )}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={currentSlide === 0}
+                aria-label="Langkah sebelumnya"
+                title="Langkah sebelumnya"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-text hover:bg-surface-muted hover:border-blue-400 disabled:opacity-30 disabled:hover:border-border disabled:hover:bg-surface disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
+              >
+                <ArrowLeft className="h-4 w-4 stroke-[2.25]" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={currentSlide >= steps.length - 1}
+                aria-label="Langkah selanjutnya"
+                title="Langkah selanjutnya"
+                className="flex h-10 w-12 items-center justify-center rounded-full bg-primary hover:bg-primary-hover text-on-primary shadow-xs disabled:opacity-30 disabled:bg-surface-muted disabled:text-text-muted disabled:border disabled:border-border disabled:shadow-none disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
+              >
+                <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+              </button>
             </div>
           </div>
         )}

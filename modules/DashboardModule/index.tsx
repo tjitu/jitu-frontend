@@ -10,6 +10,7 @@ import {
   Camera,
   Loader2,
   BookOpen,
+  Calendar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -39,6 +40,7 @@ import { toast } from "sonner";
 import { RegisterModal } from "./components/RegisterModal";
 import { BACKEND_URL } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
 
 const ScoreHistoryChart = dynamic(
   () => import("./components/ScoreHistoryChart"),
@@ -500,7 +502,7 @@ const DashboardModule = () => {
 
           <div className="shrink-0 flex items-center gap-3">
             <Link
-              href="/soal-asli"
+              href="/arsip-soal"
               className="min-h-[44px] px-5 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[14px] font-semibold inline-flex items-center gap-2 shadow-xs transition-colors"
             >
               <span>Buka Soal Asli</span>
@@ -549,70 +551,74 @@ const DashboardModule = () => {
                   const isFinished = tryout.status === "FINISHED";
                   const isProgress = tryout.status === "IN_PROGRESS";
 
+                  const statusBadge = (
+                    <span
+                      className={`inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[12px] font-semibold shadow-2xs ${
+                        isFinished
+                          ? "bg-emerald-100 text-emerald-900"
+                          : isProgress
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-white/95 text-blue-900"
+                      }`}
+                    >
+                      {isFinished ? (
+                        <Check className="w-3.5 h-3.5 stroke-[2]" />
+                      ) : (
+                        <Clock className="w-3.5 h-3.5 stroke-[2]" />
+                      )}
+                      <span>
+                        {isFinished
+                          ? "Selesai"
+                          : isProgress
+                            ? "Berjalan"
+                            : "Terdaftar"}
+                      </span>
+                    </span>
+                  );
+
                   return (
                     <article
                       key={tryout.id}
-                      className={`p-6 rounded-lg border border-border flex flex-col justify-between gap-4 hover:border-blue-300 transition-colors duration-[120ms] ${
+                      className={`rounded-lg border border-border overflow-hidden flex flex-col hover:border-blue-300 hover:shadow-sm transition-all duration-[120ms] ${
                         isFinished ? "bg-surface-muted" : "bg-surface"
                       }`}
                     >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-label text-text-muted tabular-nums">
-                            Tryout #{idx + 1}
-                          </span>
-                          <span
-                            className={`inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[12px] font-semibold ${
-                              isFinished
-                                ? "bg-success-soft text-success-text"
-                                : isProgress
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-blue-50 text-blue-800"
-                            }`}
-                          >
-                            {isFinished ? (
-                              <Check className="w-3.5 h-3.5 stroke-[1.75]" />
-                            ) : (
-                              <Clock className="w-3.5 h-3.5 stroke-[1.75]" />
-                            )}
-                            <span>
-                              {isFinished
-                                ? "Selesai"
-                                : isProgress
-                                  ? "Berjalan"
-                                  : "Terdaftar"}
-                            </span>
-                          </span>
-                        </div>
+                      <TryoutCardBanner
+                        label={`Tryout #${idx + 1}`}
+                        badge={statusBadge}
+                      />
 
-                        <div className="font-bold text-[28px] leading-tight tracking-[-0.02em] text-text tabular-nums">
-                          {formatSlotDate(tryout.scheduledStart)}
-                        </div>
-
-                        <div className="pt-3 border-t border-ink-100 space-y-1">
-                          <h3 className="text-[16px] font-semibold text-text leading-snug">
+                      <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
+                        <div className="space-y-3">
+                          <h3 className="text-[19px] sm:text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
                             {tryout.title}
                           </h3>
-                          <p className="text-[13px] text-text-muted tabular-nums">
-                            {tryout.participants} peserta · SNBT
-                          </p>
-                        </div>
-                      </div>
 
-                      <Button
-                        variant={isFinished ? "outline" : "primary"}
-                        className="w-full justify-between"
-                        onClick={() => router.push(`/tryout/${tryout.id}`)}
-                      >
-                        <span>
-                          {isFinished
-                            ? "Lihat hasil"
-                            : isProgress
-                              ? "Lanjutkan"
-                              : "Kerjakan"}
-                        </span>
-                        <ArrowRight className="w-4 h-4 stroke-[1.75]" />
-                      </Button>
+                          <div className="pt-3 border-t border-ink-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-muted tabular-nums">
+                            <span className="inline-flex items-center gap-1.5 font-medium text-text-body">
+                              <Calendar className="w-3.5 h-3.5 stroke-[1.75] text-primary" />
+                              <span>{formatSlotDate(tryout.scheduledStart)}</span>
+                            </span>
+                            <span>·</span>
+                            <span>{tryout.participants} peserta · SNBT</span>
+                          </div>
+                        </div>
+
+                        <Button
+                          variant={isFinished ? "outline" : "primary"}
+                          className="w-full justify-between"
+                          onClick={() => router.push(`/tryout/${tryout.id}`)}
+                        >
+                          <span>
+                            {isFinished
+                              ? "Lihat hasil"
+                              : isProgress
+                                ? "Lanjutkan"
+                                : "Kerjakan"}
+                          </span>
+                          <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                        </Button>
+                      </div>
                     </article>
                   );
                 })}
@@ -641,43 +647,47 @@ const DashboardModule = () => {
                 {marketTryouts.map((tryout, idx) => (
                   <article
                     key={tryout.id}
-                    className="p-6 bg-surface rounded-lg border border-border flex flex-col justify-between gap-4 hover:border-blue-300 transition-colors duration-[120ms]"
+                    className="bg-surface rounded-lg border border-border overflow-hidden flex flex-col hover:border-blue-300 hover:shadow-sm transition-all duration-[120ms]"
                   >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-label text-text-muted tabular-nums">
-                          Tryout #{tryout.title.match(/\d+/)?.[0] || idx + 1}
-                        </span>
-                        <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center">
+                    <TryoutCardBanner
+                      label={`Tryout #${tryout.title.match(/\d+/)?.[0] || idx + 1}`}
+                      badge={
+                        <span className="h-6 px-2.5 rounded-full bg-white/95 text-blue-900 text-[12px] font-semibold inline-flex items-center shadow-2xs">
                           Gratis · Rp0
                         </span>
-                      </div>
+                      }
+                    />
 
-                      <div className="font-bold text-[28px] leading-tight tracking-[-0.02em] text-text tabular-nums">
-                        {formatSlotDate(tryout.scheduledStart)}
-                      </div>
-
-                      <div className="pt-3 border-t border-ink-100 space-y-1">
-                        <h3 className="text-[16px] font-semibold text-text leading-snug">
+                    <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
+                      <div className="space-y-3">
+                        <h3 className="text-[19px] sm:text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
                           {tryout.title}
                         </h3>
-                        <p className="text-[13px] text-text-muted tabular-nums">
-                          {tryout.participants} peserta · Pembahasan{" "}
-                          {tryout.solutionPrice || 1} coin
-                        </p>
-                      </div>
-                    </div>
 
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                      onClick={() =>
-                        handleRegisterClick(tryout as OngoingTryout)
-                      }
-                    >
-                      <span>Daftar gratis</span>
-                      <ArrowRight className="w-4 h-4 stroke-[1.75]" />
-                    </Button>
+                        <div className="pt-3 border-t border-ink-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-muted tabular-nums">
+                          <span className="inline-flex items-center gap-1.5 font-medium text-text-body">
+                            <Calendar className="w-3.5 h-3.5 stroke-[1.75] text-primary" />
+                            <span>{formatSlotDate(tryout.scheduledStart)}</span>
+                          </span>
+                          <span>·</span>
+                          <span>
+                            {tryout.participants} peserta · Pembahasan{" "}
+                            {tryout.solutionPrice || 1} coin
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        onClick={() =>
+                          handleRegisterClick(tryout as OngoingTryout)
+                        }
+                      >
+                        <span>Daftar gratis</span>
+                        <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                      </Button>
+                    </div>
                   </article>
                 ))}
               </div>

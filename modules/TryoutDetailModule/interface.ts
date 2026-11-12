@@ -21,6 +21,8 @@ export interface TryoutDetail {
   latestAttemptId?: string | null;
   currentSubtestOrder?: number;
   latestScore?: number;
+  curationStatus?: string;
+  isSandboxPreview?: boolean;
 }
 
 export interface CategoryDetail {

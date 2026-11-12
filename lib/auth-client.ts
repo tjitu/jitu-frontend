@@ -60,10 +60,20 @@ const ensureAuthenticatedFetch = () => {
     await auth.authStateReady();
     const token = await auth.currentUser?.getIdToken();
     if (!token) return nativeFetch(input, init);
-    const headers = new Headers(input instanceof Request ? input.headers : undefined);
-    new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
-    headers.set('Authorization', `Bearer ${token}`);
-    return nativeFetch(input, { ...init, headers });
+    const buildInitWithToken = (bearerToken: string): RequestInit => {
+      const headers = new Headers(input instanceof Request ? input.headers : undefined);
+      new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+      headers.set('Authorization', `Bearer ${bearerToken}`);
+      return { ...init, headers };
+    };
+    const response = await nativeFetch(input, buildInitWithToken(token));
+    if (response.status === 401 && auth.currentUser && !(input instanceof Request)) {
+      const refreshedToken = await auth.currentUser.getIdToken(true).catch(() => null);
+      if (refreshedToken && refreshedToken !== token) {
+        return nativeFetch(input, buildInitWithToken(refreshedToken));
+      }
+    }
+    return response;
   };
 };
 

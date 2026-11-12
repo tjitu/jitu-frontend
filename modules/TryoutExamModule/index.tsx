@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BACKEND_URL } from "@/lib/api";
+import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
@@ -122,24 +123,45 @@ export default function TryoutExamModule() {
   const [isOnline, setIsOnline] = useState(true);
   const [fontSize, setFontSize] = useState(16);
   const questionContainerRef = useRef<HTMLDivElement>(null);
+  const endTimeMsRef = useRef<number | null>(null);
+  const finishingRef = useRef(false);
 
   const subtestIndex = useMemo(
     () => getSubtestIndex(String(subtestId)),
     [subtestId],
   );
+  const currentSubtestOrder = subtestIndex + 1;
 
-  const totalSubtestsCount = useMemo(() => {
-    if (examData?.allSubtests && examData.allSubtests.length > 0) {
-      return examData.allSubtests.length;
-    }
-    return SUBTEST_FLOW.length;
+  const activeSubtests = useMemo(() => {
+    const all = examData?.allSubtests ?? [];
+    if (all.length === 0) return [];
+    const populated = all.filter((s) => Number(s.questionCount ?? 0) > 0);
+    return populated.length > 0 ? populated : all;
   }, [examData?.allSubtests]);
 
-  const hasNextSubtest = useMemo(() => {
-    return subtestIndex < totalSubtestsCount - 1;
-  }, [totalSubtestsCount, subtestIndex]);
+  const totalSubtestsCount = useMemo(() => {
+    if (activeSubtests.length > 0) return activeSubtests.length;
+    return SUBTEST_FLOW.length;
+  }, [activeSubtests.length]);
 
-  const nextSubtestParam = String(subtestIndex + 2);
+  const nextSubtestObj = useMemo(() => {
+    if (activeSubtests.length > 0) {
+      return activeSubtests.find((s) => Number(s.order) > currentSubtestOrder) ?? null;
+    }
+    if (currentSubtestOrder < SUBTEST_FLOW.length) {
+      return {
+        id: String(currentSubtestOrder + 1),
+        name: SUBTEST_FLOW[currentSubtestOrder] || `Subtes ${currentSubtestOrder + 1}`,
+        order: currentSubtestOrder + 1,
+        durationMinutes: 0,
+        questionCount: 0,
+      };
+    }
+    return null;
+  }, [activeSubtests, currentSubtestOrder]);
+
+  const hasNextSubtest = Boolean(nextSubtestObj);
+  const nextSubtestParam = String(nextSubtestObj?.order ?? subtestIndex + 2);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -159,8 +181,12 @@ export default function TryoutExamModule() {
     const userId = session?.user?.id;
     if (!userId) throw new Error("Sesi kamu habis. Masuk lagi untuk lanjut.");
 
+    const sandboxToken = getActiveTryoutSandboxToken();
+    const qs = sandboxToken
+      ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
+      : "";
     const res = await fetch(
-      `${BACKEND_URL}/exam/${encodeURIComponent(tryoutId)}/start`,
+      `${BACKEND_URL}/exam/${encodeURIComponent(tryoutId)}/start${qs}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -260,6 +286,8 @@ export default function TryoutExamModule() {
         setLoading(true);
         setError("");
         setTimeRemainingSec(null);
+        endTimeMsRef.current = null;
+        finishingRef.current = false;
 
         let effectiveAttemptId = attemptId || "";
 
@@ -271,6 +299,10 @@ export default function TryoutExamModule() {
         }
 
         const currentUserId = session?.user?.id || "";
+        const sandboxToken = getActiveTryoutSandboxToken();
+        const sandboxParam = sandboxToken
+          ? `&sandboxToken=${encodeURIComponent(sandboxToken)}`
+          : "";
 
         const url = `${BACKEND_URL}/tryout/${encodeURIComponent(
           tryoutId,
@@ -278,7 +310,7 @@ export default function TryoutExamModule() {
           String(subtestId),
         )}?userId=${encodeURIComponent(
           currentUserId,
-        )}&attemptId=${encodeURIComponent(effectiveAttemptId)}`;
+        )}&attemptId=${encodeURIComponent(effectiveAttemptId)}${sandboxParam}`;
 
         const res = await fetch(url, {
           method: "GET",
@@ -301,6 +333,17 @@ export default function TryoutExamModule() {
         setExamData(mapped);
         setCurrentQuestionIndex(0);
 
+        if (typeof window !== "undefined" && mapped.allSubtests.length > 0) {
+          try {
+            window.sessionStorage.setItem(
+              `tryout_subtests_${tryoutId}`,
+              JSON.stringify(mapped.allSubtests),
+            );
+          } catch {
+            // ignore storage errors
+          }
+        }
+
         const initialAnswers: AnswersMap = {};
         mapped.questions.forEach((q) => {
           if (q.userAnswer) {
@@ -312,7 +355,22 @@ export default function TryoutExamModule() {
         setLastSyncedAnswers({});
         setMarkedQuestions([]);
         setReviewFilter("ALL");
-        setTimeRemainingSec(mapped.durationMinutes * 60);
+
+        if (!isReviewMode) {
+          let remainingMs = (mapped.durationMinutes || 0) * 60_000;
+          if (raw?.endTime && raw?.serverTime) {
+            const diff =
+              new Date(raw.endTime).getTime() -
+              new Date(raw.serverTime).getTime();
+            if (Number.isFinite(diff)) remainingMs = Math.max(0, diff);
+          } else if (Number.isFinite(Number(raw?.remainingSeconds))) {
+            remainingMs = Math.max(0, Number(raw.remainingSeconds) * 1000);
+          }
+          endTimeMsRef.current = Date.now() + remainingMs;
+          setTimeRemainingSec(Math.ceil(remainingMs / 1000));
+        } else {
+          setTimeRemainingSec(null);
+        }
       } catch (e: any) {
         setError(e?.message || "Gagal memuat lembar ujian.");
       } finally {
@@ -389,8 +447,10 @@ export default function TryoutExamModule() {
 
   const finishCurrentSubtest = async (isTimeout = false) => {
     if (isReviewMode) return;
-
     if (!examData || !attemptId) return;
+    if (finishingRef.current) return;
+
+    finishingRef.current = true;
     setIsSubmittingFinish(true);
     setShowFinishConfirm(false);
 
@@ -401,16 +461,13 @@ export default function TryoutExamModule() {
     try {
       await saveCurrentQuestionIfDirty();
 
-      if (hasNextSubtest) {
-        const currentOrder = Number(subtestId);
-        const nextSubtest = examData.allSubtests.find(
-          (s) => s.order === currentOrder + 1,
-        );
-
+      if (hasNextSubtest && nextSubtestObj) {
         const query = new URLSearchParams({
           attemptId,
           prevSubtestName: examData.subtestName,
-          nextSubtestName: nextSubtest?.name || "",
+          nextSubtestName: nextSubtestObj.name || "",
+          nextSubtestDuration: String(nextSubtestObj.durationMinutes || ""),
+          nextSubtestQuestions: String(nextSubtestObj.questionCount || ""),
         });
 
         router.push(
@@ -428,80 +485,106 @@ export default function TryoutExamModule() {
         router.replace(`/tryout/${tryoutId}`);
       }
     } catch (e: any) {
+      finishingRef.current = false;
       setError(e?.message || "Gagal mengumpulkan subtes.");
       setIsSubmittingFinish(false);
     }
   };
 
-  const sseRef = useRef<EventSource | null>(null);
-
+  // Sync authoritative timer deadline from authenticated endpoint (and on window resume).
   useEffect(() => {
-    if (isReviewMode || !attemptId) return;
+    if (isReviewMode || !attemptId || !examData || loading) return;
 
-    if (sseRef.current) {
-      sseRef.current.close();
-      sseRef.current = null;
-    }
-
-    const es = new EventSource(
-      `${BACKEND_URL}/exam/${encodeURIComponent(attemptId)}/stream/${
-        subtestIndex + 1
-      }`,
-    );
-    sseRef.current = es;
-
-    es.onmessage = (evt) => {
+    let cancelled = false;
+    const syncTimerFromServer = async () => {
       try {
-        const raw =
-          typeof evt.data === "string" ? JSON.parse(evt.data) : evt.data;
-        const remainingSeconds = Number(
-          raw?.remainingSeconds ?? raw?.data?.remainingSeconds,
+        const res = await fetch(
+          `${BACKEND_URL}/exam/${encodeURIComponent(attemptId)}/timer/${currentSubtestOrder}`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
         );
-        const status = raw?.status ?? raw?.data?.status;
-
-        if (Number.isFinite(remainingSeconds)) {
-          setTimeRemainingSec(remainingSeconds);
-        }
-
-        if (status === "SUBTEST_FINISHED") {
-          es.close();
-          sseRef.current = null;
-          finishCurrentSubtest(true);
-        }
+        if (!res.ok || cancelled) return;
+        const payload = await res.json();
+        const status = payload?.status;
 
         if (status === "FINISHED") {
-          es.close();
           router.replace(`/tryout/${tryoutId}`);
+          return;
         }
-      } catch (err) {
-        console.error("SSE Parse Error:", err);
+
+        let remainingMs = Number(payload?.remainingSeconds) * 1000;
+        if (payload?.endTime && payload?.serverTime) {
+          const diff =
+            new Date(payload.endTime).getTime() -
+            new Date(payload.serverTime).getTime();
+          if (Number.isFinite(diff)) remainingMs = Math.max(0, diff);
+        }
+
+        if (Number.isFinite(remainingMs)) {
+          endTimeMsRef.current = Date.now() + Math.max(0, remainingMs);
+          setTimeRemainingSec(Math.ceil(Math.max(0, remainingMs) / 1000));
+        }
+
+        if (status === "SUBTEST_FINISHED" && !finishingRef.current) {
+          void finishCurrentSubtest(true);
+        }
+      } catch {
+        // Keep local countdown deadline if transient network error occurs.
       }
     };
 
-    es.onerror = () => {
-      es.close();
+    const onVisibility = () => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        void syncTimerFromServer();
+      }
     };
+
+    void syncTimerFromServer();
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisibility);
+    }
+    window.addEventListener("focus", onVisibility);
 
     return () => {
-      if (sseRef.current) {
-        sseRef.current.close();
-        sseRef.current = null;
+      cancelled = true;
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibility);
       }
+      window.removeEventListener("focus", onVisibility);
     };
-  }, [
-    attemptId,
-    isReviewMode,
-    router,
-    tryoutId,
-    subtestId,
-    subtestIndex,
-    hasNextSubtest,
-  ]);
+  }, [attemptId, isReviewMode, examData, loading, router, tryoutId, currentSubtestOrder]);
+
+  // Live 500ms tick anchored to server-adjusted target timestamp so tab throttling never drifts.
+  useEffect(() => {
+    if (isReviewMode || !examData || loading) return;
+
+    const tick = () => {
+      if (endTimeMsRef.current === null) return;
+      const remainingSec = Math.max(
+        0,
+        Math.ceil((endTimeMsRef.current - Date.now()) / 1000),
+      );
+      setTimeRemainingSec(remainingSec);
+    };
+
+    tick();
+    const intervalId = window.setInterval(tick, 500);
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isReviewMode, examData, loading]);
 
   useEffect(() => {
     if (isReviewMode || !examData || loading) return;
-    if ((timeRemainingSec ?? 999) <= 0 && !isSubmittingFinish) {
-      finishCurrentSubtest(true);
+    if (
+      timeRemainingSec !== null &&
+      timeRemainingSec <= 0 &&
+      !isSubmittingFinish &&
+      !finishingRef.current
+    ) {
+      void finishCurrentSubtest(true);
     }
   }, [timeRemainingSec, isReviewMode, examData, loading, isSubmittingFinish]);
 
@@ -557,7 +640,7 @@ export default function TryoutExamModule() {
   };
 
   const formatTime = (seconds: number | null) => {
-    if (seconds === null) return "00:00:00";
+    if (seconds === null) return "--:--:--";
 
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -767,7 +850,7 @@ export default function TryoutExamModule() {
                 {examData.subtestName}
               </span>
               <span className="hidden md:inline font-mono text-xs text-text-muted ml-2 tabular-nums">
-                · Subtes {subtestIndex + 1}/{totalSubtestsCount}
+                · Subtes {(activeSubtests.findIndex((s) => Number(s.order) === currentSubtestOrder) + 1) || (subtestIndex + 1)}/{totalSubtestsCount}
               </span>
             </div>
             <div className="hidden sm:block ml-2">

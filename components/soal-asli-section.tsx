@@ -666,7 +666,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                           </span>
                         </div>
                         <div
-                          className="text-[16px] font-medium leading-relaxed text-text"
+                          className="text-[16px] font-medium leading-relaxed text-text whitespace-pre-wrap"
                           dangerouslySetInnerHTML={{
                             __html: renderMathContent(currentQuestion.content),
                           }}
@@ -1213,7 +1213,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
 
                       {/* Question Text */}
                       <div
-                        className="text-[16px] sm:text-[17px] font-medium leading-relaxed text-text space-y-2"
+                        className="text-[16px] sm:text-[17px] font-medium leading-relaxed text-text space-y-2 whitespace-pre-wrap"
                         dangerouslySetInnerHTML={{
                           __html: renderMathContent(currentQuestion.content),
                         }}

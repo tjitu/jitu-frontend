@@ -343,6 +343,22 @@ const TryoutDetailModule = () => {
       </div>
 
       {/* Exam Sheet Header */}
+      {(tryoutData.isSandboxPreview || tryoutData.curationStatus === "QC_SANDBOX") && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-xs sm:text-sm text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span className="font-bold uppercase tracking-wider text-blue-700 mr-2">
+              MODE QC SANDBOX
+            </span>
+            <span>
+              Tryout ini sedang diuji di Sandbox dan belum dirilis ke siswa. Riwayat percobaan akun sandbox otomatis dibersihkan saat Tryout di-publish.
+            </span>
+          </div>
+          <Badge variant="default" className="shrink-0 bg-blue-600 text-white">
+            Antrean QC
+          </Badge>
+        </div>
+      )}
+
       <div className="bg-surface rounded-lg border border-border p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-ink-100">
           <div className="flex flex-wrap items-center gap-2">

@@ -61,6 +61,7 @@ export async function getSoalAsliPackages(filters?: {
         year, date_label as "dateLabel", duration_minutes as "durationMinutes",
         question_count as "questionCount", archive_label as "archiveLabel", source_url as "sourceUrl"
       FROM "soal_asli_packages"
+      WHERE COALESCE(is_active, true) = true
       ORDER BY year DESC, subtest ASC, id ASC;
     `;
 

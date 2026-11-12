@@ -25,13 +25,15 @@ export async function GET(req: NextRequest) {
 
     const pool = getDbPool();
     const { rows } = await pool.query(
-      `SELECT "tokenBalance", "currentStreak" FROM "user" WHERE id = $1`,
+      `SELECT "tokenBalance", "currentStreak", "isPremium", "premiumExpiresAt" FROM "user" WHERE id = $1`,
       [appUser.id]
     );
 
     const user = rows[0] || {};
     const tokenBalance = Number(user.tokenBalance) || 0;
     const currentStreak = Number(user.currentStreak) || 0;
+    const premiumExpiresAt = user.premiumExpiresAt ? new Date(user.premiumExpiresAt) : null;
+    const isPremium = Boolean(user.isPremium) && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
 
     return NextResponse.json({
       tokenBalance,
@@ -40,6 +42,8 @@ export async function GET(req: NextRequest) {
       weeklyActivity: 0,
       totalFinished: 0,
       currentStreak,
+      isPremium,
+      premiumExpiresAt: premiumExpiresAt ? premiumExpiresAt.toISOString() : null,
     });
   } catch (err) {
     console.error("GET /api/proxy/dashboard/stats error:", err);

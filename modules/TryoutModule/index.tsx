@@ -22,6 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BACKEND_URL } from "@/lib/api";
+import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
+import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
 
 interface TryOutData {
   id: string;
@@ -34,6 +36,8 @@ interface TryOutData {
   scheduledStart: string | null;
   scheduledEnd: string | null;
   isRegistered?: boolean;
+  curationStatus?: string;
+  isSandboxPreview?: boolean;
 }
 
 const TRYOUT_STALE_MS = 30_000;
@@ -56,7 +60,8 @@ const TryoutModule = () => {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
   useEffect(() => {
-    if (cachedTryouts && Date.now() - cachedTryoutsAt < TRYOUT_STALE_MS) {
+    const sandboxToken = getActiveTryoutSandboxToken();
+    if (!sandboxToken && cachedTryouts && Date.now() - cachedTryoutsAt < TRYOUT_STALE_MS) {
       setIsLoading(false);
       return;
     }
@@ -65,7 +70,10 @@ const TryoutModule = () => {
     const fetchTryouts = async () => {
       try {
         if (!cachedTryouts) setIsLoading(true);
-        const res = await fetch(`${BACKEND_URL}/tryout`, {
+        const qs = sandboxToken
+          ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
+          : "";
+        const res = await fetch(`${BACKEND_URL}/tryout${qs}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -99,10 +107,14 @@ const TryoutModule = () => {
           scheduledStart: item.scheduledStart,
           scheduledEnd: item.scheduledEnd,
           isRegistered: item.isRegistered ?? false,
+          curationStatus: item.curationStatus,
+          isSandboxPreview: Boolean(item.isSandboxPreview || item.curationStatus === "QC_SANDBOX"),
         }));
 
-        cachedTryouts = mappedData;
-        cachedTryoutsAt = Date.now();
+        if (!sandboxToken) {
+          cachedTryouts = mappedData;
+          cachedTryoutsAt = Date.now();
+        }
 
         if (active) {
           setTryouts(mappedData);
@@ -287,40 +299,47 @@ const TryoutModule = () => {
             const numLabel =
               tryout.title.match(/\d+/)?.[0] || String(idx + 1);
 
+            const statusBadge =
+              tryout.isSandboxPreview || tryout.curationStatus === "QC_SANDBOX" ? (
+                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-blue-100 text-blue-900 text-[12px] font-semibold shadow-2xs">
+                  <span>QC Sandbox</span>
+                </span>
+              ) : tryout.isRegistered ? (
+                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-emerald-100 text-emerald-900 text-[12px] font-semibold shadow-2xs">
+                  <Check className="w-3.5 h-3.5 stroke-[2]" />
+                  <span>Terdaftar</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-white/95 text-blue-900 text-[12px] font-semibold shadow-2xs">
+                  <Clock className="w-3.5 h-3.5 stroke-[2]" />
+                  <span>Gratis · Rp0</span>
+                </span>
+              );
+
             return (
               <article
                 key={tryout.id}
                 onClick={() => router.push(`/tryout/${tryout.id}`)}
-                className="p-6 bg-surface rounded-lg border border-border hover:border-blue-300 transition-colors duration-[120ms] cursor-pointer flex flex-col justify-between gap-5"
+                className="bg-surface rounded-lg border border-border overflow-hidden hover:border-blue-300 hover:shadow-sm transition-all duration-[120ms] cursor-pointer flex flex-col"
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-label text-text-muted tabular-nums">
-                      Tryout #{numLabel}
-                    </span>
-                    {tryout.isRegistered ? (
-                      <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-success-soft text-success-text text-[12px] font-semibold">
-                        <Check className="w-3.5 h-3.5 stroke-[1.75]" />
-                        <span>Terdaftar</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold">
-                        <Clock className="w-3.5 h-3.5 stroke-[1.75]" />
-                        <span>Gratis · Rp0</span>
-                      </span>
-                    )}
-                  </div>
+                <TryoutCardBanner
+                  label={`Tryout #${numLabel}`}
+                  badge={statusBadge}
+                  sublabel={tryout.badge || "Simulasi SNBT · 7 Subtes"}
+                />
 
-                  {/* Display Date */}
-                  <div className="font-bold text-[28px] leading-tight tracking-[-0.02em] text-text tabular-nums">
-                    {formatSlotDate(tryout.scheduledStart)}
-                  </div>
-
-                  <div className="pt-3 border-t border-ink-100 space-y-1.5">
-                    <h2 className="text-[16px] font-semibold text-text leading-snug">
+                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-5">
+                  <div className="space-y-3">
+                    <h2 className="text-[19px] sm:text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
                       {tryout.title}
                     </h2>
-                    <div className="flex flex-wrap items-center gap-3 text-[13px] text-text-muted tabular-nums">
+
+                    <div className="pt-3 border-t border-ink-100 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-text-muted tabular-nums">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-text-body">
+                        <Calendar className="w-3.5 h-3.5 stroke-[1.75] text-primary" />
+                        <span>{formatSlotDate(tryout.scheduledStart)}</span>
+                      </span>
+                      <span>·</span>
                       <span className="inline-flex items-center gap-1">
                         <Users className="w-3.5 h-3.5 stroke-[1.75]" />
                         <span>{tryout.participants.toLocaleString("id-ID")} peserta</span>
@@ -331,15 +350,15 @@ const TryoutModule = () => {
                       </span>
                     </div>
                   </div>
-                </div>
 
-                <Button
-                  variant={tryout.isRegistered ? "primary" : "outline"}
-                  className="w-full justify-between"
-                >
-                  <span>{tryout.isRegistered ? "Kerjakan" : "Lihat jadwal"}</span>
-                  <ArrowRight className="w-4 h-4 stroke-[1.75]" />
-                </Button>
+                  <Button
+                    variant={tryout.isRegistered ? "primary" : "outline"}
+                    className="w-full justify-between"
+                  >
+                    <span>{tryout.isRegistered ? "Kerjakan" : "Lihat jadwal"}</span>
+                    <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                  </Button>
+                </div>
               </article>
             );
           })}
