@@ -196,9 +196,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
       if (selectedSubtest !== "ALL") params.set("subtest", selectedSubtest);
       if (selectedDifficulty !== "ALL") params.set("difficulty", selectedDifficulty);
       if (isSandboxMode && selectedBatch !== "ALL") params.set("batch", selectedBatch);
+      if (urlQuestionId) params.set("questionId", urlQuestionId);
       if (isSandboxMode) {
         params.set("target", "SANDBOX");
-        if (urlQuestionId) params.set("questionId", urlQuestionId);
       }
 
       const headers = await getAuthHeaders();
@@ -215,10 +215,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
 
       if (data.success && Array.isArray(data.questions)) {
         setQuestions(data.questions);
-        const preferred =
-          isSandboxMode && urlQuestionId
-            ? data.questions.find((q: PracticeQuestionSummary) => q.id === urlQuestionId)
-            : null;
+        const preferred = urlQuestionId
+          ? data.questions.find((q: PracticeQuestionSummary) => q.id === urlQuestionId)
+          : null;
         setActiveQuestionId(
           preferred ? preferred.id : data.questions.length > 0 ? data.questions[0].id : null
         );

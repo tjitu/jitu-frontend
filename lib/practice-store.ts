@@ -239,6 +239,8 @@ export async function getPracticeQuestions(params: {
   target?: string;
   questionId?: string | null;
   sandboxToken?: string | null;
+  random?: boolean;
+  limit?: number;
 }): Promise<PracticeFeedResult> {
   const pool = getDbPool();
   const ctx = await getUserPracticeContext(params.userId);
@@ -260,13 +262,26 @@ export async function getPracticeQuestions(params: {
   const values: any[] = [];
   const clauses: string[] = [];
 
+  const focusQuestionId =
+    String(params.questionId || (isSandboxTarget ? tokenCheck.questionId : "") || "").trim() ||
+    null;
+  let focusParamRef: string | null = null;
+
   if (isSandboxTarget) {
     clauses.push(`COALESCE(q."status", 'DRAFT') = 'QC_SANDBOX'`);
   } else {
-    clauses.push(`COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI'`);
     clauses.push(`COALESCE(tout."status"::text, sub_tout."status"::text, '') NOT IN ('NOT_STARTED', 'IN_PROGRESS')`);
     clauses.push(`COALESCE(q."status", 'DRAFT') = 'READY'`);
-    clauses.push(`pa."id" IS NOT NULL`);
+    if (focusQuestionId) {
+      values.push(focusQuestionId);
+      focusParamRef = `$${values.length}`;
+      clauses.push(
+        `(q."id" = ${focusParamRef} OR (COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI' AND pa."id" IS NOT NULL))`
+      );
+    } else {
+      clauses.push(`COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI'`);
+      clauses.push(`pa."id" IS NOT NULL`);
+    }
   }
 
   // Exclude already ANSWERED questions in regular practice (never in Sandbox preview)
@@ -307,10 +322,6 @@ export async function getPracticeQuestions(params: {
     );
   }
 
-  const focusQuestionId = isSandboxTarget
-    ? String(params.questionId || tokenCheck.questionId || "").trim() || null
-    : null;
-
   let orderBy = "";
   if (isSandboxTarget) {
     if (focusQuestionId) {
@@ -319,11 +330,24 @@ export async function getPracticeQuestions(params: {
     } else {
       orderBy = `COALESCE(q."updatedAt", q."createdAt") DESC`;
     }
+  } else if (focusQuestionId && focusParamRef) {
+    orderBy = `CASE WHEN q."id" = ${focusParamRef} THEN 0 ELSE 1 END ASC, ${
+      params.userId
+        ? `CASE WHEN pat."status" = 'SKIPPED' THEN 1 ELSE 0 END ASC, pat."updated_at" ASC NULLS FIRST, COALESCE(pa."sort_order", 0) ASC, pa."assigned_at" DESC NULLS LAST, q."createdAt" DESC`
+        : `COALESCE(pa."sort_order", 0) ASC, pa."assigned_at" DESC NULLS LAST, q."createdAt" DESC`
+    }`;
+  } else if (params.random) {
+    orderBy = `RANDOM()`;
   } else {
     orderBy = params.userId
       ? `CASE WHEN pat."status" = 'SKIPPED' THEN 1 ELSE 0 END ASC, pat."updated_at" ASC NULLS FIRST, COALESCE(pa."sort_order", 0) ASC, pa."assigned_at" DESC NULLS LAST, q."createdAt" DESC`
       : `COALESCE(pa."sort_order", 0) ASC, pa."assigned_at" DESC NULLS LAST, q."createdAt" DESC`;
   }
+
+  const safeLimit =
+    typeof params.limit === "number" && Number.isFinite(params.limit) && params.limit > 0
+      ? Math.min(200, Math.floor(params.limit))
+      : 200;
 
   const query = `
     SELECT
@@ -371,7 +395,7 @@ export async function getPracticeQuestions(params: {
     ${attemptJoin}
     WHERE ${clauses.join(" AND ")}
     ORDER BY ${orderBy}
-    LIMIT 200
+    LIMIT ${safeLimit}
   `;
 
   const { rows } = await pool.query(query, values);
@@ -419,6 +443,90 @@ export async function getPracticeQuestions(params: {
     ...(isSandboxTarget ? { sandboxAuthorized: true, availableBatches } : {}),
     ...ctx,
   };
+}
+
+export async function getHotQuestions(
+  userId?: string | null,
+  limit = 5
+): Promise<PracticeQuestionSummary[]> {
+  const pool = getDbPool();
+  const safeLimit = Math.max(1, Math.min(10, Math.floor(Number(limit) || 5)));
+  const values: any[] = [];
+  const exclusionClauses: string[] = [];
+
+  if (userId) {
+    values.push(userId);
+    const uidParam = `$${values.length}`;
+    exclusionClauses.push(
+      `NOT EXISTS (SELECT 1 FROM public."PracticeAttempt" pat WHERE pat."question_id" = q."id" AND pat."user_id" = ${uidParam} AND pat."status" = 'ANSWERED')`
+    );
+    exclusionClauses.push(
+      `NOT EXISTS (SELECT 1 FROM public."UserAnswer" ua INNER JOIN public."TryOutAttempt" att ON att."id" = ua."tryout_attempt_id" WHERE ua."question_id" = q."id" AND att."userId" = ${uidParam})`
+    );
+    exclusionClauses.push(
+      `NOT EXISTS (SELECT 1 FROM public."DailyQuestionLog" dql WHERE dql."questionId" = q."id" AND dql."userId" = ${uidParam})`
+    );
+  }
+
+  values.push(safeLimit);
+  const limitParam = `$${values.length}`;
+
+  const query = `
+    SELECT
+      q."id",
+      q."subtest",
+      q."difficulty",
+      q."type",
+      q."points",
+      q."pattern",
+      q."batch",
+      q."narration",
+      q."content",
+      q."imageUrl",
+      COALESCE(t."title", t_direct."title") AS "topicTitle",
+      s."title" AS "subtopicTitle",
+      false AS "isPreviouslySkipped",
+      (sol."id" IS NOT NULL) AS "hasSolution",
+      CASE
+        WHEN jsonb_typeof(sol."steps") = 'array' THEN jsonb_array_length(sol."steps")
+        ELSE 0
+      END AS "stepsCount"
+    FROM public."Question" q
+    LEFT JOIN public."Subtopic" s ON s."id" = q."subtopic_id"
+    LEFT JOIN public."Topic" t ON t."id" = s."topicId"
+    LEFT JOIN public."Topic" t_direct ON t_direct."id" = q."topic_id"
+    LEFT JOIN public."Subtest" sub ON sub."id" = q."subtest_id"
+    LEFT JOIN public."TryOut" tout ON tout."id" = q."tryoutId"
+    LEFT JOIN public."TryOut" sub_tout ON sub_tout."id" = sub."try_out_id"
+    LEFT JOIN public."QuestionSolution" sol ON sol."questionId" = q."id"
+    WHERE COALESCE(q."status", 'DRAFT') = 'READY'
+      AND TRIM(COALESCE(q."content", '')) <> ''
+      AND COALESCE(tout."status"::text, sub_tout."status"::text, '') NOT IN ('NOT_STARTED', 'IN_PROGRESS')
+      ${exclusionClauses.length > 0 ? `AND ${exclusionClauses.join(" AND ")}` : ""}
+    ORDER BY RANDOM()
+    LIMIT ${limitParam}
+  `;
+
+  const { rows } = await pool.query(query, values);
+
+  return rows.map((r) => ({
+    id: String(r.id),
+    subtest: String(r.subtest),
+    difficulty: String(r.difficulty || "MEDIUM"),
+    type: String(r.type || "MULTIPLE_CHOICE"),
+    points: Number(r.points) || 1,
+    topicTitle: r.topicTitle || null,
+    subtopicTitle: r.subtopicTitle || null,
+    pattern: r.pattern || null,
+    batch: r.batch ? String(r.batch).trim() || null : null,
+    narration: r.narration || null,
+    content: String(r.content || ""),
+    imageUrl: r.imageUrl || null,
+    options: [],
+    hasSolution: Boolean(r.hasSolution),
+    stepsCount: Number(r.stepsCount) || 0,
+    isPreviouslySkipped: false,
+  }));
 }
 
 export async function skipPracticeQuestion(

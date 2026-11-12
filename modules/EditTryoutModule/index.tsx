@@ -44,6 +44,7 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
     scheduledStart: "",
     scheduledEnd: "",
     isPublic: true,
+    isSpecial: false,
     referralCode: "",
   });
 
@@ -76,6 +77,7 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
           scheduledStart: formatDateForInput(tryout.scheduledStart),
           scheduledEnd: formatDateForInput(tryout.scheduledEnd),
           isPublic: tryout.isPublic ?? true,
+          isSpecial: Boolean(tryout.isSpecial),
           referralCode: tryout.referralCode || "",
         });
       } catch (error) {

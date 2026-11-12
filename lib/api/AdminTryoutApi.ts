@@ -35,6 +35,9 @@ export interface CreateTryoutPayload {
   releaseDate: string;
   scheduledStart: string;
   scheduledEnd: string;
+  isPublic?: boolean;
+  isSpecial?: boolean;
+  referralCode?: string;
 }
 
 export const createTryout = async (data: CreateTryoutPayload) => {

@@ -7,6 +7,7 @@ export interface UserStats {
   weeklyActivity: number;
   totalFinished: number;
   currentStreak: number;
+  solvedQuestions?: number;
   isPremium?: boolean;
   premiumExpiresAt?: string | null;
 }
@@ -17,7 +18,9 @@ export interface OngoingTryout {
   description: string | null;
   solutionPrice: number;
   isPublic: boolean;
-  scheduledStart: Date | null;
+  isSpecial?: boolean;
+  scheduledStart: Date | string | null;
+  scheduledEnd?: Date | string | null;
   createdAt: Date;
   participants: number;
   isRegistered: boolean;
@@ -31,7 +34,9 @@ export interface AvailableTryout {
   description: string | null;
   solutionPrice: number;
   isPublic: boolean;
-  scheduledStart: Date | null;
+  isSpecial?: boolean;
+  scheduledStart: Date | string | null;
+  scheduledEnd?: Date | string | null;
   createdAt: Date;
   participants: number;
 }
@@ -48,11 +53,33 @@ export interface ScoreHistory {
   pm: number;
 }
 
+export interface DailyQuestionStatus {
+  isCompleted: boolean;
+  streak: number;
+  question?: {
+    id: string;
+    content: string;
+  } | null;
+}
+
+export interface DashboardArticleSummary {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string | null;
+  category: string;
+  readTimeMinutes: number;
+  publishedAt: string | null;
+  createdAt: string;
+}
+
 export interface DashboardSnapshot {
   stats: UserStats;
   ongoing: OngoingTryout[];
   available: AvailableTryout[];
   history: ScoreHistory[];
+  dailyStatus?: DailyQuestionStatus | null;
+  articles?: DashboardArticleSummary[];
   fetchedAt: number;
 }
 
@@ -145,4 +172,33 @@ export const getScoreHistory = async (): Promise<ScoreHistory[]> => {
   }
 
   return response.json();
+};
+
+export const getDailyQuestionStatus = async (): Promise<DailyQuestionStatus | null> => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/dashboard/daily-question`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) return null;
+    return response.json();
+  } catch {
+    return null;
+  }
+};
+
+export const getLatestDashboardArticles = async (
+  limit = 3
+): Promise<DashboardArticleSummary[]> => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/articles`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? data.slice(0, limit) : [];
+  } catch {
+    return [];
+  }
 };

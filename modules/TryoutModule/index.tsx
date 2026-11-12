@@ -11,6 +11,7 @@ import {
   Loader2,
   Check,
   Clock,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,15 +25,22 @@ import {
 import { BACKEND_URL } from "@/lib/api";
 import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
 import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
+import {
+  formatTryoutDateRange,
+  getDisplayedParticipants,
+} from "@/lib/tryout-display";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 
 interface TryOutData {
   id: string;
   title: string;
+  description?: string | null;
   number: string;
   participants: number;
   badge: string;
   solutionPrice: number;
   isPublic: boolean;
+  isSpecial?: boolean;
   scheduledStart: string | null;
   scheduledEnd: string | null;
   isRegistered?: boolean;
@@ -294,24 +302,21 @@ const TryoutModule = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTryouts.map((tryout, idx) => {
-            const numLabel =
-              tryout.title.match(/\d+/)?.[0] || String(idx + 1);
-
+          {filteredTryouts.map((tryout) => {
             const statusBadge =
               tryout.isSandboxPreview || tryout.curationStatus === "QC_SANDBOX" ? (
                 <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-blue-100 text-blue-900 text-[12px] font-semibold shadow-2xs">
                   <span>QC Sandbox</span>
                 </span>
               ) : tryout.isRegistered ? (
-                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-emerald-100 text-emerald-900 text-[12px] font-semibold shadow-2xs">
-                  <Check className="w-3.5 h-3.5 stroke-[2]" />
+                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-emerald-400 text-emerald-950 text-[12px] font-bold shadow-2xs">
+                  <Check className="w-3.5 h-3.5 stroke-[2.2]" />
                   <span>Terdaftar</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-white/95 text-blue-900 text-[12px] font-semibold shadow-2xs">
-                  <Clock className="w-3.5 h-3.5 stroke-[2]" />
-                  <span>Gratis · Rp0</span>
+                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-yellow-400 text-ink-900 text-[12px] font-bold shadow-2xs">
+                  <Clock className="w-3.5 h-3.5 stroke-[2.2]" />
+                  <span>Belum terdaftar</span>
                 </span>
               );
 
@@ -319,44 +324,97 @@ const TryoutModule = () => {
               <article
                 key={tryout.id}
                 onClick={() => router.push(`/tryout/${tryout.id}`)}
-                className="bg-surface rounded-lg border border-border overflow-hidden hover:border-blue-300 hover:shadow-sm transition-all duration-[120ms] cursor-pointer flex flex-col"
+                className={`w-full bg-surface rounded-lg border border-border overflow-hidden hover:shadow-sm transition-all duration-[120ms] cursor-pointer flex flex-col ${
+                  tryout.isSpecial
+                    ? "hover:border-purple-300"
+                    : "hover:border-blue-300"
+                }`}
               >
                 <TryoutCardBanner
-                  label={`Tryout #${numLabel}`}
+                  isSpecial={tryout.isSpecial}
                   badge={statusBadge}
-                  sublabel={tryout.badge || "Simulasi SNBT · 7 Subtes"}
+                  sublabel={
+                    <span className="inline-flex items-center gap-1.5">
+                      <span>Free · {tryout.solutionPrice || 1}</span>
+                      <PixelCoin size={13} />
+                      <span>untuk pembahasan</span>
+                    </span>
+                  }
+                  rightFooter={
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/95 tabular-nums">
+                      <Users className="w-3.5 h-3.5 stroke-[2]" />
+                      <span>
+                        {getDisplayedParticipants(
+                          tryout.id,
+                          tryout.participants
+                        ).toLocaleString("id-ID")}{" "}
+                        peserta
+                      </span>
+                    </span>
+                  }
                 />
 
-                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-5">
+                <div className="p-6 flex-1 flex flex-col justify-between gap-5">
                   <div className="space-y-3">
-                    <h2 className="text-[19px] sm:text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
+                    <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
+                      <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
+                      <span>Simulasi Penuh 7 Subtes · Sistem IRT</span>
+                    </div>
+
+                    <h2 className="text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
                       {tryout.title}
                     </h2>
 
-                    <div className="pt-3 border-t border-ink-100 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-text-muted tabular-nums">
-                      <span className="inline-flex items-center gap-1.5 font-medium text-text-body">
-                        <Calendar className="w-3.5 h-3.5 stroke-[1.75] text-primary" />
-                        <span>{formatSlotDate(tryout.scheduledStart)}</span>
-                      </span>
-                      <span>·</span>
-                      <span className="inline-flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5 stroke-[1.75]" />
-                        <span>{tryout.participants.toLocaleString("id-ID")} peserta</span>
-                      </span>
-                      <span>·</span>
+                    <p className="text-[14px] text-text-body leading-relaxed line-clamp-2">
+                      {tryout.description?.trim() ||
+                        "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
+                    </p>
+
+                    <div className="pt-1 flex flex-wrap items-center gap-2 text-[13px] text-text-body font-medium tabular-nums">
+                      <Calendar className="w-4 h-4 stroke-[1.75] text-primary shrink-0" />
                       <span>
-                        Pembahasan {tryout.solutionPrice || 1} coin
+                        {formatTryoutDateRange(
+                          tryout.scheduledStart,
+                          tryout.scheduledEnd
+                        )}
                       </span>
                     </div>
                   </div>
 
-                  <Button
-                    variant={tryout.isRegistered ? "primary" : "outline"}
-                    className="w-full justify-between"
-                  >
-                    <span>{tryout.isRegistered ? "Kerjakan" : "Lihat jadwal"}</span>
-                    <ArrowRight className="w-4 h-4 stroke-[1.75]" />
-                  </Button>
+                  {tryout.isRegistered ? (
+                    <Button
+                      variant="primary"
+                      className="w-full justify-between"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/tryout/${tryout.id}`);
+                      }}
+                    >
+                      <span>Kerjakan tryout</span>
+                      <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+                    </Button>
+                  ) : (
+                    <div className="w-full group/btn transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
+                      <Button
+                        variant="primary"
+                        className="relative w-full justify-between overflow-hidden shadow-md transition-[background-color,box-shadow] duration-150 hover:shadow-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/tryout/${tryout.id}`);
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="animate-pass-shimmer pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-blue-200/35 to-transparent"
+                        />
+                        <span className="relative z-10 font-bold">Daftar gratis</span>
+                        <ArrowRight
+                          className="relative z-10 w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
+                          aria-hidden="true"
+                        />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </article>
             );

@@ -370,7 +370,7 @@ export default function ProfileModule() {
 
         <div className="flex flex-wrap gap-2.5">
           <Button variant="outline" onClick={() => router.push("/shop")}>
-            Beli coin
+            Shop
           </Button>
           <Button variant="primary" onClick={() => router.push("/tryout")}>
             Pilih tryout

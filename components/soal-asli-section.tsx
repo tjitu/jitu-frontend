@@ -784,7 +784,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
   return (
     <div className="space-y-8">
       {/* 1. Dashboard Student Header & Stats Bar */}
-      <div className="space-y-5">
+      <div className="hidden space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="text-label text-text-muted flex items-center gap-2">
@@ -847,7 +847,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
       </div>
 
       {/* 2. Compact App Filter Toolbar */}
-      <div className="bg-surface rounded-xl border border-border p-4 sm:p-5 space-y-4 shadow-xs">
+      <div className="hidden bg-surface rounded-xl border border-border p-4 sm:p-5 space-y-4 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Subtest segment */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full no-scrollbar">
@@ -929,27 +929,27 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
           <p className="text-[14px] font-medium">Memuat workbench soal asli...</p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {filteredYears.map((yg) => {
             const isExpanded = expandedYears[yg.year] ?? true;
             return (
               <div
                 key={yg.year}
                 id={`tahun-${yg.year}`}
-                className="bg-surface rounded-xl border border-border overflow-hidden shadow-xs"
+                className="bg-surface rounded-lg border border-border overflow-hidden"
               >
                 {/* Year Header */}
                 <div
                   onClick={() => toggleYearExpanded(yg.year)}
-                  className="px-6 py-4 bg-surface-muted/50 border-b border-border flex items-center justify-between gap-4 cursor-pointer hover:bg-surface-muted transition-colors select-none"
+                  className="px-4 py-3 sm:px-5 bg-surface border-b border-border flex items-center justify-between gap-4 cursor-pointer hover:bg-surface-muted/60 transition-colors select-none"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-[16px] font-bold text-primary bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono text-[15px] font-bold text-primary">
                       {yg.year}
                     </span>
                     <div>
-                      <h2 className="text-[17px] sm:text-[18px] font-bold text-text">
-                        Soal Asli UTBK {yg.year}
+                      <h2 className="text-[15px] sm:text-[16px] font-bold text-text">
+                        UTBK {yg.year}
                       </h2>
                       <div className="text-[12px] text-text-muted">
                         {yg.packages.length} Paket Ujian Resmi · {yg.totalQuestions} Butir Soal
@@ -958,7 +958,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                   </div>
 
                   <div className="flex items-center gap-2 text-text-muted">
-                    <span className="text-[12px] font-medium hidden sm:inline">
+                    <span className="hidden">
                       {isExpanded ? "Sembunyikan" : "Tampilkan Paket"}
                     </span>
                     {isExpanded ? (
@@ -987,56 +987,56 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                       return (
                         <div
                           key={pkg.id}
-                          className="px-5 py-4 sm:px-6 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-blue-50/25 transition-colors"
+                          className="px-4 py-3 sm:px-5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-surface-muted/60 transition-colors"
                         >
                           {/* Left Column: Number, Badge, Title, Date */}
-                          <div className="flex items-start sm:items-center gap-3.5">
+                          <div className="flex items-start sm:items-center gap-3">
                             <span className="font-mono text-[12px] font-bold text-text-muted w-7 text-right shrink-0 hidden sm:inline-block">
                               #{idx + 1}
                             </span>
 
                             <div
-                              className={`w-11 h-9 rounded-md flex items-center justify-center font-bold text-[13px] shrink-0 border ${meta.badgeBg} ${meta.border}`}
+                              className={`w-9 h-8 rounded-md flex items-center justify-center font-bold text-[12px] shrink-0 border ${meta.badgeBg} ${meta.border}`}
                             >
                               {meta.code}
                             </div>
 
                             <div className="space-y-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-[15px] font-bold text-text hover:text-primary transition-colors">
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                <h3 className="text-[14px] font-semibold text-text">
                                   {meta.label}
                                 </h3>
-                                <span className="text-[11px] font-semibold text-text-body bg-surface-muted px-2 py-0.5 rounded border border-border">
+                                <span className="text-[12px] text-text-muted">
                                   {pkg.dateLabel}
                                 </span>
                                 {savedAnswersCount > 0 && (
-                                  <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                                  <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
                                     <Check className="w-3 h-3" /> Tersimpan ({savedAnswersCount}/
                                     {pkg.questionCount})
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-3">
-                                <span>{pkg.questionCount} Butir Soal</span>
+                              <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-2">
+                                <span>{pkg.questionCount} soal</span>
                                 <span>·</span>
-                                <span>Estimasi {pkg.durationMinutes} menit</span>
+                                <span>{pkg.durationMinutes} menit</span>
                                 <span>·</span>
-                                <span className="font-mono text-primary font-medium">
-                                  Naskah UTBK Asli
+                                <span className="font-medium">
+                                  Naskah asli
                                 </span>
                               </div>
                             </div>
                           </div>
 
                           {/* Right Action: Dashboard Primary Study Button */}
-                          <div className="flex items-center gap-2.5 self-end md:self-auto shrink-0">
+                          <div className="flex items-center self-end md:self-auto shrink-0">
                             <button
                               type="button"
                               onClick={() => handleOpenPackage(pkg)}
-                              className="min-h-[38px] px-4 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-semibold inline-flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
+                              className="min-h-[36px] px-3 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[12px] font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                             >
                               <Play className="w-3.5 h-3.5 fill-current" />
-                              <span>{savedAnswersCount > 0 ? "Lanjutkan Latihan" : "Mulai Latihan"}</span>
+                              <span>{savedAnswersCount > 0 ? "Lanjutkan" : "Kerjakan"}</span>
                             </button>
                           </div>
                         </div>

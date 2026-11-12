@@ -92,6 +92,7 @@ export const getTryoutDetail = async (
     number: data.number || "1",
 
     isFree: data.isFree,
+    isSpecial: Boolean(data.isSpecial),
     tokenCost: data.tokenCost,
 
     participants: data.participants ?? 0,

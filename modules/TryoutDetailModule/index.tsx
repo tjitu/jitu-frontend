@@ -37,6 +37,7 @@ import {
   LeaderboardData,
 } from "@/lib/api/tryout";
 import { startTryoutAttempt, registerTryout } from "@/lib/api/exam";
+import { getDisplayedParticipants } from "@/lib/tryout-display";
 
 const TryoutDetailModule = () => {
   const router = useRouter();
@@ -393,7 +394,10 @@ const TryoutDetailModule = () => {
               <span>Peserta</span>
             </div>
             <div className="font-mono text-xl sm:text-2xl font-bold text-text tabular-nums">
-              {Number(tryoutData.participants || 0).toLocaleString("id-ID")}
+              {getDisplayedParticipants(
+                tryoutData.id,
+                tryoutData.participants
+              ).toLocaleString("id-ID")}
             </div>
           </div>
 
@@ -535,7 +539,7 @@ const TryoutDetailModule = () => {
                       href="/shop"
                       className="text-sm font-semibold text-primary hover:underline"
                     >
-                      Beli coin →
+                      Shop →
                     </Link>
                   ) : (
                     <span className="text-xs text-text-muted flex items-center gap-1.5">

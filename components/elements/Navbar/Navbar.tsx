@@ -46,7 +46,7 @@ const navItems = [
     icon: Flame,
   },
   {
-    title: "Beli coin",
+    title: "Shop",
     path: "shop",
     icon: ShoppingBag,
   },
@@ -112,7 +112,7 @@ const Navbar = () => {
   return (
     <>
       {/* Top App Header (DESIGN.md Section 5: 64px top bar, white, 1px bottom border, Active item gets blue-50 background and blue-700 text) */}
-      <header className="sticky top-0 z-10 bg-surface border-b border-border">
+      <header className="sticky top-0 z-30 bg-surface border-b border-border">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Left: Logo + Desktop Navigation */}
           <div className="flex items-center gap-6">

@@ -17,6 +17,10 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const target = searchParams.get("target") || undefined;
     const questionId = searchParams.get("questionId") || undefined;
+    const randomParam = searchParams.get("random");
+    const random = randomParam === "1" || randomParam === "true";
+    const limitRaw = Number(searchParams.get("limit"));
+    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined;
     const sandboxToken = req.headers.get("x-sandbox-token") || undefined;
 
     const feed = await getPracticeQuestions({
@@ -28,6 +32,8 @@ export async function GET(req: NextRequest) {
       target,
       questionId,
       sandboxToken,
+      random,
+      limit,
     });
 
     return NextResponse.json({ success: true, ...feed });

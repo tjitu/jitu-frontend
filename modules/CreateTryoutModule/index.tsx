@@ -29,6 +29,7 @@ const CreateTryoutModule = () => {
     scheduledStart: "",
     scheduledEnd: "",
     isPublic: true,
+    isSpecial: false,
     referralCode: "",
   });
 

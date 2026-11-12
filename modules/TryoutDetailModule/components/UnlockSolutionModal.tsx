@@ -63,8 +63,8 @@ export function UnlockSolutionModal({
             ) : (
               <>
                 {userBalance === 0
-                  ? "Coin kamu habis. Beli coin dulu buat buka pembahasan."
-                  : `Coin kamu cuma ${userBalance} coin. Beli coin dulu buat buka pembahasan.`}
+                  ? "Coin kamu habis. Buka Shop dulu untuk membuka pembahasan."
+                  : `Coin kamu cuma ${userBalance} coin. Buka Shop dulu untuk membuka pembahasan.`}
               </>
             )}
           </DialogDescription>
@@ -145,7 +145,7 @@ export function UnlockSolutionModal({
               }}
               variant="primary"
             >
-              Beli coin
+              Shop
             </Button>
           )}
         </DialogFooter>

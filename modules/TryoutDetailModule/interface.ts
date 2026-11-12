@@ -12,6 +12,7 @@ export interface TryoutDetail {
   endDate: string;
   isRegistered: boolean;
   isFree: boolean;
+  isSpecial?: boolean;
   tokenCost?: number;
   categories: CategoryDetail[];
   benefits: string[];

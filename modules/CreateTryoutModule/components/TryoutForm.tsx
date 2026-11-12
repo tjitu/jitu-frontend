@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, CheckCircle2, Globe, Lock } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Globe, Lock, Sparkles } from "lucide-react";
 import { TryoutFormData } from "../interface";
 
 interface TryoutFormProps {
@@ -148,6 +148,39 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
                 </p>
               </div>
             </div>
+
+            <label
+              htmlFor="isSpecial"
+              className={`flex items-start justify-between gap-3 p-4 rounded-md border cursor-pointer transition-colors ${
+                formData.isSpecial
+                  ? "border-purple-300 bg-purple-50/75"
+                  : "border-border bg-surface-muted hover:border-ink-300"
+              }`}
+            >
+              <div className="space-y-0.5">
+                <div className="text-[13px] font-semibold text-text flex items-center gap-1.5">
+                  <Sparkles
+                    className={`h-3.5 w-3.5 ${
+                      formData.isSpecial ? "text-purple-600" : "text-text-muted"
+                    }`}
+                  />
+                  <span>Special tryout</span>
+                </div>
+                <p className="text-xs text-text-muted">
+                  Tampilkan overlay ungu eksklusif dan gambar banner khusus pada kartu tryout ini.
+                </p>
+              </div>
+              <input
+                id="isSpecial"
+                name="isSpecial"
+                type="checkbox"
+                checked={formData.isSpecial}
+                onChange={(e) =>
+                  handleSwitchChange("isSpecial", e.target.checked)
+                }
+                className="mt-0.5 h-4 w-4 rounded border-ink-300 accent-purple-600 cursor-pointer shrink-0"
+              />
+            </label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>

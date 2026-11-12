@@ -11,6 +11,13 @@ import {
   Loader2,
   BookOpen,
   Calendar,
+  Flame,
+  Target,
+  Sparkles,
+  FileText,
+  Zap,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -27,6 +34,8 @@ import {
   getOngoingTryouts,
   getAvailableTryouts,
   getScoreHistory,
+  getDailyQuestionStatus,
+  getLatestDashboardArticles,
   getCachedDashboardData,
   isDashboardCacheFresh,
   setCachedDashboardData,
@@ -35,12 +44,20 @@ import {
   OngoingTryout,
   AvailableTryout,
   ScoreHistory,
+  DailyQuestionStatus,
+  DashboardArticleSummary,
 } from "@/lib/api/DashboardApi";
 import { toast } from "sonner";
 import { RegisterModal } from "./components/RegisterModal";
 import { BACKEND_URL } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
+import {
+  formatTryoutDateRange,
+  getDisplayedParticipants,
+} from "@/lib/tryout-display";
+import { HotQuestionsCard } from "./components/HotQuestionsCard";
+import { MilestoneCard } from "./components/MilestoneCard";
 
 const ScoreHistoryChart = dynamic(
   () => import("./components/ScoreHistoryChart"),
@@ -52,16 +69,6 @@ const ScoreHistoryChart = dynamic(
   }
 );
 
-/**
- * DESIGN.md Section 2.4 & 5 — Student dashboard
- * Series order:
- * 1. #2557DB (blue-600) — primary series
- * 2. #FFC81F (yellow-400) — comparison / benchmark
- * 3. #93BAFF (blue-300)
- * 4. #6B778C (ink-500)
- * 5. #1F9D63 (success)
- * 6. #1B3475 (blue-900)
- */
 const SERIES_BLUES = [
   "#2557DB",
   "#FFC81F",
@@ -71,11 +78,43 @@ const SERIES_BLUES = [
   "#1B3475",
 ];
 
+const SUBTEST_LABELS: Array<{ key: keyof Omit<ScoreHistory, "to" | "total">; label: string }> = [
+  { key: "pu", label: "Penalaran Umum" },
+  { key: "ppu", label: "PPU" },
+  { key: "pbm", label: "Pemahaman Bacaan & Menulis" },
+  { key: "pk", label: "Pengetahuan Kuantitatif" },
+  { key: "lbi", label: "Literasi Indonesia" },
+  { key: "lbe", label: "Literasi Inggris" },
+  { key: "pm", label: "Penalaran Matematika" },
+];
+
+const getSubtestInsights = (scoreHistory: ScoreHistory[]) => {
+  if (scoreHistory.length === 0) return null;
+  const latest = scoreHistory[scoreHistory.length - 1];
+  const entries = SUBTEST_LABELS.map((item) => ({
+    label: item.label,
+    score: Number(latest[item.key]) || 0,
+  })).filter((item) => item.score > 0);
+
+  if (entries.length === 0) return null;
+  const sorted = [...entries].sort((a, b) => b.score - a.score);
+  return {
+    tryoutLabel: latest.to,
+    total: latest.total,
+    strongest: sorted[0],
+    weakest: sorted[sorted.length - 1],
+  };
+};
+
+const stripHtml = (raw?: string | null) =>
+  (raw || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
 const DashboardModule = () => {
   const router = useRouter();
   const [activeSubtests, setActiveSubtests] = useState<string[]>(["total"]);
   const { data: session, isPending } = useSession();
   const cachedInitial = getCachedDashboardData();
+
   const [userStats, setUserStats] = useState<UserStats | null>(
     cachedInitial?.stats ?? null
   );
@@ -88,7 +127,20 @@ const DashboardModule = () => {
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>(
     cachedInitial?.history ?? []
   );
+  const [dailyStatus, setDailyStatus] = useState<DailyQuestionStatus | null>(
+    cachedInitial?.dailyStatus ?? null
+  );
+  const [articles, setArticles] = useState<DashboardArticleSummary[]>(
+    cachedInitial?.articles ?? []
+  );
   const [loading, setLoading] = useState(!cachedInitial);
+
+  const [scheduleTab, setScheduleTab] = useState<"my-tryouts" | "explore" | "history">(
+    (cachedInitial?.ongoing?.some((t) => t.isRegistered) ?? false)
+      ? "my-tryouts"
+      : "explore"
+  );
+  const tabManuallyChanged = useRef(false);
 
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [selectedTryout, setSelectedTryout] = useState<OngoingTryout | null>(
@@ -115,18 +167,37 @@ const DashboardModule = () => {
   const loadDashboardData = async (showSkeleton = false) => {
     try {
       if (showSkeleton) setLoading(true);
-      const [stats, ongoing, available, history] = await Promise.all([
-        getUserStats(),
-        getOngoingTryouts(),
-        getAvailableTryouts(),
-        getScoreHistory(),
-      ]);
+      const [stats, ongoing, available, history, daily, latestArticles] =
+        await Promise.all([
+          getUserStats(),
+          getOngoingTryouts(),
+          getAvailableTryouts(),
+          getScoreHistory(),
+          getDailyQuestionStatus(),
+          getLatestDashboardArticles(3),
+        ]);
 
       setUserStats(stats);
       setOngoingTryouts(ongoing);
       setAvailableTryoutsData(available);
       setScoreHistory(history);
-      setCachedDashboardData({ stats, ongoing, available, history });
+      setDailyStatus(daily);
+      setArticles(latestArticles);
+
+      if (!tabManuallyChanged.current) {
+        setScheduleTab(
+          ongoing.some((t) => t.isRegistered) ? "my-tryouts" : "explore"
+        );
+      }
+
+      setCachedDashboardData({
+        stats,
+        ongoing,
+        available,
+        history,
+        dailyStatus: daily,
+        articles: latestArticles,
+      });
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
       if (showSkeleton) {
@@ -168,7 +239,9 @@ const DashboardModule = () => {
       invalidateDashboardCache();
       void loadDashboardData(false);
     } catch (err: unknown) {
-      setRegisterError(err instanceof Error ? err.message : "Gagal mendaftar tryout.");
+      setRegisterError(
+        err instanceof Error ? err.message : "Gagal mendaftar tryout."
+      );
     } finally {
       setRegisterLoading(false);
     }
@@ -202,12 +275,16 @@ const DashboardModule = () => {
 
   if (isPending || loading) {
     return (
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-10 space-y-6">
-        <div className="h-40 rounded-lg jitu-skeleton" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="h-32 rounded-lg jitu-skeleton" />
-          <div className="h-32 rounded-lg jitu-skeleton" />
-          <div className="h-32 rounded-lg jitu-skeleton" />
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
+        <div className="h-24 rounded-lg jitu-skeleton" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7 h-72 rounded-lg jitu-skeleton" />
+          <div className="lg:col-span-5 h-72 rounded-lg jitu-skeleton" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="h-28 rounded-lg jitu-skeleton" />
+          <div className="h-28 rounded-lg jitu-skeleton" />
+          <div className="h-28 rounded-lg jitu-skeleton" />
         </div>
       </div>
     );
@@ -294,18 +371,22 @@ const DashboardModule = () => {
   };
 
   const myTryouts = ongoingTryouts.filter((t) => t.isRegistered);
-  const marketTryouts = [
+  const marketTryouts: OngoingTryout[] = [
     ...ongoingTryouts.filter((t) => !t.isRegistered),
-    ...availableTryoutsData.filter(
-      (at) => !ongoingTryouts.some((ot) => ot.id === at.id)
-    ),
+    ...availableTryoutsData
+      .filter((at) => !ongoingTryouts.some((ot) => ot.id === at.id))
+      .map((at) => ({
+        ...at,
+        isRegistered: false,
+        status: "NOT_STARTED",
+      })),
   ];
 
-  // Primary featured tryout for Top Banner
   const featuredTryout =
+    marketTryouts[0] ||
+    myTryouts.find((t) => t.status === "IN_PROGRESS") ||
     myTryouts.find((t) => t.status !== "FINISHED") ||
     myTryouts[0] ||
-    marketTryouts[0] ||
     null;
 
   const avgScore =
@@ -316,6 +397,23 @@ const DashboardModule = () => {
         )
       : null;
 
+  const bestScore =
+    userStats?.personalBest && userStats.personalBest > 0
+      ? userStats.personalBest
+      : avgScore;
+
+  const effectiveStreak =
+    userStats?.currentStreak ?? dailyStatus?.streak ?? 0;
+
+  const solvedQuestions = userStats?.solvedQuestions ?? 0;
+
+  const tokenBalance =
+    userStats?.tokenBalance ?? session.user.tokenBalance ?? 0;
+
+  const firstName = session.user.name.trim().split(/\s+/)[0] || "Pejuang PTN";
+  const subtestInsights = getSubtestInsights(scoreHistory);
+  const dailyQuestionSnippet = stripHtml(dailyStatus?.question?.content);
+
   const formatSlotDate = (dateStr?: string | Date | null) => {
     if (!dateStr) return "16 Nov 2026";
     return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -325,18 +423,54 @@ const DashboardModule = () => {
     });
   };
 
+  const featuredStatusBadge = featuredTryout ? (
+    <span className="h-6 px-2.5 rounded-full bg-yellow-400 text-ink-900 text-[12px] font-bold inline-flex items-center gap-1.5 shadow-2xs">
+      <Clock className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+      <span>
+        {featuredTryout.isRegistered
+          ? featuredTryout.status === "IN_PROGRESS"
+            ? "Sedang dikerjakan"
+            : featuredTryout.status === "FINISHED"
+              ? "Selesai"
+              : "Belum dikerjakan"
+          : "Belum terdaftar"}
+      </span>
+    </span>
+  ) : null;
+
+  const onboardingSteps = [
+    {
+      label: "Tentukan target PTN & jurusan",
+      done: Boolean(session.user.target?.trim()),
+      href: "/profile",
+      actionLabel: "Kerjakan",
+    },
+    {
+      label: "Selesaikan pemanasan soal hari ini",
+      done: Boolean(dailyStatus?.isCompleted),
+      href: "/daily-streak",
+      actionLabel: "Kerjakan",
+    },
+    {
+      label: "Daftar tryout gratis pertamamu",
+      done: myTryouts.length > 0,
+      href: "#jadwal-tryout",
+      actionLabel: "Kerjakan",
+    },
+  ];
+
   return (
-    <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-10">
-      {/* 1. Student Identity Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+    <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {/* 1. TOP COMMAND & TARGET STRIP */}
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-border pb-6">
         <div className="flex items-center gap-4">
-          <div className="relative group">
+          <div className="relative group shrink-0">
             <Avatar
               className="w-14 h-14 border border-border cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               <AvatarImage src={session.user.image || ""} />
-              <AvatarFallback className="bg-surface-muted text-text font-semibold text-[16px]">
+              <AvatarFallback className="bg-blue-50 text-blue-800 font-bold text-[18px]">
                 {session.user.name.charAt(0).toUpperCase()}
               </AvatarFallback>
               {isUploading ? (
@@ -358,163 +492,300 @@ const DashboardModule = () => {
             />
           </div>
 
-          <div>
-            <div className="text-label text-text-muted">
-              Lembar peserta · SNBT 2026
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-label text-text-muted">
+                Ruang belajar · SNBT 2026
+              </span>
+              <Link
+                href="/profile"
+                className={`h-6 px-2.5 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 border transition-colors ${
+                  session.user.target
+                    ? "bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100"
+                    : "bg-surface-muted text-text-body border-border hover:border-blue-300 hover:text-text"
+                }`}
+              >
+                <Target className="w-3.5 h-3.5 text-primary stroke-[1.75]" />
+                <span>
+                  {session.user.target
+                    ? `Target: ${session.user.target}`
+                    : "Atur target PTN"}
+                </span>
+              </Link>
             </div>
-            <h1 className="text-h2 text-text">
-              {session.user.name}
+            <h1 className="text-[24px] sm:text-[28px] font-bold tracking-[-0.02em] text-text leading-tight">
+              Halo, {firstName}
             </h1>
           </div>
         </div>
 
-        {/* Summary Numbers Row */}
+        {/* Summary Numbers Strip */}
         <div className="grid grid-cols-3 rounded-lg border border-border bg-surface divide-x divide-ink-100">
-          <div className="px-5 py-3">
-            <div className="text-label text-text-muted">
-              Terdaftar
-            </div>
-            <div className="font-mono font-bold text-[20px] text-text tabular-nums">
-              {myTryouts.length}
-            </div>
-          </div>
-          <div className="px-5 py-3">
-            <div className="text-label text-text-muted">
-              Selesai
-            </div>
-            <div className="font-mono font-bold text-[20px] text-text tabular-nums">
-              {userStats?.totalFinished ?? 0}
+          <div className="px-4 py-3">
+            <div className="text-label text-text-muted">Streak</div>
+            <div className="mt-0.5 font-mono font-bold text-[19px] text-text tabular-nums inline-flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-yellow-500 stroke-[2]" />
+              <span>{effectiveStreak} hr</span>
             </div>
           </div>
-          <div className="px-5 py-3">
-            <div className="text-label text-text-muted">
-              Rerata IRT
+          <div className="px-4 py-3">
+            <div className="text-label text-text-muted">IRT terbaik</div>
+            <div className="mt-0.5 font-mono font-bold text-[19px] text-primary tabular-nums">
+              {bestScore ?? "-"}
             </div>
-            <div className="font-mono font-bold text-[20px] text-primary tabular-nums">
-              {avgScore ?? "-"}
+          </div>
+          <div className="px-4 py-3">
+            <div className="text-label text-text-muted">Soal diselesaikan</div>
+            <div className="mt-0.5 font-mono font-bold text-[19px] text-text tabular-nums inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 stroke-[2]" />
+              <span>{solvedQuestions.toLocaleString("id-ID")}</span>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* 2. TOP: Next Tryout */}
-      <section aria-label="Tryout berikutnya">
-        {featuredTryout ? (
-          <div className="bg-surface rounded-lg border border-border p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-blue-300 transition-colors duration-[120ms]">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-[12px] font-semibold inline-flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 stroke-[1.75]" aria-hidden="true" />
-                  <span>
-                    {featuredTryout.isRegistered
-                      ? featuredTryout.status === "IN_PROGRESS"
-                        ? "Sedang dikerjakan"
-                        : featuredTryout.status === "FINISHED"
-                          ? "Selesai"
-                          : "Siap dikerjakan"
-                      : "Jadwal terdekat"}
-                  </span>
-                </span>
-                <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center gap-1.5">
-                  <PixelCoin size={14} />
-                  <span>Gratis dikerjakan · Pembahasan {featuredTryout.solutionPrice || 1} coin</span>
-                </span>
-              </div>
-
-              <div className="font-bold text-[32px] sm:text-[36px] leading-tight tracking-[-0.02em] text-text tabular-nums">
-                {formatSlotDate(featuredTryout.scheduledStart)}
-              </div>
-
-              <h2 className="text-h3 text-text">
-                {featuredTryout.title}
-              </h2>
-
-              <div className="flex flex-wrap items-center gap-4 text-[13px] text-text-muted font-medium">
-                <span className="inline-flex items-center gap-1.5">
-                  <Users className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
-                  <span className="tabular-nums">{featuredTryout.participants} peserta</span>
-                </span>
-                <span>·</span>
-                <span>7 subtes SNBT</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row lg:flex-col items-stretch gap-3 shrink-0 min-w-[200px]">
-              {featuredTryout.isRegistered ? (
-                <Button
-                  size="lg"
-                  variant="primary"
-                  onClick={() => router.push(`/tryout/${featuredTryout.id}`)}
-                  className="justify-between"
-                >
-                  <span>
-                    {featuredTryout.status === "FINISHED"
-                      ? "Lihat hasil"
-                      : "Kerjakan"}
-                  </span>
-                  <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  variant="primary"
-                  onClick={() =>
-                    handleRegisterClick(featuredTryout as OngoingTryout)
-                  }
-                  className="justify-between"
-                >
-                  <span>Daftar gratis</span>
-                  <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
-                </Button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="p-8 rounded-lg border border-dashed border-border bg-surface-muted flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-[15px] text-text-body">
-              Belum ada tryout yang kamu kerjakan. Tryout #1 dibuka 16 Nov.
-            </p>
-            <Button onClick={() => router.push("/tryout")}>Lihat jadwal</Button>
-          </div>
-        )}
-      </section>
-
-      {/* 2b. Bank Soal Asli UTBK (2010 - 2026) Highlight Card */}
-      <section aria-label="Bank Soal Asli UTBK">
-        <div className="bg-surface rounded-xl border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-blue-300 transition-colors shadow-2xs">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-bold inline-flex items-center gap-1.5 border border-blue-200">
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>Naskah Ujian Asli</span>
-              </span>
-              <span className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-800 text-[12px] font-semibold border border-yellow-200">
-                163 Paket · 2010 – 2026
-              </span>
-            </div>
-            <h2 className="text-[20px] font-bold text-text">
-              Arsip Soal Asli UTBK & SNBT
-            </h2>
-            <p className="text-[14px] text-text-body max-w-2xl leading-relaxed">
-              Pelajari dan latih kemampuanmu langsung dari naskah asli ujian tahun-tahun sebelumnya. Lengkap dengan lembar jawab digital, timer simulasi 30 menit, dan arsip 7 subtes.
-            </p>
-          </div>
-
-          <div className="shrink-0 flex items-center gap-3">
-            <Link
-              href="/arsip-soal"
-              className="min-h-[44px] px-5 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[14px] font-semibold inline-flex items-center gap-2 shadow-xs transition-colors"
+      {/* 2. FIRST-VIEW ASYMMETRIC BENTO GRID (7 Left Featured + 5 Right Daily Stack) */}
+      <section
+        aria-label="Ringkasan prioritas belajar"
+        className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
+      >
+        {/* LEFT (7 col): Featured Tryout Card with Blue-Tinted /careers Banner */}
+        <div className="lg:col-span-7 flex">
+          {featuredTryout ? (
+            <article
+              className={`w-full bg-surface rounded-lg border border-border overflow-hidden flex flex-col transition-colors duration-[120ms] ${
+                featuredTryout.isSpecial
+                  ? "hover:border-purple-300"
+                  : "hover:border-blue-300"
+              }`}
             >
-              <span>Buka Soal Asli</span>
-              <ArrowRight className="w-4 h-4 stroke-[2]" />
-            </Link>
-          </div>
+              <TryoutCardBanner
+                isSpecial={featuredTryout.isSpecial}
+                badge={featuredStatusBadge}
+                sublabel={
+                  <span className="inline-flex items-center gap-1.5">
+                    <span>Free · {featuredTryout.solutionPrice || 1}</span>
+                    <PixelCoin size={13} />
+                    <span>untuk pembahasan</span>
+                  </span>
+                }
+                rightFooter={
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/95 tabular-nums">
+                    <Users className="w-3.5 h-3.5 stroke-[2]" />
+                    <span>
+                      {getDisplayedParticipants(
+                        featuredTryout.id,
+                        featuredTryout.participants
+                      ).toLocaleString("id-ID")}{" "}
+                      peserta
+                    </span>
+                  </span>
+                }
+              />
+
+              <div className="p-6 flex-1 flex flex-col justify-between gap-5">
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
+                    <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
+                    <span>Simulasi Penuh 7 Subtes · Sistem IRT</span>
+                  </div>
+
+                  <h2 className="text-[22px] sm:text-[24px] font-bold text-text leading-snug tracking-[-0.015em]">
+                    {featuredTryout.title}
+                  </h2>
+
+                  <p className="text-[14px] text-text-body leading-relaxed line-clamp-2">
+                    {featuredTryout.description?.trim() ||
+                      "Simulasi UTBK-SNBT lengkap mencakup 7 subtes TPS & Literasi dengan timer resmi, pemeringkatan nasional, dan analisis skor IRT."}
+                  </p>
+
+                  <div className="pt-1 flex flex-wrap items-center gap-2 text-[13px] text-text-body font-medium tabular-nums">
+                    <Calendar className="w-4 h-4 stroke-[1.75] text-primary shrink-0" />
+                    <span>
+                      {formatTryoutDateRange(
+                        featuredTryout.scheduledStart,
+                        featuredTryout.scheduledEnd
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+                  {featuredTryout.isRegistered ? (
+                    <Button
+                      size="lg"
+                      variant="primary"
+                      onClick={() => router.push(`/tryout/${featuredTryout.id}`)}
+                      className="sm:min-w-[200px] justify-between"
+                    >
+                      <span>
+                        {featuredTryout.status === "FINISHED"
+                          ? "Lihat tryout"
+                          : featuredTryout.status === "IN_PROGRESS"
+                            ? "Lanjutkan tryout"
+                            : "Kerjakan tryout"}
+                      </span>
+                      <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
+                    </Button>
+                  ) : (
+                    <div className="sm:min-w-[200px] group/btn transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
+                      <Button
+                        size="lg"
+                        variant="primary"
+                        onClick={() =>
+                          handleRegisterClick(featuredTryout as OngoingTryout)
+                        }
+                        className="relative w-full justify-between overflow-hidden shadow-md transition-[background-color,box-shadow] duration-150 hover:shadow-lg"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="animate-pass-shimmer pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-blue-200/35 to-transparent"
+                        />
+                        <span className="relative z-10">Daftar gratis</span>
+                        <ArrowRight
+                          className="relative z-10 w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
+                          aria-hidden="true"
+                        />
+                      </Button>
+                    </div>
+                  )}
+
+                  <Link
+                    href="/tryout"
+                    className="min-h-[44px] px-4 rounded-md border border-border bg-surface text-[14px] font-semibold text-text hover:bg-surface-muted transition-colors inline-flex items-center justify-center gap-1.5"
+                  >
+                    <span>Lihat semua jadwal</span>
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ) : (
+            <div className="w-full p-6 sm:p-8 rounded-lg border border-dashed border-border bg-surface-muted flex flex-col justify-between gap-4">
+              <div className="space-y-2">
+                <div className="text-label text-primary">Mulai simulasi</div>
+                <h2 className="text-h3 text-text">
+                  Belum ada jadwal tryout aktif saat ini
+                </h2>
+                <p className="text-[14px] text-text-body max-w-md">
+                  Sambil menunggu gelombang berikutnya dibuka, kamu bisa langsung berlatih lewat Latihan Adaptif atau Arsip Soal Asli UTBK.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button onClick={() => router.push("/latihan")}>
+                  Mulai Latihan Adaptif
+                </Button>
+                <Button variant="outline" onClick={() => router.push("/arsip-soal")}>
+                  Buka Arsip Soal
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT (5 col): Hot Question of the Day Carousel + Subtest Snapshot Stack */}
+        <div className="lg:col-span-5 flex flex-col gap-5">
+          {/* Card A: Hot Question of the Day (5 random unanswered questions, 5s auto-swipe loop) */}
+          <HotQuestionsCard />
+
+          {/* Card B: Progressive Multi-Phase Milestone */}
+          <MilestoneCard
+            hasTarget={Boolean(session.user.target?.trim())}
+            dailyCompleted={Boolean(dailyStatus?.isCompleted)}
+            registeredTryoutsCount={myTryouts.length}
+            finishedTryoutsCount={
+              userStats?.totalFinished ?? scoreHistory.length
+            }
+            solvedQuestions={solvedQuestions}
+            currentStreak={effectiveStreak}
+            bestScore={bestScore}
+            onOpenScoreHistory={() => {
+              tabManuallyChanged.current = true;
+              setScheduleTab("history");
+              document
+                .getElementById("jadwal-tryout")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
         </div>
       </section>
 
-      {/* 3. MIDDLE: Tryout Schedule Grid & Tabs */}
-      <section className="space-y-6">
-        <Tabs defaultValue="my-tryouts" className="w-full space-y-6">
+      {/* 3. LEARNING ECOSYSTEM SHORTCUT STRIP (3 Compact Equal Tiles) */}
+      <section aria-label="Fitur belajar Jitu" className="hidden grid-cols-1 md:grid-cols-3 gap-5">
+        <Link
+          href="/latihan"
+          className="group bg-surface rounded-lg border border-border p-5 hover:border-blue-300 transition-colors flex flex-col justify-between gap-3"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="w-9 h-9 rounded-md bg-blue-50 text-primary border border-blue-200 inline-flex items-center justify-center">
+              <Zap className="w-4 h-4 stroke-[2]" />
+            </span>
+            <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-[16px] font-bold text-text">Latihan Soal Adaptif</h3>
+            <p className="text-[13px] text-text-body leading-relaxed">
+              Drill bertahap 7 subtes SNBT dengan koreksi instan & pembahasan per butir.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          href="/arsip-soal"
+          className="group bg-surface rounded-lg border border-border p-5 hover:border-blue-300 transition-colors flex flex-col justify-between gap-3"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-9 h-9 rounded-md bg-blue-50 text-primary border border-blue-200 inline-flex items-center justify-center">
+                <BookOpen className="w-4 h-4 stroke-[2]" />
+              </span>
+              <span className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-[11px] font-semibold inline-flex items-center">
+                163 Paket · 2010–2026
+              </span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-[16px] font-bold text-text">Arsip Soal Asli UTBK</h3>
+            <p className="text-[13px] text-text-body leading-relaxed">
+              Workbench naskah ujian asli dengan timer 30 menit & lembar jawab digital.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          href="/referral"
+          className="group bg-surface rounded-lg border border-border p-5 hover:border-blue-300 transition-colors flex flex-col justify-between gap-3"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-9 h-9 rounded-md bg-yellow-100 border border-yellow-300/70 inline-flex items-center justify-center">
+                <PixelCoin size={18} />
+              </span>
+              <span className="h-6 px-2.5 rounded-full bg-surface-muted border border-border text-text text-[11px] font-mono font-semibold inline-flex items-center tabular-nums">
+                {tokenBalance} coin aktif
+              </span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-[16px] font-bold text-text">Coin & Program Referral</h3>
+            <p className="text-[13px] text-text-body leading-relaxed">
+              Buka pembahasan tryout mulai 1 coin. Bagikan kode referralmu untuk bonus coin.
+            </p>
+          </div>
+        </Link>
+      </section>
+
+      {/* 4. MIDDLE: Tryout Schedule Grid & Tabs */}
+      <section id="jadwal-tryout" className="space-y-6 pt-2">
+        <Tabs
+          value={scheduleTab}
+          onValueChange={(val) => {
+            tabManuallyChanged.current = true;
+            setScheduleTab(val as "my-tryouts" | "explore" | "history");
+          }}
+          className="w-full space-y-6"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <TabsList>
               <TabsTrigger value="my-tryouts">
@@ -547,30 +818,32 @@ const DashboardModule = () => {
           <TabsContent value="my-tryouts">
             {myTryouts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myTryouts.map((tryout, idx) => {
+                {myTryouts.map((tryout) => {
                   const isFinished = tryout.status === "FINISHED";
                   const isProgress = tryout.status === "IN_PROGRESS";
 
                   const statusBadge = (
                     <span
-                      className={`inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[12px] font-semibold shadow-2xs ${
+                      className={`inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[12px] font-bold shadow-2xs ${
                         isFinished
-                          ? "bg-emerald-100 text-emerald-900"
+                          ? "bg-emerald-400 text-emerald-950"
                           : isProgress
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-white/95 text-blue-900"
+                            ? "bg-yellow-400 text-ink-900"
+                            : "bg-emerald-400 text-emerald-950"
                       }`}
                     >
                       {isFinished ? (
-                        <Check className="w-3.5 h-3.5 stroke-[2]" />
+                        <Check className="w-3.5 h-3.5 stroke-[2.2]" />
+                      ) : isProgress ? (
+                        <Clock className="w-3.5 h-3.5 stroke-[2.2]" />
                       ) : (
-                        <Clock className="w-3.5 h-3.5 stroke-[2]" />
+                        <Check className="w-3.5 h-3.5 stroke-[2.2]" />
                       )}
                       <span>
                         {isFinished
                           ? "Selesai"
                           : isProgress
-                            ? "Berjalan"
+                            ? "Sedang dikerjakan"
                             : "Terdaftar"}
                       </span>
                     </span>
@@ -579,28 +852,60 @@ const DashboardModule = () => {
                   return (
                     <article
                       key={tryout.id}
-                      className={`rounded-lg border border-border overflow-hidden flex flex-col hover:border-blue-300 hover:shadow-sm transition-all duration-[120ms] ${
-                        isFinished ? "bg-surface-muted" : "bg-surface"
-                      }`}
+                      className={`rounded-lg border border-border overflow-hidden flex flex-col hover:shadow-sm transition-all duration-[120ms] ${
+                        tryout.isSpecial
+                          ? "hover:border-purple-300"
+                          : "hover:border-blue-300"
+                      } ${isFinished ? "bg-surface-muted" : "bg-surface"}`}
                     >
                       <TryoutCardBanner
-                        label={`Tryout #${idx + 1}`}
+                        isSpecial={tryout.isSpecial}
                         badge={statusBadge}
+                        sublabel={
+                          <span className="inline-flex items-center gap-1.5">
+                            <span>Free · {tryout.solutionPrice || 1}</span>
+                            <PixelCoin size={13} />
+                            <span>untuk pembahasan</span>
+                          </span>
+                        }
+                        rightFooter={
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/95 tabular-nums">
+                            <Users className="w-3.5 h-3.5 stroke-[2]" />
+                            <span>
+                              {getDisplayedParticipants(
+                                tryout.id,
+                                tryout.participants
+                              ).toLocaleString("id-ID")}{" "}
+                              peserta
+                            </span>
+                          </span>
+                        }
                       />
 
-                      <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
+                      <div className="p-6 flex-1 flex flex-col justify-between gap-5">
                         <div className="space-y-3">
-                          <h3 className="text-[19px] sm:text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
+                          <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
+                            <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
+                            <span>Simulasi Penuh 7 Subtes · Sistem IRT</span>
+                          </div>
+
+                          <h3 className="text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
                             {tryout.title}
                           </h3>
 
-                          <div className="pt-3 border-t border-ink-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-muted tabular-nums">
-                            <span className="inline-flex items-center gap-1.5 font-medium text-text-body">
-                              <Calendar className="w-3.5 h-3.5 stroke-[1.75] text-primary" />
-                              <span>{formatSlotDate(tryout.scheduledStart)}</span>
+                          <p className="text-[14px] text-text-body leading-relaxed line-clamp-2">
+                            {tryout.description?.trim() ||
+                              "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
+                          </p>
+
+                          <div className="pt-1 flex flex-wrap items-center gap-2 text-[13px] text-text-body font-medium tabular-nums">
+                            <Calendar className="w-4 h-4 stroke-[1.75] text-primary shrink-0" />
+                            <span>
+                              {formatTryoutDateRange(
+                                tryout.scheduledStart,
+                                tryout.scheduledEnd
+                              )}
                             </span>
-                            <span>·</span>
-                            <span>{tryout.participants} peserta · SNBT</span>
                           </div>
                         </div>
 
@@ -613,8 +918,8 @@ const DashboardModule = () => {
                             {isFinished
                               ? "Lihat hasil"
                               : isProgress
-                                ? "Lanjutkan"
-                                : "Kerjakan"}
+                                ? "Lanjutkan tryout"
+                                : "Kerjakan tryout"}
                           </span>
                           <ArrowRight className="w-4 h-4 stroke-[1.75]" />
                         </Button>
@@ -626,13 +931,14 @@ const DashboardModule = () => {
             ) : (
               <div className="p-8 rounded-lg border border-dashed border-border bg-surface-muted flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <p className="text-[15px] text-text-body">
-                  Belum ada tryout yang dikerjakan. Tryout #1 dibuka 16 Nov 2026.
+                  Kamu belum mendaftar tryout apa pun. Pilih jadwal tersedia untuk mulai simulasi SNBT gratis.
                 </p>
                 <Button
                   variant="outline"
-                  onClick={() =>
-                    document.getElementById("explore-trigger")?.click()
-                  }
+                  onClick={() => {
+                    tabManuallyChanged.current = true;
+                    setScheduleTab("explore");
+                  }}
                 >
                   Pilih jadwal
                 </Button>
@@ -644,49 +950,90 @@ const DashboardModule = () => {
           <TabsContent value="explore">
             {marketTryouts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {marketTryouts.map((tryout, idx) => (
+                {marketTryouts.map((tryout) => (
                   <article
                     key={tryout.id}
-                    className="bg-surface rounded-lg border border-border overflow-hidden flex flex-col hover:border-blue-300 hover:shadow-sm transition-all duration-[120ms]"
+                    className={`bg-surface rounded-lg border border-border overflow-hidden flex flex-col hover:shadow-sm transition-all duration-[120ms] ${
+                      tryout.isSpecial
+                        ? "hover:border-purple-300"
+                        : "hover:border-blue-300"
+                    }`}
                   >
                     <TryoutCardBanner
-                      label={`Tryout #${tryout.title.match(/\d+/)?.[0] || idx + 1}`}
+                      isSpecial={tryout.isSpecial}
                       badge={
-                        <span className="h-6 px-2.5 rounded-full bg-white/95 text-blue-900 text-[12px] font-semibold inline-flex items-center shadow-2xs">
-                          Gratis · Rp0
+                        <span className="h-6 px-2.5 rounded-full bg-yellow-400 text-ink-900 text-[12px] font-bold inline-flex items-center gap-1.5 shadow-2xs">
+                          <Clock className="w-3.5 h-3.5 stroke-[2.2]" />
+                          <span>Belum terdaftar</span>
+                        </span>
+                      }
+                      sublabel={
+                        <span className="inline-flex items-center gap-1.5">
+                          <span>Free · {tryout.solutionPrice || 1}</span>
+                          <PixelCoin size={13} />
+                          <span>untuk pembahasan</span>
+                        </span>
+                      }
+                      rightFooter={
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/95 tabular-nums">
+                          <Users className="w-3.5 h-3.5 stroke-[2]" />
+                          <span>
+                            {getDisplayedParticipants(
+                              tryout.id,
+                              tryout.participants
+                            ).toLocaleString("id-ID")}{" "}
+                            peserta
+                          </span>
                         </span>
                       }
                     />
 
-                    <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
+                    <div className="p-6 flex-1 flex flex-col justify-between gap-5">
                       <div className="space-y-3">
-                        <h3 className="text-[19px] sm:text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
+                        <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
+                          <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
+                          <span>Simulasi Penuh 7 Subtes · Sistem IRT</span>
+                        </div>
+
+                        <h3 className="text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
                           {tryout.title}
                         </h3>
 
-                        <div className="pt-3 border-t border-ink-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-muted tabular-nums">
-                          <span className="inline-flex items-center gap-1.5 font-medium text-text-body">
-                            <Calendar className="w-3.5 h-3.5 stroke-[1.75] text-primary" />
-                            <span>{formatSlotDate(tryout.scheduledStart)}</span>
-                          </span>
-                          <span>·</span>
+                        <p className="text-[14px] text-text-body leading-relaxed line-clamp-2">
+                          {tryout.description?.trim() ||
+                            "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
+                        </p>
+
+                        <div className="pt-1 flex flex-wrap items-center gap-2 text-[13px] text-text-body font-medium tabular-nums">
+                          <Calendar className="w-4 h-4 stroke-[1.75] text-primary shrink-0" />
                           <span>
-                            {tryout.participants} peserta · Pembahasan{" "}
-                            {tryout.solutionPrice || 1} coin
+                            {formatTryoutDateRange(
+                              tryout.scheduledStart,
+                              tryout.scheduledEnd
+                            )}
                           </span>
                         </div>
                       </div>
 
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                        onClick={() =>
-                          handleRegisterClick(tryout as OngoingTryout)
-                        }
-                      >
-                        <span>Daftar gratis</span>
-                        <ArrowRight className="w-4 h-4 stroke-[1.75]" />
-                      </Button>
+                      <div className="w-full group/btn transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
+                        <Button
+                          variant="primary"
+                          className="relative w-full justify-between overflow-hidden shadow-md transition-[background-color,box-shadow] duration-150 hover:shadow-lg"
+                          onClick={() =>
+                            handleRegisterClick(tryout as OngoingTryout)
+                          }
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="animate-pass-shimmer pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-blue-200/35 to-transparent"
+                          />
+                          <span className="relative z-10 font-bold">Daftar gratis</span>
+                          <ArrowRight
+                            className="relative z-10 w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                      </div>
                     </div>
                   </article>
                 ))}
@@ -708,9 +1055,7 @@ const DashboardModule = () => {
                   <div className="text-label text-text-muted">
                     Perkembangan nilai IRT
                   </div>
-                  <h3 className="text-h3 text-text">
-                    Grafik skor
-                  </h3>
+                  <h3 className="text-h3 text-text">Grafik skor</h3>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
@@ -759,7 +1104,104 @@ const DashboardModule = () => {
         </Tabs>
       </section>
 
+      {/* 4.5 BRAND BANNER: Platform Persiapan UTBK 2027 No. 1 di Indonesia */}
+      <section aria-label="Banner JITU UTBK 2027">
+        <div className="relative overflow-hidden rounded-xl border border-border bg-white px-6 py-6 sm:px-9 sm:py-7 shadow-2xs">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.08),transparent_70%)]"
+          />
 
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 items-center gap-6">
+            <div className="md:col-span-7 space-y-3">
+              <h2
+                style={{ fontFamily: '"Bricolage Grotesque", var(--font-jakarta), sans-serif' }}
+                className="text-[24px] sm:text-[31px] font-extrabold text-text tracking-[-0.03em] leading-[1.15]"
+              >
+                Platform Persiapan UTBK 2027{" "}
+                <span className="text-primary">No. 1 di Indonesia!</span>
+              </h2>
+
+              <p className="text-[13.5px] sm:text-[14.5px] text-text-body leading-relaxed max-w-xl">
+                Tryout bersistem IRT akurat, ribuan arsip soal asli UTBK terkurasi, dan pembahasan interaktif untuk menembus PTN impianmu.
+              </p>
+
+              <div className="pt-0.5 flex flex-wrap items-center gap-2 text-[11.5px] font-semibold text-text-body">
+                <span className="px-2.5 py-1 rounded-md bg-surface-muted border border-border">
+                  Simulasi IRT Nasional
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-surface-muted border border-border">
+                  3.700+ Bank Soal Asli
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-surface-muted border border-border">
+                  Pembahasan Interaktif
+                </span>
+              </div>
+            </div>
+
+            <div className="md:col-span-5 flex items-center justify-center md:justify-end">
+              <img
+                src="/campus-pixel-art.png"
+                alt="Ilustrasi Kampus Impian UI, ITB, dan UGM"
+                className="w-full max-w-[360px] md:max-w-[400px] h-auto object-contain select-none"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. BOTTOM: Panduan & Kabar SNBT (/blog) */}
+      {articles.length > 0 && (
+        <section aria-label="Panduan dan artikel SNBT" className="space-y-4 pt-2 border-t border-border">
+          <div className="flex items-center justify-between gap-4 pt-4">
+            <div className="space-y-0.5">
+              <div className="text-label text-text-muted">Bacaan strategi</div>
+              <h2 className="text-h3 text-text">Panduan & Kabar SNBT</h2>
+            </div>
+            <Link
+              href="/blog"
+              className="text-[13px] font-semibold text-primary hover:underline inline-flex items-center gap-1.5"
+            >
+              <span>Semua artikel</span>
+              <ArrowRight className="w-4 h-4 stroke-[1.75]" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {articles.map((article) => (
+              <Link
+                key={article.id}
+                href={`/blog/${article.slug}`}
+                className="group bg-surface rounded-lg border border-border p-5 hover:border-blue-300 transition-colors flex flex-col justify-between gap-3"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 text-[12px]">
+                    <span className="h-5 px-2 rounded-full bg-blue-50 text-blue-800 font-semibold inline-flex items-center">
+                      {article.category || "Panduan"}
+                    </span>
+                    <span className="text-text-muted inline-flex items-center gap-1 tabular-nums">
+                      <FileText className="w-3 h-3" />
+                      <span>{article.readTimeMinutes || 4} mnt baca</span>
+                    </span>
+                  </div>
+                  <h3 className="text-[15px] font-bold text-text group-hover:text-primary leading-snug line-clamp-2 transition-colors">
+                    {article.title}
+                  </h3>
+                  {article.summary && (
+                    <p className="text-[13px] text-text-body line-clamp-2 leading-relaxed">
+                      {article.summary}
+                    </p>
+                  )}
+                </div>
+                <span className="text-[12px] font-semibold text-primary inline-flex items-center gap-1">
+                  <span>Baca panduan</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <RegisterModal
         isOpen={registerModalOpen}

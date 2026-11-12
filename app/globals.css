@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "katex/dist/katex.min.css";
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&display=swap");
 
 @custom-variant dark (&:is(.dark *, [data-theme="dark"] *));
 
@@ -792,6 +793,20 @@
 
 .step-math-card {
   animation: jitu-math-glow 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+@keyframes hot-question-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-hot-question-progress {
+  animation: hot-question-progress 5s linear forwards;
+  will-change: transform;
 }
 
 
