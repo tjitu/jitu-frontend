@@ -125,6 +125,8 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
 
   const responseText = await response.text();
   let chargeData: {
+    id?: string;
+    status_code?: string;
     transaction_id?: string;
     expiry_time?: string;
     actions?: Array<{ name?: string; url?: string }>;
@@ -141,10 +143,20 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
   }
 
   if (!response.ok) {
+    const statusCode = String(chargeData.status_code || response.status);
+    const statusMessage = chargeData.status_message || chargeData.message || "";
+    if (
+      statusCode === "402" &&
+      /payment channel is not activated/i.test(statusMessage)
+    ) {
+      const reference = chargeData.id ? ` Ref: ${chargeData.id}.` : "";
+      throw new Error(
+        `QRIS GoPay belum diaktifkan untuk Core API produksi di akun Midtrans ini. Minta aktivasi QRIS Core API ke Midtrans Support.${reference}`,
+      );
+    }
+
     throw new Error(
-      chargeData.status_message ||
-        chargeData.message ||
-        `Midtrans menolak pembayaran (HTTP ${response.status}).`,
+      statusMessage || `Midtrans menolak pembayaran (HTTP ${response.status}).`,
     );
   }
 
