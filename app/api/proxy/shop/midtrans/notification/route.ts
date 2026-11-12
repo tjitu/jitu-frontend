@@ -3,7 +3,6 @@ import {
   verifyMidtransSignature,
   confirmPaymentInDb,
   getMidtransConfig,
-  getMidtransStatus,
 } from "@/lib/midtrans-server";
 import { getDbPool } from "@/lib/db";
 
@@ -13,12 +12,15 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   try {
     const notification = await req.json();
+    console.log("Midtrans webhook notification received:", notification);
 
     const {
       order_id,
       status_code,
       gross_amount,
       signature_key,
+      transaction_status,
+      fraud_status,
       merchant_id,
     } = notification;
 
@@ -42,33 +44,20 @@ export async function POST(req: NextRequest) {
       signature_key
     );
 
-    // Some merchant accounts use a separate Signature Secret Key. When the
-    // server key signature does not match, verify the order with Midtrans's
-    // authenticated status API before acting on the webhook.
-    let verifiedStatus = notification;
     if (!isValid) {
-      const status = await getMidtransStatus(order_id);
-      if (
-        !status ||
-        status.order_id !== order_id ||
-        (status.merchant_id && status.merchant_id !== config.merchantId) ||
-        Number(status.gross_amount) !== Number(gross_amount)
-      ) {
-        console.warn("Unverifiable Midtrans notification for order:", order_id);
-        return NextResponse.json({ message: "Invalid signature" }, { status: 403 });
-      }
-      verifiedStatus = status;
+      console.warn("Invalid Midtrans signature for order:", order_id);
+      return NextResponse.json({ message: "Invalid signature" }, { status: 403 });
     }
 
-    const txStatus = verifiedStatus.transaction_status || "";
-    const fStatus = verifiedStatus.fraud_status || "";
+    const txStatus = transaction_status || "";
+    const fStatus = fraud_status || "";
 
     if (
       (txStatus === "settlement" || txStatus === "capture") &&
       fStatus !== "deny" &&
       fStatus !== "challenge"
     ) {
-      await confirmPaymentInDb(order_id, verifiedStatus);
+      await confirmPaymentInDb(order_id, notification);
       console.log(`Payment ${order_id} successfully confirmed via webhook!`);
     } else if (
       txStatus === "expire" ||
