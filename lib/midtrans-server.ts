@@ -144,20 +144,29 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
   }
 
   if (!response.ok) {
-    const statusCode = String(chargeData.status_code || response.status);
+    const statusCode = Number(chargeData.status_code || response.status);
     const statusMessage = chargeData.status_message || chargeData.message || "";
     if (
-      statusCode === "402" &&
-      /payment channel is not activated/i.test(statusMessage)
+      response.status === 402 ||
+      statusCode === 402 ||
+      /payment channel.*not activated/i.test(statusMessage)
     ) {
       // Core API Production can be unavailable even when GoPay QRIS is active
       // for Snap. Fall back to Midtrans-hosted checkout so payment can proceed.
-      const snapResult = await createSnapTransaction(params);
-      return {
-        token: snapResult.token,
-        redirect_url: snapResult.redirect_url,
-        expiry_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-      };
+      try {
+        const snapResult = await createSnapTransaction(params);
+        return {
+          token: snapResult.token,
+          redirect_url: snapResult.redirect_url,
+          expiry_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        };
+      } catch (snapError) {
+        const fallbackMessage =
+          snapError instanceof Error ? snapError.message : "respons tidak diketahui";
+        throw new Error(
+          `Core API QRIS ditolak dan checkout Snap juga gagal: ${fallbackMessage}`,
+        );
+      }
     }
 
     throw new Error(
