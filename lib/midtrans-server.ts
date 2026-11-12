@@ -113,14 +113,17 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
       Authorization: config.authHeader,
     },
     body: JSON.stringify({
-      payment_type: "qris",
+      // GoPay's Core API returns the plain, borderless QR image URL. The
+      // merchant has GoPay enabled, while its separate QRIS Core channel may
+      // not be enabled.
+      payment_type: "gopay",
       transaction_details: {
         order_id: params.orderId,
         gross_amount: Math.round(params.grossAmount),
       },
       item_details: params.itemDetails,
       customer_details: params.customerDetails,
-      qris: { acquirer: "gopay" },
+      gopay: { enable_callback: false },
     }),
   });
 
@@ -151,8 +154,8 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
       statusCode === 402 ||
       /payment channel.*not activated/i.test(statusMessage)
     ) {
-      // Core API Production can be unavailable even when GoPay QRIS is active
-      // for Snap. Fall back to Midtrans-hosted checkout so payment can proceed.
+      // Snap and Core API can have different channel activation. Preserve the
+      // working checkout if direct GoPay charging is unavailable.
       try {
         const snapResult = await createSnapTransaction(params);
         return {
@@ -164,7 +167,7 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
         const fallbackMessage =
           snapError instanceof Error ? snapError.message : "respons tidak diketahui";
         throw new Error(
-          `Core API QRIS ditolak dan checkout Snap juga gagal: ${fallbackMessage}`,
+          `Core API GoPay ditolak dan checkout Snap juga gagal: ${fallbackMessage}`,
         );
       }
     }
@@ -176,18 +179,14 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
 
   const transactionId = chargeData.transaction_id;
   const qrUrl = chargeData.actions?.find(
-    (action) =>
-      action.name === "generate-qr-code-v2" ||
-      action.name === "generate-qr-code",
+    (action) => action.name === "generate-qr-code",
   )?.url;
 
-  // Midtrans documents the QR image endpoint as /v2/qris/{transaction_id}/qr-code.
-  // Some successful charge responses omit `actions`, so build the documented
-  // URL from the transaction ID instead of discarding a valid pending charge.
+  // The v2 image has an ASPI border. Prefer the plain v2/gopay QR endpoint.
   const resolvedQrUrl =
     qrUrl ||
     (transactionId
-      ? `${config.coreApiUrl}/qris/${encodeURIComponent(transactionId)}/qr-code`
+      ? `${config.coreApiUrl}/gopay/${encodeURIComponent(transactionId)}/qr-code`
       : undefined);
   if (!resolvedQrUrl) {
     throw new Error(

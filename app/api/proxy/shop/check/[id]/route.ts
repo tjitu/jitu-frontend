@@ -37,8 +37,17 @@ export async function POST(
     // Check with Midtrans status API
     try {
       const midtransData = await getMidtransStatus(payment.orderId);
+      if (!midtransData) {
+        return NextResponse.json({ status: payment.status });
+      }
       const transactionStatus = midtransData.transaction_status;
       const fraudStatus = midtransData.fraud_status;
+      const qrCodeUrl = Array.isArray(midtransData.actions)
+        ? midtransData.actions.find(
+            (action: { name?: string; url?: string }) =>
+              action.name === "generate-qr-code",
+          )?.url
+        : undefined;
 
       let newStatus: "PENDING" | "CONFIRMED" | "CANCELLED" | "DECLINED" = "PENDING";
 
@@ -68,7 +77,7 @@ export async function POST(
         );
       }
 
-      return NextResponse.json({ status: newStatus });
+      return NextResponse.json({ status: newStatus, qrCodeUrl });
     } catch {
       return NextResponse.json({ status: payment.status });
     }

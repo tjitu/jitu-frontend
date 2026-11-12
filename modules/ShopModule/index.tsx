@@ -1175,6 +1175,24 @@ const ShopModule = () => {
                 : null);
             const usesSnapCheckout = Boolean(paymentData?.redirectUrl && !qrImageUrl);
 
+            if (usesSnapCheckout && paymentData?.snapToken) {
+              return (
+                <SnapQrisEmbed
+                  token={paymentData.snapToken}
+                  clientKey={paymentData.clientKey || ""}
+                  paymentId={transactionId}
+                />
+              );
+            }
+
+            if (qrImageUrl) {
+              return (
+                <div className="flex justify-center py-2">
+                  <img src={qrImageUrl} alt="Kode QRIS pembayaran" className="h-[280px] w-[280px] object-contain" />
+                </div>
+              );
+            }
+
             return (
               <div className="flex flex-col items-center gap-4 py-2">
                 <div className="text-center">
@@ -1196,8 +1214,6 @@ const ShopModule = () => {
                       alt="Kode QRIS"
                       className="w-56 h-56 object-contain rounded-lg"
                     />
-                  ) : usesSnapCheckout && paymentData?.snapToken ? (
-                    <SnapQrisEmbed token={paymentData.snapToken} clientKey={paymentData.clientKey || ""} />
                   ) : (
                     <div className="w-56 h-56 flex flex-col items-center justify-center text-text-muted gap-2">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />

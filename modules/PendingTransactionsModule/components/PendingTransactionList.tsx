@@ -239,7 +239,21 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
             </div>
           )}
 
-          {!isModalLoading && transactionId && !showContact && (
+          {!isModalLoading && transactionId && !showContact && redirectUrl && snapToken && !qrCodeUrl && !qrCode && (
+            <SnapQrisEmbed token={snapToken} clientKey={clientKey || ""} paymentId={transactionId} />
+          )}
+
+          {!isModalLoading && transactionId && !showContact && (qrCodeUrl || qrCode) && (
+            <div className="flex justify-center py-2">
+              <img
+                src={qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrCode)}&size=300x300`}
+                alt="Kode QRIS pembayaran"
+                className="h-[280px] w-[280px] object-contain"
+              />
+            </div>
+          )}
+
+          {!isModalLoading && transactionId && !showContact && !(redirectUrl && snapToken) && !qrCodeUrl && !qrCode && (
             <div className="flex flex-col items-center gap-4 py-2">
               <div className="text-center">
                 <p className="font-mono text-xs font-bold uppercase tracking-[0.08em] text-primary">
@@ -263,8 +277,6 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
                     alt="Kode QRIS"
                     className="w-56 h-56 object-contain rounded-lg"
                   />
-                ) : redirectUrl && snapToken ? (
-                  <SnapQrisEmbed token={snapToken} clientKey={clientKey || ""} />
                 ) : (
                   <p className="text-sm text-text-muted py-12 text-center">
                     Waktu bayar habis. Buat kode QRIS baru untuk lanjut.

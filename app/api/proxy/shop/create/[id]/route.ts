@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
-import { createSnapTransaction, getMidtransConfig } from "@/lib/midtrans-server";
+import { createQrisTransaction, getMidtransConfig } from "@/lib/midtrans-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -242,9 +242,9 @@ export async function POST(
       );
     }
 
-    // Core API QRIS is unavailable for this merchant. Snap hosts the GoPay
-    // checkout and displays a dynamic QRIS code on desktop.
-    const snapResult = await createSnapTransaction({
+    // Prefer a direct GoPay charge so we can display Midtrans's borderless QR.
+    // If Core API is unavailable for this merchant, the helper uses Snap.
+    const qrisResult = await createQrisTransaction({
       orderId,
       grossAmount: finalPrice,
       itemDetails: [
@@ -260,14 +260,6 @@ export async function POST(
         email: user.email,
       },
     });
-    const qrisResult = {
-      token: snapResult.token,
-      redirect_url: snapResult.redirect_url,
-      qr_url: undefined,
-      qr_string: undefined,
-      expiry_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    };
-
     // 5. Insert record into Payment table
     const paymentId = crypto.randomUUID();
     const metadata = {
