@@ -20,7 +20,7 @@ export function getMidtransConfig() {
   const serverKey = (
     process.env.MIDTRANS_SERVER_KEY ||
     process.env.SERVER_KEY ||
-    "Mid-server-YR5qTaTgq4v.uWKCyEaNXekt"
+    ""
   ).replace(/['"\s]/g, "");
 
   const clientKey = (
@@ -50,6 +50,10 @@ export function getMidtransConfig() {
     : "https://api.sandbox.midtrans.com/v2";
 
   const authHeader = `Basic ${Buffer.from(serverKey + ":").toString("base64")}`;
+
+  if (!serverKey) {
+    throw new Error("MIDTRANS_SERVER_KEY belum dikonfigurasi.");
+  }
 
   return {
     serverKey,
@@ -100,47 +104,67 @@ export async function createSnapTransaction(params: MidtransSnapParams) {
 
 export async function createQrisTransaction(params: MidtransSnapParams) {
   const config = getMidtransConfig();
-  const snapResult = await createSnapTransaction(params);
-
-  const chargeUrl = config.isProduction
-    ? `https://app.midtrans.com/snap/v2/transactions/${snapResult.token}/charge`
-    : `https://app.sandbox.midtrans.com/snap/v2/transactions/${snapResult.token}/charge`;
-
-  try {
-    const chargeRes = await fetch(chargeUrl, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+  const response = await fetch(`${config.coreApiUrl}/charge`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: config.authHeader,
+    },
+    body: JSON.stringify({
+      payment_type: "qris",
+      transaction_details: {
+        order_id: params.orderId,
+        gross_amount: Math.round(params.grossAmount),
       },
-      body: JSON.stringify({
-        payment_type: "qris",
-        payment_params: {
-          acquirer: ["gopay"],
-        },
-      }),
-    });
+      item_details: params.itemDetails,
+      customer_details: params.customerDetails,
+      qris: { acquirer: "gopay" },
+    }),
+  });
 
-    if (chargeRes.ok) {
-      const chargeData = await chargeRes.json();
-      return {
-        token: snapResult.token,
-        redirect_url: snapResult.redirect_url,
-        qr_string: chargeData.qr_string,
-        qr_url: chargeData.qris_url,
-        expiry_time: chargeData.expiry_time || new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-      };
-    }
-  } catch (e) {
-    console.error("Failed to charge QRIS directly:", e);
+  const responseText = await response.text();
+  let chargeData: {
+    transaction_id?: string;
+    expiry_time?: string;
+    actions?: Array<{ name?: string; url?: string }>;
+    qr_string?: string;
+    status_message?: string;
+    message?: string;
+  };
+  try {
+    chargeData = JSON.parse(responseText);
+  } catch {
+    throw new Error(
+      `Midtrans mengembalikan respons yang tidak valid (HTTP ${response.status}).`,
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      chargeData.status_message ||
+        chargeData.message ||
+        `Midtrans menolak pembayaran (HTTP ${response.status}).`,
+    );
+  }
+
+  const qrUrl = chargeData.actions?.find(
+    (action) =>
+      action.name === "generate-qr-code-v2" ||
+      action.name === "generate-qr-code",
+  )?.url;
+  if (!qrUrl) {
+    throw new Error("Midtrans tidak mengembalikan URL kode QRIS.");
   }
 
   return {
-    token: snapResult.token,
-    redirect_url: snapResult.redirect_url,
-    qr_string: undefined,
-    qr_url: undefined,
-    expiry_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    token: chargeData.transaction_id || params.orderId,
+    redirect_url: qrUrl,
+    qr_string: chargeData.qr_string,
+    qr_url: qrUrl,
+    expiry_time:
+      chargeData.expiry_time ||
+      new Date(Date.now() + 15 * 60 * 1000).toISOString(),
   };
 }
 

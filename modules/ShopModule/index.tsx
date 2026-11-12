@@ -419,15 +419,24 @@ const ShopModule = () => {
         }),
       });
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || res.statusText);
+      const responseText = await res.text();
+      let data: EWalletPaymentResponse & { message?: string };
+      try {
+        data = JSON.parse(responseText) as EWalletPaymentResponse & {
+          message?: string;
+        };
+      } catch {
+        throw new Error(
+          `Server pembayaran mengirim respons tidak valid (HTTP ${res.status}). Coba lagi beberapa saat.`,
+        );
       }
-
-      const data: EWalletPaymentResponse = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || res.statusText || "Pembayaran gagal dibuat.");
+      }
 
       if (data.status === "CONFIRMED") {
         toast.success("Pembayaran berhasil dan manfaat paket langsung aktif!");
+        setIsModalLoading(false);
         setIsModalOpened(false);
         setTimeout(() => router.refresh(), 1000);
         return;

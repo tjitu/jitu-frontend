@@ -6,6 +6,7 @@ import { createQrisTransaction } from "@/lib/midtrans-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const FALLBACK_PACKAGES: Record<
   string,
