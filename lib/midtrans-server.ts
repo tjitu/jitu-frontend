@@ -146,9 +146,11 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
     );
   }
 
-  if (!response.ok) {
-    const statusCode = Number(chargeData.status_code || response.status);
-    const statusMessage = chargeData.status_message || chargeData.message || "";
+  const statusCode = Number(chargeData.status_code || response.status);
+  const statusMessage = chargeData.status_message || chargeData.message || "";
+  // Midtrans can report a channel rejection in the JSON body even when the
+  // transport response is 2xx. Check both before accepting a charge.
+  if (!response.ok || statusCode >= 400 || !chargeData.transaction_id) {
     if (
       response.status === 402 ||
       statusCode === 402 ||
