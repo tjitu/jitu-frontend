@@ -182,14 +182,13 @@ export default function TryoutExamModule() {
     if (!userId) throw new Error("Sesi kamu habis. Masuk lagi untuk lanjut.");
 
     const sandboxToken = getActiveTryoutSandboxToken();
-    const qs = sandboxToken
-      ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
-      : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
     const res = await fetch(
-      `${BACKEND_URL}/exam/${encodeURIComponent(tryoutId)}/start${qs}`,
+      `${BACKEND_URL}/exam/${encodeURIComponent(tryoutId)}/start`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
         body: JSON.stringify({ userId }),
       },
@@ -300,9 +299,8 @@ export default function TryoutExamModule() {
 
         const currentUserId = session?.user?.id || "";
         const sandboxToken = getActiveTryoutSandboxToken();
-        const sandboxParam = sandboxToken
-          ? `&sandboxToken=${encodeURIComponent(sandboxToken)}`
-          : "";
+        const headers: Record<string, string> = {};
+        if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
 
         const url = `${BACKEND_URL}/tryout/${encodeURIComponent(
           tryoutId,
@@ -310,10 +308,11 @@ export default function TryoutExamModule() {
           String(subtestId),
         )}?userId=${encodeURIComponent(
           currentUserId,
-        )}&attemptId=${encodeURIComponent(effectiveAttemptId)}${sandboxParam}`;
+        )}&attemptId=${encodeURIComponent(effectiveAttemptId)}`;
 
         const res = await fetch(url, {
           method: "GET",
+          headers,
           credentials: "include",
         });
 

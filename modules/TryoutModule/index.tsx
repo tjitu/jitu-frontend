@@ -70,12 +70,11 @@ const TryoutModule = () => {
     const fetchTryouts = async () => {
       try {
         if (!cachedTryouts) setIsLoading(true);
-        const qs = sandboxToken
-          ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
-          : "";
-        const res = await fetch(`${BACKEND_URL}/tryout${qs}`, {
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
+        const res = await fetch(`${BACKEND_URL}/tryout`, {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          headers,
           credentials: "include",
         });
 

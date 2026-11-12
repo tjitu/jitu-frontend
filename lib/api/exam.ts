@@ -6,12 +6,11 @@ export const startTryoutAttempt = async (
   userId: string,
 ): Promise<string> => {
   const sandboxToken = getActiveTryoutSandboxToken();
-  const qs = sandboxToken
-    ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
-    : "";
-  const res = await fetch(`${BACKEND_URL}/exam/${tryoutId}/start${qs}`, {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
+  const res = await fetch(`${BACKEND_URL}/exam/${tryoutId}/start`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
     body: JSON.stringify({ userId }),
   });
@@ -35,12 +34,11 @@ export const startTryoutAttempt = async (
 
 export const registerTryout = async (tryoutId: string) => {
   const sandboxToken = getActiveTryoutSandboxToken();
-  const qs = sandboxToken
-    ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
-    : "";
-  const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}/register${qs}`, {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
+  const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
   });
 

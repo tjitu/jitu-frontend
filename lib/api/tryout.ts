@@ -11,6 +11,14 @@ export function getActiveTryoutSandboxToken(): string {
     const fromUrl = params.get("token") || params.get("sandboxToken") || "";
     if (/^[a-f0-9]{64}$/i.test(fromUrl.trim())) {
       window.sessionStorage.setItem(SANDBOX_TOKEN_STORAGE_KEY, fromUrl.trim());
+      params.delete("token");
+      params.delete("sandboxToken");
+      const query = params.toString();
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+      );
       return fromUrl.trim();
     }
     return window.sessionStorage.getItem(SANDBOX_TOKEN_STORAGE_KEY) || "";
@@ -60,12 +68,11 @@ export const getTryoutDetail = async (
   tryoutId: string,
 ): Promise<TryoutDetail> => {
   const sandboxToken = getActiveTryoutSandboxToken();
-  const qs = sandboxToken
-    ? `?sandboxToken=${encodeURIComponent(sandboxToken)}`
-    : "";
-  const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}${qs}`, {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
+  const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
   });
 
