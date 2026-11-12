@@ -22,12 +22,16 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    return [
-      {
-        source: "/api/proxy/:path*",
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"}/:path*`,
-      },
-    ];
+    return {
+      // Run this proxy only after Next.js has tried every local route handler,
+      // including dynamic handlers such as /api/proxy/tryout/[id].
+      fallback: [
+        {
+          source: "/api/proxy/:path*",
+          destination: `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"}/:path*`,
+        },
+      ],
+    };
   },
 };
 
