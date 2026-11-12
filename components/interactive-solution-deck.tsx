@@ -10,7 +10,7 @@ import {
   Sigma,
 } from "lucide-react";
 import katex from "katex";
-import type { SolutionStep, QuestionSolutionData } from "@/lib/practice-store";
+import type { QuestionSolutionData } from "@/lib/practice-store";
 
 export interface RenderMathOptions {
   animatedHighlights?: boolean;
@@ -98,7 +98,11 @@ interface InteractiveSolutionDeckProps {
   onClose?: () => void;
 }
 
-export function InteractiveSolutionDeck({
+export function InteractiveSolutionDeck(props: InteractiveSolutionDeckProps) {
+  return <InteractiveSolutionDeckContent key={props.solution.id} {...props} />;
+}
+
+function InteractiveSolutionDeckContent({
   solution,
   className = "",
   onStepChange,
@@ -106,19 +110,11 @@ export function InteractiveSolutionDeck({
 }: InteractiveSolutionDeckProps) {
   const steps = solution.steps || [];
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [direction, setDirection] = useState<"next" | "prev">("next");
   const [showKeyFormula, setShowKeyFormula] = useState(false);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const hasSteps = steps.length > 0;
   const currentStep = hasSteps ? steps[currentSlide] : null;
-
-  // Reset to slide 0 when solution changes
-  useEffect(() => {
-    setCurrentSlide(0);
-    setDirection("next");
-    setShowKeyFormula(false);
-  }, [solution.id]);
 
   // Notify parent on step change
   useEffect(() => {
@@ -131,22 +127,15 @@ export function InteractiveSolutionDeck({
     if (targetIndex === currentSlide || targetIndex < 0 || targetIndex >= steps.length) {
       return;
     }
-    setDirection(targetIndex > currentSlide ? "next" : "prev");
     setCurrentSlide(targetIndex);
   };
 
   const handleNext = () => {
-    if (currentSlide < steps.length - 1) {
-      setDirection("next");
-      setCurrentSlide((prev) => prev + 1);
-    }
+    setCurrentSlide((prev) => Math.min(prev + 1, Math.max(steps.length - 1, 0)));
   };
 
   const handlePrev = () => {
-    if (currentSlide > 0) {
-      setDirection("prev");
-      setCurrentSlide((prev) => prev - 1);
-    }
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
   };
 
   // Keyboard navigation support (Arrow keys)
@@ -155,14 +144,14 @@ export function InteractiveSolutionDeck({
       if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
 
       if (e.key === "ArrowLeft") {
-        handlePrev();
+        setCurrentSlide((prev) => Math.max(prev - 1, 0));
       } else if (e.key === "ArrowRight") {
-        handleNext();
+        setCurrentSlide((prev) => Math.min(prev + 1, Math.max(steps.length - 1, 0)));
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentSlide, steps.length]);
+  }, [steps.length]);
 
   return (
     <div

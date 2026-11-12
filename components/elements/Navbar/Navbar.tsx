@@ -62,16 +62,11 @@ const Navbar = () => {
   const path = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
-  const [tokenBalance, setTokenBalance] = useState<number | null>(cachedBalance);
   const userId = session?.user?.id;
   const sessionBalance = session?.user?.tokenBalance;
-
-  useEffect(() => {
-    if (typeof sessionBalance === "number" && cachedBalance === null) {
-      cachedBalance = sessionBalance;
-      setTokenBalance(sessionBalance);
-    }
-  }, [sessionBalance]);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(
+    cachedBalance ?? (typeof sessionBalance === "number" ? sessionBalance : null),
+  );
 
   useEffect(() => {
     if (!userId) return;

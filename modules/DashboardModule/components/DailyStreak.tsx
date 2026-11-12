@@ -3,49 +3,55 @@
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { dailyProblems } from "@/modules/DailyStreakModule/payload";
+import type { DailyProblem } from "@/modules/DailyStreakModule/interface";
 import { Check, Flame, X } from "lucide-react";
 
 const DailyStreak = () => {
   const [streak, setStreak] = useState(0);
   const [answeredToday, setAnsweredToday] = useState(false);
-  const [currentProblem, setCurrentProblem] = useState<any | null>(null);
+  const [currentProblem, setCurrentProblem] = useState<DailyProblem | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
-    const storedStreak = localStorage.getItem("dailyStreak");
-    const lastAnsweredDate = localStorage.getItem("lastAnsweredDate");
-    const today = new Date().toISOString().split("T")[0];
+    const timer = window.setTimeout(() => {
+      const storedStreak = localStorage.getItem("dailyStreak");
+      const lastAnsweredDate = localStorage.getItem("lastAnsweredDate");
+      const today = new Date().toISOString().split("T")[0];
+      const hasAnsweredToday = lastAnsweredDate === today;
 
-    if (storedStreak) {
-      setStreak(parseInt(storedStreak, 10));
-    }
-
-    if (lastAnsweredDate === today) {
-      setAnsweredToday(true);
-    } else {
-      setAnsweredToday(false);
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (
-        lastAnsweredDate &&
-        lastAnsweredDate !== yesterday.toISOString().split("T")[0]
-      ) {
-        setStreak(0);
-        localStorage.setItem("dailyStreak", "0");
+      if (storedStreak) {
+        setStreak(parseInt(storedStreak, 10));
       }
-    }
 
-    if (!answeredToday) {
-      const randomIndex = Math.floor(Math.random() * dailyProblems.length);
-      setCurrentProblem(dailyProblems[randomIndex]);
-    }
+      if (hasAnsweredToday) {
+        setAnsweredToday(true);
+      } else {
+        setAnsweredToday(false);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (
+          lastAnsweredDate &&
+          lastAnsweredDate !== yesterday.toISOString().split("T")[0]
+        ) {
+          setStreak(0);
+          localStorage.setItem("dailyStreak", "0");
+        }
+      }
+
+      if (!hasAnsweredToday) {
+        const randomIndex = Math.floor(Math.random() * dailyProblems.length);
+        setCurrentProblem(dailyProblems[randomIndex]);
+      }
+    });
+    return () => window.clearTimeout(timer);
   }, []);
 
   const handleAnswerSubmit = () => {
     if (selectedAnswer === null || !currentProblem) return;
 
-    const isCorrect = selectedAnswer === currentProblem.answer;
+    const answerIndex = currentProblem.correctAnswer.charCodeAt(0) - 65;
+    const isCorrect = selectedAnswer === answerIndex;
     const newStreak = isCorrect ? streak + 1 : 0;
     setStreak(newStreak);
 
@@ -83,9 +89,10 @@ const DailyStreak = () => {
                 {currentProblem.options.map((option: string, index: number) => {
                   const letter = String.fromCharCode(65 + index);
                   const isSelected = selectedAnswer === index;
-                  const isCorrectOption = showResult && index === currentProblem.answer;
+                  const answerIndex = currentProblem.correctAnswer.charCodeAt(0) - 65;
+                  const isCorrectOption = showResult && index === answerIndex;
                   const isWrongSelected =
-                    showResult && isSelected && index !== currentProblem.answer;
+                    showResult && isSelected && index !== answerIndex;
 
                   return (
                     <button
@@ -130,12 +137,12 @@ const DailyStreak = () => {
               ) : (
                 <div
                   className={`p-3 border font-mono text-[13px] flex items-center gap-2 ${
-                    selectedAnswer === currentProblem.answer
+                    selectedAnswer === currentProblem.correctAnswer.charCodeAt(0) - 65
                       ? "bg-emerald-50 border-emerald-300 text-emerald-900"
                       : "bg-red-50 border-red-300 text-red-900"
                   }`}
                 >
-                  {selectedAnswer === currentProblem.answer ? (
+                  {selectedAnswer === currentProblem.correctAnswer.charCodeAt(0) - 65 ? (
                     <>
                       <Check className="w-4 h-4 stroke-[1.75] text-emerald-600" />
                       <span>Jawaban benar. Rentetan bertambah.</span>
