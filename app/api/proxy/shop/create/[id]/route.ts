@@ -136,7 +136,7 @@ export async function POST(
 
     // 2. Check for existing pending transaction for this user
     const pendingRes = await pool.query(
-      `SELECT id, "orderId", "snapToken", metadata, "createdAt"
+      `SELECT id, "createdAt"
        FROM "Payment"
        WHERE "userId" = $1 AND status = 'PENDING'
        ORDER BY "createdAt" DESC
@@ -154,25 +154,13 @@ export async function POST(
           [existing.id]
         ).catch(() => {});
       } else {
-        // Return existing active pending payment
-        const meta = existing.metadata || {};
         return NextResponse.json(
           {
-            transactionId: existing.id,
-            orderId: existing.orderId,
-            amount: pkg.price,
-            tokenAmount: pkg.tokenAmount,
-            status: "PENDING",
-            paymentMethod: "QRIS",
-            snapToken: existing.snapToken,
-            clientKey: getMidtransConfig().clientKey,
-            redirectUrl: meta.redirect_url,
-            qrCodeUrl: meta.qr_code_url,
-            qrCode: meta.qr_string,
-            expiryTime: new Date(new Date(existing.createdAt).getTime() + 15 * 60 * 1000).toISOString(),
-            packageName: pkg.name,
+            code: "PENDING_PAYMENT",
+            message: "Selesaikan pembayaran sebelumnya sebelum membeli paket lain.",
+            pendingTransactionId: existing.id,
           },
-          { status: 200 }
+          { status: 409 }
         );
       }
     }

@@ -73,7 +73,8 @@ interface PendingPayment {
   createdAt: string;
   expiresAt: string;
   isExpired: boolean;
-  tokenPackage: {
+  packageName?: string;
+  tokenPackage?: {
     id: string;
     name: string;
     tokenAmount: number;
@@ -88,6 +89,7 @@ interface PendingPayment {
     redirect_url?: string;
     snap_token?: string;
     midtrans_transaction_id?: string;
+    package_name?: string;
   };
 }
 
@@ -120,6 +122,11 @@ const ShopModule = () => {
   const [cancellingPayment, setCancellingPayment] = useState(false);
   const [checkingPending, setCheckingPending] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const pendingPackageName =
+    pendingPayment?.tokenPackage?.name ||
+    pendingPayment?.packageName ||
+    pendingPayment?.metadata?.package_name ||
+    "Paket coin";
 
   // PTN Premium Pass State
   const [isPremiumUser, setIsPremiumUser] = useState(false);
@@ -423,10 +430,11 @@ const ShopModule = () => {
       });
 
       const responseText = await res.text();
-      let data: EWalletPaymentResponse & { message?: string };
+      let data: EWalletPaymentResponse & { message?: string; code?: string };
       try {
         data = JSON.parse(responseText) as EWalletPaymentResponse & {
           message?: string;
+          code?: string;
         };
       } catch {
         throw new Error(
@@ -434,6 +442,18 @@ const ShopModule = () => {
         );
       }
       if (!res.ok) {
+        if (res.status === 409 && data.code === "PENDING_PAYMENT") {
+          setIsModalLoading(false);
+          setIsModalOpened(false);
+          const pending = await checkPendingPayment();
+          if (pending) {
+            setPendingPayment(pending);
+            setShowPendingDialog(true);
+          } else {
+            toast.warning(data.message || "Selesaikan pembayaran sebelumnya sebelum membeli paket lain.");
+          }
+          return;
+        }
         throw new Error(data.message || res.statusText || "Pembayaran gagal dibuat.");
       }
 
@@ -506,7 +526,7 @@ const ShopModule = () => {
       clientKey: pendingPayment.clientKey,
       redirectUrl: meta.redirect_url,
       expiryTime: pendingPayment.expiresAt,
-      packageName: pendingPayment.tokenPackage.name,
+      packageName: pendingPackageName,
     });
 
     setTransactionId(pendingPayment.id);
@@ -946,8 +966,8 @@ const ShopModule = () => {
               Ada pembayaran yang belum selesai
             </DialogTitle>
             <DialogDescription className="text-[14px] text-text-muted">
-              Selesaikan pembayaran QRIS sebelumnya atau batalkan untuk membuat
-              kode baru.
+              Selesaikan pembayaran sebelumnya sebelum membeli paket lain.
+              Kamu juga bisa membatalkan transaksi lama untuk membuat kode baru.
             </DialogDescription>
           </DialogHeader>
 
@@ -961,14 +981,14 @@ const ShopModule = () => {
                 <div className="flex justify-between">
                   <span className="text-text-muted">Paket</span>
                   <span className="font-semibold text-text">
-                    {pendingPayment.tokenPackage.name} (
+                    {pendingPackageName} (
                     {pendingPayment.tokenAmount} coin)
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">Total bayar</span>
                   <span className="font-mono font-semibold text-text">
-                    Rp{pendingPayment.amount.toLocaleString("id-ID")}
+                    Rp{Number(pendingPayment.amount).toLocaleString("id-ID")}
                   </span>
                 </div>
                 <div className="flex justify-between">

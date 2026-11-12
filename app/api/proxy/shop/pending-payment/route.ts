@@ -47,6 +47,14 @@ export async function GET(req: NextRequest) {
       {
         pending: {
           ...pending,
+          amount: Number(pending.amount),
+          tokenAmount: Number(pending.tokenAmount),
+          tokenPackage: {
+            id: pending.tokenPackageId,
+            name: pending.packageName || pending.metadata?.package_name || "Paket coin",
+            tokenAmount: Number(pending.tokenAmount),
+            price: Number(pending.amount),
+          },
           clientKey: getMidtransConfig().clientKey,
           expiresAt: new Date(expiryTime).toISOString(),
           isExpired: false,
