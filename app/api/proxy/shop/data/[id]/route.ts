@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { getMidtransConfig } from "@/lib/midtrans-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -44,6 +45,7 @@ export async function GET(
         userId: row.userId,
         totalPrice: row.totalPrice,
         qris: metadata.qr_string || "",
+        clientKey: getMidtransConfig().clientKey,
         metadata: {
           qr_code_url: metadata.qr_code_url,
           qr_string: metadata.qr_string,

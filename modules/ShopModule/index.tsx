@@ -31,6 +31,7 @@ import { contactInfos, tokenPackages as fallbackTokenPackages } from "./payload"
 import { BACKEND_URL } from "@/lib/api";
 import { getUserStats, getCachedDashboardData } from "@/lib/api/DashboardApi";
 import PendingTransactionList from "../PendingTransactionsModule/components/PendingTransactionList";
+import SnapQrisEmbed from "@/components/payment/SnapQrisEmbed";
 import PastTransactionList from "../PastTransactionsModule/components/PastTransactionList";
 
 interface TokenPackage {
@@ -58,6 +59,7 @@ interface EWalletPaymentResponse {
   expiryTime?: string;
   packageName: string;
   snapToken?: string;
+  clientKey?: string;
   redirectUrl?: string;
 }
 
@@ -78,6 +80,7 @@ interface PendingPayment {
     price: number;
   };
   snapToken?: string;
+  clientKey?: string;
   metadata?: {
     qr_code_url?: string;
     qr_string?: string;
@@ -500,6 +503,7 @@ const ShopModule = () => {
       qrCode: meta.qr_string,
       deeplinkUrl: meta.deeplink_url,
       snapToken: pendingPayment.snapToken || meta.snap_token,
+      clientKey: pendingPayment.clientKey,
       redirectUrl: meta.redirect_url,
       expiryTime: pendingPayment.expiresAt,
       packageName: pendingPayment.tokenPackage.name,
@@ -1038,7 +1042,7 @@ const ShopModule = () => {
         }}
         modal
       >
-        <DialogContent className="sm:max-w-[460px]">
+        <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
           {!isModalLoading && !transactionId && (
             <>
               <DialogHeader>
@@ -1178,36 +1182,22 @@ const ShopModule = () => {
                     PEMBAYARAN QRIS
                   </p>
                   <h2 className="text-[20px] font-bold text-text mt-1">
-                    {usesSnapCheckout
-                      ? "Selesaikan pembayaran di Midtrans"
-                      : "Scan QRIS untuk bayar"}
+                    Scan QRIS untuk bayar
                   </h2>
                   <div className="font-mono text-2xl font-bold text-text mt-1 tabular-nums">
                     Rp{(paymentData?.amount ?? selectedPkg?.price ?? 0).toLocaleString("id-ID")}
                   </div>
                 </div>
 
-                <div className="w-full max-w-[280px] p-4 bg-white border border-border rounded-2xl flex items-center justify-center shadow-sm">
+                <div className={usesSnapCheckout ? "w-full" : "w-full max-w-[280px] p-4 bg-white border border-border rounded-2xl flex items-center justify-center shadow-sm"}>
                   {qrImageUrl ? (
                     <img
                       src={qrImageUrl}
                       alt="Kode QRIS"
                       className="w-56 h-56 object-contain rounded-lg"
                     />
-                  ) : usesSnapCheckout ? (
-                    <div className="w-full flex flex-col items-center gap-3 text-center">
-                      <p className="text-sm text-slate-600">
-                        Buka halaman pembayaran Midtrans untuk melihat QRIS atau opsi GoPay yang tersedia di perangkatmu.
-                      </p>
-                      <a
-                        href={paymentData?.redirectUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
-                      >
-                        Lanjutkan pembayaran
-                      </a>
-                    </div>
+                  ) : usesSnapCheckout && paymentData?.snapToken ? (
+                    <SnapQrisEmbed token={paymentData.snapToken} clientKey={paymentData.clientKey || ""} />
                   ) : (
                     <div className="w-56 h-56 flex flex-col items-center justify-center text-text-muted gap-2">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />

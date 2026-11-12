@@ -17,12 +17,14 @@ export interface TransactionData {
   createdAt: Date;
   userId: string;
   qris: string;
+  clientKey?: string;
   totalPrice: number;
   metadata?: {
     qr_code_url?: string;
     qr_string?: string;
     deeplink_url?: string;
     redirect_url?: string;
+    snap_token?: string;
     midtrans_transaction_id?: string;
   };
 }

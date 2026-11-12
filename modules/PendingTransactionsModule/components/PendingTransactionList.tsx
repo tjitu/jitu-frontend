@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { contactInfos } from "../../ShopModule/payload";
 import { PendingTransaction, TransactionData } from "../interface";
 import { BACKEND_URL } from "@/lib/api";
+import SnapQrisEmbed from "@/components/payment/SnapQrisEmbed";
 
 interface PendingTransactionListProps {
   onCountChange?: (count: number) => void;
@@ -24,6 +25,8 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
   const [qrCode, setQrCode] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [snapToken, setSnapToken] = useState<string | null>(null);
+  const [clientKey, setClientKey] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const onCountChangeRef = useRef(onCountChange);
@@ -82,6 +85,8 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
           setQrCodeUrl(null);
         }
         setRedirectUrl(data.metadata?.redirect_url || null);
+        setSnapToken(data.metadata?.snap_token || null);
+        setClientKey(data.clientKey || null);
         setShowContact(false);
       })
       .catch(() => {
@@ -215,13 +220,16 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
             setTransactionId(null);
             setQrCode("");
             setQrCodeUrl(null);
+            setRedirectUrl(null);
+            setSnapToken(null);
+            setClientKey(null);
             setShowContact(false);
           }
         }}
         modal
       >
         <DialogTitle className="sr-only">Pembayaran QRIS</DialogTitle>
-        <DialogContent className="sm:max-w-[440px]">
+        <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
           {isModalLoading && (
             <div className="flex flex-col items-center justify-center py-10">
               <Loader2 className="w-7 h-7 animate-spin text-primary mb-3" />
@@ -237,12 +245,10 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
                 <p className="font-mono text-xs font-bold uppercase tracking-[0.08em] text-primary">
                   PEMBAYARAN QRIS
                 </p>
-                <h2 className="text-[20px] font-bold text-text mt-1">
-                  Scan QRIS untuk bayar
-                </h2>
+                <h2 className="text-[20px] font-bold text-text mt-1">Scan QRIS untuk bayar</h2>
               </div>
 
-              <div className="w-full max-w-[280px] p-4 bg-white border border-border rounded-2xl flex items-center justify-center shadow-sm">
+              <div className={redirectUrl && snapToken ? "w-full" : "w-full max-w-[280px] p-4 bg-white border border-border rounded-2xl flex items-center justify-center shadow-sm"}>
                 {qrCodeUrl ? (
                   <img
                     src={qrCodeUrl}
@@ -257,20 +263,8 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
                     alt="Kode QRIS"
                     className="w-56 h-56 object-contain rounded-lg"
                   />
-                ) : redirectUrl ? (
-                  <div className="w-full flex flex-col items-center gap-3 text-center py-8">
-                    <p className="text-sm text-slate-600">
-                      Buka halaman Midtrans untuk melanjutkan pembayaran.
-                    </p>
-                    <a
-                      href={redirectUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
-                    >
-                      Lanjutkan pembayaran
-                    </a>
-                  </div>
+                ) : redirectUrl && snapToken ? (
+                  <SnapQrisEmbed token={snapToken} clientKey={clientKey || ""} />
                 ) : (
                   <p className="text-sm text-text-muted py-12 text-center">
                     Waktu bayar habis. Buat kode QRIS baru untuk lanjut.

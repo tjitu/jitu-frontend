@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { getMidtransConfig } from "@/lib/midtrans-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
       {
         pending: {
           ...pending,
+          clientKey: getMidtransConfig().clientKey,
           expiresAt: new Date(expiryTime).toISOString(),
           isExpired: false,
         },

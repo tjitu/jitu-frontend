@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
-import { createSnapTransaction } from "@/lib/midtrans-server";
+import { createSnapTransaction, getMidtransConfig } from "@/lib/midtrans-server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -165,6 +165,7 @@ export async function POST(
             status: "PENDING",
             paymentMethod: "QRIS",
             snapToken: existing.snapToken,
+            clientKey: getMidtransConfig().clientKey,
             redirectUrl: meta.redirect_url,
             qrCodeUrl: meta.qr_code_url,
             qrCode: meta.qr_string,
@@ -311,6 +312,7 @@ export async function POST(
         status: "PENDING",
         paymentMethod: "QRIS",
         snapToken: qrisResult.token,
+        clientKey: getMidtransConfig().clientKey,
         redirectUrl: qrisResult.redirect_url,
         qrCodeUrl: qrisResult.qr_url,
         qrCode: qrisResult.qr_string,
