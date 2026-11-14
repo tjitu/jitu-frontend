@@ -56,18 +56,18 @@ export function RegisterModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[440px] p-6 rounded-2xl shadow-modal">
-        {/* Ilustrasi icon di tengah agak atas */}
-        <div className="flex justify-center pt-1 pb-1">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50/90 border border-blue-100 flex items-center justify-center p-2.5 shadow-2xs">
-            <Image
-              src="/icons/golden-pass-ticket.png"
-              alt="Tiket Tryout"
-              width={52}
-              height={52}
-              className="object-contain"
-              priority
-            />
-          </div>
+        {/* Ilustrasi icon pixelated tanpa border */}
+        <div className="flex justify-center pt-2 pb-1">
+          <Image
+            src="/icons/kuota-ticket-pixel-128.png"
+            alt="Tiket Tryout"
+            width={76}
+            height={76}
+            className="object-contain rendering-pixelated select-none pointer-events-none drop-shadow-xs"
+            style={{ imageRendering: "pixelated" }}
+            priority
+            unoptimized
+          />
         </div>
 
         <DialogHeader className="space-y-1 text-center sm:text-center pb-1">
@@ -84,7 +84,7 @@ export function RegisterModal({
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted">
                 Nama Tryout
               </span>
-              <h4 className="font-bold text-text text-[15px] sm:text-base leading-snug">
+              <h4 className="font-bold text-primary text-[15px] sm:text-base leading-snug">
                 {tryoutTitle}
               </h4>
             </div>
