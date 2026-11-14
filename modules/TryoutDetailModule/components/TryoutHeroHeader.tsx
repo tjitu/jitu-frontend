@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Clock, Lock } from "lucide-react";
+import { Clock, Lock, Plus } from "lucide-react";
 import { TryoutDetail } from "../interface";
 import { getDisplayedParticipants } from "@/lib/tryout-display";
 import { PRESET_AVATARS } from "@/lib/avatar";
@@ -171,11 +171,9 @@ export function TryoutHeroHeader({
                 />
               ))}
               <div
-                className={`size-6 sm:size-7 rounded-full border-2 ${avatarBorderClass} ${
-                  tryoutData.isSpecial ? "bg-purple-600" : "bg-blue-600"
-                } text-white flex items-center justify-center text-[10px] font-bold shrink-0 tabular-nums shadow-2xs`}
+                className={`size-6 sm:size-7 rounded-full border-2 ${avatarBorderClass} bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs`}
               >
-                +
+                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3.5] text-white" />
               </div>
             </div>
 
