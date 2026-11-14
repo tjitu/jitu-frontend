@@ -107,7 +107,12 @@ export const getTryoutDetail = async (
     benefits: data.benefits || [],
     requirements: data.requirements || [],
 
-    categories: data.categories || [],
+    categories: (data.categories || []).map((c: any) => ({
+      ...c,
+      correctCount: c.correctCount ?? 0,
+      wrongCount: c.wrongCount ?? 0,
+      emptyCount: c.emptyCount ?? 0,
+    })),
 
     latestFinishedAttemptId: data.latestFinishedAttemptId ?? null,
     latestAttemptStatus: data.latestAttemptStatus ?? null,
