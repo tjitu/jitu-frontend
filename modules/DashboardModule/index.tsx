@@ -1192,6 +1192,7 @@ const DashboardModule = () => {
         tokenCost={selectedTryout?.solutionPrice || 0}
         scheduledStart={selectedTryout?.scheduledStart}
         scheduledEnd={selectedTryout?.scheduledEnd}
+        duration={195}
         isLoading={registerLoading}
         error={registerError}
       />

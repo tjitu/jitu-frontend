@@ -317,6 +317,7 @@ const TryoutModule = () => {
         tokenCost={selectedTryout?.solutionPrice || 0}
         scheduledStart={selectedTryout?.scheduledStart}
         scheduledEnd={selectedTryout?.scheduledEnd}
+        duration={selectedTryout?.duration || 195}
         isLoading={registerLoading}
         error={registerError}
       />
