@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +11,27 @@ interface UniversityLogoProps {
   className?: string;
   size?: number;
 }
+
+const LOGO_BY_ACRONYM: Record<string, string> = {
+  UI: "/logos/ui.png",
+  ITB: "/logos/itb.png",
+  UGM: "/logos/ugm.webp",
+  ITS: "/logos/its.png",
+  UNAIR: "/logos/unair.png",
+  UNPAD: "/logos/unpad.webp",
+  UNDIP: "/logos/undip.png",
+  UB: "/logos/ub.png",
+  UNS: "/logos/uns.png",
+  IPB: "/logos/ipb.png",
+  UNHAS: "/logos/unhas.png",
+  UPI: "/logos/upi.png",
+  USU: "/logos/usu.png",
+  UNAND: "/logos/unand.png",
+  UNY: "/logos/uny.png",
+  UNJ: "/logos/unj.png",
+  UPNVJ: "/logos/upnvj.png",
+  UPNVY: "/logos/upnvy.png",
+};
 
 const PTN_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   UI: { bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-300" },
@@ -38,38 +61,57 @@ export function UniversityLogo({
   className,
   size = 22,
 }: UniversityLogoProps) {
-  // Check if logo exists in public directory (UI, ITB, UGM, ITS, UNAIR, UNPAD)
-  const isImageLogo =
-    logo &&
-    (logo.endsWith(".png") ||
-      logo.endsWith(".webp") ||
-      logo.endsWith(".jpg") ||
-      logo.endsWith(".jpeg") ||
-      logo.startsWith("http"));
+  const [hasError, setHasError] = useState(false);
+  const acr = (acronym || name || "PTN").toUpperCase().trim();
 
-  if (isImageLogo) {
+  // Resolve best logo path
+  let resolvedLogo: string | null = null;
+  if (logo && !logo.endsWith(".svg")) {
+    resolvedLogo = logo;
+  } else if (LOGO_BY_ACRONYM[acr]) {
+    resolvedLogo = LOGO_BY_ACRONYM[acr];
+  } else if (logo) {
+    const base = logo.replace(/^\//, "").replace(/\.svg$/, "").toLowerCase();
+    const upper = base.toUpperCase();
+    if (LOGO_BY_ACRONYM[upper]) {
+      resolvedLogo = LOGO_BY_ACRONYM[upper];
+    } else {
+      resolvedLogo = `/logos/${base}.png`;
+    }
+  }
+
+  const isImageLogo =
+    !hasError &&
+    resolvedLogo &&
+    (resolvedLogo.endsWith(".png") ||
+      resolvedLogo.endsWith(".webp") ||
+      resolvedLogo.endsWith(".jpg") ||
+      resolvedLogo.endsWith(".jpeg") ||
+      resolvedLogo.startsWith("http"));
+
+  if (isImageLogo && resolvedLogo) {
     return (
       <div
         className={cn(
-          "relative flex items-center justify-center shrink-0 rounded overflow-hidden bg-white/80 p-0.5",
+          "relative flex items-center justify-center shrink-0 rounded-md overflow-hidden bg-white p-0.5 border border-border/60 shadow-2xs",
           className
         )}
         style={{ width: size, height: size }}
       >
         <Image
-          src={logo}
+          src={resolvedLogo}
           alt={acronym || name || "Logo Universitas"}
           width={size}
           height={size}
           className="object-contain w-full h-full"
           unoptimized
+          onError={() => setHasError(true)}
         />
       </div>
     );
   }
 
   // Fallback badge with university acronym
-  const acr = (acronym || name || "PTN").toUpperCase().trim();
   const theme = PTN_COLORS[acr] || {
     bg: "bg-blue-50",
     text: "text-blue-700",
@@ -88,7 +130,7 @@ export function UniversityLogo({
       style={{
         width: size,
         height: size,
-        fontSize: size <= 20 ? 9 : size <= 28 ? 10 : 12,
+        fontSize: size <= 18 ? 8 : size <= 22 ? 9 : size <= 28 ? 10 : 12,
       }}
       title={name || acronym || undefined}
     >

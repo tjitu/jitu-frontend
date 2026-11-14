@@ -11,7 +11,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "ui",
     name: "Universitas Indonesia",
     acronym: "UI",
-    logo: "/ui.png",
+    logo: "/logos/ui.png",
     programs: [
       "Pendidikan Dokter",
       "Ilmu Komputer",
@@ -58,7 +58,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "itb",
     name: "Institut Teknologi Bandung",
     acronym: "ITB",
-    logo: "/itb.png",
+    logo: "/logos/itb.png",
     programs: [
       "STEI - Komputasi (STEI-K)",
       "STEI - Rekayasa (STEI-R)",
@@ -91,7 +91,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "ugm",
     name: "Universitas Gadjah Mada",
     acronym: "UGM",
-    logo: "/ugm.webp",
+    logo: "/logos/ugm.webp",
     programs: [
       "Kedokteran",
       "Ilmu Komputer",
@@ -130,7 +130,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "its",
     name: "Institut Teknologi Sepuluh Nopember",
     acronym: "ITS",
-    logo: "/its.png",
+    logo: "/logos/its.png",
     programs: [
       "Teknik Informatika",
       "Sistem Informasi",
@@ -161,7 +161,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "unair",
     name: "Universitas Airlangga",
     acronym: "UNAIR",
-    logo: "/unair.png",
+    logo: "/logos/unair.png",
     programs: [
       "Kedokteran",
       "Kedokteran Gigi",
@@ -194,7 +194,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "unpad",
     name: "Universitas Padjadjaran",
     acronym: "UNPAD",
-    logo: "/unpad.webp",
+    logo: "/logos/unpad.webp",
     programs: [
       "Pendidikan Dokter",
       "Kedokteran Gigi",
@@ -228,7 +228,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "undip",
     name: "Universitas Diponegoro",
     acronym: "UNDIP",
-    logo: "/undip.svg",
+    logo: "/logos/undip.png",
     programs: [
       "Kedokteran",
       "Kedokteran Gigi",
@@ -263,7 +263,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "ub",
     name: "Universitas Brawijaya",
     acronym: "UB",
-    logo: "/ub.svg",
+    logo: "/logos/ub.png",
     programs: [
       "Kedokteran",
       "Kedokteran Gigi",
@@ -298,7 +298,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "uns",
     name: "Universitas Sebelas Maret",
     acronym: "UNS",
-    logo: "/uns.svg",
+    logo: "/logos/uns.png",
     programs: [
       "Kedokteran",
       "Kebidanan",
@@ -329,7 +329,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "ipb",
     name: "IPB University",
     acronym: "IPB",
-    logo: "/ipb.svg",
+    logo: "/logos/ipb.png",
     programs: [
       "Ilmu Komputer",
       "Kedokteran",
@@ -355,7 +355,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "unhas",
     name: "Universitas Hasanuddin",
     acronym: "UNHAS",
-    logo: "/unhas.svg",
+    logo: "/logos/unhas.png",
     programs: [
       "Pendidikan Dokter",
       "Pendidikan Dokter Gigi",
@@ -380,7 +380,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "upi",
     name: "Universitas Pendidikan Indonesia",
     acronym: "UPI",
-    logo: "/upi.svg",
+    logo: "/logos/upi.png",
     programs: [
       "Ilmu Komputer",
       "Pendidikan Ilmu Komputer",
@@ -401,7 +401,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "usu",
     name: "Universitas Sumatera Utara",
     acronym: "USU",
-    logo: "/usu.svg",
+    logo: "/logos/usu.png",
     programs: [
       "Pendidikan Dokter",
       "Pendidikan Dokter Gigi",
@@ -423,7 +423,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "unand",
     name: "Universitas Andalas",
     acronym: "UNAND",
-    logo: "/unand.svg",
+    logo: "/logos/unand.png",
     programs: [
       "Pendidikan Dokter",
       "Pendidikan Dokter Gigi",
@@ -445,7 +445,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "uny",
     name: "Universitas Negeri Yogyakarta",
     acronym: "UNY",
-    logo: "/uny.svg",
+    logo: "/logos/uny.png",
     programs: [
       "Teknologi Informasi",
       "Teknik Elektro",
@@ -465,7 +465,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "unj",
     name: "Universitas Negeri Jakarta",
     acronym: "UNJ",
-    logo: "/unj.svg",
+    logo: "/logos/unj.png",
     programs: [
       "Ilmu Komputer",
       "Sistem Komputer",
@@ -484,7 +484,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "upnvj",
     name: "UPN Veteran Jakarta",
     acronym: "UPNVJ",
-    logo: "/upnvj.svg",
+    logo: "/logos/upnvj.png",
     programs: [
       "Kedokteran",
       "Farmasi",
@@ -509,7 +509,7 @@ export const UNIVERSITIES: UniversityData[] = [
     id: "upnvy",
     name: "UPN Veteran Yogyakarta",
     acronym: "UPNVY",
-    logo: "/upnvy.svg",
+    logo: "/logos/upnvy.png",
     programs: [
       "Teknik Perminyakan",
       "Teknik Pertambangan",
@@ -533,19 +533,23 @@ export const UNIVERSITIES: UniversityData[] = [
 ];
 
 export function getUniversityById(id: string): UniversityData | undefined {
-  return UNIVERSITIES.find((u) => u.id === id);
+  if (!id) return undefined;
+  const clean = id.trim().toLowerCase();
+  return UNIVERSITIES.find((u) => u.id === clean || u.acronym.toLowerCase() === clean);
 }
 
 export function findUniversityByNameOrAcronym(text?: string | null): UniversityData | undefined {
   if (!text) return undefined;
   const clean = text.trim().toLowerCase();
-  return UNIVERSITIES.find(
-    (u) =>
-      u.acronym.toLowerCase() === clean ||
-      u.name.toLowerCase() === clean ||
-      clean.startsWith(u.acronym.toLowerCase() + " ") ||
-      clean.startsWith(u.name.toLowerCase() + " ") ||
-      clean.includes(u.acronym.toLowerCase()) ||
-      clean.includes(u.name.toLowerCase())
+  return (
+    UNIVERSITIES.find((u) => u.id === clean || u.acronym.toLowerCase() === clean) ||
+    UNIVERSITIES.find((u) => u.name.toLowerCase() === clean) ||
+    UNIVERSITIES.find(
+      (u) =>
+        clean.startsWith(u.acronym.toLowerCase() + " ") ||
+        clean.startsWith(u.name.toLowerCase() + " ") ||
+        clean.includes(u.acronym.toLowerCase()) ||
+        clean.includes(u.name.toLowerCase())
+    )
   );
 }
