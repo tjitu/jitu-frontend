@@ -22,4 +22,5 @@ export interface AdminTryoutResponse {
   status: "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
   isPublic: boolean;
   referralCode?: string | null;
+  participantsCount?: number;
 }

@@ -19,7 +19,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Plus, Eye, Trophy, Sparkles } from "lucide-react";
+import { Plus, Eye, Trophy, Sparkles, Users } from "lucide-react";
 import { StatCard } from "@/components/elements/Admin/StatCard";
 import { AdminTryoutResponse, AdminTryoutStatsResponse } from "./interface";
 import { getAllTryouts, getTryoutStats } from "@/lib/api/AdminTryoutApi";
@@ -140,6 +140,7 @@ const AdminTryoutModule = () => {
                 <TableHead className="w-20">ID</TableHead>
                 <TableHead>Nama Tryout</TableHead>
                 <TableHead>Akses</TableHead>
+                <TableHead>Peserta</TableHead>
                 <TableHead>Referral</TableHead>
                 <TableHead>Coin</TableHead>
                 <TableHead>Rilis</TableHead>
@@ -151,7 +152,7 @@ const AdminTryoutModule = () => {
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="h-24 text-center text-[13px] font-medium text-text-muted"
                   >
                     Memuat data...
@@ -160,7 +161,7 @@ const AdminTryoutModule = () => {
               ) : tryouts.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="h-24 text-center text-text-muted"
                   >
                     Belum ada tryout yang dibuat.
@@ -181,6 +182,12 @@ const AdminTryoutModule = () => {
                       >
                         {tryout.isPublic ? "Publik" : "Privat"}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs font-semibold text-text">
+                      <span className="inline-flex items-center gap-1">
+                        <Users className="h-3 w-3 text-text-muted" />
+                        <span>{tryout.participantsCount ?? 0}</span>
+                      </span>
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {tryout.referralCode ? tryout.referralCode : "-"}
@@ -227,29 +234,17 @@ const AdminTryoutModule = () => {
                             <Sparkles className="h-3.5 w-3.5" />
                           </Link>
                         </Button>
-                        {tryout.status === "FINISHED" ? (
-                          <Button
-                            asChild
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="Hasil & peringkat"
-                          >
-                            <Link href={`/admin/tryout/${tryout.id}/results`}>
-                              <Trophy className="h-3.5 w-3.5" />
-                            </Link>
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 opacity-40"
-                            disabled
-                            title="Tersedia setelah selesai"
-                          >
-                            <Trophy className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Peserta & Hasil"
+                        >
+                          <Link href={`/admin/tryout/${tryout.id}/results`}>
+                            <Users className="h-3.5 w-3.5 text-primary" />
+                          </Link>
+                        </Button>
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/admin/tryout/${tryout.id}`}>
                             Kelola

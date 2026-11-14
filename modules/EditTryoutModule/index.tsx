@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Eye } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, Users } from "lucide-react";
 import {
   getTryoutById,
   getSubtestsByTryout,
@@ -174,12 +174,20 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
             </h1>
           </div>
         </div>
-        <Button asChild variant="outline">
-          <Link href={`/admin/tryout/${tryoutId}/preview`}>
-            <Eye className="h-4 w-4 mr-2" />
-            Pratinjau
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href={`/admin/tryout/${tryoutId}/results`}>
+              <Users className="h-4 w-4 mr-2" />
+              Peserta &amp; Hasil
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={`/admin/tryout/${tryoutId}/preview`}>
+              <Eye className="h-4 w-4 mr-2" />
+              Pratinjau
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <TryoutForm

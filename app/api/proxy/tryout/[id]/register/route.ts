@@ -98,12 +98,7 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
 
     if (curationStatus === "PUBLISHED") {
       const now = new Date();
-      if (tryout.scheduledStart && now < new Date(tryout.scheduledStart)) {
-        return NextResponse.json(
-          { message: "Tryout belum dimulai." },
-          { status: 400 },
-        );
-      }
+      // Siswa diperbolehkan mendaftar sebelum dan selama tryout; pendaftaran hanya ditolak jika jadwal telah berakhir
       if (tryout.scheduledEnd && now > new Date(tryout.scheduledEnd)) {
         return NextResponse.json(
           { message: "Masa pengerjaan tryout sudah berakhir." },

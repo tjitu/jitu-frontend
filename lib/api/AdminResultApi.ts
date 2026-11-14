@@ -52,11 +52,73 @@ export const getTryoutStats = async (tryoutId: string): Promise<TryoutStats> => 
   return response.json();
 };
 
-export const exportResults = async (tryoutId: string) => {
-  const response = await fetch(`${BACKEND_URL}/admin/tryouts/${tryoutId}/export`, {
-    method: "GET",
-    credentials: "include",
+export interface RegistrantEntry {
+  id: string; // attemptId
+  userId: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
+  totalScore: number;
+  startedAt: string;
+  finishedAt?: string | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+    target?: string | null;
+  };
+}
+
+export interface RegistrantsResponse {
+  data: RegistrantEntry[];
+  counts: {
+    all: number;
+    notStarted: number;
+    inProgress: number;
+    finished: number;
+  };
+  meta: {
+    total: number;
+    page: number;
+    lastPage: number;
+  };
+}
+
+export const getRegistrants = async (
+  tryoutId: string,
+  page = 1,
+  limit = 20,
+  status: "ALL" | "NOT_STARTED" | "IN_PROGRESS" | "FINISHED" = "ALL",
+  search = ""
+): Promise<RegistrantsResponse> => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
   });
+  if (status && status !== "ALL") params.append("status", status);
+  if (search.trim()) params.append("search", search.trim());
+
+  const response = await fetch(
+    `${BACKEND_URL}/admin/tryouts/${tryoutId}/registrants?${params.toString()}`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch registrants");
+  }
+  return response.json();
+};
+
+export const exportResults = async (tryoutId: string, type: "all" | "finished" = "all") => {
+  const response = await fetch(
+    `${BACKEND_URL}/admin/tryouts/${tryoutId}/export?type=${type}`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to export results");
