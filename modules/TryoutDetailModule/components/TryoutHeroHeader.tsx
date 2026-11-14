@@ -44,16 +44,11 @@ function useCountdown(endDateStr?: string) {
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
 
+      const dStr = days < 10 ? `0${days}` : `${days}`;
       if (days > 0) {
-        const hh = hours.toString().padStart(2, "0");
-        const mm = minutes.toString().padStart(2, "0");
-        const ss = seconds.toString().padStart(2, "0");
-        setTimeLeft(`${days} hari ${hh}:${mm}:${ss}`);
+        setTimeLeft(`${dStr}d ${hours}h ${minutes}m ${seconds}s`);
       } else {
-        const hh = hours.toString().padStart(2, "0");
-        const mm = minutes.toString().padStart(2, "0");
-        const ss = seconds.toString().padStart(2, "0");
-        setTimeLeft(`${hh}:${mm}:${ss}`);
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
       }
     };
 
@@ -137,10 +132,10 @@ export function TryoutHeroHeader({
           className="absolute inset-0 bg-[url('/white-speckled-paper.svg')] opacity-[0.05] bg-repeat bg-[length:320px_320px]"
         />
 
-        {/* Top-right countdown timer */}
+        {/* Top-right countdown timer (no background) */}
         <div className="absolute top-4 sm:top-6 right-5 sm:right-8 z-20">
-          <div className="h-7 px-3 rounded-full bg-black/35 backdrop-blur-xs border border-white/20 text-white text-xs font-mono tabular-nums inline-flex items-center gap-1.5 shadow-2xs">
-            <Clock className="w-3.5 h-3.5 text-white/90 shrink-0" />
+          <div className="text-white/85 text-xs sm:text-[13px] font-mono tabular-nums inline-flex items-center gap-1.5 drop-shadow-xs">
+            <Clock className="w-3.5 h-3.5 text-white/80 shrink-0" />
             <span>{countdown}</span>
           </div>
         </div>
@@ -189,53 +184,53 @@ export function TryoutHeroHeader({
 
       {/* Main Body */}
       <div className="p-6 sm:p-8">
-        {/* 4 Result Stat Cards: Benar, Salah, Kosong, IRT */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        {/* 4 Result Stats: Benar, Salah, Kosong, IRT (No boxing) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
           {/* 1. Benar (Warna Ijo) */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
-            <div className="text-xs font-semibold text-text-muted mb-1.5">
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-text-muted">
               Benar
             </div>
-            <div className="font-mono text-2xl sm:text-3xl font-extrabold text-emerald-600 tabular-nums">
+            <div className="font-mono text-3xl sm:text-4xl font-extrabold text-emerald-600 tabular-nums">
               {isFinished ? (tryoutData.correctCount ?? 0) : "-"}
             </div>
           </div>
 
           {/* 2. Salah (Warna Merah) */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
-            <div className="text-xs font-semibold text-text-muted mb-1.5">
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-text-muted">
               Salah
             </div>
-            <div className="font-mono text-2xl sm:text-3xl font-extrabold text-rose-600 tabular-nums">
+            <div className="font-mono text-3xl sm:text-4xl font-extrabold text-rose-600 tabular-nums">
               {isFinished ? (tryoutData.wrongCount ?? 0) : "-"}
             </div>
           </div>
 
           {/* 3. Kosong (Item Agak Abu) */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
-            <div className="text-xs font-semibold text-text-muted mb-1.5">
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-text-muted">
               Kosong
             </div>
-            <div className="font-mono text-2xl sm:text-3xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
+            <div className="font-mono text-3xl sm:text-4xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
               {isFinished ? (tryoutData.emptyCount ?? 0) : "-"}
             </div>
           </div>
 
           {/* 4. IRT (Gembok Borderless jika Free/Belum Unlock, Skor jika Terbuka, '-' jika Belum Selesai) */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
-            <div className="text-xs font-semibold text-text-muted mb-1.5">
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-text-muted">
               Skor IRT
             </div>
             <div>
               {!isFinished ? (
-                <div className="font-mono text-2xl sm:text-3xl font-extrabold text-text-muted tabular-nums">
+                <div className="font-mono text-3xl sm:text-4xl font-extrabold text-text-muted tabular-nums">
                   -
                 </div>
               ) : !isUnlocked ? (
                 <button
                   type="button"
                   onClick={onUnlockClick}
-                  className="flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors cursor-pointer p-0 border-0 bg-transparent text-left"
+                  className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors cursor-pointer p-0 border-0 bg-transparent text-left focus:outline-hidden pt-1"
                   title="Buka pembahasan untuk melihat Skor IRT"
                 >
                   <Lock className="w-6 h-6 stroke-[2.2]" />
@@ -244,7 +239,7 @@ export function TryoutHeroHeader({
                   </span>
                 </button>
               ) : (
-                <div className="font-mono text-2xl sm:text-3xl font-extrabold text-primary tabular-nums">
+                <div className="font-mono text-3xl sm:text-4xl font-extrabold text-primary tabular-nums">
                   {Math.round(finalScore ?? tryoutData.latestScore ?? 0)}
                 </div>
               )}
