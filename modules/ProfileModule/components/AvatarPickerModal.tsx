@@ -16,7 +16,7 @@ import {
   PresetAvatar,
   getStudentAvatarUrl,
 } from "@/lib/avatar";
-import { Check, Dices, Loader2, Sparkles } from "lucide-react";
+import { Check, Dices, Loader2 } from "lucide-react";
 
 interface AvatarPickerModalProps {
   isOpen: boolean;
@@ -68,10 +68,6 @@ export function AvatarPickerModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden bg-surface">
         <DialogHeader className="p-6 pb-4 border-b border-border">
-          <div className="flex items-center gap-2 text-[12px] font-semibold text-primary">
-            <Sparkles className="w-4 h-4 stroke-[2]" />
-            <span>PILIHAN AVATAR JITU</span>
-          </div>
           <DialogTitle className="text-[20px] font-bold text-text">
             Pilih Avatar Karaktermu
           </DialogTitle>

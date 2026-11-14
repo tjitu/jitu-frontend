@@ -108,17 +108,23 @@ export default function ProfileModule() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           image: avatarUrl,
         }),
       });
 
-      if (!res.ok) throw new Error("Gagal mengubah avatar.");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Gagal mengubah avatar.");
+      }
 
       toast.success("Avatar berhasil diperbarui.");
       await refreshSession();
-    } catch {
-      toast.error("Gagal mengubah avatar.");
+      router.refresh();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal mengubah avatar.";
+      toast.error(message);
     } finally {
       setIsAvatarSaving(false);
     }
@@ -136,6 +142,7 @@ export default function ProfileModule() {
         const res = await fetch(`${BACKEND_URL}/profile`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
         });
 
         if (res.ok) {
@@ -207,13 +214,17 @@ export default function ProfileModule() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           name,
           target: serializedTarget,
         }),
       });
 
-      if (!res.ok) throw new Error("Gagal menyimpan profil.");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Gagal menyimpan profil.");
+      }
 
       toast.success("Profil berhasil diperbarui.");
       setIsEditOpen(false);
