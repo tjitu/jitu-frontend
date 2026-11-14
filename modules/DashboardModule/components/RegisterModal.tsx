@@ -71,7 +71,7 @@ export function RegisterModal({
         </div>
 
         <DialogHeader className="space-y-1 text-center sm:text-center pb-1">
-          <DialogTitle className="text-xl font-bold tracking-tight text-text">
+          <DialogTitle className="text-xl font-semibold tracking-tight text-text">
             Daftar tryout ini?
           </DialogTitle>
         </DialogHeader>
@@ -84,7 +84,7 @@ export function RegisterModal({
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted">
                 Nama Tryout
               </span>
-              <h4 className="font-bold text-primary text-[15px] sm:text-base leading-snug">
+              <h4 className="font-bold text-blue-950 dark:text-blue-100 text-[15px] sm:text-base leading-snug">
                 {tryoutTitle}
               </h4>
             </div>
