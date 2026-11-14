@@ -1,18 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  Users,
-  Search,
-  Calendar,
-  ArrowRight,
-  Loader2,
-  Check,
-  Clock,
-  Sparkles,
-} from "lucide-react";
+import { Search, Calendar, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,39 +14,16 @@ import {
 } from "@/components/ui/select";
 import { BACKEND_URL } from "@/lib/api";
 import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
-import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
-import { TryoutScheduleTimeline } from "@/components/ui/tryout-schedule-timeline";
-import {
-  formatTryoutDateRange,
-  formatTryoutScheduleDetails,
-  getDisplayedParticipants,
-} from "@/lib/tryout-display";
-import { PixelCoin } from "@/components/ui/pixel-coin";
-
-interface TryOutData {
-  id: string;
-  title: string;
-  description?: string | null;
-  number: string;
-  participants: number;
-  badge: string;
-  solutionPrice: number;
-  isPublic: boolean;
-  isSpecial?: boolean;
-  scheduledStart: string | null;
-  scheduledEnd: string | null;
-  isRegistered?: boolean;
-  curationStatus?: string;
-  isSandboxPreview?: boolean;
-}
+import { TryOutData } from "./types";
+import { classifyTryouts } from "./utils/classify-tryouts";
+import { LandscapeTryoutCard } from "./components/LandscapeTryoutCard";
+import { PortraitTryoutCard } from "./components/PortraitTryoutCard";
 
 const TRYOUT_STALE_MS = 30_000;
 let cachedTryouts: TryOutData[] | null = null;
 let cachedTryoutsAt = 0;
 
 const TryoutModule = () => {
-  const router = useRouter();
-
   const [tryouts, setTryouts] = useState<TryOutData[]>(cachedTryouts ?? []);
   const [filteredTryouts, setFilteredTryouts] = useState<TryOutData[]>(
     cachedTryouts ?? []
@@ -175,30 +142,15 @@ const TryoutModule = () => {
     setFilteredTryouts(result);
   }, [tryouts, activeTab, searchQuery, sortOrder]);
 
-  const formatSlotDate = (dateStr: string | null) => {
-    if (!dateStr) return "16 Nov 2026";
-    return new Date(dateStr).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
+  const { ongoing: ongoingTryouts, others: otherTryouts } = classifyTryouts(filteredTryouts);
 
   return (
     <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
       {/* Page Header */}
-      <div className="border-b border-border pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-1">
-          <div className="text-label text-text-muted">
-            Jadwal tryout SNBT
-          </div>
-          <h1 className="text-h1 text-text">
-            Daftar jadwal tryout
-          </h1>
-        </div>
-        <p className="text-[15px] text-text-body max-w-md">
-          Semua tryout gratis dikerjakan. Coin cuma kepakai kalau kamu mau buka skor IRT dan pembahasan.
-        </p>
+      <div className="border-b border-border pb-6">
+        <h1 className="text-h1 text-text">
+          Daftar jadwal tryout
+        </h1>
       </div>
 
       {/* Filter & Search Bar */}
@@ -260,15 +212,15 @@ const TryoutModule = () => {
         </div>
       </div>
 
-      {/* Slot Grid */}
+      {/* Content Area */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((n) => (
-            <div
-              key={n}
-              className="h-64 rounded-lg jitu-skeleton"
-            />
-          ))}
+        <div className="space-y-6">
+          <div className="h-64 sm:h-72 w-full rounded-xl jitu-skeleton" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-64 rounded-lg jitu-skeleton" />
+            ))}
+          </div>
         </div>
       ) : tryouts.length === 0 ? (
         <div className="p-10 rounded-lg border border-dashed border-border bg-surface-muted text-center space-y-3">
@@ -303,116 +255,39 @@ const TryoutModule = () => {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTryouts.map((tryout) => {
-            const statusBadge =
-              tryout.isSandboxPreview || tryout.curationStatus === "QC_SANDBOX" ? (
-                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-blue-100 text-blue-900 text-[12px] font-semibold shadow-2xs">
-                  <span>QC Sandbox</span>
-                </span>
-              ) : tryout.isRegistered ? (
-                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-emerald-400 text-emerald-950 text-[12px] font-bold shadow-2xs">
-                  <Check className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Terdaftar</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-yellow-400 text-ink-900 text-[12px] font-bold shadow-2xs">
-                  <Clock className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>Belum terdaftar</span>
-                </span>
-              );
+        <div className="space-y-8">
+          {/* Ongoing Tryout(s) - Full Width Landscape Card */}
+          {ongoingTryouts.length > 0 && (
+            <section aria-label="Tryout sedang berlangsung" className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <h2 className="text-[13px] font-bold uppercase tracking-wider text-text-muted">
+                  Sedang berlangsung
+                </h2>
+              </div>
+              <div className="space-y-6">
+                {ongoingTryouts.map((tryout) => (
+                  <LandscapeTryoutCard key={tryout.id} tryout={tryout} />
+                ))}
+              </div>
+            </section>
+          )}
 
-            return (
-              <article
-                key={tryout.id}
-                onClick={() => router.push(`/tryout/${tryout.id}`)}
-                className={`w-full bg-surface rounded-lg border border-border overflow-hidden hover:shadow-sm transition-all duration-[120ms] cursor-pointer flex flex-col ${
-                  tryout.isSpecial
-                    ? "hover:border-purple-300"
-                    : "hover:border-blue-300"
-                }`}
-              >
-                <TryoutCardBanner
-                  isSpecial={tryout.isSpecial}
-                  badge={statusBadge}
-                  sublabel={
-                    <span className="inline-flex items-center gap-1.5">
-                      <span>Free · {tryout.solutionPrice || 1}</span>
-                      <PixelCoin size={13} />
-                      <span>untuk pembahasan</span>
-                    </span>
-                  }
-                  rightFooter={
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/95 tabular-nums">
-                      <Users className="w-3.5 h-3.5 stroke-[2]" />
-                      <span>
-                        {getDisplayedParticipants(
-                          tryout.id,
-                          tryout.participants
-                        ).toLocaleString("id-ID")}{" "}
-                        peserta
-                      </span>
-                    </span>
-                  }
-                />
-
-                <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between gap-6">
-                  <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
-                      <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
-                      <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
-                    </div>
-
-                    <h2 className="text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
-                      {tryout.title}
-                    </h2>
-
-                    <p className="text-[14px] text-text-body leading-relaxed line-clamp-2">
-                      {tryout.description?.trim() ||
-                        "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
-                    </p>
-
-                    <TryoutScheduleTimeline
-                      start={tryout.scheduledStart}
-                      end={tryout.scheduledEnd}
-                      className="pt-1 pb-0.5"
-                    />
-                  </div>
-
-                  {tryout.isRegistered ? (
-                    <Button
-                      variant="primary"
-                      className="w-full justify-between"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/tryout/${tryout.id}`);
-                      }}
-                    >
-                      <span>Kerjakan tryout</span>
-                      <ArrowRight className="w-4 h-4 stroke-[1.75]" />
-                    </Button>
-                  ) : (
-                    <div className="w-full group/btn transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
-                      <Button
-                        variant="primary"
-                        className="w-full justify-between"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/tryout/${tryout.id}`);
-                        }}
-                      >
-                        <span className="font-bold">Daftar gratis</span>
-                        <ArrowRight
-                          className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
-                          aria-hidden="true"
-                        />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+          {/* Other Tryouts - 3-Column Grid */}
+          {otherTryouts.length > 0 && (
+            <section aria-label="Jadwal tryout lainnya" className="space-y-4 pt-2">
+              {ongoingTryouts.length > 0 && (
+                <h2 className="text-[16px] font-bold text-text">
+                  Jadwal lainnya
+                </h2>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {otherTryouts.map((tryout) => (
+                  <PortraitTryoutCard key={tryout.id} tryout={tryout} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>

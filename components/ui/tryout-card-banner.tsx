@@ -6,6 +6,7 @@ interface TryoutCardBannerProps {
   sublabel?: React.ReactNode;
   rightFooter?: React.ReactNode;
   isSpecial?: boolean;
+  className?: string;
 }
 
 /**
@@ -17,12 +18,13 @@ export function TryoutCardBanner({
   sublabel = "Simulasi SNBT · 7 Subtes",
   rightFooter,
   isSpecial = false,
+  className,
 }: TryoutCardBannerProps) {
   return (
     <div
-      className={`relative h-32 w-full overflow-hidden border-b border-border/60 shrink-0 select-none ${
+      className={`relative overflow-hidden shrink-0 select-none ${
         isSpecial ? "bg-[#2E1065]" : "bg-[#0C1F52]"
-      }`}
+      } ${className ?? "h-32 w-full border-b border-border/60"}`}
     >
       {/* Background photograph */}
       <img
