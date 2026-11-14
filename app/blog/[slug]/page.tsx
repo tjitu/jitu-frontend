@@ -137,9 +137,8 @@ export default async function BlogArticlePage({ params }: ArticlePageProps) {
             <ArrowLeft className="h-4 w-4" />
             <span>Kembali ke Blog</span>
           </Link>
-          <Link href="/" className="inline-flex items-center gap-2" aria-label="Jitu, kembali ke beranda">
-            <Image src="/blue-jitu-logo.png" alt="" width={36} height={24} className="h-6 w-auto object-contain" />
-            <span className="text-xl font-extrabold tracking-tight text-text">jitu<span className="text-primary">.</span></span>
+          <Link href="/" className="inline-flex items-center" aria-label="Jitu, kembali ke beranda">
+            <Image src="/blue-jitu-logo.png" alt="Logo Jitu" width={36} height={24} className="h-6 w-auto object-contain" />
           </Link>
         </div>
       </header>

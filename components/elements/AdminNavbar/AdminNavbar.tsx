@@ -95,7 +95,7 @@ const AdminNavbar = () => {
       {/* Phone Top Menu */}
       <header className="lg:hidden sticky top-0 z-10 bg-surface text-text border-b border-border">
         <div className="px-4 h-16 flex items-center justify-between">
-          <Link href="/admin" className="inline-flex items-center gap-2">
+          <Link href="/admin" aria-label="Beranda Admin Jitu" className="inline-flex items-center gap-2">
             <Image
               src="/blue-jitu-logo.png"
               alt="Logo Jitu"
@@ -104,9 +104,6 @@ const AdminNavbar = () => {
               priority
               className="h-7 w-auto object-contain"
             />
-            <span className="font-bold text-[22px] tracking-[-0.025em] text-text leading-none">
-              jitu<span className="text-primary">.</span>
-            </span>
             <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center">
               Admin
             </span>
@@ -165,7 +162,7 @@ const AdminNavbar = () => {
       <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:shrink-0 bg-surface-muted text-text border-r border-border min-h-screen sticky top-0 h-screen">
         {/* Top Brand Header */}
         <div className="h-16 px-5 border-b border-border bg-surface flex items-center justify-between">
-          <Link href="/admin" className="inline-flex items-center gap-2.5">
+          <Link href="/admin" aria-label="Beranda Admin Jitu" className="inline-flex items-center">
             <Image
               src="/blue-jitu-logo.png"
               alt="Logo Jitu"
@@ -174,9 +171,6 @@ const AdminNavbar = () => {
               priority
               className="h-8 w-auto object-contain"
             />
-            <span className="font-bold text-[22px] tracking-[-0.025em] text-text leading-none">
-              jitu<span className="text-primary">.</span>
-            </span>
           </Link>
           <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 text-[12px] font-semibold inline-flex items-center">
             Admin

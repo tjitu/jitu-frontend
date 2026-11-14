@@ -271,7 +271,7 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
         <Link
           href="/"
           aria-label="Beranda Jitu"
-          className="min-h-[44px] inline-flex items-center gap-2.5 rounded-md focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+          className="min-h-[44px] inline-flex items-center rounded-md focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
         >
           <Image
             src="/blue-jitu-logo.png"
@@ -281,9 +281,6 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             priority
             className="h-8 w-auto object-contain"
           />
-          <span className="font-extrabold text-[24px] tracking-[-0.03em] text-text leading-none">
-            jitu<span className="text-primary">.</span>
-          </span>
         </Link>
 
         {/* Desktop Nav Links */}

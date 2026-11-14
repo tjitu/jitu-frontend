@@ -123,7 +123,7 @@ const Navbar = () => {
             <Link
               href="/dashboard"
               aria-label="Beranda Jitu"
-              className="min-h-[44px] inline-flex items-center gap-2 rounded-md focus:outline-none focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+              className="min-h-[44px] inline-flex items-center rounded-md focus:outline-none focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             >
               <Image
                 src="/blue-jitu-logo.png"
@@ -133,9 +133,6 @@ const Navbar = () => {
                 priority
                 className="h-8 w-auto object-contain"
               />
-              <span className="font-bold text-[22px] tracking-[-0.025em] text-text leading-none">
-                jitu<span className="text-primary">.</span>
-              </span>
             </Link>
 
             <nav

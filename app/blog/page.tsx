@@ -31,7 +31,7 @@ export default async function BlogPage() {
             <ArrowLeft className="w-4 h-4 stroke-[2]" />
             <span>Kembali ke Beranda</span>
           </Link>
-          <Link href="/" className="inline-flex items-center gap-2">
+          <Link href="/" aria-label="Beranda Jitu" className="inline-flex items-center">
             <Image
               src="/blue-jitu-logo.png"
               alt="Logo Jitu"
@@ -39,9 +39,6 @@ export default async function BlogPage() {
               height={24}
               className="h-6 w-auto object-contain"
             />
-            <span className="font-extrabold text-[20px] tracking-[-0.03em] text-text">
-              jitu<span className="text-primary">.</span>
-            </span>
           </Link>
         </div>
       </header>
