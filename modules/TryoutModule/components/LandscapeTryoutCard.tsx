@@ -12,9 +12,13 @@ import { TryOutData } from "../types";
 
 interface LandscapeTryoutCardProps {
   tryout: TryOutData;
+  onRegister?: (tryout: TryOutData) => void;
 }
 
-export function LandscapeTryoutCard({ tryout }: LandscapeTryoutCardProps) {
+export function LandscapeTryoutCard({
+  tryout,
+  onRegister,
+}: LandscapeTryoutCardProps) {
   const router = useRouter();
 
   const statusBadge =
@@ -68,15 +72,9 @@ export function LandscapeTryoutCard({ tryout }: LandscapeTryoutCardProps) {
 
       <div className="p-6 sm:p-7 lg:p-8 flex-1 flex flex-col justify-between gap-6">
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
-              <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
-              <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Sedang berlangsung
-            </span>
+          <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
+            <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
+            <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
           </div>
 
           <h2 className="text-[22px] sm:text-[24px] lg:text-[26px] font-bold text-text leading-snug tracking-[-0.015em]">
@@ -121,10 +119,14 @@ export function LandscapeTryoutCard({ tryout }: LandscapeTryoutCardProps) {
                 className="w-full justify-between cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(`/tryout/${tryout.id}`);
+                  if (onRegister) {
+                    onRegister(tryout);
+                  } else {
+                    router.push(`/tryout/${tryout.id}`);
+                  }
                 }}
               >
-                <span className="font-bold">Daftar gratis</span>
+                <span className="font-bold">Daftar tryout</span>
                 <ArrowRight
                   className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                   aria-hidden="true"

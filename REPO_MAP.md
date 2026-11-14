@@ -37,6 +37,6 @@ jitu-frontend/
 
 ## 2. Key Routing & Architecture Patterns
 
-* **Proxied Backend Requests**: Requests to `/api/proxy/*` are forwarded to `http://localhost:3000` to avoid CORS issues and share cookie headers.
+* **Proxied Backend Requests**: Requests to `/api/proxy/*` are handled first by local Next.js route handlers (such as `/api/proxy/tryout`, `/api/proxy/tryout/[id]`, `/api/proxy/tryout/[id]/leaderboard`, `/api/proxy/tryout/[id]/register`, `/api/proxy/tryout/[id]/unlock`, `/api/proxy/dashboard/*`, and `/api/proxy/shop/*`) and fall back to `http://localhost:3000` via `next.config.ts` rewrites.
 * **Styling**: Tailwind CSS v4 using semantic theme variables (`--color-bg`, `--color-surface`, `--color-primary`, `--blue-500`, etc.).
 * **State & Data Fetching**: React Server Components where possible, client components use standard `fetch` or SWR/hooks for dynamic polling.

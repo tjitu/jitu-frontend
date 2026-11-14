@@ -12,9 +12,13 @@ import { TryOutData } from "../types";
 
 interface PortraitTryoutCardProps {
   tryout: TryOutData;
+  onRegister?: (tryout: TryOutData) => void;
 }
 
-export function PortraitTryoutCard({ tryout }: PortraitTryoutCardProps) {
+export function PortraitTryoutCard({
+  tryout,
+  onRegister,
+}: PortraitTryoutCardProps) {
   const router = useRouter();
 
   const statusBadge =
@@ -107,10 +111,14 @@ export function PortraitTryoutCard({ tryout }: PortraitTryoutCardProps) {
               className="w-full justify-between"
               onClick={(e) => {
                 e.stopPropagation();
-                router.push(`/tryout/${tryout.id}`);
+                if (onRegister) {
+                  onRegister(tryout);
+                } else {
+                  router.push(`/tryout/${tryout.id}`);
+                }
               }}
             >
-              <span className="font-bold">Daftar gratis</span>
+              <span className="font-bold">Daftar tryout</span>
               <ArrowRight
                 className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                 aria-hidden="true"

@@ -49,6 +49,7 @@ import {
 } from "@/lib/api/DashboardApi";
 import { toast } from "sonner";
 import { RegisterModal } from "./components/RegisterModal";
+import { invalidateTryoutCatalogCache } from "../TryoutModule";
 import { BACKEND_URL } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
@@ -265,6 +266,7 @@ const DashboardModule = () => {
       toast.success(data.message || "Terdaftar di tryout.");
       setRegisterModalOpen(false);
       invalidateDashboardCache();
+      invalidateTryoutCatalogCache();
       void loadDashboardData(false);
     } catch (err: unknown) {
       setRegisterError(
@@ -632,7 +634,7 @@ const DashboardModule = () => {
                           aria-hidden="true"
                           className="animate-pass-shimmer pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-blue-200/35 to-transparent"
                         />
-                        <span className="relative z-10">Daftar gratis</span>
+                        <span className="relative z-10">Daftar tryout</span>
                         <ArrowRight
                           className="relative z-10 w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                           aria-hidden="true"
@@ -1006,7 +1008,7 @@ const DashboardModule = () => {
                             handleRegisterClick(tryout as OngoingTryout)
                           }
                         >
-                          <span className="font-bold">Daftar gratis</span>
+                          <span className="font-bold">Daftar tryout</span>
                           <ArrowRight
                             className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                             aria-hidden="true"

@@ -14,14 +14,21 @@ import {
 } from "@/components/ui/select";
 import { BACKEND_URL } from "@/lib/api";
 import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
+import { RegisterModal } from "../DashboardModule/components/RegisterModal";
 import { TryOutData } from "./types";
 import { classifyTryouts } from "./utils/classify-tryouts";
 import { LandscapeTryoutCard } from "./components/LandscapeTryoutCard";
 import { PortraitTryoutCard } from "./components/PortraitTryoutCard";
+import { useTryoutRegistration } from "./hooks/useTryoutRegistration";
 
 const TRYOUT_STALE_MS = 30_000;
 let cachedTryouts: TryOutData[] | null = null;
 let cachedTryoutsAt = 0;
+
+export function invalidateTryoutCatalogCache() {
+  cachedTryouts = null;
+  cachedTryoutsAt = 0;
+}
 
 const TryoutModule = () => {
   const [tryouts, setTryouts] = useState<TryOutData[]>(cachedTryouts ?? []);
@@ -35,6 +42,19 @@ const TryoutModule = () => {
     "all" | "registered" | "not-registered"
   >("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+
+  const {
+    registerModalOpen,
+    setRegisterModalOpen,
+    selectedTryout,
+    registerLoading,
+    registerError,
+    handleRegisterClick,
+    onConfirmRegister,
+  } = useTryoutRegistration(setTryouts, (updated) => {
+    cachedTryouts = updated;
+    cachedTryoutsAt = Date.now();
+  });
 
   useEffect(() => {
     const sandboxToken = getActiveTryoutSandboxToken();
@@ -160,15 +180,19 @@ const TryoutModule = () => {
       ) : (
         ongoingTryouts.length > 0 && (
           <section aria-label="Tryout sedang berlangsung" className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <h2 className="text-[13px] font-bold uppercase tracking-wider text-text-muted">
+            <div className="flex items-center">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Sedang berlangsung
-              </h2>
+              </span>
             </div>
             <div className="space-y-6">
               {ongoingTryouts.map((tryout) => (
-                <LandscapeTryoutCard key={tryout.id} tryout={tryout} />
+                <LandscapeTryoutCard
+                  key={tryout.id}
+                  tryout={tryout}
+                  onRegister={handleRegisterClick}
+                />
               ))}
             </div>
           </section>
@@ -276,10 +300,24 @@ const TryoutModule = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTryouts.map((tryout) => (
-            <PortraitTryoutCard key={tryout.id} tryout={tryout} />
+            <PortraitTryoutCard
+              key={tryout.id}
+              tryout={tryout}
+              onRegister={handleRegisterClick}
+            />
           ))}
         </div>
       )}
+
+      <RegisterModal
+        isOpen={registerModalOpen}
+        onClose={() => setRegisterModalOpen(false)}
+        onConfirm={onConfirmRegister}
+        tryoutTitle={selectedTryout?.title || ""}
+        tokenCost={selectedTryout?.solutionPrice || 0}
+        isLoading={registerLoading}
+        error={registerError}
+      />
     </div>
   );
 };

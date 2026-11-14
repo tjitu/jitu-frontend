@@ -88,7 +88,7 @@ export function RegisterModal({
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? "Memproses…" : "Daftar gratis"}
+            {isLoading ? "Memproses…" : "Daftar tryout"}
           </Button>
         </DialogFooter>
       </DialogContent>

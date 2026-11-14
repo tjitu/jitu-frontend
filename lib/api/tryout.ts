@@ -124,21 +124,29 @@ export const getTryoutDetail = async (
 export const getTryoutLeaderboard = async (
   tryoutId: string,
 ): Promise<LeaderboardData | null> => {
-  const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}/leaderboard`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
+  try {
+    const sandboxToken = getActiveTryoutSandboxToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
 
-  if (!res.ok) {
-    if (res.status === 403) {
-      // Leaderboard not available yet
+    const res = await fetch(`${BACKEND_URL}/tryout/${tryoutId}/leaderboard`, {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 404) {
+        // Leaderboard not available yet
+        return null;
+      }
       return null;
     }
-    throw new Error(
-      await extractTryoutApiError(res, "Gagal mengambil data leaderboard"),
-    );
-  }
 
-  return res.json();
+    return await res.json();
+  } catch {
+    return null;
+  }
 };

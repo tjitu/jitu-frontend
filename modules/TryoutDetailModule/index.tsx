@@ -30,7 +30,8 @@ import { RegisterModal } from "../DashboardModule/components/RegisterModal";
 import { UnlockSolutionModal } from "./components/UnlockSolutionModal";
 import { Leaderboard } from "@/components/elements/Leaderboard";
 import { toast } from "sonner";
-import { getUserStats } from "@/lib/api/DashboardApi";
+import { getUserStats, invalidateDashboardCache } from "@/lib/api/DashboardApi";
+import { invalidateTryoutCatalogCache } from "../TryoutModule";
 import {
   getTryoutDetail,
   getTryoutLeaderboard,
@@ -107,9 +108,8 @@ const TryoutDetailModule = () => {
         try {
           const lbData = await getTryoutLeaderboard(tryoutId);
           setLeaderboardData(lbData);
-        } catch (lbErr: any) {
+        } catch {
           setLeaderboardError("Gagal memuat peringkat.");
-          console.error("Leaderboard Fetch Error:", lbErr);
         }
       }
     } catch (err: any) {
@@ -153,6 +153,8 @@ const TryoutDetailModule = () => {
     try {
       const data = await registerTryout(tryoutId);
       toast.success(data.message || "Terdaftar di tryout.");
+      invalidateDashboardCache();
+      invalidateTryoutCatalogCache();
       setRegisterModalOpen(false);
       fetchDetail();
     } catch (e: any) {
@@ -717,7 +719,7 @@ const TryoutDetailModule = () => {
                 size="lg"
                 className="w-full sm:w-auto"
               >
-                Daftar gratis
+                Daftar tryout
               </Button>
             )}
           </div>
