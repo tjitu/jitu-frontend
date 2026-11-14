@@ -260,5 +260,6 @@ export function useTryoutDetail() {
     handleStartSubtest,
     formatDate,
     router,
+    session,
   };
 }

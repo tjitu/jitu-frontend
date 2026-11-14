@@ -182,12 +182,11 @@ export function TryoutHeroHeader({
         </div>
       </div>
 
-      {/* Main Body */}
+      {/* Main Body: Benar, Salah, Kosong (Mid-aligned / Centered) */}
       <div className="p-6 sm:p-8">
-        {/* 4 Result Stats: Benar, Salah, Kosong, IRT (No boxing) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
+        <div className="flex items-center justify-center divide-x divide-border/60 max-w-xl mx-auto">
           {/* 1. Benar (Warna Ijo) */}
-          <div className="space-y-1">
+          <div className="flex-1 text-center px-4 space-y-1">
             <div className="text-xs font-semibold text-text-muted">
               Benar
             </div>
@@ -197,7 +196,7 @@ export function TryoutHeroHeader({
           </div>
 
           {/* 2. Salah (Warna Merah) */}
-          <div className="space-y-1">
+          <div className="flex-1 text-center px-4 space-y-1">
             <div className="text-xs font-semibold text-text-muted">
               Salah
             </div>
@@ -207,42 +206,12 @@ export function TryoutHeroHeader({
           </div>
 
           {/* 3. Kosong (Item Agak Abu) */}
-          <div className="space-y-1">
+          <div className="flex-1 text-center px-4 space-y-1">
             <div className="text-xs font-semibold text-text-muted">
               Kosong
             </div>
             <div className="font-mono text-3xl sm:text-4xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
               {isFinished ? (tryoutData.emptyCount ?? 0) : "-"}
-            </div>
-          </div>
-
-          {/* 4. IRT (Gembok Borderless jika Free/Belum Unlock, Skor jika Terbuka, '-' jika Belum Selesai) */}
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-text-muted">
-              Skor IRT
-            </div>
-            <div>
-              {!isFinished ? (
-                <div className="font-mono text-3xl sm:text-4xl font-extrabold text-text-muted tabular-nums">
-                  -
-                </div>
-              ) : !isUnlocked ? (
-                <button
-                  type="button"
-                  onClick={onUnlockClick}
-                  className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors cursor-pointer p-0 border-0 bg-transparent text-left focus:outline-hidden pt-1"
-                  title="Buka pembahasan untuk melihat Skor IRT"
-                >
-                  <Lock className="w-6 h-6 stroke-[2.2]" />
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    Terkunci
-                  </span>
-                </button>
-              ) : (
-                <div className="font-mono text-3xl sm:text-4xl font-extrabold text-primary tabular-nums">
-                  {Math.round(finalScore ?? tryoutData.latestScore ?? 0)}
-                </div>
-              )}
             </div>
           </div>
         </div>

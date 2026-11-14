@@ -15,6 +15,7 @@ import { ExecutionPeriodCard } from "./components/ExecutionPeriodCard";
 import { TryoutResultSummary } from "./components/TryoutResultSummary";
 import { Leaderboard } from "@/components/elements/Leaderboard";
 import { useTryoutDetail } from "./hooks/useTryoutDetail";
+import { parsePtnTargets } from "@/lib/target";
 
 const TryoutDetailModule = () => {
   const {
@@ -42,6 +43,7 @@ const TryoutDetailModule = () => {
     handleStartSubtest,
     formatDate,
     router,
+    session,
   } = useTryoutDetail();
 
   if (isLoading) {
@@ -86,6 +88,7 @@ const TryoutDetailModule = () => {
       tryoutData.unlockedSolutions.length > 0);
   const cost = tryoutData.tokenCost || 1;
   const finalScore = Math.round(tryoutData.latestScore ?? 0);
+  const targets = parsePtnTargets((session?.user as any)?.target);
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -140,6 +143,8 @@ const TryoutDetailModule = () => {
           userBalance={userBalance}
           onUnlockClick={() => setUnlockModalOpen(true)}
           onStart={handleStart}
+          leaderboardData={leaderboardData}
+          targets={targets}
         />
       ) : (
         <TryoutActionBar
@@ -151,9 +156,9 @@ const TryoutDetailModule = () => {
         />
       )}
 
-      {/* Leaderboard if tryout has ended */}
-      {leaderboardData && <Leaderboard leaderboardData={leaderboardData} />}
-      {leaderboardError && (
+      {/* Leaderboard only visible if user has finished their attempt AND leaderboardData exists */}
+      {isFinished && leaderboardData && <Leaderboard leaderboardData={leaderboardData} />}
+      {isFinished && leaderboardError && (
         <div className="p-4 rounded-xl bg-danger-soft border border-danger/30 text-danger-text text-sm">
           {leaderboardError}
         </div>
