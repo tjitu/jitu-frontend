@@ -1149,6 +1149,9 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
         }}
       >
         <DialogContent className="max-w-6xl max-h-[92vh] overflow-hidden p-0 rounded-2xl border-border bg-surface text-text shadow-modal flex flex-col">
+          <DialogTitle className="sr-only">
+            {activePackageModal ? activePackageModal.title : "Workbench Simulasi Soal Asli"}
+          </DialogTitle>
           {activePackageModal && (
             <div className="flex flex-col h-full overflow-hidden">
               {/* Exam Header: Title, Live Timer, Counter, and Actions */}
