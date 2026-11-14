@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
 import DemoModeProvider from "@/components/DemoModeProvider";
 import PageVisitTracker from "@/components/PageVisitTracker";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const plusJakartaSans = localFont({
+  src: "./fonts/PlusJakartaSans-Variable.ttf",
+  weight: "200 800",
   display: "swap",
   variable: "--font-jakarta",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const jetbrainsMono = localFont({
+  src: "./fonts/JetBrainsMono-Variable.ttf",
+  weight: "100 800",
   display: "swap",
   variable: "--font-jetbrains-mono",
 });
