@@ -182,8 +182,8 @@ const TryoutModule = () => {
         ongoingTryouts.length > 0 && (
           <section aria-label="Tryout sedang berlangsung" className="space-y-3">
             <div className="flex items-center">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200/90 text-amber-800 text-[11px] font-bold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 Sedang berlangsung
               </span>
             </div>
