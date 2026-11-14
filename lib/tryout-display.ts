@@ -14,13 +14,14 @@ export function getFixedParticipantOffset(tryoutId: string): number {
 }
 
 /**
- * Total participants shown in UI: returns actual verified registrants.
+ * Total participants shown in UI: fixed random offset (150..300) + actual registrants.
  */
 export function getDisplayedParticipants(
-  _tryoutId: string,
+  tryoutId: string,
   actualParticipants?: number | null,
 ): number {
-  return Math.max(0, Number(actualParticipants) || 0);
+  const actual = Math.max(0, Number(actualParticipants) || 0);
+  return getFixedParticipantOffset(tryoutId) + actual;
 }
 
 function formatWibDatePart(date: Date): string {

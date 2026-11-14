@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Clock, Lock } from "lucide-react";
 import { TryoutDetail } from "../interface";
+import { getDisplayedParticipants } from "@/lib/tryout-display";
+import { PRESET_AVATARS } from "@/lib/avatar";
 
 interface TryoutHeroHeaderProps {
   tryoutData: TryoutDetail;
@@ -43,7 +45,10 @@ function useCountdown(endDateStr?: string) {
       const seconds = Math.floor((diff / 1000) % 60);
 
       if (days > 0) {
-        setTimeLeft(`${days}h ${hours}j ${minutes}m ${seconds}d`);
+        const hh = hours.toString().padStart(2, "0");
+        const mm = minutes.toString().padStart(2, "0");
+        const ss = seconds.toString().padStart(2, "0");
+        setTimeLeft(`${days} hari ${hh}:${mm}:${ss}`);
       } else {
         const hh = hours.toString().padStart(2, "0");
         const mm = minutes.toString().padStart(2, "0");
@@ -60,6 +65,21 @@ function useCountdown(endDateStr?: string) {
   return timeLeft;
 }
 
+function getTryoutAvatars(tryoutId: string, count = 6) {
+  const input = String(tryoutId || "tryout");
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  const startIndex = Math.abs(hash) % PRESET_AVATARS.length;
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    list.push(PRESET_AVATARS[(startIndex + i) % PRESET_AVATARS.length]);
+  }
+  return list;
+}
+
 export function TryoutHeroHeader({
   tryoutData,
   isFinished = false,
@@ -67,14 +87,25 @@ export function TryoutHeroHeader({
   finalScore = 0,
   onUnlockClick,
 }: TryoutHeroHeaderProps) {
-  const participantsCount = Math.max(0, tryoutData.participants || 0);
+  const participantsCount = getDisplayedParticipants(
+    tryoutData.id,
+    tryoutData.participants
+  );
   const countdown = useCountdown(tryoutData.endDate);
+  const avatars = useMemo(
+    () => getTryoutAvatars(tryoutData.id, 6),
+    [tryoutData.id]
+  );
+
+  const avatarBorderClass = tryoutData.isSpecial
+    ? "border-[#2E1065]"
+    : "border-[#0C1F52]";
 
   return (
     <div className="bg-surface rounded-2xl border border-border shadow-xs overflow-hidden">
-      {/* Visual Blue Header Banner with Title & Description on top */}
+      {/* Visual Blue Header Banner with Title, Bio, and Avatars vertically centered */}
       <div
-        className={`relative min-h-[180px] sm:min-h-[220px] w-full overflow-hidden select-none flex flex-col justify-between p-6 sm:p-8 ${
+        className={`relative min-h-[220px] sm:min-h-[260px] md:min-h-[280px] w-full overflow-hidden select-none flex flex-col justify-center p-6 sm:p-8 md:p-10 ${
           tryoutData.isSpecial ? "bg-[#2E1065]" : "bg-[#0C1F52]"
         }`}
       >
@@ -106,62 +137,62 @@ export function TryoutHeroHeader({
           className="absolute inset-0 bg-[url('/white-speckled-paper.svg')] opacity-[0.05] bg-repeat bg-[length:320px_320px]"
         />
 
-        {/* Foreground Content inside Banner */}
-        <div className="relative z-10 flex flex-col justify-between h-full gap-5">
-          {/* Top row: Clock icon & Countdown timer to end date */}
-          <div className="flex justify-end">
-            <div className="h-7 px-3 rounded-full bg-black/35 backdrop-blur-xs border border-white/20 text-white text-xs font-mono tabular-nums inline-flex items-center gap-1.5 shadow-2xs">
-              <Clock className="w-3.5 h-3.5 text-white/90 shrink-0" />
-              <span>{countdown}</span>
-            </div>
+        {/* Top-right countdown timer */}
+        <div className="absolute top-4 sm:top-6 right-5 sm:right-8 z-20">
+          <div className="h-7 px-3 rounded-full bg-black/35 backdrop-blur-xs border border-white/20 text-white text-xs font-mono tabular-nums inline-flex items-center gap-1.5 shadow-2xs">
+            <Clock className="w-3.5 h-3.5 text-white/90 shrink-0" />
+            <span>{countdown}</span>
           </div>
+        </div>
 
-          {/* Name & Description directly on the blue banner */}
-          <div className="space-y-2 max-w-2xl py-1">
-            <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-white tracking-tight leading-[1.15]">
-              {tryoutData.title}
-            </h1>
-            {tryoutData.description && (
-              <p className="text-white/80 text-xs sm:text-sm md:text-[15px] max-w-2xl leading-relaxed">
-                {tryoutData.description}
-              </p>
-            )}
+        {/* Foreground Content inside Banner - Vertically Centered */}
+        <div className="relative z-10 flex flex-col justify-center max-w-2xl space-y-3 sm:space-y-3.5 my-auto py-2">
+          {/* 1. Nama Tryout */}
+          <h1 className="text-2xl sm:text-3xl lg:text-[38px] font-bold text-white tracking-tight leading-[1.2]">
+            {tryoutData.title}
+          </h1>
+
+          {/* 2. Bio / Keterangan Tryout */}
+          {tryoutData.description && (
+            <p className="text-white/80 text-xs sm:text-sm md:text-[15px] leading-relaxed">
+              {tryoutData.description}
+            </p>
+          )}
+
+          {/* 3. Random Avatar Stack + Jumlah Peserta (fake + aktual) */}
+          <div className="flex items-center gap-2.5 pt-0.5">
+            <div className="flex -space-x-2.5 sm:-space-x-3 overflow-hidden py-0.5">
+              {avatars.map((avatar, idx) => (
+                <img
+                  key={avatar.id || idx}
+                  src={avatar.url}
+                  alt=""
+                  className={`size-6 sm:size-7 rounded-full border-2 ${avatarBorderClass} bg-white object-cover shrink-0 shadow-2xs`}
+                />
+              ))}
+              <div
+                className={`size-6 sm:size-7 rounded-full border-2 ${avatarBorderClass} ${
+                  tryoutData.isSpecial ? "bg-purple-600" : "bg-blue-600"
+                } text-white flex items-center justify-center text-[10px] font-bold shrink-0 tabular-nums shadow-2xs`}
+              >
+                +
+              </div>
+            </div>
+
+            <span className="text-xs sm:text-sm font-medium text-white/90">
+              <span className="font-mono font-bold text-white tabular-nums">
+                {participantsCount.toLocaleString("id-ID")}
+              </span>{" "}
+              peserta terdaftar
+            </span>
           </div>
         </div>
       </div>
 
       {/* Main Body */}
-      <div className="p-6 sm:p-8 pt-5 space-y-5">
-        {/* Boundary area: Small avatar stack + Participant count */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex -space-x-1.5 overflow-hidden py-0.5">
-            <div className="size-6 rounded-full border-2 border-surface bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-              AP
-            </div>
-            <div className="size-6 rounded-full border-2 border-surface bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-              RP
-            </div>
-            <div className="size-6 rounded-full border-2 border-surface bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-              NZ
-            </div>
-            <div className="size-6 rounded-full border-2 border-surface bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-              DA
-            </div>
-            <div className="size-6 rounded-full border-2 border-surface bg-primary text-white flex items-center justify-center text-[9px] font-bold shrink-0 tabular-nums">
-              +
-            </div>
-          </div>
-
-          <span className="text-xs sm:text-sm font-semibold text-text">
-            <span className="font-mono font-bold text-primary tabular-nums">
-              {participantsCount.toLocaleString("id-ID")}
-            </span>{" "}
-            peserta terdaftar
-          </span>
-        </div>
-
+      <div className="p-6 sm:p-8">
         {/* 4 Result Stat Cards: Benar, Salah, Kosong, IRT */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {/* 1. Benar (Warna Ijo) */}
           <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
             <div className="text-xs font-semibold text-text-muted mb-1.5">
