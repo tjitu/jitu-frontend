@@ -824,6 +824,7 @@ const TryoutDetailModule = () => {
         tokenCost={tryoutData?.tokenCost || 0}
         scheduledStart={tryoutData?.startDate}
         scheduledEnd={tryoutData?.endDate}
+        duration={tryoutData?.duration || 195}
         isLoading={registerLoading}
         error={registerError}
       />

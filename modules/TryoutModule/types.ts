@@ -10,6 +10,7 @@ export interface TryOutData {
   isSpecial?: boolean;
   scheduledStart: string | null;
   scheduledEnd: string | null;
+  duration?: number;
   isRegistered?: boolean;
   curationStatus?: string;
   isSandboxPreview?: boolean;

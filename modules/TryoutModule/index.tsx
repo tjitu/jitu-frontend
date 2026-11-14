@@ -102,6 +102,7 @@ const TryoutModule = () => {
           isPublic: item.isPublic ?? true,
           scheduledStart: item.scheduledStart,
           scheduledEnd: item.scheduledEnd,
+          duration: item.duration || 195,
           isRegistered: item.isRegistered ?? false,
           curationStatus: item.curationStatus,
           isSandboxPreview: Boolean(item.isSandboxPreview || item.curationStatus === "QC_SANDBOX"),
