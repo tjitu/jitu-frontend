@@ -142,18 +142,40 @@ const TryoutModule = () => {
     setFilteredTryouts(result);
   }, [tryouts, activeTab, searchQuery, sortOrder]);
 
-  const { ongoing: ongoingTryouts, others: otherTryouts } = classifyTryouts(filteredTryouts);
+  // Featured ongoing tryout for the top landscape card
+  const { ongoing: ongoingTryouts } = classifyTryouts(tryouts);
 
   return (
     <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Page Header */}
+      {/* 1. Page Header: Daftar jadwal tryout */}
       <div className="border-b border-border pb-6">
         <h1 className="text-h1 text-text">
           Daftar jadwal tryout
         </h1>
       </div>
 
-      {/* Filter & Search Bar */}
+      {/* 2. Landscape Card: Tryout sedang berlangsung */}
+      {isLoading ? (
+        <div className="h-64 sm:h-72 w-full rounded-xl jitu-skeleton" />
+      ) : (
+        ongoingTryouts.length > 0 && (
+          <section aria-label="Tryout sedang berlangsung" className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <h2 className="text-[13px] font-bold uppercase tracking-wider text-text-muted">
+                Sedang berlangsung
+              </h2>
+            </div>
+            <div className="space-y-6">
+              {ongoingTryouts.map((tryout) => (
+                <LandscapeTryoutCard key={tryout.id} tryout={tryout} />
+              ))}
+            </div>
+          </section>
+        )
+      )}
+
+      {/* 3. Bar yang tryout: Filter & Search Bar */}
       <div className="bg-surface rounded-lg border border-border p-4 flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
         {/* Segmented Filter */}
         <div
@@ -212,15 +234,12 @@ const TryoutModule = () => {
         </div>
       </div>
 
-      {/* Content Area */}
+      {/* 4. Baru yang regular card: Regular Cards Grid (including the ongoing tryout) */}
       {isLoading ? (
-        <div className="space-y-6">
-          <div className="h-64 sm:h-72 w-full rounded-xl jitu-skeleton" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="h-64 rounded-lg jitu-skeleton" />
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-64 rounded-lg jitu-skeleton" />
+          ))}
         </div>
       ) : tryouts.length === 0 ? (
         <div className="p-10 rounded-lg border border-dashed border-border bg-surface-muted text-center space-y-3">
@@ -255,39 +274,10 @@ const TryoutModule = () => {
           </Button>
         </div>
       ) : (
-        <div className="space-y-8">
-          {/* Ongoing Tryout(s) - Full Width Landscape Card */}
-          {ongoingTryouts.length > 0 && (
-            <section aria-label="Tryout sedang berlangsung" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <h2 className="text-[13px] font-bold uppercase tracking-wider text-text-muted">
-                  Sedang berlangsung
-                </h2>
-              </div>
-              <div className="space-y-6">
-                {ongoingTryouts.map((tryout) => (
-                  <LandscapeTryoutCard key={tryout.id} tryout={tryout} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Other Tryouts - 3-Column Grid */}
-          {otherTryouts.length > 0 && (
-            <section aria-label="Jadwal tryout lainnya" className="space-y-4 pt-2">
-              {ongoingTryouts.length > 0 && (
-                <h2 className="text-[16px] font-bold text-text">
-                  Jadwal lainnya
-                </h2>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {otherTryouts.map((tryout) => (
-                  <PortraitTryoutCard key={tryout.id} tryout={tryout} />
-                ))}
-              </div>
-            </section>
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTryouts.map((tryout) => (
+            <PortraitTryoutCard key={tryout.id} tryout={tryout} />
+          ))}
         </div>
       )}
     </div>
