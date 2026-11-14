@@ -1,10 +1,10 @@
 /**
  * JITU Student Avatar System
- * Generates fun, friendly illustrated avatars (DiceBear 9.x) for students
- * and provides preset avatars for avatar selection.
+ * Generates modern, aesthetic illustrated avatars (DiceBear 9.x: lorelei & micah)
+ * with a clean round avatar picker for students.
  */
 
-export type AvatarStyle = "adventurer" | "open-peeps" | "lorelei";
+export type AvatarStyle = "lorelei" | "micah";
 
 export const PASTEL_PALETTE = [
   "b6e3f4",
@@ -18,8 +18,8 @@ export const PASTEL_PALETTE = [
 
 export interface PresetAvatar {
   id: string;
-  name: string;
-  tag: string;
+  name?: string;
+  tag?: string;
   url: string;
 }
 
@@ -28,96 +28,56 @@ export interface PresetAvatar {
  */
 export function buildDiceBearUrl(
   seed: string,
-  style: AvatarStyle = "adventurer",
+  style: AvatarStyle = "lorelei",
   bgColor?: string
 ): string {
-  const cleanSeed = encodeURIComponent(seed.trim().toLowerCase());
+  const cleanSeed = encodeURIComponent(seed.trim());
   const bgParam = bgColor || PASTEL_PALETTE.join(",");
   return `https://api.dicebear.com/9.x/${style}/svg?seed=${cleanSeed}&backgroundColor=${bgParam}`;
 }
 
-/**
- * Curated preset avatars reflecting different student personalities preparing for UTBK/SNBT.
- */
-export const PRESET_AVATARS: PresetAvatar[] = [
-  {
-    id: "pejuang-snbt",
-    name: "Pejuang SNBT",
-    tag: "Fokus & Ambisius",
-    url: buildDiceBearUrl("pejuang-snbt", "adventurer", "b6e3f4"),
-  },
-  {
-    id: "bintang-kampus",
-    name: "Bintang Kampus",
-    tag: "Ceria & Aktif",
-    url: buildDiceBearUrl("bintang-kampus", "adventurer", "ffd5dc"),
-  },
-  {
-    id: "fokus-utbk",
-    name: "Fokus UTBK",
-    tag: "Disiplin Tinggi",
-    url: buildDiceBearUrl("fokus-utbk", "adventurer", "c0aede"),
-  },
-  {
-    id: "cita-dokter",
-    name: "Cita-cita Dokter",
-    tag: "Sains & Analisis",
-    url: buildDiceBearUrl("cita-dokter", "adventurer", "d5f4e6"),
-  },
-  {
-    id: "juara-mtk",
-    name: "Juara Matematika",
-    tag: "Logika Tajam",
-    url: buildDiceBearUrl("juara-mtk", "adventurer", "ffdfbf"),
-  },
-  {
-    id: "peneliti-muda",
-    name: "Peneliti Muda",
-    tag: "Rasa Ingin Tahu",
-    url: buildDiceBearUrl("peneliti-muda", "adventurer", "fed7aa"),
-  },
-  {
-    id: "ahli-literasi",
-    name: "Ahli Literasi",
-    tag: "Kreatif & Kritis",
-    url: buildDiceBearUrl("ahli-literasi", "open-peeps", "b6e3f4"),
-  },
-  {
-    id: "calon-insinyur",
-    name: "Calon Insinyur",
-    tag: "Inovatif & Rapi",
-    url: buildDiceBearUrl("calon-insinyur", "open-peeps", "c0aede"),
-  },
-  {
-    id: "anak-ambis",
-    name: "Anak Ambis",
-    tag: "Target Maksimal",
-    url: buildDiceBearUrl("anak-ambis", "adventurer", "d1d4f9"),
-  },
-  {
-    id: "kutu-buku",
-    name: "Kutu Buku Santai",
-    tag: "Teliti & Tenang",
-    url: buildDiceBearUrl("kutu-buku", "open-peeps", "ffd5dc"),
-  },
-  {
-    id: "sang-kreator",
-    name: "Sang Kreator",
-    tag: "Eksploratif",
-    url: buildDiceBearUrl("sang-kreator", "adventurer", "d5f4e6"),
-  },
-  {
-    id: "semangat-juang",
-    name: "Semangat Juang",
-    tag: "Pantang Menyerah",
-    url: buildDiceBearUrl("semangat-juang", "adventurer", "fed7aa"),
-  },
+const PRESET_SEEDS: Array<{ seed: string; style: AvatarStyle; bg: string }> = [
+  // Aesthetic Lorelei characters (Anime / Webtoon clean art style)
+  { seed: "Aria", style: "lorelei", bg: "b6e3f4" },
+  { seed: "Kenji", style: "lorelei", bg: "ffd5dc" },
+  { seed: "Maya", style: "lorelei", bg: "c0aede" },
+  { seed: "Liam", style: "lorelei", bg: "d5f4e6" },
+  { seed: "Chloe", style: "lorelei", bg: "ffdfbf" },
+  { seed: "Leo", style: "lorelei", bg: "d1d4f9" },
+  { seed: "Sophie", style: "lorelei", bg: "fed7aa" },
+  { seed: "Lucas", style: "lorelei", bg: "b6e3f4" },
+  { seed: "Nadia", style: "lorelei", bg: "ffd5dc" },
+  { seed: "Rian", style: "lorelei", bg: "c0aede" },
+  { seed: "Zahra", style: "lorelei", bg: "d5f4e6" },
+  { seed: "Dimas", style: "lorelei", bg: "d1d4f9" },
+
+  // Sleek Micah characters (Modern clean designer vector style)
+  { seed: "Felix", style: "micah", bg: "b6e3f4" },
+  { seed: "Luna", style: "micah", bg: "ffd5dc" },
+  { seed: "Oliver", style: "micah", bg: "c0aede" },
+  { seed: "Emma", style: "micah", bg: "d5f4e6" },
+  { seed: "Aris", style: "micah", bg: "ffdfbf" },
+  { seed: "Putri", style: "micah", bg: "d1d4f9" },
+  { seed: "Budi", style: "micah", bg: "fed7aa" },
+  { seed: "Dewi", style: "micah", bg: "b6e3f4" },
+  { seed: "Reza", style: "micah", bg: "ffd5dc" },
+  { seed: "Tari", style: "micah", bg: "c0aede" },
+  { seed: "Fajar", style: "micah", bg: "d5f4e6" },
+  { seed: "Hana", style: "micah", bg: "d1d4f9" },
 ];
+
+/**
+ * Curated preset avatars reflecting clean, aesthetic student styles.
+ */
+export const PRESET_AVATARS: PresetAvatar[] = PRESET_SEEDS.map((item, index) => ({
+  id: `preset-${index}-${item.seed.toLowerCase()}`,
+  url: buildDiceBearUrl(item.seed, item.style, item.bg),
+}));
 
 /**
  * Returns the effective avatar URL for a student:
  * - If user already has a saved image/avatar URL, returns it.
- * - If not, deterministically assigns a random avatar from the curated presets based on their ID/email.
+ * - If not, deterministically assigns a clean avatar from presets based on user ID or email seed.
  */
 export function getStudentAvatarUrl(
   savedImage?: string | null,
@@ -138,18 +98,16 @@ export function getStudentAvatarUrl(
 }
 
 /**
- * Generates a randomized list of avatars for the user to pick from.
+ * Generates a randomized list of aesthetic avatars for the user to pick from.
  */
-export function generateRandomAvatars(count = 8, batch = 0): PresetAvatar[] {
-  const styles: AvatarStyle[] = ["adventurer", "open-peeps", "lorelei"];
+export function generateRandomAvatars(count = 24, batch = 0): PresetAvatar[] {
+  const styles: AvatarStyle[] = ["lorelei", "micah"];
   return Array.from({ length: count }, (_, i) => {
-    const seed = `jitu-random-${batch}-${i}-${Date.now().toString(36)}`;
+    const seed = `student-${batch}-${i}-${Date.now().toString(36)}`;
     const style = styles[i % styles.length];
     const bg = PASTEL_PALETTE[i % PASTEL_PALETTE.length];
     return {
       id: seed,
-      name: `Karakter #${i + 1}`,
-      tag: style === "open-peeps" ? "Doodle" : "Kartun",
       url: buildDiceBearUrl(seed, style, bg),
     };
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -37,29 +37,26 @@ export function AvatarPickerModal({
 }: AvatarPickerModalProps) {
   const initialUrl = getStudentAvatarUrl(currentImage, userId);
   const [selectedUrl, setSelectedUrl] = useState<string>(initialUrl);
+  const [avatarList, setAvatarList] = useState<PresetAvatar[]>(PRESET_AVATARS);
   const [randomBatch, setRandomBatch] = useState(0);
-  const [randomAvatars, setRandomAvatars] = useState<PresetAvatar[]>([]);
-  const [activeTab, setActiveTab] = useState<"preset" | "random">("preset");
 
   // Keep selectedUrl in sync when dialog opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       setSelectedUrl(getStudentAvatarUrl(currentImage, userId));
+      setAvatarList(PRESET_AVATARS);
     }
   }, [isOpen, currentImage, userId]);
 
   const handleShuffle = () => {
     const nextBatch = randomBatch + 1;
     setRandomBatch(nextBatch);
-    const generated = generateRandomAvatars(8, nextBatch);
-    setRandomAvatars(generated);
-    setActiveTab("random");
+    const generated = generateRandomAvatars(24, nextBatch);
+    setAvatarList(generated);
     if (generated.length > 0) {
       setSelectedUrl(generated[0].url);
     }
   };
-
-  const currentList = activeTab === "preset" ? PRESET_AVATARS : randomAvatars;
 
   const handleApply = async () => {
     if (!selectedUrl) return;
@@ -79,11 +76,11 @@ export function AvatarPickerModal({
             Pilih Avatar Karaktermu
           </DialogTitle>
           <p className="text-[13px] text-text-muted mt-1">
-            Pilih avatar yang mewakili semangat belajarmu. Avatar ini akan tampil di profil, dashboard, dan leaderboard.
+            Pilih avatar yang mewakili karakter belajarmu di JITU.
           </p>
         </DialogHeader>
 
-        {/* Selected Preview Bar */}
+        {/* Selected Preview & Shuffle Bar */}
         <div className="px-6 py-3.5 bg-surface-muted/60 border-b border-border flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full border-2 border-primary bg-white overflow-hidden relative shadow-2xs shrink-0">
@@ -100,7 +97,7 @@ export function AvatarPickerModal({
                 Pratinjau Avatar
               </div>
               <div className="text-[11px] text-text-muted">
-                Klik salah satu avatar di bawah untuk memilih
+                Klik lingkaran avatar untuk memilih
               </div>
             </div>
           </div>
@@ -110,45 +107,17 @@ export function AvatarPickerModal({
             variant="outline"
             size="sm"
             onClick={handleShuffle}
-            className="text-[12px] font-medium gap-1.5 h-8"
+            className="text-[12px] font-medium gap-1.5 h-8 cursor-pointer hover:bg-surface"
           >
             <Dices className="w-3.5 h-3.5 stroke-[2]" />
             <span>Acak avatar</span>
           </Button>
         </div>
 
-        {/* Avatar List Tabs */}
-        <div className="px-6 pt-3 flex items-center gap-2 border-b border-ink-100">
-          <button
-            type="button"
-            onClick={() => setActiveTab("preset")}
-            className={`pb-2.5 text-[13px] font-semibold transition-colors cursor-pointer border-b-2 -mb-[1px] ${
-              activeTab === "preset"
-                ? "border-primary text-primary"
-                : "border-transparent text-text-muted hover:text-text"
-            }`}
-          >
-            Koleksi Siswa JITU ({PRESET_AVATARS.length})
-          </button>
-          {randomAvatars.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => setActiveTab("random")}
-              className={`pb-2.5 text-[13px] font-semibold transition-colors cursor-pointer border-b-2 -mb-[1px] ${
-                activeTab === "random"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-text-muted hover:text-text"
-              }`}
-            >
-              Hasil Acak ({randomAvatars.length})
-            </button>
-          ) : null}
-        </div>
-
-        {/* Grid of Avatars */}
-        <div className="p-6 max-h-[320px] overflow-y-auto">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3.5">
-            {currentList.map((avatar) => {
+        {/* Grid of Circular Avatars (No cards, no labels, clean modern circles) */}
+        <div className="p-6 max-h-[360px] overflow-y-auto">
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-3.5 sm:gap-4 place-items-center">
+            {avatarList.map((avatar) => {
               const isSelected = selectedUrl === avatar.url;
 
               return (
@@ -156,36 +125,28 @@ export function AvatarPickerModal({
                   key={avatar.id}
                   type="button"
                   onClick={() => setSelectedUrl(avatar.url)}
-                  className={`p-2.5 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-2 group relative ${
+                  className={`group relative rounded-full transition-all duration-150 focus:outline-none cursor-pointer ${
                     isSelected
-                      ? "border-primary bg-blue-50/70 shadow-sm ring-2 ring-blue-300"
-                      : "border-border bg-surface hover:border-blue-300 hover:bg-surface-muted"
+                      ? "ring-3 ring-primary ring-offset-2 scale-105"
+                      : "hover:scale-110 opacity-90 hover:opacity-100"
                   }`}
+                  aria-label="Pilih avatar"
                 >
-                  <div className="w-16 h-16 rounded-full overflow-hidden bg-white relative border border-ink-100 shadow-2xs group-hover:scale-105 transition-transform">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-white relative border border-border/80 shadow-2xs">
                     <Image
                       src={avatar.url}
-                      alt={avatar.name}
+                      alt="Avatar"
                       fill
                       className="object-cover"
                       unoptimized
                     />
                   </div>
 
-                  <div className="min-w-0 w-full">
-                    <div className="text-[12px] font-bold text-text truncate">
-                      {avatar.name}
+                  {isSelected && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center border-2 border-surface shadow-xs">
+                      <Check className="w-3 h-3 stroke-[3]" />
                     </div>
-                    <div className="text-[10px] text-text-muted truncate">
-                      {avatar.tag}
-                    </div>
-                  </div>
-
-                  {isSelected ? (
-                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center shadow-2xs">
-                      <Check className="w-2.5 h-2.5 stroke-[3]" />
-                    </div>
-                  ) : null}
+                  )}
                 </button>
               );
             })}
@@ -198,6 +159,7 @@ export function AvatarPickerModal({
             variant="outline"
             disabled={isSaving}
             onClick={() => onOpenChange(false)}
+            className="cursor-pointer"
           >
             Batal
           </Button>
@@ -207,7 +169,7 @@ export function AvatarPickerModal({
             variant="primary"
             disabled={isSaving}
             onClick={handleApply}
-            className="min-w-[140px]"
+            className="min-w-[140px] cursor-pointer"
           >
             {isSaving ? (
               <>
