@@ -17,6 +17,7 @@ import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { BACKEND_URL } from "@/lib/api";
 import { PixelCoin } from "@/components/ui/pixel-coin";
+import { getStudentAvatarUrl } from "@/lib/avatar";
 import BottomNav from "./BottomNav";
 
 /**
@@ -108,6 +109,9 @@ const Navbar = () => {
 
   const initial =
     session?.user?.name?.charAt(0)?.toUpperCase() || "S";
+  const avatarUrl = session?.user
+    ? getStudentAvatarUrl(session.user.image, session.user.id)
+    : null;
 
   return (
     <>
@@ -180,8 +184,18 @@ const Navbar = () => {
                   : "border-border bg-surface text-text-body hover:bg-surface-muted hover:text-text"
               }`}
             >
-              <span className="w-6 h-6 rounded-full border border-border inline-flex items-center justify-center text-[11px] font-semibold bg-surface-muted text-text">
-                {initial}
+              <span className="w-6 h-6 rounded-full border border-border inline-flex items-center justify-center text-[11px] font-semibold bg-surface-muted text-text overflow-hidden relative shrink-0">
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt={session?.user?.name || "Avatar"}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  initial
+                )}
               </span>
               <span className="hidden sm:inline max-w-[110px] truncate">
                 {session?.user?.name?.split(" ")[0] || "Akun"}

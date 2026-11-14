@@ -12,7 +12,7 @@ import {
   Lock,
   KeyRound,
   CreditCard,
-  Camera,
+  Sparkles,
   Loader2,
 } from "lucide-react";
 
@@ -36,12 +36,14 @@ import PendingTransactionList from "../PendingTransactionsModule/components/Pend
 import PastTransactionList from "../PastTransactionsModule/components/PastTransactionList";
 import { useRouter } from "next/navigation";
 import { useSession, signOut, changePassword, setPassword, refreshSession } from "@/lib/auth-client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { PtnTargets, parsePtnTargets, serializePtnTargets } from "@/lib/target";
 import { UniversityLogo } from "@/components/UniversityLogo";
 import { ProfileStreakWidget } from "./components/ProfileStreakWidget";
 import { ProfileEditModal } from "./components/ProfileEditModal";
+import { AvatarPickerModal } from "./components/AvatarPickerModal";
+import { getStudentAvatarUrl } from "@/lib/avatar";
 
 interface Attempt {
   id: string;
@@ -95,32 +97,30 @@ export default function ProfileModule() {
 
   const hasPassword = (session?.user as any)?.hasPassword ?? false;
 
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+  const [isAvatarSaving, setIsAvatarSaving] = useState(false);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    const uploadData = new FormData();
-    uploadData.append("image", file);
-
+  const handleSaveAvatar = async (avatarUrl: string) => {
+    setIsAvatarSaving(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/dashboard/profile`, {
-        method: "PUT",
-        body: uploadData,
-        credentials: "include",
+      const res = await fetch(`${BACKEND_URL}/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: avatarUrl,
+        }),
       });
 
-      if (!res.ok) throw new Error("Gagal mengunggah foto.");
+      if (!res.ok) throw new Error("Gagal mengubah avatar.");
 
-      toast.success("Foto profil diperbarui.");
+      toast.success("Avatar berhasil diperbarui.");
       await refreshSession();
     } catch {
-      toast.error("Gagal mengunggah foto.");
+      toast.error("Gagal mengubah avatar.");
     } finally {
-      setIsUploading(false);
+      setIsAvatarSaving(false);
     }
   };
 
@@ -293,51 +293,30 @@ export default function ProfileModule() {
         <div className="flex items-start sm:items-center gap-5">
           <div className="relative group shrink-0">
             <div
-              className="w-20 h-20 rounded-lg border border-border bg-surface-muted relative cursor-pointer overflow-hidden"
-              onClick={() => fileInputRef.current?.click()}
+              className="w-20 h-20 rounded-full border-2 border-border bg-surface-muted relative cursor-pointer overflow-hidden shadow-2xs hover:border-primary transition-colors"
+              onClick={() => setIsAvatarPickerOpen(true)}
+              title="Klik untuk memilih avatar karakter"
             >
-              {user.image ? (
-                <Image
-                  src={user.image}
-                  alt={user.name}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex items-center justify-center w-full h-full text-text-muted">
-                  <User size={32} />
-                </div>
-              )}
-
-              {isUploading && (
-                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center z-10">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
-                </div>
-              )}
-
-              {!isUploading && (
-                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                  <Camera className="w-5 h-5 text-white" />
-                </div>
-              )}
+              <Image
+                src={getStudentAvatarUrl(user.image, session.user.id)}
+                alt={user.name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+              <div className="absolute inset-0 bg-[#121F47]/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-white">
+                <Sparkles className="w-4 h-4 mb-0.5" />
+                <span className="text-[10px] font-semibold">Ganti</span>
+              </div>
             </div>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
 
             <button
               type="button"
-              onClick={openEditModal}
-              className="absolute -bottom-1.5 -right-1.5 bg-yellow-300 rounded-full p-1.5 border border-yellow-400 text-ink-900 hover:bg-yellow-400 transition-colors cursor-pointer z-20"
-              title="Ubah profil"
+              onClick={() => setIsAvatarPickerOpen(true)}
+              className="absolute -bottom-1 -right-1 bg-yellow-300 rounded-full p-1.5 border border-yellow-400 text-ink-900 hover:bg-yellow-400 transition-colors cursor-pointer z-20 shadow-2xs"
+              title="Pilih avatar karakter"
             >
-              <Edit3 size={12} />
+              <Sparkles size={12} className="stroke-[2.5]" />
             </button>
           </div>
 
@@ -806,6 +785,16 @@ export default function ProfileModule() {
         initialTargets={ptnTargets}
         onSave={handleSaveProfile}
         isSaving={isSaving}
+      />
+
+      {/* Avatar Picker Modal */}
+      <AvatarPickerModal
+        isOpen={isAvatarPickerOpen}
+        onOpenChange={setIsAvatarPickerOpen}
+        currentImage={user.image}
+        userId={session.user.id}
+        onSaveAvatar={handleSaveAvatar}
+        isSaving={isAvatarSaving}
       />
 
       {/* Change Password Modal */}
