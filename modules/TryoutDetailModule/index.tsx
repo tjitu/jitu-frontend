@@ -822,6 +822,8 @@ const TryoutDetailModule = () => {
         onConfirm={onConfirmRegister}
         tryoutTitle={tryoutData?.title || ""}
         tokenCost={tryoutData?.tokenCost || 0}
+        scheduledStart={tryoutData?.startDate}
+        scheduledEnd={tryoutData?.endDate}
         isLoading={registerLoading}
         error={registerError}
       />

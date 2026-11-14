@@ -315,6 +315,8 @@ const TryoutModule = () => {
         onConfirm={onConfirmRegister}
         tryoutTitle={selectedTryout?.title || ""}
         tokenCost={selectedTryout?.solutionPrice || 0}
+        scheduledStart={selectedTryout?.scheduledStart}
+        scheduledEnd={selectedTryout?.scheduledEnd}
         isLoading={registerLoading}
         error={registerError}
       />
