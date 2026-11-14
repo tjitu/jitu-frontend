@@ -1,4 +1,4 @@
-import { UNIVERSITIES, findUniversityByNameOrAcronym, getUniversityById } from "./universities-data";
+import { findUniversityByNameOrAcronym, getUniversityById } from "./universities-data";
 
 export interface PtnChoice {
   uniId: string;
@@ -60,7 +60,7 @@ function resolveChoiceFromString(text?: string | null): PtnChoice | null {
       uniId: matchedUni.id,
       university: matchedUni.name,
       acronym: matchedUni.acronym,
-      jurusan: prodiPart || matchedUni.programs[0] || "Belum dipilih",
+      jurusan: prodiPart || matchedUni.programs?.[0] || "Belum dipilih",
       logo: matchedUni.logo,
     };
   }

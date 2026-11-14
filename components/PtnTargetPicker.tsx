@@ -24,13 +24,13 @@ export function PtnTargetPicker({
   const currentUni = choice?.uniId ? getUniversityById(choice.uniId) : undefined;
 
   const handleSelectUniversity = (uni: UniversityData) => {
-    // If selecting a different university, retain jurusan if it exists in the new uni's programs
-    const keepJurusan = choice?.jurusan && uni.programs.includes(choice.jurusan);
+    // Keep the selected program only when the user reselects the same campus.
+    const keepJurusan = choice?.uniId === uni.id ? choice.jurusan : "";
     onChange({
       uniId: uni.id,
       university: uni.name,
       acronym: uni.acronym,
-      jurusan: keepJurusan ? choice.jurusan : "",
+      jurusan: keepJurusan,
       logo: uni.logo,
     });
   };
@@ -85,6 +85,7 @@ export function PtnTargetPicker({
 
         {/* 2. Pemilihan Program Studi / Jurusan */}
         <PtnProdiPicker
+          key={currentUni?.id ?? "no-university"}
           currentUni={currentUni}
           jurusan={choice?.jurusan || ""}
           onSelect={handleSelectProdi}
