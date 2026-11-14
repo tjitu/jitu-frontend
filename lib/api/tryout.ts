@@ -114,6 +114,9 @@ export const getTryoutDetail = async (
     latestAttemptId: data.latestAttemptId ?? null,
     currentSubtestOrder: data.currentSubtestOrder ?? 1,
     latestScore: data.latestScore ?? 0,
+    correctCount: data.correctCount ?? 0,
+    wrongCount: data.wrongCount ?? 0,
+    emptyCount: data.emptyCount ?? 0,
     curationStatus: data.curationStatus,
     isSandboxPreview: Boolean(data.isSandboxPreview),
   };

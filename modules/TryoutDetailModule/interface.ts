@@ -22,6 +22,9 @@ export interface TryoutDetail {
   latestAttemptId?: string | null;
   currentSubtestOrder?: number;
   latestScore?: number;
+  correctCount?: number;
+  wrongCount?: number;
+  emptyCount?: number;
   curationStatus?: string;
   isSandboxPreview?: boolean;
 }

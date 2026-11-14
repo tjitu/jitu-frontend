@@ -124,6 +124,10 @@ const TryoutDetailModule = () => {
       <TryoutHeroHeader
         tryoutData={tryoutData}
         formatDate={formatDate}
+        isFinished={isFinished}
+        isUnlocked={isUnlocked}
+        finalScore={finalScore}
+        onUnlockClick={() => setUnlockModalOpen(true)}
       />
 
       {/* Action Bar or Result Summary */}

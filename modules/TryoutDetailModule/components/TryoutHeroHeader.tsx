@@ -1,28 +1,80 @@
 "use client";
 
-import React from "react";
-import { Users, FileText, Clock } from "lucide-react";
-import { PixelCoin } from "@/components/ui/pixel-coin";
+import React, { useState, useEffect } from "react";
+import { Clock, Lock } from "lucide-react";
 import { TryoutDetail } from "../interface";
 
 interface TryoutHeroHeaderProps {
   tryoutData: TryoutDetail;
   formatDate: (dateString: string) => string;
+  isFinished?: boolean;
+  isUnlocked?: boolean;
+  finalScore?: number;
+  onUnlockClick?: () => void;
+}
+
+function useCountdown(endDateStr?: string) {
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    if (!endDateStr) {
+      setTimeLeft("Jadwal belum ditentukan");
+      return;
+    }
+
+    const calculate = () => {
+      const target = new Date(endDateStr).getTime();
+      const now = Date.now();
+      const diff = target - now;
+
+      if (isNaN(target)) {
+        setTimeLeft("-");
+        return;
+      }
+
+      if (diff <= 0) {
+        setTimeLeft("Selesai");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      if (days > 0) {
+        setTimeLeft(`${days}h ${hours}j ${minutes}m ${seconds}d`);
+      } else {
+        const hh = hours.toString().padStart(2, "0");
+        const mm = minutes.toString().padStart(2, "0");
+        const ss = seconds.toString().padStart(2, "0");
+        setTimeLeft(`${hh}:${mm}:${ss}`);
+      }
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [endDateStr]);
+
+  return timeLeft;
 }
 
 export function TryoutHeroHeader({
   tryoutData,
-  formatDate,
+  isFinished = false,
+  isUnlocked = false,
+  finalScore = 0,
+  onUnlockClick,
 }: TryoutHeroHeaderProps) {
   const participantsCount = Math.max(0, tryoutData.participants || 0);
-  const cost = tryoutData.tokenCost || 1;
-  const totalQ = tryoutData.totalQuestions || 0;
+  const countdown = useCountdown(tryoutData.endDate);
 
   return (
     <div className="bg-surface rounded-2xl border border-border shadow-xs overflow-hidden">
-      {/* Visual Blue Header Banner with Title on top */}
+      {/* Visual Blue Header Banner with Title & Description on top */}
       <div
-        className={`relative min-h-[170px] sm:min-h-[200px] w-full overflow-hidden select-none flex flex-col justify-between p-6 sm:p-8 ${
+        className={`relative min-h-[180px] sm:min-h-[220px] w-full overflow-hidden select-none flex flex-col justify-between p-6 sm:p-8 ${
           tryoutData.isSpecial ? "bg-[#2E1065]" : "bg-[#0C1F52]"
         }`}
       >
@@ -55,92 +107,117 @@ export function TryoutHeroHeader({
         />
 
         {/* Foreground Content inside Banner */}
-        <div className="relative z-10 flex flex-col justify-between h-full gap-4">
-          {/* Top row: Date range on right (badges removed) */}
-          {(tryoutData.startDate || tryoutData.endDate) && (
-            <div className="flex justify-end">
-              <span className="text-xs sm:text-sm font-mono text-white/80 tabular-nums">
-                {formatDate(tryoutData.startDate)} – {formatDate(tryoutData.endDate)}
-              </span>
+        <div className="relative z-10 flex flex-col justify-between h-full gap-5">
+          {/* Top row: Clock icon & Countdown timer to end date */}
+          <div className="flex justify-end">
+            <div className="h-7 px-3 rounded-full bg-black/35 backdrop-blur-xs border border-white/20 text-white text-xs font-mono tabular-nums inline-flex items-center gap-1.5 shadow-2xs">
+              <Clock className="w-3.5 h-3.5 text-white/90 shrink-0" />
+              <span>{countdown}</span>
             </div>
-          )}
-
-          {/* Name/Title directly on the blue banner in white text */}
-          <div className="space-y-1 max-w-xl py-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-snug">
-              {tryoutData.title}
-            </h1>
           </div>
 
-          {/* Bottom right watermark */}
-          <div className="flex items-center justify-end">
-            <span className="text-xs font-extrabold tracking-tight text-white/90">
-              jitu<span className="text-yellow-400">.</span>
-            </span>
+          {/* Name & Description directly on the blue banner */}
+          <div className="space-y-2 max-w-2xl py-1">
+            <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-white tracking-tight leading-[1.15]">
+              {tryoutData.title}
+            </h1>
+            {tryoutData.description && (
+              <p className="text-white/80 text-xs sm:text-sm md:text-[15px] max-w-2xl leading-relaxed">
+                {tryoutData.description}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Body */}
-      <div className="p-6 sm:p-8 space-y-6">
-        {/* Description (if present) */}
-        {tryoutData.description && (
-          <p className="text-text-body text-sm sm:text-base max-w-3xl leading-relaxed">
-            {tryoutData.description}
-          </p>
-        )}
-
-        {/* 4 Clean Real Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-1">
-          {/* 1. Peserta */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted mb-1.5">
-              <Users className="w-3.5 h-3.5 text-text-muted" />
-              <span>Peserta</span>
+      <div className="p-6 sm:p-8 pt-5 space-y-5">
+        {/* Boundary area: Small avatar stack + Participant count */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex -space-x-1.5 overflow-hidden py-0.5">
+            <div className="size-6 rounded-full border-2 border-surface bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+              AP
             </div>
-            <div className="font-mono text-2xl font-bold text-text tabular-nums">
+            <div className="size-6 rounded-full border-2 border-surface bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+              RP
+            </div>
+            <div className="size-6 rounded-full border-2 border-surface bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+              NZ
+            </div>
+            <div className="size-6 rounded-full border-2 border-surface bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+              DA
+            </div>
+            <div className="size-6 rounded-full border-2 border-surface bg-primary text-white flex items-center justify-center text-[9px] font-bold shrink-0 tabular-nums">
+              +
+            </div>
+          </div>
+
+          <span className="text-xs sm:text-sm font-semibold text-text">
+            <span className="font-mono font-bold text-primary tabular-nums">
               {participantsCount.toLocaleString("id-ID")}
+            </span>{" "}
+            peserta terdaftar
+          </span>
+        </div>
+
+        {/* 4 Result Stat Cards: Benar, Salah, Kosong, IRT */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-1">
+          {/* 1. Benar (Warna Ijo) */}
+          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
+            <div className="text-xs font-semibold text-text-muted mb-1.5">
+              Benar
+            </div>
+            <div className="font-mono text-2xl sm:text-3xl font-extrabold text-emerald-600 tabular-nums">
+              {isFinished ? (tryoutData.correctCount ?? 0) : "-"}
             </div>
           </div>
 
-          {/* 2. Total Soal */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted mb-1.5">
-              <FileText className="w-3.5 h-3.5 text-text-muted" />
-              <span>Total Soal</span>
+          {/* 2. Salah (Warna Merah) */}
+          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
+            <div className="text-xs font-semibold text-text-muted mb-1.5">
+              Salah
             </div>
-            <div className="font-mono text-2xl font-bold text-text tabular-nums">
-              {totalQ}{" "}
-              <span className="text-xs font-normal text-text-muted">soal</span>
+            <div className="font-mono text-2xl sm:text-3xl font-extrabold text-rose-600 tabular-nums">
+              {isFinished ? (tryoutData.wrongCount ?? 0) : "-"}
             </div>
           </div>
 
-          {/* 3. Durasi */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted mb-1.5">
-              <Clock className="w-3.5 h-3.5 text-text-muted" />
-              <span>Durasi</span>
+          {/* 3. Kosong (Item Agak Abu) */}
+          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
+            <div className="text-xs font-semibold text-text-muted mb-1.5">
+              Kosong
             </div>
-            <div className="font-mono text-2xl font-bold text-text tabular-nums">
-              {tryoutData.duration}{" "}
-              <span className="text-xs font-normal text-text-muted">menit</span>
+            <div className="font-mono text-2xl sm:text-3xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
+              {isFinished ? (tryoutData.emptyCount ?? 0) : "-"}
             </div>
           </div>
 
-          {/* 4. Biaya Pembahasan */}
-          <div className="bg-surface-muted rounded-xl border border-border p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted mb-1.5">
-              <PixelCoin size={14} />
-              <span>Pembahasan</span>
+          {/* 4. IRT (Gembok Borderless jika Free/Belum Unlock, Skor jika Terbuka, '-' jika Belum Selesai) */}
+          <div className="bg-surface-muted rounded-xl border border-border p-4 flex flex-col justify-between">
+            <div className="text-xs font-semibold text-text-muted mb-1.5">
+              Skor IRT
             </div>
-            <div className="font-mono text-2xl font-bold text-text tabular-nums">
-              {tryoutData.isFree ? (
-                <span className="text-emerald-600">Gratis</span>
+            <div>
+              {!isFinished ? (
+                <div className="font-mono text-2xl sm:text-3xl font-extrabold text-text-muted tabular-nums">
+                  -
+                </div>
+              ) : !isUnlocked ? (
+                <button
+                  type="button"
+                  onClick={onUnlockClick}
+                  className="flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors cursor-pointer p-0 border-0 bg-transparent text-left"
+                  title="Buka pembahasan untuk melihat Skor IRT"
+                >
+                  <Lock className="w-6 h-6 stroke-[2.2]" />
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Terkunci
+                  </span>
+                </button>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-primary">
-                  <PixelCoin size={18} />
-                  <span>{cost} coin</span>
-                </span>
+                <div className="font-mono text-2xl sm:text-3xl font-extrabold text-primary tabular-nums">
+                  {Math.round(finalScore ?? tryoutData.latestScore ?? 0)}
+                </div>
               )}
             </div>
           </div>
