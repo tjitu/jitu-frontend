@@ -66,8 +66,8 @@ export function TryoutHeroHeader({
           )}
 
           {/* Name/Title directly on the blue banner in white text */}
-          <div className="space-y-1 max-w-4xl py-2">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+          <div className="space-y-1 max-w-xl py-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-snug">
               {tryoutData.title}
             </h1>
           </div>
