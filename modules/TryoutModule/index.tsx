@@ -184,7 +184,7 @@ const TryoutModule = () => {
             <div className="flex items-center">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-yellow-300 border border-yellow-400/80 text-black text-[11px] font-extrabold uppercase tracking-wider shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                Sedang berlangsung
+                LIVE
               </span>
             </div>
             <div className="space-y-6">
