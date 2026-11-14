@@ -10,7 +10,7 @@ export function ProfileStreakWidget({ streak }: ProfileStreakWidgetProps) {
   const displayStreak = Number(streak) || 0;
 
   return (
-    <div className="flex items-center gap-3.5 sm:gap-4 shrink-0 select-none">
+    <div className="flex items-center gap-3.5 sm:gap-4 shrink-0 select-none md:mr-6 lg:mr-10">
       <div className="relative flex items-center justify-center shrink-0">
         <Flame className="w-12 h-12 sm:w-14 sm:h-14 text-amber-500 fill-amber-500 shrink-0 drop-shadow-[0_2px_12px_rgba(245,158,11,0.35)]" />
       </div>
