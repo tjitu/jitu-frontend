@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import {
   BookOpen,
-  Calendar,
   Clock,
   ArrowRight,
   Search,
@@ -13,7 +12,6 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
-  Layers,
   X,
   Loader2,
   ChevronLeft,
@@ -21,12 +19,9 @@ import {
   Filter,
   Play,
   Pause,
-  RotateCcw,
   Flag,
   Check,
   Award,
-  BarChart2,
-  HelpCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -836,7 +831,9 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
   // RENDER: DASHBOARD VARIANT (STUDENT WORKBENCH & PRACTICE CONSOLE)
   // -------------------------------------------------------------------------
   return (
-    <div className="space-y-8">
+    <div className={activePackageModal ? "w-full" : "space-y-8"}>
+      {!activePackageModal && (
+        <>
       {/* 1. Dashboard Student Header & Stats Bar */}
       <div className="hidden space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1142,30 +1139,32 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
         </div>
       )}
 
-      {/* 4. Fullscreen Workbench / Exam Console Dialog */}
-      <Dialog
-        open={Boolean(activePackageModal)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setActivePackageModal(null);
-            setActiveDetail(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-6xl max-h-[92vh] overflow-hidden p-0 rounded-2xl border-border bg-surface text-text shadow-modal flex flex-col">
-          <DialogTitle className="sr-only">
-            {activePackageModal ? activePackageModal.title : "Workbench Simulasi Soal Asli"}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            {activePackageModal
-              ? `Simulasi latihan soal asli UTBK ${activePackageModal.year} untuk subtes ${activePackageModal.subtest}`
-              : "Simulasi latihan dan pengerjaan soal asli UTBK"}
-          </DialogDescription>
-          {activePackageModal && (
-            <div className="flex flex-col h-full overflow-hidden">
+        </>
+      )}
+
+      {/* 4. Full-page Workbench / Exam Console */}
+      {activePackageModal && (
+        <section
+          aria-label={`Pengerjaan ${activePackageModal.title}`}
+          className="flex h-[calc(100dvh-10rem)] min-h-[480px] w-full flex-col overflow-hidden rounded-xl border border-border bg-surface text-text shadow-xs"
+        >
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {/* Exam Header: Title, Live Timer, Counter, and Actions */}
-              <div className="px-6 py-3.5 border-b border-border bg-surface-muted/80 flex items-center justify-between gap-4 shrink-0">
-                <div className="flex items-center gap-3">
+              <div className="px-4 sm:px-6 py-3.5 border-b border-border bg-surface-muted/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePackageModal(null);
+                      setActiveDetail(null);
+                      setShowFinishSummary(false);
+                    }}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] font-semibold text-text-muted transition-colors hover:bg-surface hover:text-text"
+                    aria-label="Kembali ke arsip soal"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Arsip soal</span>
+                  </button>
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-primary text-white">
                       UTBK {activePackageModal.year}
@@ -1175,7 +1174,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                       <span>{activePackageModal.subtest}</span>
                     </span>
                   </div>
-                  <div className="hidden sm:block text-[14px] font-bold text-text truncate max-w-[320px]">
+                  <div className="hidden md:block text-[14px] font-bold text-text truncate max-w-[320px]">
                     {activePackageModal.title}
                   </div>
                 </div>
@@ -1224,7 +1223,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
               </div>
 
               {/* Main Dual-Pane Workspace */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
                 {loadingDetail && (
                   <div className="py-24 flex flex-col items-center justify-center gap-3 text-text-muted">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -1445,9 +1444,8 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                 )}
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        </section>
+      )}
 
       {/* Finish & Evaluation Summary Modal */}
       <Dialog open={showFinishSummary} onOpenChange={setShowFinishSummary}>
