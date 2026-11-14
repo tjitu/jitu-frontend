@@ -25,6 +25,7 @@ import {
 import { BACKEND_URL } from "@/lib/api";
 import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
 import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
+import { TryoutScheduleTimeline } from "@/components/ui/tryout-schedule-timeline";
 import {
   formatTryoutDateRange,
   formatTryoutScheduleDetails,
@@ -355,8 +356,8 @@ const TryoutModule = () => {
                   }
                 />
 
-                <div className="p-6 flex-1 flex flex-col justify-between gap-5">
-                  <div className="space-y-3">
+                <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between gap-6">
+                  <div className="space-y-4">
                     <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
                       <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
                       <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
@@ -371,40 +372,11 @@ const TryoutModule = () => {
                         "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
                     </p>
 
-                    {(() => {
-                      const schedule = formatTryoutScheduleDetails(
-                        tryout.scheduledStart,
-                        tryout.scheduledEnd
-                      );
-                      return (
-                        <div className="pt-1 relative flex flex-col gap-2 text-[12.5px] text-text-body font-medium tabular-nums">
-                          {/* Connecting line between timeline nodes */}
-                          <div className="absolute left-[9px] top-[14px] bottom-[14px] w-[1.5px] bg-blue-100" />
-
-                          {/* Mulai */}
-                          <div className="flex items-center gap-2.5 relative z-10">
-                            <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                              <Calendar className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                            </div>
-                            <div className="flex items-baseline gap-1.5 leading-none">
-                              <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Mulai</span>
-                              <span className="font-semibold text-text">{schedule.startStr}</span>
-                            </div>
-                          </div>
-
-                          {/* Selesai */}
-                          <div className="flex items-center gap-2.5 relative z-10">
-                            <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                              <Clock className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                            </div>
-                            <div className="flex items-baseline gap-1.5 leading-none">
-                              <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Selesai</span>
-                              <span className="font-semibold text-text">{schedule.endStr}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
+                    <TryoutScheduleTimeline
+                      start={tryout.scheduledStart}
+                      end={tryout.scheduledEnd}
+                      className="pt-1 pb-0.5"
+                    />
                   </div>
 
                   {tryout.isRegistered ? (

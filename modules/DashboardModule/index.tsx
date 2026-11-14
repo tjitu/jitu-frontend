@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import {
   Users,
   ArrowRight,
   Check,
   Clock,
   TrendingUp,
-  Camera,
   Loader2,
   BookOpen,
   Calendar,
@@ -24,7 +24,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { PixelCoin } from "@/components/ui/pixel-coin";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { subtests } from "./payload";
 import { ScoreData } from "./interface";
 import { UserWithRole } from "@/lib/types";
@@ -53,6 +52,7 @@ import { RegisterModal } from "./components/RegisterModal";
 import { BACKEND_URL } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
+import { TryoutScheduleTimeline } from "@/components/ui/tryout-schedule-timeline";
 import {
   formatTryoutDateRange,
   formatTryoutScheduleDetails,
@@ -60,6 +60,8 @@ import {
 } from "@/lib/tryout-display";
 import { HotQuestionsCard } from "./components/HotQuestionsCard";
 import { MilestoneCard } from "./components/MilestoneCard";
+import { AvatarPickerModal } from "../ProfileModule/components/AvatarPickerModal";
+import { getStudentAvatarUrl } from "@/lib/avatar";
 
 const ScoreHistoryChart = dynamic(
   () => import("./components/ScoreHistoryChart"),
@@ -151,8 +153,32 @@ const DashboardModule = () => {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState("");
 
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+  const [isAvatarSaving, setIsAvatarSaving] = useState(false);
+
+  const handleSaveAvatar = async (avatarUrl: string) => {
+    setIsAvatarSaving(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: avatarUrl,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Gagal mengubah avatar.");
+
+      toast.success("Avatar berhasil diperbarui.");
+      await refreshSession();
+    } catch {
+      toast.error("Gagal mengubah avatar.");
+    } finally {
+      setIsAvatarSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (!isPending) {
@@ -249,31 +275,7 @@ const DashboardModule = () => {
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/dashboard/profile`, {
-        method: "PUT",
-        body: formData,
-        credentials: "include",
-      });
-
-      if (!res.ok) throw new Error("Gagal mengunggah foto.");
-
-      toast.success("Foto profil diperbarui.");
-      await refreshSession();
-    } catch {
-      toast.error("Gagal mengunggah foto. Coba lagi.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   if (isPending || loading) {
     return (
@@ -467,31 +469,22 @@ const DashboardModule = () => {
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-border pb-6">
         <div className="flex items-center gap-4">
           <div className="relative group shrink-0">
-            <Avatar
-              className="w-14 h-14 border border-border cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
+            <div
+              className="w-14 h-14 rounded-full border border-border bg-surface-muted relative cursor-pointer overflow-hidden shadow-2xs hover:border-primary transition-colors"
+              onClick={() => setIsAvatarPickerOpen(true)}
+              title="Klik untuk memilih avatar karakter"
             >
-              <AvatarImage src={session.user.image || ""} />
-              <AvatarFallback className="bg-blue-50 text-blue-800 font-bold text-[18px]">
-                {session.user.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-              {isUploading ? (
-                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center rounded-full">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
-                </div>
-              ) : (
-                <div className="absolute inset-0 bg-[#121F47]/60 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera className="w-5 h-5 text-white" />
-                </div>
-              )}
-            </Avatar>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
+              <Image
+                src={getStudentAvatarUrl(session.user.image, session.user.id)}
+                alt={session.user.name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+              <div className="absolute inset-0 bg-[#121F47]/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 text-white">
+                <Sparkles className="w-4 h-4" />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -585,8 +578,8 @@ const DashboardModule = () => {
                 }
               />
 
-              <div className="p-6 flex-1 flex flex-col justify-between gap-5">
-                <div className="space-y-3">
+              <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between gap-6">
+                <div className="space-y-4">
                   <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
                     <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
                     <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
@@ -601,43 +594,14 @@ const DashboardModule = () => {
                       "Simulasi UTBK-SNBT lengkap mencakup 7 subtes TPS & Literasi dengan timer resmi, pemeringkatan nasional, dan analisis skor IRT."}
                   </p>
 
-                  {(() => {
-                    const schedule = formatTryoutScheduleDetails(
-                      featuredTryout.scheduledStart,
-                      featuredTryout.scheduledEnd
-                    );
-                    return (
-                      <div className="pt-1 relative flex flex-col gap-2 text-[12.5px] text-text-body font-medium tabular-nums">
-                        {/* Connecting line between timeline nodes */}
-                        <div className="absolute left-[9px] top-[14px] bottom-[14px] w-[1.5px] bg-blue-100" />
-
-                        {/* Mulai */}
-                        <div className="flex items-center gap-2.5 relative z-10">
-                          <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                            <Calendar className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                          </div>
-                          <div className="flex items-baseline gap-1.5 leading-none">
-                            <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Mulai</span>
-                            <span className="font-semibold text-text">{schedule.startStr}</span>
-                          </div>
-                        </div>
-
-                        {/* Selesai */}
-                        <div className="flex items-center gap-2.5 relative z-10">
-                          <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                            <Clock className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                          </div>
-                          <div className="flex items-baseline gap-1.5 leading-none">
-                            <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Selesai</span>
-                            <span className="font-semibold text-text">{schedule.endStr}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  <TryoutScheduleTimeline
+                    start={featuredTryout.scheduledStart}
+                    end={featuredTryout.scheduledEnd}
+                    className="pt-1 pb-0.5"
+                  />
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
                   {featuredTryout.isRegistered ? (
                     <Button
                       size="lg"
@@ -909,8 +873,8 @@ const DashboardModule = () => {
                         }
                       />
 
-                      <div className="p-6 flex-1 flex flex-col justify-between gap-5">
-                        <div className="space-y-3">
+                      <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between gap-6">
+                        <div className="space-y-4">
                           <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
                             <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
                             <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
@@ -925,40 +889,11 @@ const DashboardModule = () => {
                               "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
                           </p>
 
-                          {(() => {
-                            const schedule = formatTryoutScheduleDetails(
-                              tryout.scheduledStart,
-                              tryout.scheduledEnd
-                            );
-                            return (
-                              <div className="pt-1 relative flex flex-col gap-2 text-[12.5px] text-text-body font-medium tabular-nums">
-                                {/* Connecting line between timeline nodes */}
-                                <div className="absolute left-[9px] top-[14px] bottom-[14px] w-[1.5px] bg-blue-100" />
-
-                                {/* Mulai */}
-                                <div className="flex items-center gap-2.5 relative z-10">
-                                  <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                                    <Calendar className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                                  </div>
-                                  <div className="flex items-baseline gap-1.5 leading-none">
-                                    <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Mulai</span>
-                                    <span className="font-semibold text-text">{schedule.startStr}</span>
-                                  </div>
-                                </div>
-
-                                {/* Selesai */}
-                                <div className="flex items-center gap-2.5 relative z-10">
-                                  <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                                    <Clock className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                                  </div>
-                                  <div className="flex items-baseline gap-1.5 leading-none">
-                                    <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Selesai</span>
-                                    <span className="font-semibold text-text">{schedule.endStr}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
+                          <TryoutScheduleTimeline
+                            start={tryout.scheduledStart}
+                            end={tryout.scheduledEnd}
+                            className="pt-1 pb-0.5"
+                          />
                         </div>
 
                         <Button
@@ -1040,8 +975,8 @@ const DashboardModule = () => {
                       }
                     />
 
-                    <div className="p-6 flex-1 flex flex-col justify-between gap-5">
-                      <div className="space-y-3">
+                    <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between gap-6">
+                      <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
                           <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
                           <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
@@ -1056,40 +991,11 @@ const DashboardModule = () => {
                             "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
                         </p>
 
-                        {(() => {
-                          const schedule = formatTryoutScheduleDetails(
-                            tryout.scheduledStart,
-                            tryout.scheduledEnd
-                          );
-                          return (
-                            <div className="pt-1 relative flex flex-col gap-2 text-[12.5px] text-text-body font-medium tabular-nums">
-                              {/* Connecting line between timeline nodes */}
-                              <div className="absolute left-[9px] top-[14px] bottom-[14px] w-[1.5px] bg-blue-100" />
-
-                              {/* Mulai */}
-                              <div className="flex items-center gap-2.5 relative z-10">
-                                <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                                  <Calendar className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                                </div>
-                                <div className="flex items-baseline gap-1.5 leading-none">
-                                  <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Mulai</span>
-                                  <span className="font-semibold text-text">{schedule.startStr}</span>
-                                </div>
-                              </div>
-
-                              {/* Selesai */}
-                              <div className="flex items-center gap-2.5 relative z-10">
-                                <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                                  <Clock className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
-                                </div>
-                                <div className="flex items-baseline gap-1.5 leading-none">
-                                  <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Selesai</span>
-                                  <span className="font-semibold text-text">{schedule.endStr}</span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })()}
+                        <TryoutScheduleTimeline
+                          start={tryout.scheduledStart}
+                          end={tryout.scheduledEnd}
+                          className="pt-1 pb-0.5"
+                        />
                       </div>
 
                       <div className="w-full group/btn transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
@@ -1284,6 +1190,15 @@ const DashboardModule = () => {
         tokenCost={selectedTryout?.solutionPrice || 0}
         isLoading={registerLoading}
         error={registerError}
+      />
+
+      <AvatarPickerModal
+        isOpen={isAvatarPickerOpen}
+        onOpenChange={setIsAvatarPickerOpen}
+        currentImage={session.user.image}
+        userId={session.user.id}
+        onSaveAvatar={handleSaveAvatar}
+        isSaving={isAvatarSaving}
       />
     </div>
   );
