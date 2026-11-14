@@ -1,6 +1,6 @@
 /**
  * Deterministic display offset (150..300) per tryout ID using FNV-1a 32-bit hash.
- * Fixed across renders/reloads for a given tryout and avoids SSR/CSR hydration mismatch.
+ * Kept for backward compatibility if needed.
  */
 export function getFixedParticipantOffset(tryoutId: string): number {
   const input = String(tryoutId || "");
@@ -14,14 +14,13 @@ export function getFixedParticipantOffset(tryoutId: string): number {
 }
 
 /**
- * Total participants shown in UI: fixed random offset (150..300) + actual registrants.
+ * Total participants shown in UI: returns actual verified registrants.
  */
 export function getDisplayedParticipants(
-  tryoutId: string,
+  _tryoutId: string,
   actualParticipants?: number | null,
 ): number {
-  const actual = Math.max(0, Number(actualParticipants) || 0);
-  return getFixedParticipantOffset(tryoutId) + actual;
+  return Math.max(0, Number(actualParticipants) || 0);
 }
 
 function formatWibDatePart(date: Date): string {
