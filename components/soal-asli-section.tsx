@@ -41,6 +41,7 @@ import {
   SoalAsliQuestion,
   YearGroupedPackages,
   SUBTEST_META,
+  getSubtestMeta,
 } from "@/lib/soal-asli-types";
 
 const SUBTEST_OPTIONS = [
@@ -266,11 +267,60 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     }
   };
 
+  const isYearExpanded = useCallback(
+    (year: number) => {
+      if (searchQuery.trim().length > 0) return true;
+      if (selectedYear !== "ALL") {
+        return expandedYears[year] ?? true;
+      }
+      return !!expandedYears[year];
+    },
+    [searchQuery, selectedYear, expandedYears]
+  );
+
   const toggleYearExpanded = (year: number) => {
-    setExpandedYears((prev) => ({
-      ...prev,
-      [year]: !prev[year],
-    }));
+    setExpandedYears((prev) => {
+      const current = isYearExpanded(year);
+      return {
+        ...prev,
+        [year]: !current,
+      };
+    });
+  };
+
+  const allCollapsed = useMemo(() => {
+    return filteredYears.every((yg) => !isYearExpanded(yg.year));
+  }, [filteredYears, isYearExpanded]);
+
+  const toggleAllYears = () => {
+    if (allCollapsed) {
+      const next: Record<number, boolean> = {};
+      filteredYears.forEach((yg) => {
+        next[yg.year] = true;
+      });
+      setExpandedYears(next);
+    } else {
+      const next: Record<number, boolean> = {};
+      filteredYears.forEach((yg) => {
+        next[yg.year] = false;
+      });
+      setExpandedYears(next);
+    }
+  };
+
+  const getYearSubtestsSummary = (pkgs: SoalAsliPackage[]) => {
+    const counts: Record<string, number> = {};
+    for (const pkg of pkgs) {
+      counts[pkg.subtest] = (counts[pkg.subtest] || 0) + 1;
+    }
+    return Object.entries(counts).map(([subtest, count]) => {
+      const meta = getSubtestMeta(subtest);
+      return {
+        subtest,
+        count,
+        ...meta,
+      };
+    });
   };
 
   const handleSelectOption = (questionId: string, optionId: string) => {
@@ -929,65 +979,95 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
           <p className="text-[14px] font-medium">Memuat workbench soal asli...</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
+          {/* Quick collapse/expand summary bar */}
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[12px] font-medium text-text-muted">
+              Menampilkan {filteredYears.length} tahun ujian ({filteredYears.reduce((acc, y) => acc + y.packages.length, 0)} paket)
+            </span>
+            <button
+              type="button"
+              onClick={toggleAllYears}
+              className="text-[12px] font-semibold text-primary hover:underline cursor-pointer"
+            >
+              {allCollapsed ? "Buka Semua" : "Tutup Semua"}
+            </button>
+          </div>
+
           {filteredYears.map((yg) => {
-            const isExpanded = expandedYears[yg.year] ?? true;
+            const isExpanded = isYearExpanded(yg.year);
+            const subtestsSummary = getYearSubtestsSummary(yg.packages);
             return (
               <div
                 key={yg.year}
                 id={`tahun-${yg.year}`}
-                className="bg-surface rounded-lg border border-border overflow-hidden"
+                className="bg-white rounded-xl border border-border shadow-xs overflow-hidden transition-all"
               >
-                {/* Year Header */}
+                {/* Year Header - Collapsible like the user screenshot */}
                 <div
                   onClick={() => toggleYearExpanded(yg.year)}
-                  className="px-4 py-3 sm:px-5 bg-surface border-b border-border flex items-center justify-between gap-4 cursor-pointer hover:bg-surface-muted/60 transition-colors select-none"
+                  className={`px-4 py-3.5 sm:px-5 sm:py-4 bg-white flex items-center justify-between gap-4 cursor-pointer hover:bg-surface-muted/60 transition-colors select-none ${
+                    isExpanded ? "border-b border-border bg-surface-muted/20" : ""
+                  }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-[15px] font-bold text-primary">
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                    <span className="font-mono text-[16px] sm:text-[17px] font-bold text-primary shrink-0 pt-0.5 sm:pt-0">
                       {yg.year}
                     </span>
-                    <div>
-                      <h2 className="text-[15px] sm:text-[16px] font-bold text-text">
-                        UTBK {yg.year}
-                      </h2>
-                      <div className="text-[12px] text-text-muted">
-                        {yg.packages.length} Paket Ujian Resmi · {yg.totalQuestions} Butir Soal
+                    <div className="space-y-1.5 min-w-0">
+                      <div>
+                        <h2 className="text-[15px] sm:text-[16px] font-bold text-text">
+                          UTBK {yg.year}
+                        </h2>
+                        <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-1.5">
+                          <span>📦 {yg.packages.length} Paket Ujian Resmi</span>
+                          <span>·</span>
+                          <span>📝 {yg.totalQuestions} Butir Soal</span>
+                        </div>
+                      </div>
+
+                      {/* Package Subtests Emote / Icon representation badges */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {subtestsSummary.map((sub) => (
+                          <span
+                            key={sub.code}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${sub.badgeBg} ${sub.border}`}
+                            title={`${sub.label}: ${sub.count} paket`}
+                          >
+                            <span className="text-[12px]">{sub.emoji}</span>
+                            <span>{sub.code}</span>
+                            {sub.count > 1 && (
+                              <span className="text-[10px] opacity-75 font-mono">×{sub.count}</span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-text-muted">
-                    <span className="hidden">
-                      {isExpanded ? "Sembunyikan" : "Tampilkan Paket"}
+                  <div className="flex items-center gap-2 text-text-muted shrink-0 self-center">
+                    <span className="text-[12px] font-medium hidden sm:inline text-text-muted">
+                      {isExpanded ? "Tutup" : "Buka"}
                     </span>
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-text" />
+                      <ChevronUp className="w-5 h-5 text-text" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-text" />
+                      <ChevronDown className="w-5 h-5 text-text" />
                     )}
                   </div>
                 </div>
 
                 {/* Workbench Rows ("dibarisin ke bawah aja") */}
                 {isExpanded && (
-                  <div className="divide-y divide-border">
+                  <div className="divide-y divide-border bg-white">
                     {yg.packages.map((pkg, idx) => {
-                      const meta =
-                        SUBTEST_META[pkg.subtest] || {
-                          label: pkg.subtestName,
-                          code: pkg.subtest,
-                          color: "text-text",
-                          badgeBg: "bg-surface-muted text-text",
-                          border: "border-border",
-                        };
-
+                      const meta = getSubtestMeta(pkg.subtest);
                       const savedAnswersCount = savedCountsMap[pkg.id] ?? 0;
 
                       return (
                         <div
                           key={pkg.id}
-                          className="px-4 py-3 sm:px-5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-surface-muted/60 transition-colors"
+                          className="px-4 py-3 sm:px-5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-blue-50/20 transition-colors"
                         >
                           {/* Left Column: Number, Badge, Title, Date */}
                           <div className="flex items-start sm:items-center gap-3">
@@ -996,9 +1076,10 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                             </span>
 
                             <div
-                              className={`w-9 h-8 rounded-md flex items-center justify-center font-bold text-[12px] shrink-0 border ${meta.badgeBg} ${meta.border}`}
+                              className={`h-8 px-2.5 rounded-md flex items-center justify-center gap-1.5 font-bold text-[12px] shrink-0 border ${meta.badgeBg} ${meta.border}`}
                             >
-                              {meta.code}
+                              <span className="text-[13px]">{meta.emoji}</span>
+                              <span>{meta.code}</span>
                             </div>
 
                             <div className="space-y-1">
@@ -1017,12 +1098,19 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                                 )}
                               </div>
                               <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-2">
-                                <span>{pkg.questionCount} soal</span>
+                                <span className="inline-flex items-center gap-1">
+                                  <span>📝</span>
+                                  <span>{pkg.questionCount} soal</span>
+                                </span>
                                 <span>·</span>
-                                <span>{pkg.durationMinutes} menit</span>
+                                <span className="inline-flex items-center gap-1">
+                                  <span>⏱️</span>
+                                  <span>{pkg.durationMinutes} menit</span>
+                                </span>
                                 <span>·</span>
-                                <span className="font-medium">
-                                  Naskah asli
+                                <span className="font-medium inline-flex items-center gap-1">
+                                  <span>🎯</span>
+                                  <span>Naskah asli</span>
                                 </span>
                               </div>
                             </div>
@@ -1033,7 +1121,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                             <button
                               type="button"
                               onClick={() => handleOpenPackage(pkg)}
-                              className="min-h-[36px] px-3 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[12px] font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                              className="min-h-[36px] px-3.5 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[12px] font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                             >
                               <Play className="w-3.5 h-3.5 fill-current" />
                               <span>{savedAnswersCount > 0 ? "Lanjutkan" : "Kerjakan"}</span>
@@ -1070,8 +1158,9 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                     <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-primary text-white">
                       UTBK {activePackageModal.year}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-300">
-                      {activePackageModal.subtest}
+                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-300 inline-flex items-center gap-1">
+                      <span>{getSubtestMeta(activePackageModal.subtest).emoji}</span>
+                      <span>{activePackageModal.subtest}</span>
                     </span>
                   </div>
                   <div className="hidden sm:block text-[14px] font-bold text-text truncate max-w-[320px]">

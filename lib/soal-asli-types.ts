@@ -41,16 +41,23 @@ export interface YearGroupedPackages {
 }
 
 // Subtest badge styling helper
-export const SUBTEST_META: Record<
-  string,
-  { label: string; code: string; color: string; badgeBg: string; border: string }
-> = {
+export interface SubtestMetaItem {
+  label: string;
+  code: string;
+  color: string;
+  badgeBg: string;
+  border: string;
+  emoji: string;
+}
+
+export const SUBTEST_META: Record<string, SubtestMetaItem> = {
   PU: {
     label: "Penalaran Umum",
     code: "PU",
     color: "text-blue-700",
     badgeBg: "bg-blue-50 text-blue-700",
     border: "border-blue-200",
+    emoji: "🧠",
   },
   PPU: {
     label: "Pengetahuan & Pemahaman Umum",
@@ -58,6 +65,7 @@ export const SUBTEST_META: Record<
     color: "text-emerald-700",
     badgeBg: "bg-emerald-50 text-emerald-700",
     border: "border-emerald-200",
+    emoji: "💡",
   },
   PBM: {
     label: "Pemahaman Bacaan & Menulis",
@@ -65,6 +73,7 @@ export const SUBTEST_META: Record<
     color: "text-amber-700",
     badgeBg: "bg-amber-50 text-amber-700",
     border: "border-amber-200",
+    emoji: "✍️",
   },
   PK: {
     label: "Pengetahuan Kuantitatif",
@@ -72,6 +81,7 @@ export const SUBTEST_META: Record<
     color: "text-purple-700",
     badgeBg: "bg-purple-50 text-purple-700",
     border: "border-purple-200",
+    emoji: "🔢",
   },
   LBI: {
     label: "Literasi Bahasa Indonesia",
@@ -79,6 +89,7 @@ export const SUBTEST_META: Record<
     color: "text-red-700",
     badgeBg: "bg-red-50 text-red-700",
     border: "border-red-200",
+    emoji: "📖",
   },
   LBE: {
     label: "Literasi Bahasa Inggris",
@@ -86,6 +97,7 @@ export const SUBTEST_META: Record<
     color: "text-indigo-700",
     badgeBg: "bg-indigo-50 text-indigo-700",
     border: "border-indigo-200",
+    emoji: "🌐",
   },
   PM: {
     label: "Penalaran Matematika",
@@ -93,5 +105,20 @@ export const SUBTEST_META: Record<
     color: "text-teal-700",
     badgeBg: "bg-teal-50 text-teal-700",
     border: "border-teal-200",
+    emoji: "📐",
   },
 };
+
+export function getSubtestMeta(subtest: string): SubtestMetaItem {
+  const code = (subtest || "").toUpperCase();
+  return (
+    SUBTEST_META[code] || {
+      label: subtest || "Umum",
+      code: code || "UTBK",
+      color: "text-zinc-700",
+      badgeBg: "bg-zinc-100 text-zinc-700",
+      border: "border-zinc-200",
+      emoji: "📝",
+    }
+  );
+}
