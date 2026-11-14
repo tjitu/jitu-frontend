@@ -31,6 +31,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -650,6 +651,9 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                     <DialogTitle className="text-[18px] sm:text-[20px] font-bold text-text">
                       {activePackageModal.title}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                      {`Pratinjau naskah soal asli UTBK ${activePackageModal.year} untuk subtes ${activePackageModal.subtest}`}
+                    </DialogDescription>
                   </div>
                 </div>
 
@@ -1152,6 +1156,11 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
           <DialogTitle className="sr-only">
             {activePackageModal ? activePackageModal.title : "Workbench Simulasi Soal Asli"}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {activePackageModal
+              ? `Simulasi latihan soal asli UTBK ${activePackageModal.year} untuk subtes ${activePackageModal.subtest}`
+              : "Simulasi latihan dan pengerjaan soal asli UTBK"}
+          </DialogDescription>
           {activePackageModal && (
             <div className="flex flex-col h-full overflow-hidden">
               {/* Exam Header: Title, Live Timer, Counter, and Actions */}
@@ -1448,13 +1457,13 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
               <Award className="w-5 h-5 text-primary" />
               <span>Ringkasan Sesi Latihan</span>
             </DialogTitle>
+            <DialogDescription className="text-[14px] text-text-body mt-2">
+              Kamu telah mengerjakan paket <strong>{activePackageModal?.title}</strong>. Berikut
+              status pengisian jawabanmu:
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <p className="text-[14px] text-text-body">
-              Kamu telah mengerjakan paket <strong>{activePackageModal?.title}</strong>. Berikut
-              status pengisian jawabanmu:
-            </p>
 
             <div className="grid grid-cols-3 gap-2.5 p-3 rounded-xl bg-surface-muted border border-border text-center">
               <div>
