@@ -28,6 +28,7 @@ import { getAllUsers, getUserStats, deleteUser } from "@/lib/api/AdminUserApi";
 import { toast } from "sonner";
 import { TokenAdjustmentDialog } from "./components/TokenAdjustmentDialog";
 import { EditUserDialog } from "./components/EditUserDialog";
+import { formatPtnTargetDisplay } from "@/lib/target";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {
@@ -223,7 +224,7 @@ const AdminUserModule = () => {
                       {user.email}
                     </TableCell>
                     <TableCell className="text-xs">
-                      {user.target || "-"}
+                      {user.target ? formatPtnTargetDisplay(user.target) : "-"}
                     </TableCell>
                     <TableCell>
                       <Badge

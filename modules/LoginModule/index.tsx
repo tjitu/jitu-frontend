@@ -25,6 +25,16 @@ const LoginModule = () => {
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isInactiveLogout = sessionStorage.getItem("jitu_inactivity_logout");
+      if (isInactiveLogout) {
+        sessionStorage.removeItem("jitu_inactivity_logout");
+        toast.info("Sesi kamu telah berakhir karena tidak ada aktivitas selama 12 jam. Silakan masuk kembali.");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (!isPending && session) {
       if ((session.user as unknown as UserWithRole).role === "ADMIN") {
         router.push("/admin");

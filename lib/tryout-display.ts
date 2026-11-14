@@ -54,13 +54,14 @@ export function formatTryoutDateRange(
   const start = startInput ? new Date(startInput) : null;
   const end = endInput ? new Date(endInput) : null;
   const validStart = start && !Number.isNaN(start.getTime()) ? start : null;
-  const validEnd = end && !Number.isNaN(end.getTime()) ? end : null;
+  let validEnd = end && !Number.isNaN(end.getTime()) ? end : null;
 
   if (!validStart && !validEnd) return "Jadwal segera diumumkan";
+
+  // If start is set but end is missing, fallback to 195 mins (3h 15m standard UTBK duration)
   if (validStart && !validEnd) {
-    return `${formatWibDatePart(validStart)}, ${formatWibTimePart(validStart)} WIB`;
-  }
-  if (!validStart && validEnd) {
+    validEnd = new Date(validStart.getTime() + 195 * 60 * 1000);
+  } else if (!validStart && validEnd) {
     return `s.d. ${formatWibDatePart(validEnd)}, ${formatWibTimePart(validEnd)} WIB`;
   }
 
@@ -74,4 +75,32 @@ export function formatTryoutDateRange(
   }
 
   return `${startDateStr}, ${startTimeStr} – ${endDateStr}, ${endTimeStr} WIB`;
+}
+
+export function formatTryoutScheduleDetails(
+  startInput?: Date | string | null,
+  endInput?: Date | string | null,
+): { startStr: string; endStr: string } {
+  if (!startInput && !endInput) {
+    return { startStr: "Segera diumumkan", endStr: "Segera diumumkan" };
+  }
+
+  const start = startInput ? new Date(startInput) : null;
+  const validStart = start && !Number.isNaN(start.getTime()) ? start : null;
+
+  let end = endInput ? new Date(endInput) : null;
+  let validEnd = end && !Number.isNaN(end.getTime()) ? end : null;
+
+  if (validStart && !validEnd) {
+    validEnd = new Date(validStart.getTime() + 195 * 60 * 1000);
+  }
+
+  return {
+    startStr: validStart
+      ? `${formatWibDatePart(validStart)}, ${formatWibTimePart(validStart)} WIB`
+      : "Segera diumumkan",
+    endStr: validEnd
+      ? `${formatWibDatePart(validEnd)}, ${formatWibTimePart(validEnd)} WIB`
+      : "S.d. Selesai",
+  };
 }

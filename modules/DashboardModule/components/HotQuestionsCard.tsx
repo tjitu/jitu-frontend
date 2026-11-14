@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
+  Lock,
   Sparkles,
 } from "lucide-react";
 import { getFirebaseAuth } from "@/lib/firebase";
@@ -251,13 +252,13 @@ export function HotQuestionsCard() {
               <span>Kerjakan soal</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
             </Link>
-            <Link
-              href="/daily-streak"
-              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface hover:bg-surface-muted text-text text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
+            <div
+              title="Fitur Soal Harian sedang dikunci"
+              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface-muted/40 text-text-muted text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed select-none"
             >
-              <Flame className="w-3.5 h-3.5 text-yellow-500 stroke-[2]" />
+              <Lock className="w-3.5 h-3.5 text-text-muted" />
               <span>Soal harian</span>
-            </Link>
+            </div>
           </div>
 
           {/* Bottom Swipe Dots + Stepper */}
@@ -336,13 +337,13 @@ export function HotQuestionsCard() {
               <span>Buka latihan</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
             </Link>
-            <Link
-              href="/daily-streak"
-              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface hover:bg-surface-muted text-text text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
+            <div
+              title="Fitur Soal Harian sedang dikunci"
+              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface-muted/40 text-text-muted text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed select-none"
             >
-              <Flame className="w-3.5 h-3.5 text-yellow-500 stroke-[2]" />
+              <Lock className="w-3.5 h-3.5 text-text-muted" />
               <span>Soal harian</span>
-            </Link>
+            </div>
           </div>
         </div>
       )}

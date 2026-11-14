@@ -38,6 +38,10 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut, changePassword, setPassword, refreshSession } from "@/lib/auth-client";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { PtnTargets, parsePtnTargets, serializePtnTargets } from "@/lib/target";
+import { UniversityLogo } from "@/components/UniversityLogo";
+import { ProfileStreakWidget } from "./components/ProfileStreakWidget";
+import { ProfileEditModal } from "./components/ProfileEditModal";
 
 interface Attempt {
   id: string;
@@ -80,7 +84,6 @@ export default function ProfileModule() {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState({ name: "", target: "" });
 
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
@@ -146,11 +149,6 @@ export default function ProfileModule() {
             attempts: nextAttempts,
             fetchedAt: Date.now(),
           };
-
-          setFormData({
-            name: session.user.name || "",
-            target: (session.user as any).target || "",
-          });
         }
       } catch (error) {
         console.error("Gagal memuat data profil:", error);
@@ -182,6 +180,7 @@ export default function ProfileModule() {
     target: (session.user as any).target || "Belum diatur",
     tokenBalance: (session.user as any).tokenBalance || 0,
   };
+  const ptnTargets = parsePtnTargets((session.user as any)?.target);
 
   const handleLogout = async () => {
     await signOut({
@@ -195,27 +194,28 @@ export default function ProfileModule() {
   };
 
   const openEditModal = () => {
-    setFormData({
-      name: user.name,
-      target: user.target === "Belum diatur" ? "" : user.target,
-    });
     setIsEditOpen(true);
   };
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = async (name: string, targets: PtnTargets) => {
     setIsSaving(true);
     try {
+      const serializedTarget = serializePtnTargets(targets);
+
       const res = await fetch(`${BACKEND_URL}/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name,
+          target: serializedTarget,
+        }),
       });
 
       if (!res.ok) throw new Error("Gagal menyimpan profil.");
 
-      toast.success("Profil disimpan.");
+      toast.success("Profil berhasil diperbarui.");
       setIsEditOpen(false);
       await refreshSession();
       router.refresh();
@@ -352,10 +352,63 @@ export default function ProfileModule() {
               {user.email}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="default">
-                <Target size={12} className="mr-1.5" />
-                Target: {user.target}
-              </Badge>
+              {ptnTargets.pilihan1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={openEditModal}
+                    title="Klik untuk ubah target PTN"
+                    className="h-6 px-2.5 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer"
+                  >
+                    <UniversityLogo
+                      logo={ptnTargets.pilihan1.logo}
+                      acronym={ptnTargets.pilihan1.acronym}
+                      size={14}
+                    />
+                    <span>Pil 1: {ptnTargets.pilihan1.acronym || ptnTargets.pilihan1.university} · {ptnTargets.pilihan1.jurusan}</span>
+                  </button>
+                  {ptnTargets.pilihan2 && (
+                    <button
+                      type="button"
+                      onClick={openEditModal}
+                      title="Klik untuk ubah target PTN"
+                      className="h-6 px-2.5 rounded-full text-xs font-medium inline-flex items-center gap-1.5 bg-surface text-text-body border border-border hover:bg-surface-muted transition-colors cursor-pointer"
+                    >
+                      <UniversityLogo
+                        logo={ptnTargets.pilihan2.logo}
+                        acronym={ptnTargets.pilihan2.acronym}
+                        size={14}
+                      />
+                      <span>Pil 2: {ptnTargets.pilihan2.acronym || ptnTargets.pilihan2.university} · {ptnTargets.pilihan2.jurusan}</span>
+                    </button>
+                  )}
+                  {ptnTargets.pilihan3 && (
+                    <button
+                      type="button"
+                      onClick={openEditModal}
+                      title="Klik untuk ubah target PTN"
+                      className="h-6 px-2.5 rounded-full text-xs font-medium inline-flex items-center gap-1.5 bg-surface text-text-body border border-border hover:bg-surface-muted transition-colors cursor-pointer"
+                    >
+                      <UniversityLogo
+                        logo={ptnTargets.pilihan3.logo}
+                        acronym={ptnTargets.pilihan3.acronym}
+                        size={14}
+                      />
+                      <span>Pil 3: {ptnTargets.pilihan3.acronym || ptnTargets.pilihan3.university} · {ptnTargets.pilihan3.jurusan}</span>
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openEditModal}
+                  title="Klik untuk mengatur 3 pilihan target PTN kamu"
+                  className="h-6 px-2.5 rounded-full text-xs font-medium inline-flex items-center gap-1.5 bg-surface text-text-body border border-dashed border-primary/60 hover:border-primary hover:bg-blue-50 hover:text-primary transition-colors cursor-pointer group"
+                >
+                  <Target size={12} className="text-primary group-hover:scale-110 transition-transform" />
+                  <span>Target PTN belum diatur (Atur sekarang)</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => router.push("/shop")}
@@ -368,14 +421,7 @@ export default function ProfileModule() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2.5">
-          <Button variant="outline" onClick={() => router.push("/shop")}>
-            Shop
-          </Button>
-          <Button variant="primary" onClick={() => router.push("/tryout")}>
-            Pilih tryout
-          </Button>
-        </div>
+        <ProfileStreakWidget streak={stats.streak} />
       </div>
 
       {/* Body Grid */}
@@ -465,6 +511,66 @@ export default function ProfileModule() {
                     {stats.totalTryout}
                   </div>
                 </div>
+              </div>
+
+              {/* Target PTN Card on Overview */}
+              <div className="bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    <h4 className="text-sm font-bold text-text">Target PTN Impian (3 Pilihan SNBT)</h4>
+                  </div>
+                  <div className="text-xs text-text-body">
+                    {ptnTargets.pilihan1 ? (
+                      <div className="flex flex-wrap items-center gap-3 pt-1.5">
+                        <div className="flex items-center gap-1.5 font-semibold text-primary">
+                          <UniversityLogo
+                            logo={ptnTargets.pilihan1.logo}
+                            acronym={ptnTargets.pilihan1.acronym}
+                            size={16}
+                          />
+                          <span>
+                            Pil 1: {ptnTargets.pilihan1.acronym || ptnTargets.pilihan1.university} - {ptnTargets.pilihan1.jurusan}
+                          </span>
+                        </div>
+                        {ptnTargets.pilihan2 && (
+                          <div className="flex items-center gap-1.5 text-text-muted">
+                            <span>·</span>
+                            <UniversityLogo
+                              logo={ptnTargets.pilihan2.logo}
+                              acronym={ptnTargets.pilihan2.acronym}
+                              size={16}
+                            />
+                            <span>
+                              Pil 2: {ptnTargets.pilihan2.acronym || ptnTargets.pilihan2.university} - {ptnTargets.pilihan2.jurusan}
+                            </span>
+                          </div>
+                        )}
+                        {ptnTargets.pilihan3 && (
+                          <div className="flex items-center gap-1.5 text-text-muted">
+                            <span>·</span>
+                            <UniversityLogo
+                              logo={ptnTargets.pilihan3.logo}
+                              acronym={ptnTargets.pilihan3.acronym}
+                              size={16}
+                            />
+                            <span>
+                              Pil 3: {ptnTargets.pilihan3.acronym || ptnTargets.pilihan3.university} - {ptnTargets.pilihan3.jurusan}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-text-muted italic">
+                        Belum ada target PTN yang diatur. Tentukan 3 kampus &amp; prodi impianmu untuk melihat peluang kelulusan.
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={openEditModal} className="shrink-0 text-xs gap-1.5 self-start sm:self-center">
+                  <Edit3 size={13} />
+                  {ptnTargets.pilihan1 ? "Ubah Target PTN" : "Atur Target PTN"}
+                </Button>
               </div>
 
               {stats.totalTryout === 0 && (
@@ -584,18 +690,91 @@ export default function ProfileModule() {
                     </div>
                   </div>
                   <div>
-                    <Label>Target kampus &amp; prodi</Label>
-                    <div className="p-3 rounded-md border border-border bg-surface-muted text-text text-sm font-medium">
-                      {user.target}
+                    <Label>Email terdaftar</Label>
+                    <div className="p-3 rounded-md border border-border bg-surface-muted text-text text-sm flex items-center justify-between">
+                      <span className="font-mono text-xs">{user.email}</span>
+                      <Badge variant="success">Aktif</Badge>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <Label>Email terdaftar</Label>
-                  <div className="p-3 rounded-md border border-border bg-surface-muted text-text text-sm flex items-center justify-between">
-                    <span className="font-mono text-xs">{user.email}</span>
-                    <Badge variant="success">Aktif</Badge>
+                {/* Target PTN & Program Studi (Pilihan 1, 2, 3) */}
+                <div className="pt-4 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-semibold text-text flex items-center gap-2">
+                        <Target className="w-4 h-4 text-primary" />
+                        Target PTN &amp; Program Studi
+                      </Label>
+                      <p className="text-xs text-text-muted mt-0.5">
+                        3 Pilihan kampus dan jurusan impianmu untuk persiapan SNBT
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={openEditModal} className="text-xs text-primary">
+                      Ubah Target
+                    </Button>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="p-3 rounded-lg border border-border bg-surface-muted space-y-1.5">
+                      <div className="text-[11px] font-mono uppercase tracking-wider text-primary font-bold">
+                        Pilihan 1 (Utama)
+                      </div>
+                      {ptnTargets.pilihan1 ? (
+                        <div className="flex items-center gap-2">
+                          <UniversityLogo
+                            logo={ptnTargets.pilihan1.logo}
+                            acronym={ptnTargets.pilihan1.acronym}
+                            size={20}
+                          />
+                          <div className="text-xs font-semibold text-text leading-tight">
+                            <div>{ptnTargets.pilihan1.acronym || ptnTargets.pilihan1.university}</div>
+                            <div className="text-text-muted font-normal text-[11px]">{ptnTargets.pilihan1.jurusan}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-text-muted italic text-xs">Belum diatur</div>
+                      )}
+                    </div>
+                    <div className="p-3 rounded-lg border border-border bg-surface-muted space-y-1.5">
+                      <div className="text-[11px] font-mono uppercase tracking-wider text-text-muted font-bold">
+                        Pilihan 2 (Opsional)
+                      </div>
+                      {ptnTargets.pilihan2 ? (
+                        <div className="flex items-center gap-2">
+                          <UniversityLogo
+                            logo={ptnTargets.pilihan2.logo}
+                            acronym={ptnTargets.pilihan2.acronym}
+                            size={20}
+                          />
+                          <div className="text-xs font-semibold text-text leading-tight">
+                            <div>{ptnTargets.pilihan2.acronym || ptnTargets.pilihan2.university}</div>
+                            <div className="text-text-muted font-normal text-[11px]">{ptnTargets.pilihan2.jurusan}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-text-muted italic text-xs">Belum diatur</div>
+                      )}
+                    </div>
+                    <div className="p-3 rounded-lg border border-border bg-surface-muted space-y-1.5">
+                      <div className="text-[11px] font-mono uppercase tracking-wider text-text-muted font-bold">
+                        Pilihan 3 (Opsional)
+                      </div>
+                      {ptnTargets.pilihan3 ? (
+                        <div className="flex items-center gap-2">
+                          <UniversityLogo
+                            logo={ptnTargets.pilihan3.logo}
+                            acronym={ptnTargets.pilihan3.acronym}
+                            size={20}
+                          />
+                          <div className="text-xs font-semibold text-text leading-tight">
+                            <div>{ptnTargets.pilihan3.acronym || ptnTargets.pilihan3.university}</div>
+                            <div className="text-text-muted font-normal text-[11px]">{ptnTargets.pilihan3.jurusan}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-text-muted italic text-xs">Belum diatur</div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -620,51 +799,14 @@ export default function ProfileModule() {
       </div>
 
       {/* Edit Profile Modal */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Ubah profil</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-3">
-            <div>
-              <Label htmlFor="name">Nama lengkap</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder="Nama lengkap kamu"
-              />
-            </div>
-            <div>
-              <Label htmlFor="target">Target kampus / prodi</Label>
-              <Input
-                id="target"
-                value={formData.target}
-                onChange={(e) =>
-                  setFormData({ ...formData, target: e.target.value })
-                }
-                placeholder="Contoh: STEI ITB · Informatika"
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <DialogClose asChild>
-              <Button variant="outline" type="button">
-                Batal
-              </Button>
-            </DialogClose>
-            <Button
-              variant="default"
-              onClick={handleSaveProfile}
-              disabled={isSaving}
-            >
-              {isSaving ? "Menyimpan..." : "Simpan"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ProfileEditModal
+        isOpen={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        initialName={user.name}
+        initialTargets={ptnTargets}
+        onSave={handleSaveProfile}
+        isSaving={isSaving}
+      />
 
       {/* Change Password Modal */}
       <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>

@@ -29,6 +29,7 @@ import { subtests } from "./payload";
 import { ScoreData } from "./interface";
 import { UserWithRole } from "@/lib/types";
 import { useSession, refreshSession } from "@/lib/auth-client";
+import { getPtnTargetSummary } from "@/lib/target";
 import {
   getUserStats,
   getOngoingTryouts,
@@ -54,6 +55,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
 import {
   formatTryoutDateRange,
+  formatTryoutScheduleDetails,
   getDisplayedParticipants,
 } from "@/lib/tryout-display";
 import { HotQuestionsCard } from "./components/HotQuestionsCard";
@@ -500,15 +502,15 @@ const DashboardModule = () => {
               <Link
                 href="/profile"
                 className={`h-6 px-2.5 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 border transition-colors ${
-                  session.user.target
+                  session.user.target && getPtnTargetSummary(session.user.target) !== "Belum diatur"
                     ? "bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100"
                     : "bg-surface-muted text-text-body border-border hover:border-blue-300 hover:text-text"
                 }`}
               >
                 <Target className="w-3.5 h-3.5 text-primary stroke-[1.75]" />
                 <span>
-                  {session.user.target
-                    ? `Target: ${session.user.target}`
+                  {session.user.target && getPtnTargetSummary(session.user.target) !== "Belum diatur"
+                    ? `Target: ${getPtnTargetSummary(session.user.target)}`
                     : "Atur target PTN"}
                 </span>
               </Link>
@@ -587,7 +589,7 @@ const DashboardModule = () => {
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
                     <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
-                    <span>Simulasi Penuh 7 Subtes · Sistem IRT</span>
+                    <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
                   </div>
 
                   <h2 className="text-[22px] sm:text-[24px] font-bold text-text leading-snug tracking-[-0.015em]">
@@ -599,15 +601,40 @@ const DashboardModule = () => {
                       "Simulasi UTBK-SNBT lengkap mencakup 7 subtes TPS & Literasi dengan timer resmi, pemeringkatan nasional, dan analisis skor IRT."}
                   </p>
 
-                  <div className="pt-1 flex flex-wrap items-center gap-2 text-[13px] text-text-body font-medium tabular-nums">
-                    <Calendar className="w-4 h-4 stroke-[1.75] text-primary shrink-0" />
-                    <span>
-                      {formatTryoutDateRange(
-                        featuredTryout.scheduledStart,
-                        featuredTryout.scheduledEnd
-                      )}
-                    </span>
-                  </div>
+                  {(() => {
+                    const schedule = formatTryoutScheduleDetails(
+                      featuredTryout.scheduledStart,
+                      featuredTryout.scheduledEnd
+                    );
+                    return (
+                      <div className="pt-1 relative flex flex-col gap-2 text-[12.5px] text-text-body font-medium tabular-nums">
+                        {/* Connecting line between timeline nodes */}
+                        <div className="absolute left-[9px] top-[14px] bottom-[14px] w-[1.5px] bg-blue-100" />
+
+                        {/* Mulai */}
+                        <div className="flex items-center gap-2.5 relative z-10">
+                          <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                            <Calendar className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
+                          </div>
+                          <div className="flex items-baseline gap-1.5 leading-none">
+                            <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Mulai</span>
+                            <span className="font-semibold text-text">{schedule.startStr}</span>
+                          </div>
+                        </div>
+
+                        {/* Selesai */}
+                        <div className="flex items-center gap-2.5 relative z-10">
+                          <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                            <Clock className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
+                          </div>
+                          <div className="flex items-baseline gap-1.5 leading-none">
+                            <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Selesai</span>
+                            <span className="font-semibold text-text">{schedule.endStr}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
@@ -886,7 +913,7 @@ const DashboardModule = () => {
                         <div className="space-y-3">
                           <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
                             <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
-                            <span>Simulasi Penuh 7 Subtes · Sistem IRT</span>
+                            <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
                           </div>
 
                           <h3 className="text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
@@ -898,15 +925,40 @@ const DashboardModule = () => {
                               "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
                           </p>
 
-                          <div className="pt-1 flex flex-wrap items-center gap-2 text-[13px] text-text-body font-medium tabular-nums">
-                            <Calendar className="w-4 h-4 stroke-[1.75] text-primary shrink-0" />
-                            <span>
-                              {formatTryoutDateRange(
-                                tryout.scheduledStart,
-                                tryout.scheduledEnd
-                              )}
-                            </span>
-                          </div>
+                          {(() => {
+                            const schedule = formatTryoutScheduleDetails(
+                              tryout.scheduledStart,
+                              tryout.scheduledEnd
+                            );
+                            return (
+                              <div className="pt-1 relative flex flex-col gap-2 text-[12.5px] text-text-body font-medium tabular-nums">
+                                {/* Connecting line between timeline nodes */}
+                                <div className="absolute left-[9px] top-[14px] bottom-[14px] w-[1.5px] bg-blue-100" />
+
+                                {/* Mulai */}
+                                <div className="flex items-center gap-2.5 relative z-10">
+                                  <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                                    <Calendar className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
+                                  </div>
+                                  <div className="flex items-baseline gap-1.5 leading-none">
+                                    <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Mulai</span>
+                                    <span className="font-semibold text-text">{schedule.startStr}</span>
+                                  </div>
+                                </div>
+
+                                {/* Selesai */}
+                                <div className="flex items-center gap-2.5 relative z-10">
+                                  <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                                    <Clock className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
+                                  </div>
+                                  <div className="flex items-baseline gap-1.5 leading-none">
+                                    <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Selesai</span>
+                                    <span className="font-semibold text-text">{schedule.endStr}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         <Button
@@ -992,7 +1044,7 @@ const DashboardModule = () => {
                       <div className="space-y-3">
                         <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
                           <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
-                          <span>Simulasi Penuh 7 Subtes · Sistem IRT</span>
+                          <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
                         </div>
 
                         <h3 className="text-[20px] font-bold text-text leading-snug tracking-[-0.015em]">
@@ -1004,32 +1056,53 @@ const DashboardModule = () => {
                             "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
                         </p>
 
-                        <div className="pt-1 flex flex-wrap items-center gap-2 text-[13px] text-text-body font-medium tabular-nums">
-                          <Calendar className="w-4 h-4 stroke-[1.75] text-primary shrink-0" />
-                          <span>
-                            {formatTryoutDateRange(
-                              tryout.scheduledStart,
-                              tryout.scheduledEnd
-                            )}
-                          </span>
-                        </div>
+                        {(() => {
+                          const schedule = formatTryoutScheduleDetails(
+                            tryout.scheduledStart,
+                            tryout.scheduledEnd
+                          );
+                          return (
+                            <div className="pt-1 relative flex flex-col gap-2 text-[12.5px] text-text-body font-medium tabular-nums">
+                              {/* Connecting line between timeline nodes */}
+                              <div className="absolute left-[9px] top-[14px] bottom-[14px] w-[1.5px] bg-blue-100" />
+
+                              {/* Mulai */}
+                              <div className="flex items-center gap-2.5 relative z-10">
+                                <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                                  <Calendar className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
+                                </div>
+                                <div className="flex items-baseline gap-1.5 leading-none">
+                                  <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Mulai</span>
+                                  <span className="font-semibold text-text">{schedule.startStr}</span>
+                                </div>
+                              </div>
+
+                              {/* Selesai */}
+                              <div className="flex items-center gap-2.5 relative z-10">
+                                <div className="w-[19px] h-[19px] rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                                  <Clock className="w-2.5 h-2.5 text-primary stroke-[2.2]" />
+                                </div>
+                                <div className="flex items-baseline gap-1.5 leading-none">
+                                  <span className="text-text-muted text-[11.5px] uppercase tracking-wider font-semibold">Selesai</span>
+                                  <span className="font-semibold text-text">{schedule.endStr}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className="w-full group/btn transition-transform duration-150 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
                         <Button
                           variant="primary"
-                          className="relative w-full justify-between overflow-hidden shadow-md transition-[background-color,box-shadow] duration-150 hover:shadow-lg"
+                          className="w-full justify-between"
                           onClick={() =>
                             handleRegisterClick(tryout as OngoingTryout)
                           }
                         >
-                          <span
-                            aria-hidden="true"
-                            className="animate-pass-shimmer pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-blue-200/35 to-transparent"
-                          />
-                          <span className="relative z-10 font-bold">Daftar gratis</span>
+                          <span className="font-bold">Daftar gratis</span>
                           <ArrowRight
-                            className="relative z-10 w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
+                            className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                             aria-hidden="true"
                           />
                         </Button>

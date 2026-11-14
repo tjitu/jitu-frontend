@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import Navbar from "@/components/elements/Navbar/Navbar";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const HIDDEN_NAVBAR_ROUTES = ["/"];
 
@@ -12,13 +12,10 @@ function MainLayoutInner({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const isExamOrBreak =
     pathname.includes("/exam/") || pathname.includes("/break/");
-  const isLandingArsip =
-    pathname === "/arsip-soal" && searchParams.get("from") === "landing";
   const hideNavbar =
-    HIDDEN_NAVBAR_ROUTES.includes(pathname) || isExamOrBreak || isLandingArsip;
+    HIDDEN_NAVBAR_ROUTES.includes(pathname) || isExamOrBreak;
 
   return (
     <div className="min-h-screen w-full bg-bg text-text-body flex flex-col">

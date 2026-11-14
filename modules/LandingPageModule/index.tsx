@@ -258,7 +258,6 @@ function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   const navLinks = [
     { href: "#jadwal", label: "Tryout" },
-    { href: "/arsip-soal?from=landing", label: "Soal Asli", isRoute: true },
     { href: "#belajar", label: "Belajar" },
     { href: "#latihan", label: "Latihan" },
     { href: "/blog", label: "Blog", isRoute: true },
@@ -1927,12 +1926,6 @@ const LandingPageModule = () => {
               >
                 Jadwal
               </a>
-              <Link
-                href="/arsip-soal?from=landing"
-                className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
-              >
-                Soal Asli
-              </Link>
               <a
                 href="#faq"
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"

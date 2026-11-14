@@ -18,6 +18,8 @@ export async function GET() {
         "createdAt",
         0 as participants
       FROM "TryOut"
+      WHERE "isPublic" = true
+        AND COALESCE(curation_status, 'PUBLISHED') = 'PUBLISHED'
       ORDER BY "createdAt" DESC
       LIMIT 10
     `);

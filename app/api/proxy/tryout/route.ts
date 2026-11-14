@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedAppUser(request).catch(() => null);
     const pool = getDbPool();
+    const isAdmin = user?.role === "ADMIN";
+    const curationFilter = isAdmin ? "" : `AND COALESCE(t.curation_status, 'PUBLISHED') = 'PUBLISHED'`;
 
     const query = user?.id
       ? `
@@ -26,6 +28,7 @@ export async function GET(request: NextRequest) {
         FROM "TryOut" t
         LEFT JOIN "TryOutAttempt" a ON a.try_out_id = t.id
         WHERE t."isPublic" = true
+          ${curationFilter}
         GROUP BY t.id, t.title, t.code, t.batch, t."solutionPrice", t."isPublic", t."scheduledStart", t."scheduledEnd"
         ORDER BY t."scheduledStart" DESC NULLS LAST
       `
@@ -44,6 +47,7 @@ export async function GET(request: NextRequest) {
         FROM "TryOut" t
         LEFT JOIN "TryOutAttempt" a ON a.try_out_id = t.id
         WHERE t."isPublic" = true
+          ${curationFilter}
         GROUP BY t.id, t.title, t.code, t.batch, t."solutionPrice", t."isPublic", t."scheduledStart", t."scheduledEnd"
         ORDER BY t."scheduledStart" DESC NULLS LAST
       `;

@@ -45,3 +45,10 @@ next-env.d.ts
 
 repomix-output.*
 .vscode/
+
+
+# scratch & temporary test files
+scratch_*.*
+check_*.*
+*.scratch.*
+temp_*.*

@@ -28,6 +28,7 @@ import {
   LeaderboardEntry,
   TryoutStats,
 } from "@/lib/api/AdminResultApi";
+import { formatPtnTargetDisplay } from "@/lib/target";
 import { ScoreDistributionChart } from "./components/ScoreDistributionChart";
 import { toast } from "sonner";
 
@@ -212,7 +213,7 @@ const AdminTryoutResultModule: React.FC<AdminTryoutResultModuleProps> = ({
                         </div>
                       </TableCell>
                       <TableCell className="text-xs">
-                        {entry.user.target || "-"}
+                        {entry.user.target ? formatPtnTargetDisplay(entry.user.target) : "-"}
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm font-semibold text-text">
                         {Math.round(entry.totalScore)}
