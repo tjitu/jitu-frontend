@@ -305,30 +305,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     }
   };
 
-  const getYearSubtestsSummary = (pkgs: SoalAsliPackage[]) => {
-    const counts: Record<string, number> = {};
-    for (const pkg of pkgs) {
-      counts[pkg.subtest] = (counts[pkg.subtest] || 0) + 1;
-    }
-    const order = ["PU", "PPU", "PBM", "PK", "LBI", "LBE", "PM"];
-    return Object.entries(counts)
-      .map(([subtest, count]) => {
-        const info = getSubtestInfo(subtest);
-        return {
-          subtest,
-          count,
-          code: info.code,
-          label: info.name,
-          IconComponent: info.IconComponent,
-        };
-      })
-      .sort((a, b) => {
-        const idxA = order.indexOf(a.code);
-        const idxB = order.indexOf(b.code);
-        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
-      });
-  };
-
   const handleSelectOption = (questionId: string, optionId: string) => {
     setUserAnswers((prev) => {
       const updated = { ...prev, [questionId]: optionId };
@@ -999,7 +975,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
 
           {filteredYears.map((yg) => {
             const isExpanded = isYearExpanded(yg.year);
-            const subtestsSummary = getYearSubtestsSummary(yg.packages);
             return (
               <div
                 key={yg.year}
@@ -1017,36 +992,14 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                     <span className="font-mono text-[16px] sm:text-[17px] font-bold text-primary shrink-0 pt-0.5 sm:pt-0">
                       {yg.year}
                     </span>
-                    <div className="space-y-1.5 min-w-0">
-                      <div>
-                        <h2 className="text-[15px] sm:text-[16px] font-bold text-text">
-                          UTBK {yg.year}
-                        </h2>
-                        <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-1.5">
-                          <span>{yg.packages.length} Paket</span>
-                          <span>·</span>
-                          <span>{yg.totalQuestions} Butir Soal</span>
-                        </div>
-                      </div>
-
-                      {/* Package Subtests Representation */}
-                      <div className="flex flex-wrap items-center gap-3 pt-0.5">
-                        {subtestsSummary.map((sub) => {
-                          const Icon = sub.IconComponent;
-                          return (
-                            <span
-                              key={sub.code}
-                              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted"
-                              title={`${sub.label}: ${sub.count} paket`}
-                            >
-                              <Icon size={16} className="text-primary shrink-0" />
-                              <span className="font-semibold text-text">{sub.code}</span>
-                              {sub.count > 1 && (
-                                <span className="text-[10px] text-text-muted font-mono">×{sub.count}</span>
-                              )}
-                            </span>
-                          );
-                        })}
+                    <div className="min-w-0">
+                      <h2 className="text-[15px] sm:text-[16px] font-bold text-text">
+                        UTBK {yg.year}
+                      </h2>
+                      <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-1.5 mt-0.5">
+                        <span>{yg.packages.length} Paket</span>
+                        <span>·</span>
+                        <span>{yg.totalQuestions} Butir Soal</span>
                       </div>
                     </div>
                   </div>
