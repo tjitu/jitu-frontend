@@ -131,6 +131,7 @@ const TryoutDetailModule = () => {
         isUnlocked={isUnlocked}
         finalScore={finalScore}
         onUnlockClick={() => setUnlockModalOpen(true)}
+        onStart={handleStart}
       />
 
       {/* Action Bar or Result Summary */}

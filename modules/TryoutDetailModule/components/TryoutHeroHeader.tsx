@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Clock, Lock, Plus } from "lucide-react";
+import { Clock, Lock, Plus, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { TryoutDetail } from "../interface";
 import { getDisplayedParticipants } from "@/lib/tryout-display";
 import { PRESET_AVATARS } from "@/lib/avatar";
@@ -13,6 +14,7 @@ interface TryoutHeroHeaderProps {
   isUnlocked?: boolean;
   finalScore?: number;
   onUnlockClick?: () => void;
+  onStart?: () => void;
 }
 
 function useCountdown(endDateStr?: string) {
@@ -81,6 +83,7 @@ export function TryoutHeroHeader({
   isUnlocked = false,
   finalScore = 0,
   onUnlockClick,
+  onStart,
 }: TryoutHeroHeaderProps) {
   const participantsCount = getDisplayedParticipants(
     tryoutData.id,
@@ -182,38 +185,62 @@ export function TryoutHeroHeader({
         </div>
       </div>
 
-      {/* Main Body: Benar, Salah, Kosong (Mid-aligned / Centered) */}
+      {/* Main Body: Benar, Salah, Kosong + Action Button */}
       <div className="p-6 sm:p-8">
-        <div className="flex items-center justify-center divide-x divide-border/60 max-w-xl mx-auto">
-          {/* 1. Benar (Warna Ijo) */}
-          <div className="flex-1 text-center px-4 space-y-1">
-            <div className="text-xs font-semibold text-text-muted">
-              Benar
+        <div
+          className={`flex flex-col sm:flex-row sm:items-center ${
+            isFinished && isUnlocked && onStart
+              ? "justify-between"
+              : "justify-center"
+          } gap-6`}
+        >
+          {/* Stats: Benar, Salah, Kosong */}
+          <div className="flex items-center divide-x divide-border/60 max-w-lg w-full sm:w-auto">
+            {/* 1. Benar (Warna Ijo) */}
+            <div className="flex-1 sm:w-32 text-center px-3 sm:px-6 space-y-1">
+              <div className="text-xs font-semibold text-text-muted">
+                Benar
+              </div>
+              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-emerald-600 tabular-nums">
+                {isFinished ? (tryoutData.correctCount ?? 0) : "-"}
+              </div>
             </div>
-            <div className="font-mono text-3xl sm:text-4xl font-extrabold text-emerald-600 tabular-nums">
-              {isFinished ? (tryoutData.correctCount ?? 0) : "-"}
+
+            {/* 2. Salah (Warna Merah) */}
+            <div className="flex-1 sm:w-32 text-center px-3 sm:px-6 space-y-1">
+              <div className="text-xs font-semibold text-text-muted">
+                Salah
+              </div>
+              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-rose-600 tabular-nums">
+                {isFinished ? (tryoutData.wrongCount ?? 0) : "-"}
+              </div>
+            </div>
+
+            {/* 3. Kosong (Item Agak Abu) */}
+            <div className="flex-1 sm:w-32 text-center px-3 sm:px-6 space-y-1">
+              <div className="text-xs font-semibold text-text-muted">
+                Kosong
+              </div>
+              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
+                {isFinished ? (tryoutData.emptyCount ?? 0) : "-"}
+              </div>
             </div>
           </div>
 
-          {/* 2. Salah (Warna Merah) */}
-          <div className="flex-1 text-center px-4 space-y-1">
-            <div className="text-xs font-semibold text-text-muted">
-              Salah
+          {/* Right: Lihat Pembahasan Lengkap Button */}
+          {isFinished && isUnlocked && onStart && (
+            <div className="shrink-0 w-full sm:w-auto">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={onStart}
+                className="w-full sm:w-auto font-semibold flex items-center justify-center gap-2"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Lihat Pembahasan Lengkap</span>
+              </Button>
             </div>
-            <div className="font-mono text-3xl sm:text-4xl font-extrabold text-rose-600 tabular-nums">
-              {isFinished ? (tryoutData.wrongCount ?? 0) : "-"}
-            </div>
-          </div>
-
-          {/* 3. Kosong (Item Agak Abu) */}
-          <div className="flex-1 text-center px-4 space-y-1">
-            <div className="text-xs font-semibold text-text-muted">
-              Kosong
-            </div>
-            <div className="font-mono text-3xl sm:text-4xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
-              {isFinished ? (tryoutData.emptyCount ?? 0) : "-"}
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
