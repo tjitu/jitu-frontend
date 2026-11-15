@@ -13,7 +13,6 @@ import { TryoutActionBar } from "./components/TryoutActionBar";
 import { SubtestListCard } from "./components/SubtestListCard";
 import { ExecutionPeriodCard } from "./components/ExecutionPeriodCard";
 import { TryoutResultSummary } from "./components/TryoutResultSummary";
-import { Leaderboard } from "@/components/elements/Leaderboard";
 import { useTryoutDetail } from "./hooks/useTryoutDetail";
 import { parsePtnTargets } from "@/lib/target";
 
@@ -155,14 +154,6 @@ const TryoutDetailModule = () => {
           onStart={handleStart}
           onRegister={handleRegister}
         />
-      )}
-
-      {/* Leaderboard only visible if user has finished their attempt AND leaderboardData exists */}
-      {isFinished && leaderboardData && <Leaderboard leaderboardData={leaderboardData} />}
-      {isFinished && leaderboardError && (
-        <div className="p-4 rounded-xl bg-danger-soft border border-danger/30 text-danger-text text-sm">
-          {leaderboardError}
-        </div>
       )}
 
       {/* Subtests & Execution Period Grid */}

@@ -27,16 +27,35 @@ export function getActiveTryoutSandboxToken(): string {
   }
 }
 
+export type LeaderboardChoice1 = {
+  rank: number;
+  totalParticipants: number;
+  uniId?: string;
+  university?: string;
+  acronym?: string;
+  jurusan?: string;
+  logo?: string;
+};
+
 export type LeaderboardItem = {
   rank: number;
+  userId?: string;
   name: string;
   score: number;
   isCurrentUser: boolean;
+  target?: string | null;
+  pilihan1?: LeaderboardChoice1 | null;
 };
 
 export type LeaderboardData = {
   top10: LeaderboardItem[];
-  currentUserRank: LeaderboardItem | null;
+  all?: LeaderboardItem[];
+  currentUserRank: (LeaderboardItem & {
+    totalParticipants?: number;
+    choice1?: LeaderboardChoice1 | null;
+  }) | null;
+  totalParticipants?: number;
+  isOngoing?: boolean;
 };
 
 const extractTryoutApiError = async (

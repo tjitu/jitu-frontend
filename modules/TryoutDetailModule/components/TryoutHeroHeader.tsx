@@ -194,10 +194,10 @@ export function TryoutHeroHeader({
               : "justify-center"
           } gap-6`}
         >
-          {/* Stats: Benar, Salah, Kosong */}
-          <div className="flex items-center divide-x divide-border/60 max-w-lg w-full sm:w-auto">
+          {/* Stats: Benar, Salah, Kosong, Skor IRT */}
+          <div className="flex items-center divide-x divide-border/60 max-w-xl w-full sm:w-auto">
             {/* 1. Benar (Warna Ijo) */}
-            <div className="flex-1 sm:w-32 text-center px-3 sm:px-6 space-y-1">
+            <div className="flex-1 sm:w-28 md:w-32 text-center px-2 sm:px-5 space-y-1">
               <div className="text-xs font-semibold text-text-muted">
                 Benar
               </div>
@@ -207,7 +207,7 @@ export function TryoutHeroHeader({
             </div>
 
             {/* 2. Salah (Warna Merah) */}
-            <div className="flex-1 sm:w-32 text-center px-3 sm:px-6 space-y-1">
+            <div className="flex-1 sm:w-28 md:w-32 text-center px-2 sm:px-5 space-y-1">
               <div className="text-xs font-semibold text-text-muted">
                 Salah
               </div>
@@ -217,12 +217,22 @@ export function TryoutHeroHeader({
             </div>
 
             {/* 3. Kosong (Item Agak Abu) */}
-            <div className="flex-1 sm:w-32 text-center px-3 sm:px-6 space-y-1">
+            <div className="flex-1 sm:w-28 md:w-32 text-center px-2 sm:px-5 space-y-1">
               <div className="text-xs font-semibold text-text-muted">
                 Kosong
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
                 {isFinished ? (tryoutData.emptyCount ?? 0) : "-"}
+              </div>
+            </div>
+
+            {/* 4. Skor IRT */}
+            <div className="flex-1 sm:w-28 md:w-32 text-center px-2 sm:px-5 space-y-1">
+              <div className="text-xs font-semibold text-text-muted">
+                Skor IRT
+              </div>
+              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-primary tabular-nums">
+                {isFinished ? (isUnlocked ? finalScore : "???") : "-"}
               </div>
             </div>
           </div>

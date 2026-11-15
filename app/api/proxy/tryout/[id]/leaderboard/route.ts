@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
+import { parsePtnTargets, PtnChoice } from "@/lib/target";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -10,6 +11,7 @@ type TryoutParams = { params: Promise<{ id: string }> };
 interface FinishedAttemptRow {
   userId: string;
   userName: string | null;
+  target: string | null;
   totalScore: number | string | null;
   finishedAt: Date | string | null;
 }
@@ -40,26 +42,15 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       );
     }
 
-    if (!tryout.scheduledEnd) {
-      return NextResponse.json(
-        { message: "Leaderboard tidak tersedia untuk tryout ini." },
-        { status: 403 },
-      );
-    }
-
-    const scheduledEndDate = new Date(tryout.scheduledEnd);
-    if (new Date() < scheduledEndDate) {
-      return NextResponse.json(
-        { message: "Leaderboard akan tersedia setelah masa tryout berakhir." },
-        { status: 403 },
-      );
-    }
+    const scheduledEndDate = tryout.scheduledEnd ? new Date(tryout.scheduledEnd) : null;
+    const isEnded = scheduledEndDate ? new Date() >= scheduledEndDate : true;
 
     let attempts: FinishedAttemptRow[] = [];
     try {
       const { rows } = await pool.query<FinishedAttemptRow>(
         `SELECT a."userId" AS "userId",
                 u.name AS "userName",
+                u.target AS "target",
                 a.total_score AS "totalScore",
                 a.finished_at AS "finishedAt"
          FROM "TryOutAttempt" a
@@ -76,6 +67,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       const { rows } = await pool.query<FinishedAttemptRow>(
         `SELECT a."userId" AS "userId",
                 u.name AS "userName",
+                u.target AS "target",
                 a.total_score AS "totalScore",
                 a.finished_at AS "finishedAt"
          FROM "TryOutAttempt" a
@@ -88,39 +80,117 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       attempts = rows;
     }
 
-    const eligibleAttempts = attempts.filter(
-      (attempt) =>
-        attempt.finishedAt && new Date(attempt.finishedAt) <= scheduledEndDate,
-    );
+    const userHasFinished = attempts.some((a) => a.userId === user.id);
+    const isAdmin = user.role === "ADMIN";
 
-    const officialLeaderboard = eligibleAttempts.map((attempt, index) => ({
-      rank: index + 1,
-      name: attempt.userName || "Peserta",
-      score: Math.round(Number(attempt.totalScore) || 0),
-      isCurrentUser: attempt.userId === user.id,
-    }));
+    // If tryout has not ended and user hasn't finished, hide leaderboard to prevent spoilers
+    if (!isEnded && !userHasFinished && !isAdmin) {
+      return NextResponse.json(
+        { message: "Selesaikan tryout terlebih dahulu untuk melihat leaderboard." },
+        { status: 403 },
+      );
+    }
+
+    const eligibleAttempts = isEnded && scheduledEndDate
+      ? attempts.filter(
+          (attempt) =>
+            attempt.finishedAt && new Date(attempt.finishedAt) <= scheduledEndDate,
+        )
+      : attempts;
+
+    const mappedLeaderboard = eligibleAttempts.map((attempt, index) => {
+      const parsed = parsePtnTargets(attempt.target);
+      return {
+        rank: index + 1,
+        userId: attempt.userId,
+        name: attempt.userName || "Peserta",
+        score: Math.round(Number(attempt.totalScore) || 0),
+        isCurrentUser: attempt.userId === user.id,
+        target: attempt.target,
+        pilihan1: parsed.pilihan1
+          ? {
+              rank: 0,
+              totalParticipants: 0,
+              uniId: parsed.pilihan1.uniId,
+              university: parsed.pilihan1.university,
+              acronym: parsed.pilihan1.acronym,
+              jurusan: parsed.pilihan1.jurusan,
+              logo: parsed.pilihan1.logo,
+            }
+          : null,
+      };
+    });
 
     let currentUserRank: {
       rank: number;
+      totalParticipants: number;
+      userId: string;
       name: string;
       score: number;
       isCurrentUser: boolean;
+      target?: string | null;
+      pilihan1?: any;
+      choice1?: any;
     } | null = null;
 
-    const userAttemptIndex = attempts.findIndex((a) => a.userId === user.id);
+    const userAttemptIndex = eligibleAttempts.findIndex((a) => a.userId === user.id);
     if (userAttemptIndex !== -1) {
-      const userAttempt = attempts[userAttemptIndex];
+      const userAttempt = eligibleAttempts[userAttemptIndex];
+      const userTarget = parsePtnTargets(userAttempt.target);
+
+      let choice1 = null;
+      if (userTarget.pilihan1) {
+        const targetUniId = userTarget.pilihan1.uniId?.toLowerCase();
+        const targetAcronym = userTarget.pilihan1.acronym?.toLowerCase();
+        const targetUni = userTarget.pilihan1.university?.toLowerCase();
+
+        const isSameCampus = (choice: PtnChoice | null) => {
+          if (!choice) return false;
+          if (targetUniId && choice.uniId && choice.uniId.toLowerCase() === targetUniId && targetUniId !== "custom") return true;
+          if (targetAcronym && choice.acronym && choice.acronym.toLowerCase() === targetAcronym) return true;
+          if (targetUni && choice.university && choice.university.toLowerCase() === targetUni) return true;
+          return false;
+        };
+
+        const choice1Attempts = mappedLeaderboard.filter((m) => {
+          if (!m.pilihan1) return false;
+          return isSameCampus(m.pilihan1 as unknown as PtnChoice);
+        });
+
+        const choice1RankIndex = choice1Attempts.findIndex((m) => m.userId === user.id);
+        const choice1Rank = choice1RankIndex !== -1 ? choice1RankIndex + 1 : 1;
+        const choice1Total = choice1Attempts.length > 0 ? choice1Attempts.length : 1;
+
+        choice1 = {
+          rank: choice1Rank,
+          totalParticipants: choice1Total,
+          uniId: userTarget.pilihan1.uniId,
+          university: userTarget.pilihan1.university,
+          acronym: userTarget.pilihan1.acronym,
+          jurusan: userTarget.pilihan1.jurusan,
+          logo: userTarget.pilihan1.logo,
+        };
+      }
+
       currentUserRank = {
         rank: userAttemptIndex + 1,
+        totalParticipants: eligibleAttempts.length,
+        userId: user.id,
         name: userAttempt.userName || "Peserta",
         score: Math.round(Number(userAttempt.totalScore) || 0),
         isCurrentUser: true,
+        target: userAttempt.target,
+        pilihan1: choice1,
+        choice1,
       };
     }
 
     return NextResponse.json({
-      top10: officialLeaderboard.slice(0, 10),
+      top10: mappedLeaderboard.slice(0, 10),
+      all: mappedLeaderboard,
       currentUserRank,
+      totalParticipants: eligibleAttempts.length,
+      isOngoing: !isEnded,
     });
   } catch (error) {
     console.error("GET /api/proxy/tryout/[id]/leaderboard error:", error);
