@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Lock, Trophy, Target, ChevronRight, ArrowRight } from "lucide-react";
+import { Lock, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PixelCoin } from "@/components/ui/pixel-coin";
 import { UniversityLogo } from "@/components/UniversityLogo";
@@ -87,24 +87,25 @@ export function TryoutResultSummary({
 
   const choice1Data = currentUser?.choice1;
   const p1 = choice1Data || targets?.pilihan1;
+  const hasP1 = Boolean(p1 && (p1.acronym || p1.university));
   const p1Rank = choice1Data?.rank ?? nationalRank;
   const p1Total = choice1Data?.totalParticipants ?? totalNational;
 
   return (
-    <div className="bg-yellow-400 dark:bg-yellow-400 text-black dark:text-black rounded-2xl border border-yellow-500/50 px-4 py-3 sm:px-6 sm:py-3.5 shadow-xs">
+    <div className="bg-yellow-400 dark:bg-yellow-400 text-black dark:text-black rounded-2xl border border-yellow-500/50 px-5 py-3.5 sm:px-7 sm:py-4 shadow-xs">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Left Stats: Peringkat Nasional & Peringkat Pil 1 */}
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 divide-y md:divide-y-0 md:divide-x divide-black/15">
+        {/* Left Stats: Peringkat Nasional & (jika sudah diatur) Peringkat Pil 1 */}
+        <div className="flex flex-col sm:flex-row sm:items-center">
           {/* Peringkat Nasional */}
-          <div className="flex items-center gap-3">
-            <div className="size-8 sm:size-9 rounded-full bg-black/10 flex items-center justify-center shrink-0">
-              <Trophy className="w-4 h-4 text-black" />
+          <div className="flex items-center gap-3.5">
+            <div className="size-9 sm:size-10 rounded-full bg-black/10 flex items-center justify-center shrink-0">
+              <Trophy className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-black" />
             </div>
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-black/75">
                 Peringkat Nasional
               </div>
-              <div className="flex items-baseline gap-1">
+              <div className="flex items-baseline gap-1.5">
                 <span className="font-mono text-xl sm:text-2xl font-black text-black tabular-nums">
                   #{nationalRank}
                 </span>
@@ -115,15 +116,19 @@ export function TryoutResultSummary({
             </div>
           </div>
 
-          {/* Peringkat Pilihan 1 */}
-          <div className="pt-2 md:pt-0 md:pl-6 flex items-center gap-3">
-            {p1 && (p1.acronym || p1.university) ? (
-              <>
+          {/* Tampilkan Separator & Pilihan 1 HANYA jika user sudah memilih Pilihan 1 */}
+          {hasP1 && p1 && (
+            <>
+              <div
+                aria-hidden="true"
+                className="hidden sm:block mx-7 lg:mx-10 h-10 w-px bg-black/20 shrink-0"
+              />
+              <div className="pt-3 mt-3 border-t border-black/15 sm:border-t-0 sm:pt-0 sm:mt-0 flex items-center gap-3.5">
                 <UniversityLogo
                   logo={p1.logo}
                   acronym={p1.acronym}
                   name={p1.university}
-                  size={32}
+                  size={34}
                   className="rounded-full bg-white p-0.5 border border-black/15 shrink-0 shadow-2xs"
                 />
                 <div>
@@ -131,7 +136,7 @@ export function TryoutResultSummary({
                     <span>Pilihan 1 · {p1.acronym || p1.university}</span>
                   </div>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-xs sm:text-sm font-bold text-black truncate max-w-[150px] sm:max-w-[220px]">
+                    <span className="text-xs sm:text-sm font-bold text-black truncate max-w-[160px] sm:max-w-[240px]">
                       {p1.jurusan || "Semua Jurusan"}
                     </span>
                     <span className="font-mono text-xs sm:text-sm font-black text-black tabular-nums">
@@ -142,27 +147,9 @@ export function TryoutResultSummary({
                     </span>
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-2.5">
-                <div className="size-8 rounded-full bg-black/10 flex items-center justify-center shrink-0">
-                  <Target className="w-4 h-4 text-black/80" />
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-black/75">
-                    Pilihan 1
-                  </div>
-                  <Link
-                    href="/profile"
-                    className="text-xs font-semibold text-black hover:underline inline-flex items-center gap-1"
-                  >
-                    <span>Atur target di profil</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </Link>
-                </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
         {/* Right: Opsi View Full Leaderboard */}
