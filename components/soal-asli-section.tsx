@@ -39,6 +39,7 @@ import {
   SUBTEST_META,
   getSubtestMeta,
 } from "@/lib/soal-asli-types";
+import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/SubtestIcons";
 
 const SUBTEST_OPTIONS = [
   { id: "ALL", label: "Semua Subtes" },
@@ -309,14 +310,23 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     for (const pkg of pkgs) {
       counts[pkg.subtest] = (counts[pkg.subtest] || 0) + 1;
     }
-    return Object.entries(counts).map(([subtest, count]) => {
-      const meta = getSubtestMeta(subtest);
-      return {
-        subtest,
-        count,
-        ...meta,
-      };
-    });
+    const order = ["PU", "PPU", "PBM", "PK", "LBI", "LBE", "PM"];
+    return Object.entries(counts)
+      .map(([subtest, count]) => {
+        const info = getSubtestInfo(subtest);
+        return {
+          subtest,
+          count,
+          code: info.code,
+          label: info.name,
+          IconComponent: info.IconComponent,
+        };
+      })
+      .sort((a, b) => {
+        const idxA = order.indexOf(a.code);
+        const idxB = order.indexOf(b.code);
+        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+      });
   };
 
   const handleSelectOption = (questionId: string, optionId: string) => {
@@ -541,19 +551,13 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                     {isExpanded && (
                       <div className="divide-y divide-border">
                         {yg.packages.map((pkg, idx) => {
-                          const meta =
-                            SUBTEST_META[pkg.subtest] || {
-                              label: pkg.subtestName,
-                              code: pkg.subtest,
-                              color: "text-text",
-                              badgeBg: "bg-surface-muted text-text",
-                              border: "border-border",
-                            };
+                          const info = getSubtestInfo(pkg.subtest || pkg.subtestName);
+                          const SubIcon = info.IconComponent;
 
                           return (
                             <div
                               key={pkg.id}
-                              className="p-4 sm:px-6 sm:py-4.5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-blue-50/30 transition-colors duration-[120ms]"
+                              className="p-4 sm:px-6 sm:py-4.5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-muted/50 transition-colors duration-[120ms]"
                             >
                               {/* Left Info */}
                               <div className="flex items-start sm:items-center gap-3.5">
@@ -561,16 +565,14 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                                   #{idx + 1}
                                 </span>
 
-                                <div
-                                  className={`w-12 h-10 rounded-lg flex items-center justify-center font-bold text-[14px] shrink-0 border ${meta.badgeBg} ${meta.border}`}
-                                >
-                                  {meta.code}
+                                <div className="size-9 flex items-center justify-center text-primary shrink-0">
+                                  <SubIcon size={22} className="stroke-[2.2]" />
                                 </div>
 
                                 <div className="space-y-1">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <h4 className="text-[15px] sm:text-[16px] font-bold text-text hover:text-primary transition-colors">
-                                      {meta.label} ({meta.code})
+                                      {info.name} ({info.code})
                                     </h4>
                                     <span className="text-[12px] font-semibold text-text-body bg-surface-muted px-2 py-0.5 rounded border border-border">
                                       {pkg.dateLabel}
@@ -1021,27 +1023,30 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                           UTBK {yg.year}
                         </h2>
                         <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-1.5">
-                          <span>📦 {yg.packages.length} Paket Ujian Resmi</span>
+                          <span>{yg.packages.length} Paket Ujian Resmi</span>
                           <span>·</span>
-                          <span>📝 {yg.totalQuestions} Butir Soal</span>
+                          <span>{yg.totalQuestions} Butir Soal</span>
                         </div>
                       </div>
 
-                      {/* Package Subtests Emote / Icon representation badges */}
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {subtestsSummary.map((sub) => (
-                          <span
-                            key={sub.code}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${sub.badgeBg} ${sub.border}`}
-                            title={`${sub.label}: ${sub.count} paket`}
-                          >
-                            <span className="text-[12px]">{sub.emoji}</span>
-                            <span>{sub.code}</span>
-                            {sub.count > 1 && (
-                              <span className="text-[10px] opacity-75 font-mono">×{sub.count}</span>
-                            )}
-                          </span>
-                        ))}
+                      {/* Package Subtests Representation */}
+                      <div className="flex flex-wrap items-center gap-3 pt-0.5">
+                        {subtestsSummary.map((sub) => {
+                          const Icon = sub.IconComponent;
+                          return (
+                            <span
+                              key={sub.code}
+                              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-text-muted"
+                              title={`${sub.label}: ${sub.count} paket`}
+                            >
+                              <Icon size={16} className="text-primary shrink-0" />
+                              <span className="font-semibold text-text">{sub.code}</span>
+                              {sub.count > 1 && (
+                                <span className="text-[10px] text-text-muted font-mono">×{sub.count}</span>
+                              )}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -1062,31 +1067,30 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                 {isExpanded && (
                   <div className="divide-y divide-border bg-white">
                     {yg.packages.map((pkg, idx) => {
-                      const meta = getSubtestMeta(pkg.subtest);
+                      const subInfo = getSubtestInfo(pkg.subtest || pkg.subtestName);
+                      const SubIcon = subInfo.IconComponent;
                       const savedAnswersCount = savedCountsMap[pkg.id] ?? 0;
 
                       return (
                         <div
                           key={pkg.id}
-                          className="px-4 py-3 sm:px-5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-blue-50/20 transition-colors"
+                          className="px-4 py-3 sm:px-5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-surface-muted/50 transition-colors"
                         >
-                          {/* Left Column: Number, Badge, Title, Date */}
-                          <div className="flex items-start sm:items-center gap-3">
+                          {/* Left Column: Number, Pure Icon, Title, Date */}
+                          <div className="flex items-start sm:items-center gap-3.5">
                             <span className="font-mono text-[12px] font-bold text-text-muted w-7 text-right shrink-0 hidden sm:inline-block">
                               #{idx + 1}
                             </span>
 
-                            <div
-                              className={`h-8 px-2.5 rounded-md flex items-center justify-center gap-1.5 font-bold text-[12px] shrink-0 border ${meta.badgeBg} ${meta.border}`}
-                            >
-                              <span className="text-[13px]">{meta.emoji}</span>
-                              <span>{meta.code}</span>
+                            {/* Pure Icon: identical to hasil tryout SubtestListCard */}
+                            <div className="size-9 flex items-center justify-center text-primary shrink-0">
+                              <SubIcon size={22} className="stroke-[2.2]" />
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="space-y-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                <h3 className="text-[14px] font-semibold text-text">
-                                  {meta.label}
+                                <h3 className="text-[14px] sm:text-[15px] font-semibold text-text">
+                                  {subInfo.name}
                                 </h3>
                                 <span className="text-[12px] text-text-muted">
                                   {pkg.dateLabel}
@@ -1099,20 +1103,11 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                                 )}
                               </div>
                               <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-2">
-                                <span className="inline-flex items-center gap-1">
-                                  <span>📝</span>
-                                  <span>{pkg.questionCount} soal</span>
-                                </span>
+                                <span>{pkg.questionCount} soal</span>
                                 <span>·</span>
-                                <span className="inline-flex items-center gap-1">
-                                  <span>⏱️</span>
-                                  <span>{pkg.durationMinutes} menit</span>
-                                </span>
+                                <span>{pkg.durationMinutes} menit</span>
                                 <span>·</span>
-                                <span className="font-medium inline-flex items-center gap-1">
-                                  <span>🎯</span>
-                                  <span>Naskah asli</span>
-                                </span>
+                                <span className="font-medium text-emerald-700">Naskah asli</span>
                               </div>
                             </div>
                           </div>
@@ -1165,15 +1160,21 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                     <ChevronLeft className="h-4 w-4" />
                     <span className="hidden sm:inline">Arsip soal</span>
                   </button>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-primary text-white">
-                      UTBK {activePackageModal.year}
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-300 inline-flex items-center gap-1">
-                      <span>{getSubtestMeta(activePackageModal.subtest).emoji}</span>
-                      <span>{activePackageModal.subtest}</span>
-                    </span>
-                  </div>
+                  {(() => {
+                    const activeSubInfo = getSubtestInfo(activePackageModal.subtest);
+                    const ActiveSubIcon = activeSubInfo.IconComponent;
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-primary text-white">
+                          UTBK {activePackageModal.year}
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-surface border border-border text-text inline-flex items-center gap-1.5">
+                          <ActiveSubIcon size={14} className="text-primary" />
+                          <span>{activeSubInfo.code}</span>
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <div className="hidden md:block text-[14px] font-bold text-text truncate max-w-[320px]">
                     {activePackageModal.title}
                   </div>

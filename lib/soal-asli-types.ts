@@ -47,7 +47,7 @@ export interface SubtestMetaItem {
   color: string;
   badgeBg: string;
   border: string;
-  emoji: string;
+  emoji?: string;
 }
 
 export const SUBTEST_META: Record<string, SubtestMetaItem> = {
@@ -57,7 +57,7 @@ export const SUBTEST_META: Record<string, SubtestMetaItem> = {
     color: "text-blue-700",
     badgeBg: "bg-blue-50 text-blue-700",
     border: "border-blue-200",
-    emoji: "🧠",
+    emoji: "",
   },
   PPU: {
     label: "Pengetahuan & Pemahaman Umum",
@@ -65,7 +65,7 @@ export const SUBTEST_META: Record<string, SubtestMetaItem> = {
     color: "text-emerald-700",
     badgeBg: "bg-emerald-50 text-emerald-700",
     border: "border-emerald-200",
-    emoji: "💡",
+    emoji: "",
   },
   PBM: {
     label: "Pemahaman Bacaan & Menulis",
@@ -73,7 +73,7 @@ export const SUBTEST_META: Record<string, SubtestMetaItem> = {
     color: "text-amber-700",
     badgeBg: "bg-amber-50 text-amber-700",
     border: "border-amber-200",
-    emoji: "✍️",
+    emoji: "",
   },
   PK: {
     label: "Pengetahuan Kuantitatif",
@@ -81,7 +81,7 @@ export const SUBTEST_META: Record<string, SubtestMetaItem> = {
     color: "text-purple-700",
     badgeBg: "bg-purple-50 text-purple-700",
     border: "border-purple-200",
-    emoji: "🔢",
+    emoji: "",
   },
   LBI: {
     label: "Literasi Bahasa Indonesia",
@@ -89,7 +89,7 @@ export const SUBTEST_META: Record<string, SubtestMetaItem> = {
     color: "text-red-700",
     badgeBg: "bg-red-50 text-red-700",
     border: "border-red-200",
-    emoji: "📖",
+    emoji: "",
   },
   LBE: {
     label: "Literasi Bahasa Inggris",
@@ -97,7 +97,7 @@ export const SUBTEST_META: Record<string, SubtestMetaItem> = {
     color: "text-indigo-700",
     badgeBg: "bg-indigo-50 text-indigo-700",
     border: "border-indigo-200",
-    emoji: "🌐",
+    emoji: "",
   },
   PM: {
     label: "Penalaran Matematika",
@@ -105,7 +105,7 @@ export const SUBTEST_META: Record<string, SubtestMetaItem> = {
     color: "text-teal-700",
     badgeBg: "bg-teal-50 text-teal-700",
     border: "border-teal-200",
-    emoji: "📐",
+    emoji: "",
   },
 };
 
@@ -118,7 +118,7 @@ export function getSubtestMeta(subtest: string): SubtestMetaItem {
       color: "text-zinc-700",
       badgeBg: "bg-zinc-100 text-zinc-700",
       border: "border-zinc-200",
-      emoji: "📝",
+      emoji: "",
     }
   );
 }
