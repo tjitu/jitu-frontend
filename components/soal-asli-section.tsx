@@ -1117,7 +1117,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                             <button
                               type="button"
                               onClick={() => handleOpenPackage(pkg)}
-                              className="min-h-[36px] px-3.5 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[12px] font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                              className="min-h-[36px] px-4 rounded-md bg-yellow-400 hover:bg-yellow-300 active:bg-yellow-500 text-black text-[13px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                             >
                               <Play className="w-3.5 h-3.5 fill-current" />
                               <span>{savedAnswersCount > 0 ? "Lanjutkan" : "Kerjakan"}</span>
