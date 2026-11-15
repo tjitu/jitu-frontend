@@ -40,6 +40,7 @@ import {
   getSubtestMeta,
 } from "@/lib/soal-asli-types";
 import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/SubtestIcons";
+import { PixelBookIcon } from "@/components/ui/pixel-book-icon";
 
 const SUBTEST_OPTIONS = [
   { id: "ALL", label: "Semua Subtes" },
@@ -988,10 +989,10 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                     isExpanded ? "border-b border-border bg-surface-muted/20" : ""
                   }`}
                 >
-                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-                    <span className="font-mono text-[16px] sm:text-[17px] font-bold text-primary shrink-0 pt-0.5 sm:pt-0">
-                      {yg.year}
-                    </span>
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0">
+                    <div className="size-8 flex items-center justify-center shrink-0 pt-0.5 sm:pt-0">
+                      <PixelBookIcon size={24} />
+                    </div>
                     <div className="min-w-0">
                       <h2 className="text-[15px] sm:text-[16px] font-bold text-text">
                         UTBK {yg.year}
