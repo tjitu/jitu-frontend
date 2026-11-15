@@ -26,6 +26,8 @@ export interface TryoutDetail {
   wrongCount?: number;
   emptyCount?: number;
   curationStatus?: string;
+  questionsReleased?: boolean;
+  breakSeconds?: number;
   isSandboxPreview?: boolean;
 }
 
