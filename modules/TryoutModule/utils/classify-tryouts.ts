@@ -23,6 +23,7 @@ export function classifyTryouts(
   const strictlyOngoing = tryouts.filter((t) => {
     if (!t.scheduledStart) return false;
     const start = new Date(t.scheduledStart).getTime();
+    if (!Number.isFinite(start)) return false;
     if (currentTime < start) return false;
     if (t.scheduledEnd) {
       const end = new Date(t.scheduledEnd).getTime();
@@ -32,10 +33,14 @@ export function classifyTryouts(
   });
 
   if (strictlyOngoing.length > 0) {
-    const ongoingIds = new Set(strictlyOngoing.map((t) => t.id));
+    const featuredOngoing = [...strictlyOngoing].sort(
+      (a, b) =>
+        new Date(b.scheduledStart!).getTime() -
+        new Date(a.scheduledStart!).getTime()
+    )[0];
     return {
-      ongoing: strictlyOngoing,
-      others: tryouts.filter((t) => !ongoingIds.has(t.id)),
+      ongoing: [featuredOngoing],
+      others: tryouts.filter((t) => t.id !== featuredOngoing.id),
     };
   }
 
@@ -47,7 +52,15 @@ export function classifyTryouts(
   });
 
   if (startedTryouts.length > 0) {
-    const featuredOngoing = startedTryouts[0];
+    const featuredOngoing = [...startedTryouts].sort((a, b) => {
+      const startA = a.scheduledStart
+        ? new Date(a.scheduledStart).getTime()
+        : Number.NEGATIVE_INFINITY;
+      const startB = b.scheduledStart
+        ? new Date(b.scheduledStart).getTime()
+        : Number.NEGATIVE_INFINITY;
+      return startB - startA;
+    })[0];
     return {
       ongoing: [featuredOngoing],
       others: tryouts.filter((t) => t.id !== featuredOngoing.id),
