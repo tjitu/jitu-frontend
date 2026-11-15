@@ -19,6 +19,7 @@ jitu-frontend/
 │   ├── DashboardModule/  # Student dashboard, tryout cards, stats, milestone
 │   ├── TryoutModule/     # Tryout catalog list (/tryout)
 │   ├── TryoutDetailModule/ # Tryout detail & registration page
+│   ├── TryoutLeaderboardModule/ # Tryout full leaderboard subpage (/tryout/[id]/leaderboard)
 │   ├── TryoutExamModule/ # Active exam runner, timer, question viewer
 │   ├── LatihanModule/    # Daily practice & drill questions
 │   ├── ShopModule/       # Coin purchase, packages, Midtrans checkout

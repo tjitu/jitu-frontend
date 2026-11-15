@@ -72,33 +72,56 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     }
 
     let curationStatus = "PUBLISHED";
+    let questionsReleased = true;
+    let breakSeconds = 60;
     try {
       const { rows } = await pool.query(
-        `SELECT COALESCE(curation_status, 'PUBLISHED') AS status
+        `SELECT
+           COALESCE(curation_status, 'PUBLISHED') AS status,
+           COALESCE(questions_released, COALESCE(curation_status, 'PUBLISHED') = 'PUBLISHED') AS "questionsReleased",
+           COALESCE(break_seconds, 60)::int AS "breakSeconds"
          FROM "TryOut" WHERE id = $1 LIMIT 1`,
         [id],
       );
       curationStatus = String(rows[0]?.status || "PUBLISHED").toUpperCase();
+      questionsReleased = Boolean(rows[0]?.questionsReleased ?? (curationStatus === "PUBLISHED"));
+      breakSeconds = Math.max(0, Math.min(1800, Number(rows[0]?.breakSeconds ?? 60)));
     } catch (error) {
       // Databases predating Control Center treat existing tryouts as published.
       if ((error as { code?: string })?.code !== "42703") throw error;
     }
 
-    if (curationStatus !== "PUBLISHED" && !(await canPreviewTryout(request, user.id, id))) {
+    const canPreview = await canPreviewTryout(request, user.id, id);
+    if (curationStatus !== "PUBLISHED" && !canPreview) {
       return NextResponse.json({ message: "Tryout tidak ditemukan." }, { status: 404 });
     }
 
     const [subtestResult, attemptResult, finishedAttemptResult, unlockResult, premiumResult] = await Promise.all([
-      pool.query(
-        `SELECT s.id, s.name, s."order", s.duration_minutes AS duration,
-                COUNT(q.id)::int AS "questionCount"
-         FROM "Subtest" s
-         LEFT JOIN "Question" q ON q.subtest_id = s.id
-         WHERE s.try_out_id = $1
-         GROUP BY s.id, s.name, s."order", s.duration_minutes
-         ORDER BY s."order" ASC`,
-        [id],
-      ),
+      pool
+        .query(
+          `SELECT s.id, s.name, s."order", s.duration_minutes AS duration,
+                  COALESCE(s.target_question_count, 20)::int AS "targetQuestionCount",
+                  COUNT(q.id)::int AS "questionCount"
+           FROM "Subtest" s
+           LEFT JOIN "Question" q ON q.subtest_id = s.id
+           WHERE s.try_out_id = $1
+           GROUP BY s.id, s.name, s."order", s.duration_minutes, s.target_question_count
+           ORDER BY s."order" ASC`,
+          [id],
+        )
+        .catch(() =>
+          pool.query(
+            `SELECT s.id, s.name, s."order", s.duration_minutes AS duration,
+                    20 AS "targetQuestionCount",
+                    COUNT(q.id)::int AS "questionCount"
+             FROM "Subtest" s
+             LEFT JOIN "Question" q ON q.subtest_id = s.id
+             WHERE s.try_out_id = $1
+             GROUP BY s.id, s.name, s."order", s.duration_minutes
+             ORDER BY s."order" ASC`,
+            [id],
+          ),
+        ),
       pool.query(
         `SELECT id, status, total_score AS "totalScore",
                 current_subtest_order AS "currentSubtestOrder"
@@ -139,15 +162,29 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       for (const row of rows) answeredBySubtest.set(row.subtestId, Number(row.count));
     }
 
-    const categories = subtestResult.rows.map((subtest) => ({
-      id: Number(subtest.order),
-      name: subtest.name,
-      questionCount: Number(subtest.questionCount),
-      duration: Number(subtest.duration),
-      isCompleted:
-        Number(subtest.questionCount) > 0 &&
-        (answeredBySubtest.get(subtest.id) ?? 0) >= Number(subtest.questionCount),
-    }));
+    const seenSubtestNames = new Set<string>();
+    const dedupSubtests = subtestResult.rows.filter((subtest) => {
+      const key = String(subtest.name || subtest.order);
+      if (seenSubtestNames.has(key)) return false;
+      seenSubtestNames.add(key);
+      return true;
+    });
+
+    const categories = dedupSubtests.map((subtest) => {
+      const actualCount = Number(subtest.questionCount) || 0;
+      const targetCount = Number(subtest.targetQuestionCount) || 20;
+      const displayQuestionCount =
+        !questionsReleased && actualCount === 0 ? targetCount : actualCount;
+      return {
+        id: Number(subtest.order),
+        name: subtest.name,
+        questionCount: displayQuestionCount,
+        duration: Number(subtest.duration),
+        isCompleted:
+          actualCount > 0 &&
+          (answeredBySubtest.get(subtest.id) ?? 0) >= actualCount,
+      };
+    });
     const premiumUser = premiumResult.rows[0];
     const premiumActive = Boolean(premiumUser?.isPremium) &&
       (!premiumUser.premiumExpiresAt || new Date(premiumUser.premiumExpiresAt) > new Date());
@@ -180,7 +217,9 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       currentSubtestOrder: Number(attempt?.currentSubtestOrder) || 1,
       latestScore: Math.round(Number(latestFinishedAttempt?.totalScore) || 0),
       curationStatus,
-      isSandboxPreview: curationStatus !== "PUBLISHED",
+      questionsReleased,
+      breakSeconds,
+      isSandboxPreview: curationStatus !== "PUBLISHED" || (!questionsReleased && canPreview),
     });
   } catch (error) {
     console.error("GET /api/proxy/tryout/[id] error:", error);

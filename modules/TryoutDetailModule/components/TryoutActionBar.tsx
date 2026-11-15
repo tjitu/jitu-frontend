@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, Play, Loader2, BookOpen } from "lucide-react";
+import { CheckCircle2, Play, Loader2, BookOpen, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TryoutDetail } from "../interface";
 
@@ -22,6 +22,9 @@ export function TryoutActionBar({
 }: TryoutActionBarProps) {
   const isRegistered = tryoutData.isRegistered;
   const isInProgress = tryoutData.latestAttemptStatus === "IN_PROGRESS";
+  const questionsReleased =
+    tryoutData.questionsReleased !== false || Boolean(tryoutData.isSandboxPreview);
+  const isWaitingQuestionRelease = isRegistered && !isInProgress && !questionsReleased;
 
   return (
     <div
@@ -47,7 +50,7 @@ export function TryoutActionBar({
         </div>
 
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-2">
             <h2 className="text-base sm:text-lg font-bold text-text">
               {isRegistered
                 ? isInProgress
@@ -60,12 +63,20 @@ export function TryoutActionBar({
                 Terdaftar
               </span>
             )}
+            {isWaitingQuestionRelease && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                <Clock className="w-3 h-3" />
+                Menunggu Peluncuran Soal
+              </span>
+            )}
           </div>
           <p className="text-xs sm:text-sm text-text-body max-w-xl leading-relaxed">
             {isRegistered
               ? isInProgress
                 ? "Lanjutkan pengerjaan dari subtes terakhir yang belum selesai."
-                : "Waktu pengerjaan akan mulai berjalan begitu kamu menekan tombol mulai."
+                : isWaitingQuestionRelease
+                  ? "Pendaftaranmu sudah tercatat. Soal ujian akan dibuka oleh panitia menjelang jadwal pelaksanaan tryout."
+                  : "Waktu pengerjaan akan mulai berjalan begitu kamu menekan tombol mulai."
               : "Daftar untuk mengakses lembar ujian tryout ini."}
           </p>
         </div>
@@ -75,17 +86,25 @@ export function TryoutActionBar({
         {isRegistered ? (
           <Button
             onClick={onStart}
-            disabled={isStartingAttempt}
+            disabled={isStartingAttempt || isWaitingQuestionRelease}
             variant="primary"
             size="lg"
             className="w-full sm:w-auto h-11 px-6 font-semibold flex items-center justify-center gap-2"
           >
             {isStartingAttempt ? (
               <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isWaitingQuestionRelease ? (
+              <Clock className="w-4 h-4" />
             ) : (
               <Play className="w-4 h-4 fill-current" />
             )}
-            <span>{isInProgress ? "Lanjutkan Ujian" : "Mulai Kerjakan"}</span>
+            <span>
+              {isInProgress
+                ? "Lanjutkan Ujian"
+                : isWaitingQuestionRelease
+                  ? "Menunggu Soal Dibuka"
+                  : "Mulai Kerjakan"}
+            </span>
           </Button>
         ) : (
           <Button

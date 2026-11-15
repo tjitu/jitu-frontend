@@ -94,6 +94,8 @@ export default function BreakPage() {
   const nextDurationFromQuery = Number(searchParams.get("nextSubtestDuration") || 0);
   const nextQuestionsFromQuery = Number(searchParams.get("nextSubtestQuestions") || 0);
 
+  const [configuredBreakSec, setConfiguredBreakSec] =
+    useState<number>(BREAK_DURATION_SEC);
   const [breakTimeRemainingSec, setBreakTimeRemainingSec] = useState<
     number | null
   >(BREAK_DURATION_SEC);
@@ -137,11 +139,15 @@ export default function BreakPage() {
       // Ignore invalid cached payload
     }
 
-    // 2. Refresh live durations & question counts from backend
+    // 2. Refresh live durations, break seconds & question counts from backend
     let active = true;
     getTryoutDetail(tryoutId)
       .then((detail) => {
-        if (!active || !Array.isArray(detail.categories) || detail.categories.length === 0) {
+        if (!active) return;
+        if (typeof detail.breakSeconds === "number" && Number.isFinite(detail.breakSeconds)) {
+          setConfiguredBreakSec(Math.max(0, Math.min(1800, Math.round(detail.breakSeconds))));
+        }
+        if (!Array.isArray(detail.categories) || detail.categories.length === 0) {
           return;
         }
         setSubtestsList(
@@ -232,7 +238,7 @@ export default function BreakPage() {
 
     const updateCountdown = () => {
       const elapsedSec = Math.floor((Date.now() - startMs) / 1000);
-      const remaining = Math.max(0, BREAK_DURATION_SEC - elapsedSec);
+      const remaining = Math.max(0, configuredBreakSec - elapsedSec);
       setBreakTimeRemainingSec(remaining);
       if (remaining === 0 && !proceedingRef.current) {
         void handleProceedToNext();
@@ -245,7 +251,7 @@ export default function BreakPage() {
     return () => {
       clearInterval(timer);
     };
-  }, [attemptId, tryoutId, router, storageKey, handleProceedToNext]);
+  }, [attemptId, tryoutId, router, storageKey, configuredBreakSec, handleProceedToNext]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">

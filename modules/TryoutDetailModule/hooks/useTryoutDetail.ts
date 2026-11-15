@@ -68,7 +68,10 @@ export function useTryoutDetail() {
       const data = await getTryoutDetail(tryoutId);
       setTryoutData(data);
 
-      if (data.endDate && new Date() > new Date(data.endDate)) {
+      if (
+        data.latestAttemptStatus === "FINISHED" ||
+        (data.endDate && new Date() > new Date(data.endDate))
+      ) {
         try {
           const lbData = await getTryoutLeaderboard(tryoutId);
           setLeaderboardData(lbData);
