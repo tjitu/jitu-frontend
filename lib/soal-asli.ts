@@ -85,6 +85,42 @@ export async function getSoalAsliPackages(filters?: {
 }
 
 /**
+ * Helper to resolve reading passages referenced across questions in a package.
+ * When a question has placeholder text like "Gunakan bacaan yang sama seperti soal nomor X",
+ * this replaces it with the full reading passage text from the referenced question number.
+ */
+function resolvePassageReferences(questions: SoalAsliQuestion[]): SoalAsliQuestion[] {
+  const passageByNumber = new Map<number, string>();
+  for (const q of questions) {
+    if (
+      q.narration &&
+      !/Gunakan\s+(?:bacaan|teks|wacana)\s+yang\s+sama\s+seperti\s+soal\s+nomor/i.test(q.narration)
+    ) {
+      passageByNumber.set(q.number, q.narration);
+    }
+  }
+
+  return questions.map((q) => {
+    if (q.narration) {
+      const match = q.narration.match(
+        /Gunakan\s+(?:bacaan|teks|wacana)\s+yang\s+sama\s+seperti\s+soal\s+nomor\s*(\d+)/i
+      );
+      if (match) {
+        const targetNumber = parseInt(match[1], 10);
+        const resolvedPassage = passageByNumber.get(targetNumber);
+        if (resolvedPassage) {
+          return {
+            ...q,
+            narration: resolvedPassage,
+          };
+        }
+      }
+    }
+    return q;
+  });
+}
+
+/**
  * Fetch a single package with its questions from PostgreSQL or fallback JSON
  */
 export async function getSoalAsliPackageDetail(
@@ -160,7 +196,7 @@ export async function getSoalAsliPackageDetail(
 
       const detail: SoalAsliPackageDetail = {
         ...pkg,
-        questions,
+        questions: resolvePassageReferences(questions),
       };
       cachedPackageDetails.set(pkg.id, detail);
       if (pkg.slug) cachedPackageDetails.set(pkg.slug, detail);
@@ -372,7 +408,7 @@ function loadPackageDetailFromJson(packageIdOrSlug: string): SoalAsliPackageDeta
 
     return {
       ...pkg,
-      questions,
+      questions: resolvePassageReferences(questions),
     };
   } catch (err) {
     console.error("Error reading package detail fallback JSON:", err);
