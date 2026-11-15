@@ -15,6 +15,7 @@ export async function GET() {
         COALESCE("solutionPrice", 8900) as "solutionPrice", 
         "isPublic", 
         "scheduledStart", 
+        "scheduledEnd",
         "createdAt",
         0 as participants
       FROM "TryOut"
