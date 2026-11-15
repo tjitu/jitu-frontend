@@ -18,7 +18,6 @@ import {
   ChevronRight,
   Filter,
   Play,
-  Pause,
   Flag,
   Check,
   Award,
@@ -90,8 +89,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
   const [savedCountsMap, setSavedCountsMap] = useState<Record<string, number>>({});
 
   // Dashboard exam mode specific state
-  const [timerSeconds, setTimerSeconds] = useState<number>(30 * 60);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
   const [fontSize, setFontSize] = useState<"normal" | "large">("normal");
   const [showFinishSummary, setShowFinishSummary] = useState<boolean>(false);
 
@@ -147,21 +144,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     } catch {}
     setSavedCountsMap(map);
   }, [isDashboard, packages]);
-
-  // Timer countdown for dashboard practice mode
-  useEffect(() => {
-    if (!isDashboard || !activePackageModal || !isTimerRunning || showFinishSummary) return;
-    const interval = setInterval(() => {
-      setTimerSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isDashboard, activePackageModal, isTimerRunning, showFinishSummary]);
 
   // Keyboard shortcut listener for dashboard practice mode (A, B, C, D, E)
   useEffect(() => {
@@ -226,8 +208,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     setActivePackageModal(pkg);
     setCurrentQuestionIndex(0);
     setShowFinishSummary(false);
-    setTimerSeconds((pkg.durationMinutes || 30) * 60);
-    setIsTimerRunning(true);
 
     // Load saved answers from localStorage if available
     try {
@@ -331,13 +311,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     activeDetail && activeDetail.questions && activeDetail.questions.length > 0
       ? activeDetail.questions[currentQuestionIndex]
       : null;
-
-  // Format timer minutes and seconds
-  const formatTimer = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
 
   const answeredCount = activeDetail
     ? activeDetail.questions.filter((q) => userAnswers[q.id]).length
@@ -828,8 +801,8 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
               Bank Naskah Asli UTBK / SNBT
             </h1>
             <p className="text-[14px] sm:text-[15px] text-text-body mt-1">
-              Lembar latihan naskah resmi 2010 – 2026. Lengkap dengan timer pengerjaan, lembar jawab
-              digital, dan navigasi butir soal.
+              Lembar latihan naskah resmi 2010 – 2026. Lengkap dengan lembar jawab
+              digital dan navigasi butir soal.
             </p>
           </div>
 
@@ -871,7 +844,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
             <div className="font-mono font-bold text-[22px] text-amber-600 tabular-nums">
               Workbench
             </div>
-            <div className="text-[11px] text-text-muted mt-0.5">Timer & Lembar Jawab</div>
+            <div className="text-[11px] text-text-muted mt-0.5">Lembar Jawab Digital</div>
           </div>
         </div>
       </div>
@@ -1098,7 +1071,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
           className="flex h-[calc(100dvh-10rem)] min-h-[480px] w-full flex-col overflow-hidden rounded-xl border border-border bg-surface text-text shadow-xs"
         >
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              {/* Exam Header: Title, Live Timer, Counter, and Actions */}
+              {/* Exam Header: Title, Counter, and Actions */}
               <div className="px-4 sm:px-6 py-3.5 border-b border-border bg-surface-muted/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <button
@@ -1132,29 +1105,6 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                   <div className="hidden md:block text-[14px] font-bold text-text truncate max-w-[320px]">
                     {activePackageModal.title}
                   </div>
-                </div>
-
-                {/* Center Timer & Pause */}
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 font-mono font-bold text-[14px] tabular-nums ${
-                      timerSeconds < 300
-                        ? "bg-danger-soft border-danger text-danger-text animate-pulse"
-                        : "bg-surface border-border text-text"
-                    }`}
-                  >
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span>{formatTimer(timerSeconds)}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsTimerRunning((v) => !v)}
-                    title={isTimerRunning ? "Pause Timer" : "Resume Timer"}
-                    className="w-8 h-8 rounded-lg border border-border bg-surface flex items-center justify-center text-text-muted hover:text-text hover:bg-surface-muted transition-colors"
-                  >
-                    {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                  </button>
                 </div>
 
                 {/* Right controls: Answer count & Finish Button */}
