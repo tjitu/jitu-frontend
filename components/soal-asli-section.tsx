@@ -1023,7 +1023,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                           UTBK {yg.year}
                         </h2>
                         <div className="text-[12px] text-text-muted flex flex-wrap items-center gap-1.5">
-                          <span>{yg.packages.length} Paket Ujian Resmi</span>
+                          <span>{yg.packages.length} Paket</span>
                           <span>·</span>
                           <span>{yg.totalQuestions} Butir Soal</span>
                         </div>
