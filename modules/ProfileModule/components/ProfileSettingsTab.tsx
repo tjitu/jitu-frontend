@@ -102,7 +102,7 @@ export function ProfileSettingsTab({
       </div>
 
       {/* Target PTN & Program Studi */}
-      <div className="p-6 sm:p-7 space-y-4">
+      <div id="target-ptn-section" className="p-6 sm:p-7 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h4 className="text-base font-bold text-text">

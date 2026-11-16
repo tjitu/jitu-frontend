@@ -25,7 +25,6 @@ const CreateTryoutModule = () => {
     description: "",
     solutionPrice: 0,
     batch: "SNBT",
-    releaseDate: "",
     scheduledStart: "",
     scheduledEnd: "",
     isPublic: true,
@@ -77,7 +76,6 @@ const CreateTryoutModule = () => {
         ...formData,
         solutionPrice:
           formData.solutionPrice === "" ? 0 : Number(formData.solutionPrice),
-        releaseDate: new Date(formData.releaseDate).toISOString(),
         scheduledStart: new Date(formData.scheduledStart).toISOString(),
         scheduledEnd: new Date(formData.scheduledEnd).toISOString(),
       };

@@ -2,6 +2,11 @@ import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
+import { isUserPremiumActive } from "@/lib/premium";
+import {
+  computeAttemptProgress,
+  triggerAutoFinishIfNeeded,
+} from "@/lib/tryout-attempt-helper";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -96,6 +101,11 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       return NextResponse.json({ message: "Tryout tidak ditemukan." }, { status: 404 });
     }
 
+    const isLiveBySchedule =
+      curationStatus === "PUBLISHED" &&
+      (!tryout.scheduledStart || new Date(tryout.scheduledStart) <= new Date());
+    questionsReleased = Boolean(questionsReleased) || isLiveBySchedule;
+
     const [subtestResult, attemptResult, finishedAttemptResult, unlockResult, premiumResult] = await Promise.all([
       pool
         .query(
@@ -103,11 +113,13 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
                   COALESCE(s.target_question_count, 20)::int AS "targetQuestionCount",
                   COUNT(q.id)::int AS "questionCount"
            FROM "Subtest" s
-           LEFT JOIN "Question" q ON q.subtest_id = s.id
+           LEFT JOIN "Question" q
+             ON q.subtest_id = s.id
+            AND ($2::boolean OR COALESCE(q.status, 'DRAFT') = 'READY')
            WHERE s.try_out_id = $1
            GROUP BY s.id, s.name, s."order", s.duration_minutes, s.target_question_count
            ORDER BY s."order" ASC`,
-          [id],
+          [id, canPreview],
         )
         .catch(() =>
           pool.query(
@@ -124,7 +136,9 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         ),
       pool.query(
         `SELECT id, status, total_score AS "totalScore",
-                current_subtest_order AS "currentSubtestOrder"
+                started_at AS "startedAt", finished_at AS "finishedAt",
+                current_subtest_order AS "currentSubtestOrder",
+                subtest_started_at AS "subtestStartedAt"
          FROM "TryOutAttempt" WHERE "userId" = $1 AND try_out_id = $2
          ORDER BY started_at DESC LIMIT 1`,
         [user.id, id],
@@ -186,12 +200,29 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       };
     });
     const premiumUser = premiumResult.rows[0];
-    const premiumActive = Boolean(premiumUser?.isPremium) &&
-      (!premiumUser.premiumExpiresAt || new Date(premiumUser.premiumExpiresAt) > new Date());
+    const premiumActive = isUserPremiumActive({
+      isPremium: premiumUser?.isPremium,
+      premiumExpiresAt: premiumUser?.premiumExpiresAt,
+    });
     const unlockedSolutions = premiumActive
       ? [{ id: "premium-pass", userId: user.id, tryOutId: id }]
       : unlockResult.rows;
     const latestFinishedAttempt = finishedAttemptResult.rows[0] ?? null;
+
+    const progress = computeAttemptProgress(
+      id,
+      attempt,
+      latestFinishedAttempt,
+      categories.map((c) => ({ order: c.id, durationMinutes: c.duration })),
+      tryout.scheduledEnd,
+    );
+
+    if (progress.needAutoFinish && attempt?.id) {
+      await triggerAutoFinishIfNeeded(
+        [String(attempt.id)],
+        request.headers.get("authorization"),
+      );
+    }
 
     return NextResponse.json({
       id: tryout.id,
@@ -211,10 +242,13 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       categories,
       benefits: ["Pembahasan lengkap", "Analisis hasil", "Simulasi UTBK"],
       requirements: ["Akun terverifikasi", "Token mencukupi"],
-      latestFinishedAttemptId: latestFinishedAttempt?.id ?? null,
-      latestAttemptStatus: attempt?.status ?? null,
-      latestAttemptId: attempt?.id ?? null,
+      latestFinishedAttemptId: progress.latestFinishedAttemptId,
+      latestAttemptStatus: progress.status ?? null,
+      latestAttemptId: progress.latestAttemptId,
       currentSubtestOrder: Number(attempt?.currentSubtestOrder) || 1,
+      isWaitingTransition: progress.isWaitingTransition,
+      nextSubtestOrder: progress.nextSubtestOrder,
+      resumeUrl: progress.resumeUrl,
       latestScore: Math.round(Number(latestFinishedAttempt?.totalScore) || 0),
       curationStatus,
       questionsReleased,

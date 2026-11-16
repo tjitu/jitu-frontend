@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { isUserPremiumActive } from "@/lib/premium";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -33,7 +34,10 @@ export async function GET(req: NextRequest) {
     const tokenBalance = Number(user.tokenBalance) || 0;
     const currentStreak = Number(user.currentStreak) || 0;
     const premiumExpiresAt = user.premiumExpiresAt ? new Date(user.premiumExpiresAt) : null;
-    const isPremium = Boolean(user.isPremium) && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
+    const isPremium = isUserPremiumActive({
+      isPremium: user.isPremium,
+      premiumExpiresAt: user.premiumExpiresAt,
+    });
 
     return NextResponse.json({
       tokenBalance,

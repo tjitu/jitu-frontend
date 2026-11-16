@@ -31,6 +31,7 @@ import remarkGfm from "remark-gfm";
 import { FontSizeControl } from "./components/FontSizeControl";
 import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
+import { convertLatexTabularToHtml } from "@/lib/latex-tabular";
 import { toast } from "sonner";
 import {
   Select,
@@ -125,6 +126,7 @@ export default function TryoutExamModule() {
   const questionContainerRef = useRef<HTMLDivElement>(null);
   const endTimeMsRef = useRef<number | null>(null);
   const finishingRef = useRef(false);
+  const autosaveTimerRef = useRef<number | null>(null);
 
   const subtestIndex = useMemo(
     () => getSubtestIndex(String(subtestId)),
@@ -224,6 +226,9 @@ export default function TryoutExamModule() {
       contentElements.forEach((el) => {
         if (el.innerHTML.includes("&amp;")) {
           el.innerHTML = el.innerHTML.replace(/&amp;/g, "&");
+        }
+        if (el.innerHTML.includes("tabular")) {
+          el.innerHTML = convertLatexTabularToHtml(el.innerHTML);
         }
       });
 
@@ -327,6 +332,23 @@ export default function TryoutExamModule() {
         }
 
         const raw = await res.json();
+        if (!isReviewMode && raw?.subtestExpired) {
+          if (raw?.nextSubtestOrder) {
+            router.replace(
+              `/tryout/${tryoutId}/break/${raw.nextSubtestOrder}?attemptId=${encodeURIComponent(
+                effectiveAttemptId,
+              )}&expired=true`,
+            );
+          } else {
+            await fetch(
+              `${BACKEND_URL}/exam/${encodeURIComponent(effectiveAttemptId)}/finish`,
+              { method: "POST", credentials: "include" },
+            ).catch(() => undefined);
+            router.replace(`/tryout/${tryoutId}`);
+          }
+          return;
+        }
+
         const mapped = mapQuestionsPayloadToUi(raw, effectiveAttemptId);
 
         setExamData(mapped);
@@ -351,7 +373,7 @@ export default function TryoutExamModule() {
         });
         setAnswers(initialAnswers);
 
-        setLastSyncedAnswers({});
+        setLastSyncedAnswers(initialAnswers);
         setMarkedQuestions([]);
         setReviewFilter("ALL");
 
@@ -587,11 +609,52 @@ export default function TryoutExamModule() {
     }
   }, [timeRemainingSec, isReviewMode, examData, loading, isSubmittingFinish]);
 
+  const persistAnswerImmediate = async (
+    qid: string,
+    value: string,
+    isText: boolean,
+  ) => {
+    if (isReviewMode || !value) return;
+    setIsSaving(true);
+    try {
+      const effectiveAttemptId = await ensureAttempt();
+      await submitAnswerWithAttempt(effectiveAttemptId, qid, value, isText);
+      setLastSyncedAnswers((prev) => ({ ...prev, [qid]: value }));
+    } catch (e) {
+      console.error("Auto-save failed:", e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimerRef.current !== null) {
+        window.clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleAnswerSelect = (value: string) => {
     if (isReviewMode) return;
-    if (!examData?.questions[currentQuestionIndex]) return;
-    const qid = examData.questions[currentQuestionIndex].id;
+    const currentQ = examData?.questions[currentQuestionIndex];
+    if (!currentQ) return;
+    const qid = currentQ.id;
     setAnswers((prev) => ({ ...prev, [qid]: value }));
+
+    if (autosaveTimerRef.current !== null) {
+      window.clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
+    const isTextAnswer = currentQ.options.length === 0;
+    if (!isTextAnswer) {
+      void persistAnswerImmediate(qid, value, false);
+    } else if (value.trim()) {
+      autosaveTimerRef.current = window.setTimeout(() => {
+        void persistAnswerImmediate(qid, value, true);
+      }, 700);
+    }
   };
 
   const handleNext = async () => {

@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { getDbPool } from "./db";
+import { isUserPremiumActive } from "@/lib/premium";
 
 export interface FirebaseTokenPayload {
   iss: string;
@@ -25,6 +26,8 @@ export interface AppUserProfile {
   email: string;
   role: string;
   tokenBalance: number;
+  isPremium: boolean;
+  premiumExpiresAt?: string | null;
   target?: string | null;
   image?: string | null;
   emailVerified: boolean;
@@ -130,7 +133,7 @@ export async function resolveFirebaseUser(
 
   // 1. Try finding an existing account mapping (firebase-*)
   const mappedRes = await pool.query(
-    `SELECT u.id, u.name, u.email, u.role, u."tokenBalance", u.target, u.image, u."emailVerified"
+    `SELECT u.id, u.name, u.email, u.role, u."tokenBalance", u."isPremium", u."premiumExpiresAt", u.target, u.image, u."emailVerified"
      FROM "account" a
      JOIN "user" u ON a."userId" = u.id
      WHERE a."providerId" LIKE 'firebase-%' AND a."accountId" = $1
@@ -154,6 +157,13 @@ export async function resolveFirebaseUser(
       email: row.email,
       role: row.role || "USER",
       tokenBalance: Number(row.tokenBalance) || 0,
+      isPremium: isUserPremiumActive({
+        isPremium: row.isPremium,
+        premiumExpiresAt: row.premiumExpiresAt,
+      }),
+      premiumExpiresAt: row.premiumExpiresAt
+        ? new Date(row.premiumExpiresAt).toISOString()
+        : null,
       target: row.target ?? null,
       image: row.image ?? null,
       emailVerified: Boolean(row.emailVerified),
@@ -162,7 +172,7 @@ export async function resolveFirebaseUser(
 
   // 2. Try finding user by email (case-insensitive)
   const existingUserRes = await pool.query(
-    `SELECT id, name, email, role, "tokenBalance", target, image, "emailVerified"
+    `SELECT id, name, email, role, "tokenBalance", "isPremium", "premiumExpiresAt", target, image, "emailVerified"
      FROM "user"
      WHERE LOWER(email) = LOWER($1)
      LIMIT 1`,
@@ -197,7 +207,7 @@ export async function resolveFirebaseUser(
     const insertUserRes = await pool.query(
       `INSERT INTO "user" (id, name, email, "emailVerified", image, role, "tokenBalance", "currentStreak", "createdAt", "updatedAt")
        VALUES ($1, $2, $3, true, $4, 'USER', 0, 0, NOW(), NOW())
-       RETURNING id, name, email, role, "tokenBalance", target, image, "emailVerified"`,
+       RETURNING id, name, email, role, "tokenBalance", "isPremium", "premiumExpiresAt", target, image, "emailVerified"`,
       [newUserId, displayName, email, image]
     );
 
@@ -218,6 +228,13 @@ export async function resolveFirebaseUser(
     email: userRecord.email,
     role: userRecord.role || "USER",
     tokenBalance: Number(userRecord.tokenBalance) || 0,
+    isPremium: isUserPremiumActive({
+      isPremium: userRecord.isPremium,
+      premiumExpiresAt: userRecord.premiumExpiresAt,
+    }),
+    premiumExpiresAt: userRecord.premiumExpiresAt
+      ? new Date(userRecord.premiumExpiresAt).toISOString()
+      : null,
     target: userRecord.target ?? null,
     image: userRecord.image ?? null,
     emailVerified: Boolean(userRecord.emailVerified),

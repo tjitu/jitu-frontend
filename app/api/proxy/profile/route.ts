@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { isUserPremiumActive } from "@/lib/premium";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -50,18 +51,18 @@ export async function GET(req: NextRequest) {
     }
 
     const statsRes = await pool.query(
-      `SELECT COUNT(*)::int as total, COALESCE(AVG("totalScore"), 0)::numeric as avg_score
+      `SELECT COUNT(*)::int as total, COALESCE(AVG(total_score), 0)::numeric as avg_score
        FROM "TryOutAttempt" WHERE "userId" = $1 AND status = 'FINISHED'`,
       [authUser.id]
     );
     const statsRow = statsRes.rows[0];
 
     const attemptsRes = await pool.query(
-      `SELECT a.id, t.title, a."startedAt" as date, a."totalScore" as score, a.status
+      `SELECT a.id, t.title, a.started_at as date, a.total_score as score, a.status
        FROM "TryOutAttempt" a
        JOIN "TryOut" t ON a.try_out_id = t.id
        WHERE a."userId" = $1
-       ORDER BY a."startedAt" DESC
+       ORDER BY a.started_at DESC
        LIMIT 5`,
       [authUser.id]
     );
@@ -73,7 +74,10 @@ export async function GET(req: NextRequest) {
         image: user.image,
         tokenBalance: Number(user.tokenBalance) || 0,
         target: user.target,
-        isPremium: Boolean(user.isPremium),
+        isPremium: isUserPremiumActive({
+          isPremium: user.isPremium,
+          premiumExpiresAt: user.premiumExpiresAt,
+        }),
         premiumExpiresAt: user.premiumExpiresAt,
       },
       stats: {

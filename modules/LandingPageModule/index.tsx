@@ -1129,6 +1129,7 @@ function PtnPremiumPassCard({
   campaignName,
   badgeText,
   badgeStyle,
+  originalPrice,
   discountedPrice,
   savings,
 }: {
@@ -1136,6 +1137,7 @@ function PtnPremiumPassCard({
   campaignName?: string;
   badgeText?: string;
   badgeStyle?: string;
+  originalPrice?: number;
   discountedPrice?: number;
   savings?: number;
 }) {
@@ -1377,7 +1379,7 @@ function PtnPremiumPassCard({
             {discountedPrice && savings && savings > 0 && (
               <div className="flex items-center lg:justify-end gap-2 mb-1">
                 <span className="text-sm line-through text-blue-200/80 font-bold tabular-nums">
-                  Rp55.000
+                  Rp{(originalPrice || discountedPrice + savings).toLocaleString("id-ID")}
                 </span>
                 <span className="text-[11px] font-black text-yellow-300 bg-yellow-400/20 px-2 py-0.5 rounded">
                   Hemat Rp{savings.toLocaleString("id-ID")}
@@ -1386,7 +1388,7 @@ function PtnPremiumPassCard({
             )}
             <div className="inline-flex items-baseline gap-1.5">
               <span className="text-[32px] sm:text-[38px] lg:text-[40px] font-black text-white leading-none tracking-tight tabular-nums">
-                Rp{(discountedPrice || 55000).toLocaleString("id-ID")}
+                Rp{(discountedPrice || originalPrice || 55000).toLocaleString("id-ID")}
               </span>
               <span className="text-[14px] sm:text-[15px] font-bold text-blue-200">
                 /bulan
@@ -1576,6 +1578,7 @@ const LandingPageModule = () => {
     campaignName?: string;
     badgeText?: string;
     badgeStyle?: string;
+    passOriginalPrice?: number;
     passDiscountedPrice?: number;
     passSavings?: number;
     packDiscounts?: Record<number, { finalPrice: number; originalPrice: number; savings: number; badge?: string; badgeStyle?: string; campaignName?: string }>;
@@ -1603,12 +1606,16 @@ const LandingPageModule = () => {
 
         const activeItem = data.find((p) => p.campaignName || p.badgeText);
         if (activeItem || pass) {
+          const passOrig = pass?.originalPrice ?? pass?.price;
+          const passDisc = pass?.price;
+          const passSav = pass?.savings ?? (passOrig && passDisc && passOrig > passDisc ? passOrig - passDisc : 0);
           setActivePromo({
             campaignName: activeItem?.campaignName || pass?.campaignName,
             badgeText: pass?.badgeText || activeItem?.badgeText,
             badgeStyle: pass?.badgeStyle || activeItem?.badgeStyle,
-            passDiscountedPrice: pass?.price,
-            passSavings: pass?.savings,
+            passOriginalPrice: passOrig,
+            passDiscountedPrice: passDisc,
+            passSavings: passSav,
             packDiscounts: coinPacks,
           });
         }
@@ -1866,6 +1873,7 @@ const LandingPageModule = () => {
               campaignName={activePromo?.campaignName}
               badgeText={activePromo?.badgeText}
               badgeStyle={activePromo?.badgeStyle}
+              originalPrice={activePromo?.passOriginalPrice}
               discountedPrice={activePromo?.passDiscountedPrice}
               savings={activePromo?.passSavings}
             />

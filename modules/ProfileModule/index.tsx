@@ -28,6 +28,7 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { parsePtnTargets, serializePtnTargets } from "@/lib/target";
+import { isUserPremiumActive } from "@/lib/premium";
 import { UniversityLogo } from "@/components/UniversityLogo";
 import { ProfileStreakWidget } from "./components/ProfileStreakWidget";
 import {
@@ -53,6 +54,8 @@ let cachedProfileData: {
   attempts: AttemptItem[];
   phone: string;
   school: string;
+  isPremium?: boolean;
+  premiumExpiresAt?: string | null;
   fetchedAt: number;
 } | null = null;
 const PROFILE_STALE_MS = 30_000;
@@ -78,6 +81,13 @@ export default function ProfileModule() {
   );
   const [phone, setPhone] = useState<string>(cachedProfileData?.phone ?? "");
   const [school, setSchool] = useState<string>(cachedProfileData?.school ?? "");
+  const [profilePremium, setProfilePremium] = useState<{
+    isPremium?: boolean;
+    premiumExpiresAt?: string | null;
+  }>({
+    isPremium: cachedProfileData?.isPremium,
+    premiumExpiresAt: cachedProfileData?.premiumExpiresAt,
+  });
   const [isLoadingData, setIsLoadingData] = useState(!cachedProfileData);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -147,15 +157,27 @@ export default function ProfileModule() {
           const nextAttempts = data.attempts ?? attempts;
           const nextPhone = data.user?.phone ?? (session.user as { phone?: string })?.phone ?? "";
           const nextSchool = data.user?.school ?? (session.user as { school?: string })?.school ?? "";
+          const nextIsPremium =
+            typeof data.user?.isPremium === "boolean"
+              ? data.user.isPremium
+              : session.user?.isPremium;
+          const nextPremiumExpiresAt =
+            data.user?.premiumExpiresAt ?? session.user?.premiumExpiresAt ?? null;
           if (data.stats) setStats(data.stats);
           if (data.attempts) setAttempts(data.attempts);
           setPhone(nextPhone);
           setSchool(nextSchool);
+          setProfilePremium({
+            isPremium: nextIsPremium,
+            premiumExpiresAt: nextPremiumExpiresAt,
+          });
           cachedProfileData = {
             stats: nextStats,
             attempts: nextAttempts,
             phone: nextPhone,
             school: nextSchool,
+            isPremium: nextIsPremium,
+            premiumExpiresAt: nextPremiumExpiresAt,
             fetchedAt: Date.now(),
           };
         }
@@ -189,6 +211,8 @@ export default function ProfileModule() {
     target?: string | null;
     phone?: string | null;
     school?: string | null;
+    isPremium?: boolean;
+    premiumExpiresAt?: string | null;
   };
 
   const user = {
@@ -198,6 +222,9 @@ export default function ProfileModule() {
     phone: phone || sessionUser?.phone || "",
     school: school || sessionUser?.school || "",
     target: sessionUser?.target || "Belum diatur",
+    isPremium: profilePremium.isPremium ?? sessionUser?.isPremium ?? false,
+    premiumExpiresAt:
+      profilePremium.premiumExpiresAt ?? sessionUser?.premiumExpiresAt ?? null,
   };
   const ptnTargets = parsePtnTargets(sessionUser?.target);
 
@@ -359,7 +386,17 @@ export default function ProfileModule() {
             <div className="text-label text-text-muted mb-0.5">
               MASUK PTN 2027
             </div>
-            <h1 className="text-[22px] font-bold text-text">{user.name}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-[22px] font-bold text-text">{user.name}</h1>
+              {isUserPremiumActive({
+                isPremium: user.isPremium,
+                premiumExpiresAt: user.premiumExpiresAt,
+              }) && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800 text-[11px] font-semibold">
+                  Premium
+                </span>
+              )}
+            </div>
             <p className="font-mono text-xs text-text-muted mb-3">
               {user.email}
             </p>
@@ -385,7 +422,14 @@ export default function ProfileModule() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setIsEditOpen(true)}
+                  onClick={() => {
+                    setActiveTab("settings");
+                    setTimeout(() => {
+                      document
+                        .getElementById("target-ptn-section")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 60);
+                  }}
                   title="Klik untuk mengatur pilihan target PTN kamu"
                   className="px-3 py-1 rounded-full text-[13px] font-semibold inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer"
                 >
@@ -421,7 +465,7 @@ export default function ProfileModule() {
               active={activeTab === "transactions"}
               onClick={() => setActiveTab("transactions")}
               icon={CreditCard}
-              label="Transaksi coin"
+              label="Transaksi"
             />
             <MenuButton
               active={activeTab === "settings"}
@@ -502,6 +546,7 @@ export default function ProfileModule() {
 
           {activeTab === "transactions" && (
             <div className="space-y-6">
+              <h2 className="text-[20px] font-bold text-text">Transaksi</h2>
               <div>
                 <h3 className="text-[18px] font-bold text-text mb-3">
                   Menunggu pembayaran

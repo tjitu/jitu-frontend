@@ -39,6 +39,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getFirebaseAuth } from "@/lib/firebase";
+import { useSession } from "@/lib/auth-client";
 import {
   InteractiveSolutionDeck,
   renderMathContent,
@@ -155,6 +156,7 @@ export interface LatihanModuleProps {
 
 function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const isSandboxMode =
     forceSandboxMode || (searchParams.get("target") || "").toUpperCase() === "SANDBOX";
   const urlQuestionId = searchParams.get("questionId") || null;
@@ -201,6 +203,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
   const [dailyAnsweredCount, setDailyAnsweredCount] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [passPrice, setPassPrice] = useState(55000);
   const [isDailyLimitModalOpen, setIsDailyLimitModalOpen] = useState(false);
   const [premiumModalReason, setPremiumModalReason] = useState<
     "LIMIT" | "SUBTEST" | "HISTORY" | "UPGRADE"
@@ -296,6 +299,31 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
     }
     setSandboxTokenReady(true);
   }, [isSandboxMode, urlToken]);
+
+  useEffect(() => {
+    if (typeof session?.user?.isPremium === "boolean") {
+      setIsPremiumUser(session.user.isPremium);
+    }
+  }, [session?.user?.isPremium]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/proxy/shop/packages")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((pkgs) => {
+        if (cancelled || !Array.isArray(pkgs)) return;
+        const passPkg = pkgs.find((p: any) =>
+          String(p?.name || "").toLowerCase().includes("pass")
+        );
+        if (passPkg?.price && Number(passPkg.price) > 0) {
+          setPassPrice(Number(passPkg.price));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Sync Firebase auth session cleanly before loading user-specific question feed
   useEffect(() => {
@@ -878,7 +906,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                     }`}
                   >
                     {isPremiumUser ? (
-                      <Crown className="w-3.5 h-3.5 text-amber-600" />
+                      <History className="w-3.5 h-3.5 text-primary" />
                     ) : (
                       <Lock className="w-3.5 h-3.5 text-amber-600" />
                     )}
@@ -1018,12 +1046,12 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                 </div>
               ) : (
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs">
-                    <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
-                    <span>Akses Unlimited Aktif (PTN Premium Pass)</span>
-                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface border border-border text-xs font-semibold text-text">
+                    <span aria-hidden="true" className="text-sm font-bold text-primary leading-none">∞</span>
+                    <span>Unlimited</span>
+                  </span>
                   <span className="text-[11px] text-text-muted hidden sm:inline">
-                    Latihan tanpa limit kuota harian
+                    Latihan tanpa batas kuota harian
                   </span>
                 </div>
               )}
@@ -1757,7 +1785,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-t border-slate-200">
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp55.000</span>
+                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp{passPrice.toLocaleString("id-ID")}</span>
                     <span className="text-xs text-slate-500">/bulan</span>
                   </div>
                   <p className="text-[11px] text-slate-500">Akses langsung aktif seketika</p>
@@ -1857,7 +1885,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-t border-slate-200">
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp55.000</span>
+                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp{passPrice.toLocaleString("id-ID")}</span>
                     <span className="text-xs text-slate-500">/bulan</span>
                   </div>
                   <p className="text-[11px] text-slate-500">Langganan fleksibel, batalkan kapan saja</p>

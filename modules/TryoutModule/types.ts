@@ -12,6 +12,12 @@ export interface TryOutData {
   scheduledEnd: string | null;
   duration?: number;
   isRegistered?: boolean;
+  latestAttemptStatus?: string | null;
+  latestAttemptId?: string | null;
+  latestFinishedAttemptId?: string | null;
+  resumeUrl?: string | null;
+  isWaitingTransition?: boolean;
+  nextSubtestOrder?: number | null;
   curationStatus?: string;
   isSandboxPreview?: boolean;
 }

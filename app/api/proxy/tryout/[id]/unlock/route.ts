@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
+import { isUserPremiumActive } from "@/lib/premium";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -56,9 +57,10 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
       );
     }
 
-    const isUserPremium =
-      Boolean(dbUser.isPremium) &&
-      (!dbUser.premiumExpiresAt || new Date(dbUser.premiumExpiresAt) > new Date());
+    const isUserPremium = isUserPremiumActive({
+      isPremium: dbUser.isPremium,
+      premiumExpiresAt: dbUser.premiumExpiresAt,
+    });
     const price = Number(tryout.solutionPrice) || 0;
 
     if (isUserPremium || price <= 0) {
@@ -86,12 +88,20 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query(
+      const deductRes = await client.query(
         `UPDATE "user"
          SET "tokenBalance" = "tokenBalance" - $1, "updatedAt" = NOW()
-         WHERE id = $2`,
+         WHERE id = $2 AND "tokenBalance" >= $1
+         RETURNING "tokenBalance"`,
         [price, user.id],
       );
+      if (deductRes.rowCount === 0) {
+        await client.query("ROLLBACK");
+        return NextResponse.json(
+          { message: "Saldo Token tidak mencukupi" },
+          { status: 400 },
+        );
+      }
       await client.query(
         `INSERT INTO "TokenTransaction" (id, "userId", amount, type, "referenceId", "createdAt")
          VALUES ($1, $2, $3, 'PURCHASE_SOLUTION', $4, NOW())`,

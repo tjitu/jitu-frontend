@@ -9,6 +9,7 @@ import { TryoutScheduleTimeline } from "@/components/ui/tryout-schedule-timeline
 import { PixelCoin } from "@/components/ui/pixel-coin";
 import { getDisplayedParticipants } from "@/lib/tryout-display";
 import { TryOutData } from "../types";
+import { getTryoutCardActionInfo } from "../utils/tryout-status";
 
 interface PortraitTryoutCardProps {
   tryout: TryOutData;
@@ -20,21 +21,22 @@ export function PortraitTryoutCard({
   onRegister,
 }: PortraitTryoutCardProps) {
   const router = useRouter();
+  const action = getTryoutCardActionInfo(tryout);
 
   const statusBadge =
-    tryout.isSandboxPreview || tryout.curationStatus === "QC_SANDBOX" ? (
+    action.badgeVariant === "sandbox" ? (
       <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-blue-100 text-blue-900 text-[12px] font-semibold shadow-2xs">
-        <span>QC Sandbox</span>
+        <span>{action.badgeLabel}</span>
       </span>
-    ) : tryout.isRegistered ? (
+    ) : action.badgeVariant === "finished" || action.badgeVariant === "not_started" ? (
       <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-emerald-400 text-emerald-950 text-[12px] font-bold shadow-2xs">
         <Check className="w-3.5 h-3.5 stroke-[2.2]" />
-        <span>Terdaftar</span>
+        <span>{action.badgeLabel}</span>
       </span>
     ) : (
       <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full bg-yellow-400 text-ink-900 text-[12px] font-bold shadow-2xs">
         <Clock className="w-3.5 h-3.5 stroke-[2.2]" />
-        <span>Belum terdaftar</span>
+        <span>{action.badgeLabel}</span>
       </span>
     );
 
@@ -94,14 +96,14 @@ export function PortraitTryoutCard({
 
         {tryout.isRegistered ? (
           <Button
-            variant="primary"
+            variant={action.isOutline ? "outline" : "primary"}
             className="w-full justify-between"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/tryout/${tryout.id}`);
+              router.push(action.targetUrl);
             }}
           >
-            <span>Kerjakan tryout</span>
+            <span>{action.ctaLabel}</span>
             <ArrowRight className="w-4 h-4 stroke-[1.75]" />
           </Button>
         ) : (

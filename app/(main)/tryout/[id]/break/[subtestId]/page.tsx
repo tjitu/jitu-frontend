@@ -88,6 +88,7 @@ export default function BreakPage() {
   const tryoutId = params?.id;
   const nextSubtestId = params?.subtestId;
   const attemptId = searchParams.get("attemptId");
+  const isExpiredResume = searchParams.get("expired") === "true";
   const prevSubtestName = searchParams.get("prevSubtestName") || "Subtes";
   const nextSubtestName =
     searchParams.get("nextSubtestName") || "Subtes Berikutnya";
@@ -226,6 +227,11 @@ export default function BreakPage() {
       return;
     }
 
+    if (isExpiredResume) {
+      setBreakTimeRemainingSec(null);
+      return;
+    }
+
     let startMs: number;
     const savedIso = localStorage.getItem(storageKey);
     const parsedMs = savedIso ? new Date(savedIso).getTime() : NaN;
@@ -251,7 +257,7 @@ export default function BreakPage() {
     return () => {
       clearInterval(timer);
     };
-  }, [attemptId, tryoutId, router, storageKey, configuredBreakSec, handleProceedToNext]);
+  }, [attemptId, tryoutId, router, storageKey, configuredBreakSec, isExpiredResume, handleProceedToNext]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
@@ -268,22 +274,32 @@ export default function BreakPage() {
               {prevSubtestName} selesai
             </h1>
             <p className="text-sm text-slate-600 mb-6">
-              Jawaban kamu sudah tersimpan otomatis. Istirahat 1 menit atau langsung lanjut ke subtes berikutnya kapan saja.
+              {isExpiredResume
+                ? "Waktu subtes sebelumnya sudah habis saat kamu keluar/terputus. Timer subtes berikutnya belum berjalan — tekan tombol di bawah saat siap memulai."
+                : "Jawaban kamu sudah tersimpan otomatis. Istirahat 1 menit atau langsung lanjut ke subtes berikutnya kapan saja."}
             </p>
 
             <div className="bg-slate-900 text-white border border-slate-800 p-5 mb-5 shadow-sm rounded-lg">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-xs uppercase tracking-[0.08em] text-slate-400">
-                  JEDA ANTAR SUBTES (1 MENIT)
+                  {isExpiredResume
+                    ? "SIAP MULAI SUBTES BERIKUTNYA"
+                    : "JEDA ANTAR SUBTES (1 MENIT)"}
                 </span>
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] text-amber-300">
                   <Clock className="w-3 h-3" />
-                  Otomatis lanjut
+                  {isExpiredResume ? "Timer terjeda" : "Otomatis lanjut"}
                 </span>
               </div>
-              <div className="font-mono text-5xl font-semibold text-amber-400 leading-none my-3 tabular-nums">
-                {formatBreakClock(breakTimeRemainingSec)}
-              </div>
+              {isExpiredResume ? (
+                <div className="font-mono text-2xl font-semibold text-amber-400 leading-none my-4">
+                  Siap Lanjut
+                </div>
+              ) : (
+                <div className="font-mono text-5xl font-semibold text-amber-400 leading-none my-3 tabular-nums">
+                  {formatBreakClock(breakTimeRemainingSec)}
+                </div>
+              )}
               <div className="pt-3 mt-3 border-t border-slate-800">
                 <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-slate-400">
                   SUBTES {nextSubtestId}/{visibleSubtests.length} BERIKUTNYA
@@ -321,7 +337,9 @@ export default function BreakPage() {
                 </>
               ) : (
                 <>
-                  Lewati Jeda &amp; Lanjut Sekarang
+                  {isExpiredResume
+                    ? "Mulai Subtes Berikutnya"
+                    : "Lewati Jeda & Lanjut Sekarang"}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}

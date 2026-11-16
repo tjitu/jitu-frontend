@@ -63,6 +63,8 @@ export function LeaderboardTable({
     );
   };
 
+  const hasPilihan1 = Boolean(p1 && (p1.uniId || p1.acronym || p1.university));
+
   return (
     <div className="bg-surface rounded-2xl border border-border shadow-xs overflow-hidden">
       {/* Control Bar: Tabs & Search */}
@@ -80,26 +82,37 @@ export function LeaderboardTable({
           >
             Nasional
           </button>
-          <button
-            type="button"
-            onClick={() => onTabChange("pilihan1")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "pilihan1"
-                ? "bg-surface text-text shadow-2xs font-extrabold"
-                : "text-text-muted hover:text-text"
-            }`}
+          <span
+            title={!hasPilihan1 ? "Atur target PTN dulu" : undefined}
+            className="inline-flex"
           >
-            {p1?.logo && (
-              <UniversityLogo
-                logo={p1.logo}
-                acronym={p1.acronym}
-                name={p1.university}
-                size={16}
-                className="rounded-full bg-white"
-              />
-            )}
-            <span>Pilihan 1 {p1?.acronym ? `(${p1.acronym})` : ""}</span>
-          </button>
+            <button
+              type="button"
+              disabled={!hasPilihan1}
+              aria-disabled={!hasPilihan1}
+              onClick={() => {
+                if (hasPilihan1) onTabChange("pilihan1");
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                !hasPilihan1
+                  ? "text-text-muted opacity-50 cursor-not-allowed"
+                  : activeTab === "pilihan1"
+                    ? "bg-surface text-text shadow-2xs font-extrabold cursor-pointer"
+                    : "text-text-muted hover:text-text cursor-pointer"
+              }`}
+            >
+              {p1?.logo && (
+                <UniversityLogo
+                  logo={p1.logo}
+                  acronym={p1.acronym}
+                  name={p1.university}
+                  size={16}
+                  className="rounded-full bg-white"
+                />
+              )}
+              <span>Pilihan 1 {p1?.acronym ? `(${p1.acronym})` : ""}</span>
+            </button>
+          </span>
         </div>
 
         {/* Search Input */}

@@ -66,6 +66,34 @@ export async function POST(
       );
     }
 
+    // Apply active package/campaign discount from DB before voucher computation
+    try {
+      const discRes = await pool.query(
+        `SELECT type, value
+         FROM "Discount"
+         WHERE "isActive" = true
+           AND "startDate" <= NOW()
+           AND "endDate" >= NOW()
+           AND ("packageId" = $1 OR "packageId" IS NULL)
+         ORDER BY ("packageId" IS NULL) ASC, "createdAt" DESC
+         LIMIT 1`,
+        [pkg.id]
+      );
+      if (discRes.rows.length > 0) {
+        const d = discRes.rows[0];
+        if (d.type === "PERCENTAGE") {
+          pkg.price = Math.max(
+            1000,
+            Math.round(pkg.price * (1 - Number(d.value) / 100))
+          );
+        } else if (d.type === "FIXED") {
+          pkg.price = Math.max(1000, pkg.price - Number(d.value));
+        }
+      }
+    } catch {
+      // Discount table might not exist in older schemas
+    }
+
     // Parse optional voucher / referral code
     const body = await req.json().catch(() => ({}));
     const rawVoucherCode = String(

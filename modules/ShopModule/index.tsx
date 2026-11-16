@@ -207,11 +207,6 @@ const ShopModule = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const active =
-        localStorage.getItem("jitu_ptn_premium_pass") === "true" ||
-        localStorage.getItem("jitu_is_premium") === "true";
-      setIsPremiumUser(active);
-
       const params = new URLSearchParams(window.location.search);
       if (
         params.get("highlight") === "premium-pass" ||
@@ -264,12 +259,6 @@ const ShopModule = () => {
         setUserBalance(stats.tokenBalance ?? 0);
         if (typeof stats.isPremium === "boolean") {
           setIsPremiumUser(stats.isPremium);
-          if (typeof window !== "undefined") {
-            localStorage.setItem(
-              "jitu_ptn_premium_pass",
-              stats.isPremium ? "true" : "false",
-            );
-          }
         }
       } catch (e) {
         console.error(e);

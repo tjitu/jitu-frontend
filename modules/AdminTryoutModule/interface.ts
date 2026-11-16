@@ -18,7 +18,6 @@ export interface AdminTryoutResponse {
   code: number;
   title: string;
   solutionPrice: number;
-  releaseDate: Date;
   status: "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
   isPublic: boolean;
   referralCode?: string | null;

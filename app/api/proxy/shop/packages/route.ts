@@ -46,19 +46,21 @@ export async function GET() {
       // If any discount is active, calculate discounted price
       const packages = res.rows.map((row: any) => {
         if (row.discountId && row.discountValue) {
-          const originalPrice = row.price;
-          let finalPrice = row.price;
+          const originalPrice = Number(row.price);
+          let finalPrice = originalPrice;
           if (row.discountType === 'PERCENTAGE') {
-            finalPrice = Math.max(1000, Math.round(row.price * (1 - Number(row.discountValue) / 100)));
+            finalPrice = Math.max(1000, Math.round(originalPrice * (1 - Number(row.discountValue) / 100)));
           } else if (row.discountType === 'FIXED') {
-            finalPrice = Math.max(1000, row.price - Number(row.discountValue));
+            finalPrice = Math.max(1000, originalPrice - Number(row.discountValue));
           }
+          const savings = Math.max(0, originalPrice - finalPrice);
           return {
             id: row.id,
             name: row.name,
-            tokenAmount: row.tokenAmount,
+            tokenAmount: Number(row.tokenAmount),
             price: finalPrice,
             originalPrice,
+            savings,
             discountId: row.discountId,
             discountName: row.discountName,
             badgeText: row.badgeText,
@@ -69,8 +71,8 @@ export async function GET() {
         return {
           id: row.id,
           name: row.name,
-          tokenAmount: row.tokenAmount,
-          price: row.price,
+          tokenAmount: Number(row.tokenAmount),
+          price: Number(row.price),
           isActive: row.isActive,
         };
       });

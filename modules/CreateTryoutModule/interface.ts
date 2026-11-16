@@ -3,7 +3,6 @@ export interface TryoutFormData {
   description: string;
   solutionPrice: number | string;
   batch: string;
-  releaseDate: string;
   scheduledStart: string;
   scheduledEnd: string;
   isPublic: boolean;

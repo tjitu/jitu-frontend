@@ -8,11 +8,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  Lock,
   Sparkles,
 } from "lucide-react";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { renderMathContent } from "@/components/interactive-solution-deck";
+import { sanitizePreviewSnippet } from "@/lib/latex-tabular";
 import type { PracticeQuestionSummary } from "@/lib/practice-store";
 
 const HOLD_DURATION_MS = 5000;
@@ -37,19 +37,19 @@ const SUBTEST_LABELS: Record<string, { short: string; name: string }> = {
 
 function formatQuestionSnippetHtml(raw?: string | null): string {
   if (!raw) return "";
-  const cleaned = raw
-    .replace(/<\s*br\s*\/?>/gi, " ")
-    .replace(/<\/\s*(?:p|div|li|h[1-6])\s*>/gi, " ")
-    .replace(/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^>]*)?\/?>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => `$${math}$`)
-    .replace(/\s+/g, " ")
-    .trim();
+  const cleaned = sanitizePreviewSnippet(
+    raw
+      .replace(/<\s*br\s*\/?>/gi, " ")
+      .replace(/<\/\s*(?:p|div|li|h[1-6])\s*>/gi, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => `$${math}$`),
+    220,
+  );
 
   return renderMathContent(cleaned);
 }
@@ -252,13 +252,13 @@ export function HotQuestionsCard() {
               <span>Kerjakan soal</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
             </Link>
-            <div
-              title="Fitur Soal Harian sedang dikunci"
-              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface-muted/40 text-text-muted text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed select-none"
+            <Link
+              href="/latihan"
+              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface hover:bg-surface-muted text-text text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
             >
-              <Lock className="w-3.5 h-3.5 text-text-muted" />
-              <span>Soal harian</span>
-            </div>
+              <span>Drill</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
+            </Link>
           </div>
 
           {/* Bottom Swipe Dots + Stepper */}
@@ -325,9 +325,9 @@ export function HotQuestionsCard() {
         </>
       ) : (
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-success-text">
-            <Sparkles className="w-4 h-4" />
-            <span>Semua soal latihan sudah selesai kamu kerjakan!</span>
+          <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-text-muted">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span>Belum ada soal latihan tersedia saat ini.</span>
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <Link
@@ -337,13 +337,13 @@ export function HotQuestionsCard() {
               <span>Buka latihan</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
             </Link>
-            <div
-              title="Fitur Soal Harian sedang dikunci"
-              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface-muted/40 text-text-muted text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed select-none"
+            <Link
+              href="/latihan"
+              className="min-h-[42px] px-3.5 rounded-md border border-border bg-surface hover:bg-surface-muted text-text text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
             >
-              <Lock className="w-3.5 h-3.5 text-text-muted" />
-              <span>Soal harian</span>
-            </div>
+              <span>Drill</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
+            </Link>
           </div>
         </div>
       )}

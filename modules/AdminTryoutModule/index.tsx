@@ -143,7 +143,6 @@ const AdminTryoutModule = () => {
                 <TableHead>Peserta</TableHead>
                 <TableHead>Referral</TableHead>
                 <TableHead>Coin</TableHead>
-                <TableHead>Rilis</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
@@ -152,7 +151,7 @@ const AdminTryoutModule = () => {
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={8}
                     className="h-24 text-center text-[13px] font-medium text-text-muted"
                   >
                     Memuat data...
@@ -161,7 +160,7 @@ const AdminTryoutModule = () => {
               ) : tryouts.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={8}
                     className="h-24 text-center text-text-muted"
                   >
                     Belum ada tryout yang dibuat.
@@ -196,16 +195,6 @@ const AdminTryoutModule = () => {
                       {tryout.solutionPrice > 0
                         ? `${tryout.solutionPrice} coin`
                         : "Gratis"}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs whitespace-nowrap">
-                      {new Date(tryout.releaseDate).toLocaleDateString(
-                        "id-ID",
-                        {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        },
-                      )}
                     </TableCell>
                     <TableCell>{getStatusBadge(tryout.status)}</TableCell>
                     <TableCell className="text-right">

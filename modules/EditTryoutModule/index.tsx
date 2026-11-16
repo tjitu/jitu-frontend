@@ -40,7 +40,6 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
     description: "",
     solutionPrice: 0,
     batch: "SNBT",
-    releaseDate: "",
     scheduledStart: "",
     scheduledEnd: "",
     isPublic: true,
@@ -73,7 +72,6 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
           description: tryout.description || "",
           solutionPrice: tryout.solutionPrice,
           batch: tryout.batch,
-          releaseDate: formatDateForInput(tryout.releaseDate),
           scheduledStart: formatDateForInput(tryout.scheduledStart),
           scheduledEnd: formatDateForInput(tryout.scheduledEnd),
           isPublic: tryout.isPublic ?? true,
@@ -126,7 +124,6 @@ const EditTryoutModule: React.FC<EditTryoutModuleProps> = ({ tryoutId }) => {
         ...formData,
         solutionPrice:
           formData.solutionPrice === "" ? 0 : Number(formData.solutionPrice),
-        releaseDate: new Date(formData.releaseDate).toISOString(),
         scheduledStart: new Date(formData.scheduledStart).toISOString(),
         scheduledEnd: new Date(formData.scheduledEnd).toISOString(),
       };

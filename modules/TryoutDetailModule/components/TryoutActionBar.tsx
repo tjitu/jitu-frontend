@@ -100,7 +100,7 @@ export function TryoutActionBar({
             )}
             <span>
               {isInProgress
-                ? "Lanjutkan Ujian"
+                ? "Lanjutkan Tryout"
                 : isWaitingQuestionRelease
                   ? "Menunggu Soal Dibuka"
                   : "Mulai Kerjakan"}

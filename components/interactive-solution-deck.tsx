@@ -10,6 +10,8 @@ import {
   Sigma,
 } from "lucide-react";
 import katex from "katex";
+import "katex/dist/katex.min.css";
+import { convertLatexTabularToHtml } from "@/lib/latex-tabular";
 import type { QuestionSolutionData } from "@/lib/practice-store";
 
 export interface RenderMathOptions {
@@ -24,8 +26,11 @@ export function renderMathContent(
 
   const { animatedHighlights = false } = options;
 
+  // 0. Convert \begin{tabular}...\end{tabular} into HTML tables before KaTeX parsing
+  const preNormalized = convertLatexTabularToHtml(content);
+
   // 1. Replace block math $$...$$ with compact, balanced math card
-  let processed = content.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
+  let processed = preNormalized.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
     try {
       const rendered = katex.renderToString(math.trim(), {
         displayMode: true,

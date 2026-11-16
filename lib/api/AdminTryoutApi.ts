@@ -32,7 +32,6 @@ export interface CreateTryoutPayload {
   description?: string;
   solutionPrice: number;
   batch: string;
-  releaseDate: string;
   scheduledStart: string;
   scheduledEnd: string;
   isPublic?: boolean;

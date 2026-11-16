@@ -435,10 +435,10 @@ const DashboardModule = () => {
       <span>
         {featuredTryout.isRegistered
           ? featuredTryout.status === "IN_PROGRESS"
-            ? "Sedang dikerjakan"
+            ? "Sedang mengerjakan"
             : featuredTryout.status === "FINISHED"
               ? "Selesai"
-              : "Belum dikerjakan"
+              : "Belum mulai"
           : "Belum terdaftar"}
       </span>
     </span>
@@ -607,15 +607,22 @@ const DashboardModule = () => {
                   {featuredTryout.isRegistered ? (
                     <Button
                       size="lg"
-                      variant="primary"
-                      onClick={() => router.push(`/tryout/${featuredTryout.id}`)}
+                      variant={featuredTryout.status === "FINISHED" ? "outline" : "primary"}
+                      onClick={() => {
+                        const target =
+                          featuredTryout.status === "IN_PROGRESS" &&
+                          featuredTryout.resumeUrl
+                            ? featuredTryout.resumeUrl
+                            : `/tryout/${featuredTryout.id}`;
+                        router.push(target);
+                      }}
                       className="sm:min-w-[200px] justify-between"
                     >
                       <span>
                         {featuredTryout.status === "FINISHED"
-                          ? "Lihat tryout"
+                          ? "Review Hasil"
                           : featuredTryout.status === "IN_PROGRESS"
-                            ? "Lanjutkan tryout"
+                            ? "Lanjutkan Tryout"
                             : "Kerjakan tryout"}
                       </span>
                       <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
@@ -836,8 +843,8 @@ const DashboardModule = () => {
                         {isFinished
                           ? "Selesai"
                           : isProgress
-                            ? "Sedang dikerjakan"
-                            : "Terdaftar"}
+                            ? "Sedang mengerjakan"
+                            : "Belum mulai"}
                       </span>
                     </span>
                   );
@@ -901,13 +908,19 @@ const DashboardModule = () => {
                         <Button
                           variant={isFinished ? "outline" : "primary"}
                           className="w-full justify-between"
-                          onClick={() => router.push(`/tryout/${tryout.id}`)}
+                          onClick={() => {
+                            const target =
+                              isProgress && tryout.resumeUrl
+                                ? tryout.resumeUrl
+                                : `/tryout/${tryout.id}`;
+                            router.push(target);
+                          }}
                         >
                           <span>
                             {isFinished
-                              ? "Lihat hasil"
+                              ? "Review Hasil"
                               : isProgress
-                                ? "Lanjutkan tryout"
+                                ? "Lanjutkan Tryout"
                                 : "Kerjakan tryout"}
                           </span>
                           <ArrowRight className="w-4 h-4 stroke-[1.75]" />

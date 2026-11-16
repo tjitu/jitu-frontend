@@ -182,33 +182,18 @@ export const TryoutForm: React.FC<TryoutFormProps> = ({
               />
             </label>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <Label htmlFor="batch">Kategori batch</Label>
-                <select
-                  id="batch"
-                  name="batch"
-                  className="flex h-11 w-full rounded-md border border-border bg-surface px-3.5 py-2 text-sm text-text hover:border-ink-300 focus:outline-none focus:border-primary focus:ring-3 focus:ring-blue-200 transition-colors"
-                  value={formData.batch}
-                  onChange={handleChange}
-                >
-                  <option value="SNBT">SNBT</option>
-                  <option value="MANDIRI">MANDIRI</option>
-                </select>
-              </div>
-
-              <div>
-                <Label htmlFor="releaseDate">Tanggal rilis</Label>
-                <Input
-                  id="releaseDate"
-                  name="releaseDate"
-                  type="datetime-local"
-                  required
-                  value={formData.releaseDate}
-                  onChange={handleChange}
-                  className="font-mono"
-                />
-              </div>
+            <div>
+              <Label htmlFor="batch">Kategori batch</Label>
+              <select
+                id="batch"
+                name="batch"
+                className="flex h-11 w-full rounded-md border border-border bg-surface px-3.5 py-2 text-sm text-text hover:border-ink-300 focus:outline-none focus:border-primary focus:ring-3 focus:ring-blue-200 transition-colors"
+                value={formData.batch}
+                onChange={handleChange}
+              >
+                <option value="SNBT">SNBT</option>
+                <option value="MANDIRI">MANDIRI</option>
+              </select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

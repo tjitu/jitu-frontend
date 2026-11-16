@@ -30,6 +30,8 @@ export type JituUser = {
   role: string;
   target?: string | null;
   tokenBalance?: number;
+  isPremium?: boolean;
+  premiumExpiresAt?: string | null;
   hasPassword?: boolean;
 };
 

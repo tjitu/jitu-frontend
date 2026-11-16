@@ -68,6 +68,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Apply active Discount from DB before voucher validation
+    try {
+      const discRes = await pool.query(
+        `SELECT type, value
+         FROM "Discount"
+         WHERE "isActive" = true
+           AND "startDate" <= NOW()
+           AND "endDate" >= NOW()
+           AND ("packageId" = $1 OR "packageId" IS NULL)
+         ORDER BY ("packageId" IS NULL) ASC, "createdAt" DESC
+         LIMIT 1`,
+        [packageId]
+      );
+      if (discRes.rows.length > 0) {
+        const d = discRes.rows[0];
+        if (d.type === "PERCENTAGE") {
+          pkgPrice = Math.max(
+            1000,
+            Math.round(pkgPrice * (1 - Number(d.value) / 100))
+          );
+        } else if (d.type === "FIXED") {
+          pkgPrice = Math.max(1000, pkgPrice - Number(d.value));
+        }
+      }
+    } catch {
+      // Discount table optional
+    }
+
     // 2. Query Voucher
     const voucherRes = await pool.query(
       `SELECT id, code, "discountPercent", "maxDiscount", "minPurchase", "maxUsage", "usedCount", "isActive", "expiresAt", description, "referrerName"

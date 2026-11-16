@@ -247,7 +247,7 @@ export function TryoutHeroHeader({
                 className="w-full sm:w-auto font-semibold flex items-center justify-center gap-2"
               >
                 <BookOpen className="w-4 h-4" />
-                <span>Lihat Pembahasan Lengkap</span>
+                <span>Review Hasil</span>
               </Button>
             </div>
           )}

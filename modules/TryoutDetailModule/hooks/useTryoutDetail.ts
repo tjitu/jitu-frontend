@@ -180,6 +180,14 @@ export function useTryoutDetail() {
       }
 
       const id = await ensureAttempt();
+      if (tryoutData?.isWaitingTransition && tryoutData?.nextSubtestOrder) {
+        router.push(
+          `/tryout/${tryoutId}/break/${tryoutData.nextSubtestOrder}?attemptId=${encodeURIComponent(
+            id
+          )}&expired=true`
+        );
+        return;
+      }
       const orderToStart = tryoutData?.currentSubtestOrder || 1;
       router.push(`/tryout/${tryoutId}/exam/${orderToStart}?attemptId=${id}`);
     } catch (e: any) {

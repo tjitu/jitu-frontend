@@ -298,28 +298,59 @@ export async function confirmPaymentInDb(orderId: string, rawNotification?: unkn
   try {
     await client.query("BEGIN");
 
-    // 1. Update payment status
-    const currentMetadata = payment.metadata || {};
+    // 1. Atomically transition payment to CONFIRMED (prevents double credit on concurrent callbacks/checks)
+    const currentMetadata = (payment.metadata || {}) as Record<string, unknown>;
     const updatedMetadata = {
       ...currentMetadata,
       confirmed_at: new Date().toISOString(),
       notification: rawNotification || null,
     };
 
-    await client.query(
+    const updatePaymentRes = await client.query(
       `UPDATE "Payment"
        SET status = 'CONFIRMED', "updatedAt" = NOW(), metadata = $2
-       WHERE id = $1`,
+       WHERE id = $1 AND status <> 'CONFIRMED'
+       RETURNING id`,
       [payment.id, JSON.stringify(updatedMetadata)]
     );
 
-    // 2. Increment user token balance
-    await client.query(
-      `UPDATE "user"
-       SET "tokenBalance" = "tokenBalance" + $2, "updatedAt" = NOW()
-       WHERE id = $1`,
-      [payment.userId, payment.tokenAmount]
-    );
+    if (updatePaymentRes.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return { success: true, message: "Already confirmed", payment };
+    }
+
+    // Check whether this payment is for PTN Premium Pass
+    let packageName = String(currentMetadata.package_name || "");
+    if (payment.tokenPackageId) {
+      const pkgRes = await client.query(
+        `SELECT name FROM "TokenPackage" WHERE id = $1 LIMIT 1`,
+        [payment.tokenPackageId]
+      );
+      if (pkgRes.rows[0]?.name) {
+        packageName = String(pkgRes.rows[0].name);
+      }
+    }
+    const isPassPackage = packageName.toLowerCase().includes("pass");
+
+    // 2. Increment user token balance (and activate/extend 30d Premium if Pass)
+    if (isPassPackage) {
+      await client.query(
+        `UPDATE "user"
+         SET "tokenBalance" = "tokenBalance" + $2,
+             "isPremium" = true,
+             "premiumExpiresAt" = GREATEST(COALESCE("premiumExpiresAt", NOW()), NOW()) + INTERVAL '30 days',
+             "updatedAt" = NOW()
+         WHERE id = $1`,
+        [payment.userId, payment.tokenAmount]
+      );
+    } else {
+      await client.query(
+        `UPDATE "user"
+         SET "tokenBalance" = "tokenBalance" + $2, "updatedAt" = NOW()
+         WHERE id = $1`,
+        [payment.userId, payment.tokenAmount]
+      );
+    }
 
     // 3. Log token transaction
     const txId = crypto.randomUUID();

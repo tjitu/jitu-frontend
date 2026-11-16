@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { FontSizeControl } from "./FontSizeControl";
 import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
+import { convertLatexTabularToHtml } from "@/lib/latex-tabular";
 
 interface QuestionDisplayProps {
   question: any;
@@ -48,6 +49,9 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       contentElements.forEach((el) => {
         if (el.innerHTML.includes("&amp;")) {
           el.innerHTML = el.innerHTML.replace(/&amp;/g, "&");
+        }
+        if (el.innerHTML.includes("tabular")) {
+          el.innerHTML = convertLatexTabularToHtml(el.innerHTML);
         }
       });
 

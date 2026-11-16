@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "crypto";
 import { getDbPool } from "./db";
+import { isUserPremiumActive } from "./premium";
 
 export type SolutionStep = {
   stepNumber: number;
@@ -179,9 +180,10 @@ export async function getUserPracticeContext(userId?: string | null): Promise<Us
   ]);
 
   const user = userRes.rows[0] || {};
-  const expiresAt = user.premiumExpiresAt ? new Date(user.premiumExpiresAt) : null;
-  const isPremium =
-    Boolean(user.isPremium) && (!expiresAt || expiresAt.getTime() > Date.now());
+  const isPremium = isUserPremiumActive({
+    isPremium: user.isPremium,
+    premiumExpiresAt: user.premiumExpiresAt,
+  });
   const isSandbox = Boolean(user.isSandbox);
   const counts = countRes.rows[0] || {};
 
@@ -272,15 +274,11 @@ export async function getPracticeQuestions(params: {
   } else {
     clauses.push(`COALESCE(tout."status"::text, sub_tout."status"::text, '') NOT IN ('NOT_STARTED', 'IN_PROGRESS')`);
     clauses.push(`COALESCE(q."status", 'DRAFT') = 'READY'`);
+    clauses.push(`COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI'`);
+    clauses.push(`pa."id" IS NOT NULL`);
     if (focusQuestionId) {
       values.push(focusQuestionId);
       focusParamRef = `$${values.length}`;
-      clauses.push(
-        `(q."id" = ${focusParamRef} OR (COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI' AND pa."id" IS NOT NULL))`
-      );
-    } else {
-      clauses.push(`COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI'`);
-      clauses.push(`pa."id" IS NOT NULL`);
     }
   }
 
@@ -492,6 +490,7 @@ export async function getHotQuestions(
         ELSE 0
       END AS "stepsCount"
     FROM public."Question" q
+    INNER JOIN public."PracticeAssignment" pa ON pa."question_id" = q."id"
     LEFT JOIN public."Subtopic" s ON s."id" = q."subtopic_id"
     LEFT JOIN public."Topic" t ON t."id" = s."topicId"
     LEFT JOIN public."Topic" t_direct ON t_direct."id" = q."topic_id"
@@ -500,6 +499,7 @@ export async function getHotQuestions(
     LEFT JOIN public."TryOut" sub_tout ON sub_tout."id" = sub."try_out_id"
     LEFT JOIN public."QuestionSolution" sol ON sol."questionId" = q."id"
     WHERE COALESCE(q."status", 'DRAFT') = 'READY'
+      AND COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI'
       AND TRIM(COALESCE(q."content", '')) <> ''
       AND COALESCE(tout."status"::text, sub_tout."status"::text, '') NOT IN ('NOT_STARTED', 'IN_PROGRESS')
       ${exclusionClauses.length > 0 ? `AND ${exclusionClauses.join(" AND ")}` : ""}

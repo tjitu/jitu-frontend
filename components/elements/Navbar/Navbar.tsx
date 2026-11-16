@@ -17,6 +17,7 @@ import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { BACKEND_URL } from "@/lib/api";
 import { PixelCoin } from "@/components/ui/pixel-coin";
+import { isUserPremiumActive } from "@/lib/premium";
 import { getStudentAvatarUrl } from "@/lib/avatar";
 import BottomNav from "./BottomNav";
 
@@ -65,9 +66,18 @@ const Navbar = () => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const sessionBalance = session?.user?.tokenBalance;
+  const sessionPremium = isUserPremiumActive({
+    isPremium: session?.user?.isPremium,
+    premiumExpiresAt: session?.user?.premiumExpiresAt,
+  });
   const [tokenBalance, setTokenBalance] = useState<number | null>(
     cachedBalance ?? (typeof sessionBalance === "number" ? sessionBalance : null),
   );
+  const [isPremiumUser, setIsPremiumUser] = useState<boolean>(sessionPremium);
+
+  useEffect(() => {
+    setIsPremiumUser(sessionPremium);
+  }, [sessionPremium]);
 
   useEffect(() => {
     if (!userId) return;
@@ -80,6 +90,14 @@ const Navbar = () => {
         if (typeof data?.tokenBalance === "number") {
           cachedBalance = data.tokenBalance;
           if (mounted) setTokenBalance(data.tokenBalance);
+        }
+        if (typeof data?.isPremium === "boolean" && mounted) {
+          setIsPremiumUser(
+            isUserPremiumActive({
+              isPremium: data.isPremium,
+              premiumExpiresAt: data.premiumExpiresAt,
+            }),
+          );
         }
       })
       .catch(() => {
@@ -197,6 +215,11 @@ const Navbar = () => {
               <span className="hidden sm:inline max-w-[110px] truncate">
                 {session?.user?.name?.split(" ")[0] || "Akun"}
               </span>
+              {isPremiumUser && (
+                <span className="hidden md:inline-flex items-center px-1.5 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800 text-[10px] font-semibold leading-none">
+                  Premium
+                </span>
+              )}
             </Link>
 
             <button

@@ -64,6 +64,12 @@ export function useTryoutLeaderboard() {
   };
 
   useEffect(() => {
+    if (!p1 && activeTab === "pilihan1") {
+      setActiveTab("nasional");
+    }
+  }, [p1, activeTab]);
+
+  useEffect(() => {
     fetchAll();
   }, [tryoutId]);
 
