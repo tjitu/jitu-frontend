@@ -203,7 +203,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [isDailyLimitModalOpen, setIsDailyLimitModalOpen] = useState(false);
   const [premiumModalReason, setPremiumModalReason] = useState<
-    "LIMIT" | "SUBTEST" | "HISTORY"
+    "LIMIT" | "SUBTEST" | "HISTORY" | "UPGRADE"
   >("LIMIT");
   const [showProgressTooltip, setShowProgressTooltip] = useState(false);
   const hasAutoTriggeredLimitRef = useRef(false);
@@ -1006,7 +1006,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                     <button
                       type="button"
                       onClick={() => {
-                        setPremiumModalReason("LIMIT");
+                        setPremiumModalReason("UPGRADE");
                         setIsDailyLimitModalOpen(true);
                       }}
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2 sm:px-2.5 py-1 rounded-lg border border-amber-300/60 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
@@ -1684,109 +1684,204 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
       </main>
 
       {/* ------------------------------------------------------------
-          POPUP MODAL: PTN PREMIUM PASS (When Daily Limit 10 Reached)
+          POPUP MODAL: WHITE BACKGROUND (LIMIT vs UPGRADE MODES)
           ------------------------------------------------------------ */}
       <Dialog open={isDailyLimitModalOpen} onOpenChange={setIsDailyLimitModalOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-0 rounded-3xl bg-gradient-to-b from-[#0F2356] via-[#143485] to-[#0D1D45] text-white shadow-2xl">
-          <div className="relative p-6 sm:p-8 space-y-6">
-            {/* Ambient Background Shimmer & Glows */}
-            <div
-              aria-hidden="true"
-              className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-blue-400/20 blur-3xl pointer-events-none"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-yellow-400/15 blur-3xl pointer-events-none"
-            />
+        <DialogContent className="max-w-lg p-0 overflow-hidden border border-slate-200/90 rounded-3xl bg-white text-slate-900 shadow-2xl">
+          {premiumModalReason === "LIMIT" ? (
+            /* ============================================================
+               CASE 1: UDAH BENER-BENER LIMIT (Batas 10 Soal Harian Habis)
+               ============================================================ */
+            <div className="p-6 sm:p-7 space-y-5 bg-white">
+              {/* Header: Limit Status Badge & Icon */}
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Clock className="w-7 h-7 stroke-[2.2]" />
+                </div>
 
-            {/* Header with Golden Ticket & Badge */}
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-14 sm:w-20 sm:h-16 relative shrink-0 select-none animate-ticket-float">
-                <Image
-                  src="/icons/golden-pass-ticket.png"
-                  alt="Tiket Golden Pass PTN Premium Pass"
-                  fill
-                  className="object-contain drop-shadow-lg"
-                />
+                <div className="space-y-1">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold">
+                    <Clock className="w-3 h-3 text-rose-600" />
+                    Batas 10 Soal Hari Ini Tercapai
+                  </span>
+                  <DialogTitle className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+                    Kuota Latihan Hari Ini Habis!
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Kamu telah menyelesaikan jatah 10 soal latihan harian gratis untuk akun Free. Kuota baru akan otomatis direset besok pukul 00:00 WIB.
+                  </DialogDescription>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFD13B] text-black text-[11px] font-black uppercase tracking-wider">
-                  <Sparkles className="w-3 h-3 fill-black" />
-                  PTN Premium Pass
-                </span>
-                <DialogTitle className="text-xl sm:text-2xl font-black text-white leading-tight">
-                  {premiumModalReason === "SUBTEST"
-                    ? "Latihan Per Subtes Khusus PTN Premium Pass!"
-                    : premiumModalReason === "HISTORY"
-                    ? "Buka Riwayat & Pembahasan Lengkap!"
-                    : "Limit 10 Soal Hari Ini Tercapai!"}
-                </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-blue-200">
-                  {premiumModalReason === "SUBTEST"
-                    ? "Akun Free berlatih dengan kurasi soal campuran. Dapatkan PTN Pass untuk bebas pilih dan fokus di subtes tertentu."
-                    : premiumModalReason === "HISTORY"
-                    ? "Seluruh riwayat soal yang pernah kamu kerjakan dapat dibuka kembali kapan saja dengan PTN Premium Pass."
-                    : "Kamu telah menyelesaikan kuota 10 soal latihan harian untuk akun Free."}
-                </DialogDescription>
+              {/* Progress Summary Card */}
+              <div className="rounded-2xl bg-slate-50 border border-slate-200/80 p-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 font-mono font-black text-xs flex items-center justify-center shrink-0">
+                    10/10
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">10 Soal Selesai Dikerjakan</div>
+                    <div className="text-[11px] text-slate-500">Kuota harian akun Free habis</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[11px] font-semibold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                    Reset 00:00 WIB
+                  </span>
+                </div>
+              </div>
+
+              {/* Value Proposition Box: Why Upgrade */}
+              <div className="rounded-2xl bg-amber-50/70 border border-amber-200/80 p-4 space-y-2.5">
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                  <span>Mau Lanjut Belajar Tanpa Nunggu Besok?</span>
+                </div>
+                <div className="space-y-2 text-xs text-slate-700">
+                  <div className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
+                    <span><strong>Latihan Soal Unlimited:</strong> Ribuan soal UTBK tanpa batas 10 soal harian.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
+                    <span><strong>Bebas Pilih Subtes:</strong> Fokus ke subtes yang ingin kamu pertajam nilainya.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
+                    <span><strong>Buka Pembahasan Lengkap:</strong> Akses trik kilat & langkah solusi interaktif.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price & CTA Actions */}
+              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-t border-slate-200">
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp55.000</span>
+                    <span className="text-xs text-slate-500">/bulan</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Akses langsung aktif seketika</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsDailyLimitModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
+                  >
+                    Tunggu Besok
+                  </button>
+                  <Link
+                    href="/shop?highlight=premium-pass"
+                    className="px-5 py-2.5 rounded-xl bg-[#FFD13B] hover:bg-[#ffc81f] text-black font-extrabold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95 cursor-pointer"
+                  >
+                    <span>Buka Akses PTN Pass</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </Link>
+                </div>
               </div>
             </div>
+          ) : (
+            /* ============================================================
+               CASE 2: KETIKA PENGEN UPGRADE (Subtest / History / Unlimited)
+               ============================================================ */
+            <div className="p-6 sm:p-7 space-y-5 bg-white">
+              {/* Header: Ticket & Golden Badge */}
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-14 sm:w-18 sm:h-16 relative shrink-0 select-none">
+                  <Image
+                    src="/icons/golden-pass-ticket.png"
+                    alt="Tiket Golden Pass PTN Premium Pass"
+                    fill
+                    className="object-contain drop-shadow-md"
+                  />
+                </div>
 
-            {/* Value Proposition Box */}
-            <div className="rounded-2xl bg-white/[0.08] border border-white/15 p-4 sm:p-5 space-y-3 backdrop-blur-xs">
-              <div className="text-xs font-bold uppercase tracking-wider text-yellow-300">
-                Buka Akses Tanpa Batas dengan Pass:
+                <div className="space-y-1">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black uppercase tracking-wider">
+                    <Crown className="w-3 h-3 text-amber-600 fill-amber-500" />
+                    PTN Premium Pass
+                  </span>
+                  <DialogTitle className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+                    {premiumModalReason === "SUBTEST"
+                      ? "Latihan Bebas Per Subtes!"
+                      : premiumModalReason === "HISTORY"
+                      ? "Buka Seluruh Riwayat Pembahasan!"
+                      : "Belajar Tanpa Batas dengan PTN Pass!"}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    {premiumModalReason === "SUBTEST"
+                      ? "Akun Free hanya berlatih secara acak. Buka PTN Pass untuk bebas memilih dan menguasai subtes spesifik (PU, PK, PM, PBM, PPU, LBI, LBE)."
+                      : premiumModalReason === "HISTORY"
+                      ? "Seluruh riwayat soal yang pernah kamu kerjakan dapat dibuka dan dipelajari kembali kapan saja dengan PTN Premium Pass."
+                      : "Upgrade akunmu untuk menikmati ribuan soal latihan SNBT, pembahasan interaktif tanpa token, dan simulasi skor IRT."}
+                  </DialogDescription>
+                </div>
               </div>
-              <div className="space-y-2.5 text-xs sm:text-[13px] text-blue-100">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                  <span><strong>Latihan Soal Unlimited:</strong> Ribuan soal UTBK tanpa limit harian 10 soal</span>
+
+              {/* Feature Highlights Grid */}
+              <div className="rounded-2xl bg-amber-50/60 border border-amber-200/90 p-4 space-y-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                  <span>Keuntungan Akses PTN Premium Pass:</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <div className="space-y-2.5 text-xs text-slate-700">
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                    <span><strong>Filter 7 Subtes Bebas:</strong> Fokus latihan di subtes yang paling butuh peningkatan skor.</span>
                   </div>
-                  <span><strong>Bebas Buka Pembahasan:</strong> Trik cepat, langkah detail, & rumus kunci tanpa token</span>
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                    <span><strong>Latihan Unlimited Tiap Hari:</strong> Tidak ada batas 10 soal, belajar sepuasnya sampai paham.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                    <span><strong>Arsip Riwayat & Pembahasan:</strong> Kapan saja bisa buka kembali soal yang pernah dikerjakan.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                    <span><strong>Analisis Skor IRT:</strong> Simulasi bobot skor asli UTBK dan prediksi kelulusan PTN.</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+              </div>
+
+              {/* Price & CTA Actions */}
+              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-t border-slate-200">
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp55.000</span>
+                    <span className="text-xs text-slate-500">/bulan</span>
                   </div>
-                  <span><strong>Analisis Skor IRT & Prediksi Kelulusan:</strong> Pantau target PTN impianmu</span>
+                  <p className="text-[11px] text-slate-500">Langganan fleksibel, batalkan kapan saja</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsDailyLimitModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
+                  >
+                    Nanti Saja
+                  </button>
+                  <Link
+                    href="/shop?highlight=premium-pass"
+                    className="px-5 py-2.5 rounded-xl bg-[#FFD13B] hover:bg-[#ffc81f] text-black font-extrabold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95 cursor-pointer"
+                  >
+                    <span>Ambil Premium Pass</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </Link>
                 </div>
               </div>
             </div>
-
-            {/* Price & CTA */}
-            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/10">
-              <div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl sm:text-3xl font-black text-white tabular-nums">Rp55.000</span>
-                  <span className="text-xs text-blue-200">/bulan</span>
-                </div>
-                <p className="text-[11px] text-blue-300/80">Langganan fleksibel, batalkan kapan saja</p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsDailyLimitModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/20 hover:bg-white/10 text-xs font-semibold text-white transition-colors cursor-pointer"
-                >
-                  Nanti Saja
-                </button>
-                <Link
-                  href="/shop?highlight=premium-pass"
-                  className="px-5 py-2.5 rounded-xl bg-[#FFD13B] hover:bg-[#ffc81f] text-black font-extrabold text-xs sm:text-sm flex items-center gap-1.5 shadow-lg transition-transform active:scale-95 cursor-pointer"
-                >
-                  <span>Ambil Premium Pass</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </Link>
-              </div>
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
