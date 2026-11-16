@@ -43,7 +43,16 @@ import {
   renderMathContent,
 } from "@/components/interactive-solution-deck";
 import { PracticeHistoryTab } from "./PracticeHistoryTab";
-import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/SubtestIcons";
+import {
+  getSubtestInfo,
+  IconPU,
+  IconPPU,
+  IconPBM,
+  IconPK,
+  IconLBI,
+  IconLBE,
+  IconPM,
+} from "@/modules/TryoutDetailModule/components/SubtestIcons";
 import type {
   PracticeQuestionSummary,
   QuestionSolutionData,
@@ -51,16 +60,72 @@ import type {
 
 const DAILY_FREE_LIMIT = 10;
 
-const SUBTESTS = [
-  { id: "ALL", label: "Semua Subtes" },
-  { id: "PENALARAN_UMUM", label: "PU" },
-  { id: "PENGETAHUAN_KUANTITATIF", label: "PK" },
-  { id: "PENALARAN_MATEMATIKA", label: "PM" },
-  { id: "PEMAHAMAN_BACAAN_MENULIS", label: "PBM" },
-  { id: "PENGETAHUAN_PEMAHAMAN_UMUM", label: "PPU" },
-  { id: "LITERASI_INDONESIA", label: "LBI" },
-  { id: "LITERASI_INGGRIS", label: "LBE" },
+const SUBTEST_FILTER_ITEMS: Array<{
+  id: string;
+  label: string;
+  fullName: string;
+  Icon: React.ComponentType<{ className?: string; size?: number }>;
+  colorClass: string;
+}> = [
+  {
+    id: "ALL",
+    label: "Semua Subtes",
+    fullName: "Semua Subtes Campuran",
+    Icon: Layers,
+    colorClass: "text-blue-600",
+  },
+  {
+    id: "PENALARAN_UMUM",
+    label: "PU",
+    fullName: "Penalaran Umum",
+    Icon: IconPU,
+    colorClass: "text-blue-600",
+  },
+  {
+    id: "PENGETAHUAN_KUANTITATIF",
+    label: "PK",
+    fullName: "Pengetahuan Kuantitatif",
+    Icon: IconPK,
+    colorClass: "text-emerald-600",
+  },
+  {
+    id: "PENALARAN_MATEMATIKA",
+    label: "PM",
+    fullName: "Penalaran Matematika",
+    Icon: IconPM,
+    colorClass: "text-purple-600",
+  },
+  {
+    id: "PEMAHAMAN_BACAAN_MENULIS",
+    label: "PBM",
+    fullName: "Pemahaman Bacaan & Menulis",
+    Icon: IconPBM,
+    colorClass: "text-cyan-600",
+  },
+  {
+    id: "PENGETAHUAN_PEMAHAMAN_UMUM",
+    label: "PPU",
+    fullName: "Pengetahuan & Pemahaman Umum",
+    Icon: IconPPU,
+    colorClass: "text-amber-600",
+  },
+  {
+    id: "LITERASI_INDONESIA",
+    label: "LBI",
+    fullName: "Literasi Bahasa Indonesia",
+    Icon: IconLBI,
+    colorClass: "text-rose-600",
+  },
+  {
+    id: "LITERASI_INGGRIS",
+    label: "LBE",
+    fullName: "Literasi Bahasa Inggris",
+    Icon: IconLBE,
+    colorClass: "text-indigo-600",
+  },
 ];
+
+const SUBTESTS = SUBTEST_FILTER_ITEMS;
 
 const DIFFICULTIES = [
   { id: "ALL", label: "Semua Level" },
@@ -140,6 +205,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
     "LIMIT" | "SUBTEST" | "HISTORY"
   >("LIMIT");
   const [showProgressTooltip, setShowProgressTooltip] = useState(false);
+  const hasAutoTriggeredLimitRef = useRef(false);
 
   // Subtest click handler: locks individual subtests for free tier
   const handleSubtestClick = (subId: string) => {
@@ -161,6 +227,21 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
       setSelectedSubtest("ALL");
     }
   }, [isPremiumUser, isSandboxMode, selectedSubtest]);
+
+  // Auto-trigger limit modal if user opens /latihan and daily limit is already reached
+  useEffect(() => {
+    if (
+      !loading &&
+      !hasAutoTriggeredLimitRef.current &&
+      !isSandboxMode &&
+      !isPremiumUser &&
+      dailyAnsweredCount >= DAILY_FREE_LIMIT
+    ) {
+      hasAutoTriggeredLimitRef.current = true;
+      setPremiumModalReason("LIMIT");
+      setIsDailyLimitModalOpen(true);
+    }
+  }, [loading, isSandboxMode, isPremiumUser, dailyAnsweredCount]);
 
   // Capture signed preview token from URL into sessionStorage and strip it from address bar
   useEffect(() => {
@@ -247,7 +328,19 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
           preferred ? preferred.id : data.questions.length > 0 ? data.questions[0].id : null
         );
         if (typeof data.isPremium === "boolean") setIsPremiumUser(data.isPremium);
-        if (typeof data.dailyAnsweredCount === "number") setDailyAnsweredCount(data.dailyAnsweredCount);
+        if (typeof data.dailyAnsweredCount === "number") {
+          setDailyAnsweredCount(data.dailyAnsweredCount);
+          if (
+            !hasAutoTriggeredLimitRef.current &&
+            !data.isPremium &&
+            !isSandboxMode &&
+            data.dailyAnsweredCount >= DAILY_FREE_LIMIT
+          ) {
+            hasAutoTriggeredLimitRef.current = true;
+            setPremiumModalReason("LIMIT");
+            setIsDailyLimitModalOpen(true);
+          }
+        }
         if (typeof data.totalAnswered === "number") setTotalAnswered(data.totalAnswered);
       } else {
         toast.error("Gagal memuat bank latihan soal");
@@ -436,8 +529,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
       dailyAnsweredCount >= DAILY_FREE_LIMIT &&
       !attempts[activeQuestion.id]
     ) {
+      setPremiumModalReason("LIMIT");
       setIsDailyLimitModalOpen(true);
-      toast.error("Batas kuota 10 soal harian tercapai! Upgrade ke PTN Premium Pass untuk lanjut.");
+      toast.error("Batas limit 10 soal harian tercapai! Upgrade ke PTN Premium Pass untuk lanjut.");
       return;
     }
 
@@ -519,8 +613,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
         dailyAnsweredCount >= DAILY_FREE_LIMIT &&
         !attempts[targetQ.id]
       ) {
+        setPremiumModalReason("LIMIT");
         setIsDailyLimitModalOpen(true);
-        toast.error("Batas kuota 10 soal harian tercapai! Upgrade ke PTN Premium Pass.");
+        toast.error("Batas limit 10 soal harian tercapai! Upgrade ke PTN Premium Pass.");
         return;
       }
 
@@ -681,40 +776,53 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
   // Check if side-by-side solution card should be rendered
   const showSolutionCard = Boolean(isSolutionOpen && currentAttempt?.solution);
 
+  // Maximum content width aligned across header blocks and main arena
+  const contentMaxWidthClass =
+    !isSandboxMode && viewMode === "HISTORY"
+      ? "max-w-5xl"
+      : showSolutionCard
+      ? "max-w-[1580px]"
+      : "max-w-4xl";
+
   return (
     <div className="min-h-screen bg-bg pb-24 text-text selection:bg-blue-100 selection:text-blue-900">
       {/* ============================================================
           TOP HEADER: 2-TIER BLOCKS
           Block 1: Latihan Soal SNBT & UTBK + Switcher Tab (Kerjakan Soal / Riwayat Kegembok)
-          Block 2: Kuota Limit (kiri) + Subtest Filter (kanan, locked di free)
+          Block 2: Limit (Free Pass) (kiri) + Subtest Filter (kanan, locked di free)
           ============================================================ */}
       <div className="bg-surface border-b border-border shadow-2xs">
         {/* Block 1: Main Title & Mode Tabs */}
-        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border/60">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-              <h1 className="text-lg sm:text-xl font-extrabold text-text tracking-tight m-0 whitespace-nowrap">
-                {isSandboxMode
-                  ? "Sandbox Preview · Soal & Pembahasan"
-                  : "Latihan Soal SNBT & UTBK"}
-              </h1>
-
-              {isSandboxMode ? (
-                <div className="flex items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 border border-amber-300 text-xs font-bold">
-                    <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
-                    Sandbox QC
-                  </span>
-                  <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full bg-surface-muted text-text-muted border border-border text-[11px] font-semibold">
-                    Pratinjau Antrean QC
-                  </span>
+        <div className="border-b border-border/60">
+          <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-3 sm:py-3.5 transition-all duration-300`}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-red-500 text-white shadow-xs shrink-0 ring-2 ring-orange-500/20">
+                  <Flame className="w-4.5 h-4.5 fill-amber-200 text-white animate-pulse" />
                 </div>
-              ) : isPremiumUser ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-300 text-xs font-bold">
-                  <Crown className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                  PTN Premium Pass
-                </span>
-              ) : null}
+                <h1 className="text-lg sm:text-xl font-extrabold text-text tracking-tight m-0 whitespace-nowrap">
+                  {isSandboxMode
+                    ? "Sandbox Preview · Soal & Pembahasan"
+                    : "Latihan Soal SNBT & UTBK"}
+                </h1>
+
+                {isSandboxMode ? (
+                  <div className="flex items-center gap-1.5 ml-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 border border-amber-300 text-xs font-bold">
+                      <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
+                      Sandbox QC
+                    </span>
+                    <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full bg-surface-muted text-text-muted border border-border text-[11px] font-semibold">
+                      Pratinjau Antrean QC
+                    </span>
+                  </div>
+                ) : isPremiumUser ? (
+                  <span className="inline-flex items-center gap-1 ml-2 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-300 text-xs font-bold">
+                    <Crown className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                    PTN Premium Pass
+                  </span>
+                ) : null}
+              </div>
 
               {/* Primary Mode Switcher: Kerjakan Soal vs Riwayat & Pembahasan */}
               {!isSandboxMode && (
@@ -758,158 +866,173 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
           </div>
         </div>
 
-        {/* Block 2: Sub-bar (Kuota Limit di kiri, Subtest Filter di kanan - locked di free) */}
+        {/* Block 2: Sub-bar (Limit Free Pass di kiri, Subtest Filter di kanan - locked di free) */}
         {viewMode === "PRACTICE" && (
-          <div className="max-w-[1580px] mx-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-surface-muted/20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              {/* Kiri: Kuota Limit */}
-              <div className="flex items-center gap-3 shrink-0">
-                {isSandboxMode ? (
-                  sandboxAuthorized ? (
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs whitespace-nowrap">
-                      <FlaskConical className="w-4 h-4 text-amber-600" />
-                      <span>{questions.length} Soal Antrean QC</span>
-                    </div>
-                  ) : null
-                ) : !isPremiumUser ? (
-                  <div
-                    className="relative group cursor-pointer"
-                    onClick={() => {
-                      setPremiumModalReason("LIMIT");
-                      setIsDailyLimitModalOpen(true);
-                    }}
-                  >
-                    <div className="flex items-center gap-2.5 py-0.5">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-text whitespace-nowrap">
-                        <Zap
-                          className={`w-3.5 h-3.5 ${
-                            dailyAnsweredCount >= DAILY_FREE_LIMIT
-                              ? "text-rose-500 fill-rose-500"
-                              : "text-amber-500 fill-amber-500"
-                          }`}
-                        />
-                        <span>Kuota:</span>
-                        <span className="font-mono text-primary font-black">
-                          {dailyAnsweredCount}/{DAILY_FREE_LIMIT}
-                        </span>
+          <div className="bg-surface-muted/20">
+            <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-2.5 sm:py-3 transition-all duration-300`}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                {/* Kiri: Limit (Free Pass) */}
+                <div className="flex items-center gap-3 shrink-0">
+                  {isSandboxMode ? (
+                    sandboxAuthorized ? (
+                      <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs whitespace-nowrap">
+                        <FlaskConical className="w-4 h-4 text-amber-600" />
+                        <span>{questions.length} Soal Antrean QC</span>
                       </div>
-
-                      {/* Progressive Bar */}
-                      <div className="w-24 sm:w-32 h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 rounded-full ${
-                            dailyAnsweredCount >= DAILY_FREE_LIMIT
-                              ? "bg-rose-500"
-                              : dailyAnsweredCount >= 7
-                              ? "bg-amber-500"
-                              : "bg-primary"
-                          }`}
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              (dailyAnsweredCount / DAILY_FREE_LIMIT) * 100
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Hover Info Tooltip */}
-                    <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 rounded-2xl bg-surface border border-border shadow-xl text-left transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
-                      <div className="flex items-start gap-2.5 mb-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-yellow-600 flex items-center justify-center shrink-0">
-                          <Sparkles className="w-4 h-4" />
+                    ) : null
+                  ) : !isPremiumUser ? (
+                    <div
+                      className="relative group cursor-pointer"
+                      onClick={() => {
+                        setPremiumModalReason("LIMIT");
+                        setIsDailyLimitModalOpen(true);
+                      }}
+                    >
+                      <div className="flex items-center gap-2.5 py-0.5">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-text whitespace-nowrap">
+                          <Zap
+                            className={`w-3.5 h-3.5 ${
+                              dailyAnsweredCount >= DAILY_FREE_LIMIT
+                                ? "text-rose-500 fill-rose-500"
+                                : "text-amber-500 fill-amber-500"
+                            }`}
+                          />
+                          <span>Limit (Free Pass):</span>
+                          <span className="font-mono text-primary font-black">
+                            {dailyAnsweredCount}/{DAILY_FREE_LIMIT}
+                          </span>
                         </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-text">
-                            Batas 10 Soal Harian
-                          </h4>
-                          <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
-                            Kamu sudah mengerjakan{" "}
-                            <strong>
-                              {dailyAnsweredCount} dari {DAILY_FREE_LIMIT} soal
-                            </strong>{" "}
-                            hari ini. Kuota direset otomatis tiap tengah malam WIB.
+
+                        {/* Progressive Bar */}
+                        <div className="w-24 sm:w-32 h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 rounded-full ${
+                              dailyAnsweredCount >= DAILY_FREE_LIMIT
+                                ? "bg-rose-500"
+                                : dailyAnsweredCount >= 7
+                                ? "bg-amber-500"
+                                : "bg-primary"
+                            }`}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                (dailyAnsweredCount / DAILY_FREE_LIMIT) * 100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Hover Info Tooltip */}
+                      <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 rounded-2xl bg-surface border border-border shadow-xl text-left transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
+                        <div className="flex items-start gap-2.5 mb-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-yellow-600 flex items-center justify-center shrink-0">
+                            <Sparkles className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-text">
+                              Batas 10 Soal Harian (Free Pass)
+                            </h4>
+                            <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
+                              Kamu sudah mengerjakan{" "}
+                              <strong>
+                                {dailyAnsweredCount} dari {DAILY_FREE_LIMIT} soal
+                              </strong>{" "}
+                              hari ini. Limit direset otomatis tiap tengah malam WIB.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-950 space-y-1 mb-3">
+                          <div className="font-bold flex items-center gap-1 text-blue-900">
+                            <span>Mau latihan ribuan soal tanpa batas?</span>
+                          </div>
+                          <p className="text-blue-800/90 leading-relaxed">
+                            Upgrade ke <strong>PTN Premium Pass</strong> untuk latihan
+                            unlimited, bebas buka riwayat pembahasan, dan analisis skor IRT.
                           </p>
                         </div>
-                      </div>
 
-                      <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-950 space-y-1 mb-3">
-                        <div className="font-bold flex items-center gap-1 text-blue-900">
-                          <span>Mau latihan ribuan soal tanpa batas?</span>
-                        </div>
-                        <p className="text-blue-800/90 leading-relaxed">
-                          Upgrade ke <strong>PTN Premium Pass</strong> untuk latihan
-                          unlimited, bebas buka riwayat pembahasan, dan analisis skor IRT.
-                        </p>
+                        <Link
+                          href="/shop?highlight=premium-pass"
+                          className="w-full py-2 px-3 rounded-lg bg-[#FFD13B] hover:bg-[#ffc81f] text-black text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                        >
+                          <span>Buka Akses PTN Premium Pass</span>
+                          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </Link>
                       </div>
-
-                      <Link
-                        href="/shop?highlight=premium-pass"
-                        className="w-full py-2 px-3 rounded-lg bg-[#FFD13B] hover:bg-[#ffc81f] text-black text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-                      >
-                        <span>Buka Akses PTN Premium Pass</span>
-                        <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </Link>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs">
-                    <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
-                    <span>Akses Unlimited Aktif</span>
+                  ) : (
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs">
+                      <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
+                      <span>Akses Unlimited Aktif</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Kanan: Subtest & Sandbox Batch Quick Filter */}
+                {(!isSandboxMode || sandboxAuthorized) && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    {isSandboxMode && (
+                      <select
+                        aria-label="Filter Batch QC"
+                        value={selectedBatch}
+                        onChange={(e) => setSelectedBatch(e.target.value)}
+                        className="h-8 px-2.5 rounded-full text-xs font-semibold bg-surface-muted text-text border border-border cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="ALL">Semua Batch</option>
+                        <option value="__NONE__">Tanpa Batch</option>
+                        {availableBatches.map((batchName) => (
+                          <option key={batchName} value={batchName}>
+                            Batch: {batchName}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {SUBTEST_FILTER_ITEMS.map((sub) => {
+                      const isAll = sub.id === "ALL";
+                      const isLocked = !isAll && !isPremiumUser && !isSandboxMode;
+                      const isActive = selectedSubtest === sub.id;
+                      const SubIcon = sub.Icon;
+
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => handleSubtestClick(sub.id)}
+                          title={
+                            isLocked
+                              ? `Fitur PTN Premium Pass: Buka akses untuk latihan ${sub.fullName}`
+                              : `Filter ${sub.fullName}`
+                          }
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
+                            isActive
+                              ? "bg-primary text-on-primary shadow-xs border border-primary"
+                              : isLocked
+                              ? "bg-surface-muted/40 text-text-muted/70 hover:bg-amber-50/80 hover:text-amber-950 hover:border-amber-300 border border-border/70"
+                              : "bg-surface text-text hover:bg-surface-muted border border-border/80 hover:border-primary/40 shadow-2xs"
+                          }`}
+                        >
+                          {isLocked ? (
+                            <>
+                              <Lock className="w-3 h-3 text-amber-600 shrink-0" />
+                              <SubIcon size={14} className="text-text-muted/50 shrink-0 opacity-60" />
+                            </>
+                          ) : (
+                            <SubIcon
+                              size={14}
+                              className={`shrink-0 transition-colors ${
+                                isActive ? "text-on-primary" : sub.colorClass
+                              }`}
+                            />
+                          )}
+                          <span>{sub.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-
-              {/* Kanan: Subtest & Sandbox Batch Quick Filter */}
-              {(!isSandboxMode || sandboxAuthorized) && (
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                  {isSandboxMode && (
-                    <select
-                      aria-label="Filter Batch QC"
-                      value={selectedBatch}
-                      onChange={(e) => setSelectedBatch(e.target.value)}
-                      className="h-8 px-2.5 rounded-full text-xs font-semibold bg-surface-muted text-text border border-border cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
-                    >
-                      <option value="ALL">Semua Batch</option>
-                      <option value="__NONE__">Tanpa Batch</option>
-                      {availableBatches.map((batchName) => (
-                        <option key={batchName} value={batchName}>
-                          Batch: {batchName}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {SUBTESTS.map((sub) => {
-                    const isAll = sub.id === "ALL";
-                    const isLocked = !isAll && !isPremiumUser && !isSandboxMode;
-                    const isActive = selectedSubtest === sub.id;
-
-                    return (
-                      <button
-                        key={sub.id}
-                        type="button"
-                        onClick={() => handleSubtestClick(sub.id)}
-                        title={
-                          isLocked
-                            ? "Fitur PTN Premium Pass: Buka akses untuk latihan subtes spesifik"
-                            : `Filter ${sub.label}`
-                        }
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
-                          isActive
-                            ? "bg-primary text-on-primary shadow-xs"
-                            : isLocked
-                            ? "bg-surface-muted/60 text-text-muted hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300 border border-border/80"
-                            : "bg-surface-muted text-text hover:bg-border/60"
-                        }`}
-                      >
-                        {isLocked && <Lock className="w-3 h-3 text-amber-600 shrink-0" />}
-                        <span>{sub.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -920,13 +1043,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
           User Request: question : solution = 1 : 2 when solution is open
           ============================================================ */}
       <main
-        className={`mx-auto px-4 sm:px-6 pt-6 transition-all duration-300 ${
-          !isSandboxMode && viewMode === "HISTORY"
-            ? "max-w-5xl"
-            : showSolutionCard
-            ? "max-w-[1580px]"
-            : "max-w-4xl"
-        }`}
+        className={`mx-auto px-4 sm:px-6 pt-6 transition-all duration-300 ${contentMaxWidthClass}`}
       >
         {!isSandboxMode && viewMode === "HISTORY" ? (
           <PracticeHistoryTab
@@ -1219,7 +1336,22 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                                 key={opt.id}
                                 type="button"
                                 disabled={isEvaluated}
-                                onClick={() => setSelectedOptionId(opt.id)}
+                                onClick={() => {
+                                  if (
+                                    !isSandboxMode &&
+                                    !isPremiumUser &&
+                                    dailyAnsweredCount >= DAILY_FREE_LIMIT &&
+                                    !attempts[activeQuestion.id]
+                                  ) {
+                                    setPremiumModalReason("LIMIT");
+                                    setIsDailyLimitModalOpen(true);
+                                    toast.error(
+                                      "Batas limit 10 soal harian tercapai! Upgrade ke PTN Premium Pass untuk lanjut."
+                                    );
+                                    return;
+                                  }
+                                  setSelectedOptionId(opt.id);
+                                }}
                                 className={`w-full text-left rounded-xl border transition-all duration-150 flex items-center cursor-pointer disabled:cursor-default ${
                                   showSolutionCard
                                     ? "px-3.5 py-2.5 gap-3"
@@ -1277,23 +1409,39 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                     >
                       {!currentAttempt ? (
                         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                          <button
-                            type="button"
-                            disabled={
-                              submitting ||
-                              (isActiveShortAnswer ? !shortAnswerInput.trim() : !selectedOptionId)
-                            }
-                            onClick={handleSubmitAnswer}
-                            className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                          >
-                            {submitting ? (
-                              <>Memeriksa Jawaban...</>
-                            ) : (
-                              <>
-                                <Check className="w-4 h-4" /> Periksa Jawaban
-                              </>
-                            )}
-                          </button>
+                          {!isSandboxMode &&
+                          !isPremiumUser &&
+                          dailyAnsweredCount >= DAILY_FREE_LIMIT ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPremiumModalReason("LIMIT");
+                                setIsDailyLimitModalOpen(true);
+                              }}
+                              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-sm shadow-md transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              <Sparkles className="w-4 h-4 fill-white" />
+                              <span>Limit 10 Soal Tercapai · Buka PTN Pass</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={
+                                submitting ||
+                                (isActiveShortAnswer ? !shortAnswerInput.trim() : !selectedOptionId)
+                              }
+                              onClick={handleSubmitAnswer}
+                              className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              {submitting ? (
+                                <>Memeriksa Jawaban...</>
+                              ) : (
+                                <>
+                                  <Check className="w-4 h-4" /> Periksa Jawaban
+                                </>
+                              )}
+                            </button>
+                          )}
 
                           <button
                             type="button"
