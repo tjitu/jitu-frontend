@@ -82,6 +82,32 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
   const [fontSize, setFontSize] = useState<"normal" | "large">("normal");
   const viewerRef = useRef<HTMLElement>(null);
 
+  // Local state for selected answers in Arsip Soal (read-only view with client-only answer marking)
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.sessionStorage.getItem("jitu_arsip_soal_answers");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleSelectOption = (questionId: string, optionId: string) => {
+    setSelectedAnswers((prev) => {
+      const next = {
+        ...prev,
+        [questionId]: prev[questionId] === optionId ? "" : optionId,
+      };
+      try {
+        window.sessionStorage.setItem("jitu_arsip_soal_answers", JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
+
   const goToQuestion = (index: number) => {
     setCurrentQuestionIndex(index);
     if (viewerRef.current) {
@@ -530,6 +556,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                         <div className="flex items-center gap-1.5 flex-nowrap">
                           {activeDetail.questions.map((q, idx) => {
                             const isCurrent = idx === currentQuestionIndex;
+                            const hasAnswered = Boolean(selectedAnswers[q.id]);
                             return (
                               <button
                                 key={q.id}
@@ -538,6 +565,8 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                                 className={`w-8 h-8 rounded-md text-[12px] font-bold shrink-0 transition-colors cursor-pointer ${
                                   isCurrent
                                     ? "bg-primary text-white shadow-xs"
+                                    : hasAnswered
+                                    ? "bg-blue-100 text-blue-900 border border-blue-300 font-semibold"
                                     : "bg-surface-muted text-text-body hover:bg-surface border border-border"
                                 }`}
                               >
@@ -589,22 +618,37 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                             Pilihan Jawaban
                           </div>
                           <div className="space-y-2">
-                            {currentQuestion.options.map((opt) => (
-                              <div
-                                key={opt.id}
-                                className="w-full p-3.5 rounded-xl border border-border bg-surface text-left flex items-start gap-3"
-                              >
-                                <span className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[13px] shrink-0 border border-border bg-surface-muted text-text-body">
-                                  {opt.label}
-                                </span>
-                                <div
-                                  className="text-[14px] text-text pt-0.5 leading-snug"
-                                  dangerouslySetInnerHTML={{
-                                    __html: renderMathContent(opt.content),
-                                  }}
-                                />
-                              </div>
-                            ))}
+                            {currentQuestion.options.map((opt) => {
+                              const isSelected = selectedAnswers[currentQuestion.id] === opt.id;
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => handleSelectOption(currentQuestion.id, opt.id)}
+                                  className={`w-full p-3.5 rounded-xl border text-left flex items-start gap-3 transition-all duration-150 cursor-pointer ${
+                                    isSelected
+                                      ? "border-primary bg-blue-50/70 ring-2 ring-primary/20 shadow-xs"
+                                      : "border-border bg-surface hover:border-primary/40 hover:bg-surface-muted/50"
+                                  }`}
+                                >
+                                  <span
+                                    className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[13px] shrink-0 border transition-colors ${
+                                      isSelected
+                                        ? "border-primary bg-primary text-on-primary shadow-xs"
+                                        : "border-border bg-surface-muted text-text-body"
+                                    }`}
+                                  >
+                                    {opt.label}
+                                  </span>
+                                  <div
+                                    className="text-[14px] text-text pt-0.5 leading-snug"
+                                    dangerouslySetInnerHTML={{
+                                      __html: renderMathContent(opt.content),
+                                    }}
+                                  />
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       ) : (
@@ -1080,7 +1124,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                     }}
                   />
 
-                  {/* Options List (Read-only, non-selectable) */}
+                  {/* Options List (Selectable without backend processing) */}
                   {currentQuestion.options && currentQuestion.options.length > 0 ? (
                     <div className="space-y-3 pt-2">
                       <div className="text-[12px] text-text-muted font-bold uppercase tracking-wider">
@@ -1088,22 +1132,37 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                       </div>
 
                       <div className="space-y-2.5">
-                        {currentQuestion.options.map((opt) => (
-                          <div
-                            key={opt.id}
-                            className="w-full p-3.5 sm:p-4 rounded-xl border border-border bg-surface text-left flex items-start gap-3.5"
-                          >
-                            <span className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[13px] shrink-0 border border-border bg-surface-muted text-text-body">
-                              {opt.label}
-                            </span>
-                            <div
-                              className="text-[14px] sm:text-[15px] text-text pt-1 leading-snug"
-                              dangerouslySetInnerHTML={{
-                                __html: renderMathContent(opt.content),
-                              }}
-                            />
-                          </div>
-                        ))}
+                        {currentQuestion.options.map((opt) => {
+                          const isSelected = selectedAnswers[currentQuestion.id] === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => handleSelectOption(currentQuestion.id, opt.id)}
+                              className={`w-full p-3.5 sm:p-4 rounded-xl border text-left flex items-start gap-3.5 transition-all duration-150 cursor-pointer ${
+                                isSelected
+                                  ? "border-primary bg-blue-50/70 ring-2 ring-primary/20 shadow-xs"
+                                  : "border-border bg-surface hover:border-primary/40 hover:bg-surface-muted/50"
+                              }`}
+                            >
+                              <span
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[13px] shrink-0 border transition-colors ${
+                                  isSelected
+                                    ? "border-primary bg-primary text-on-primary shadow-xs"
+                                    : "border-border bg-surface-muted text-text-body"
+                                }`}
+                              >
+                                {opt.label}
+                              </span>
+                              <div
+                                className="text-[14px] sm:text-[15px] text-text pt-1 leading-snug"
+                                dangerouslySetInnerHTML={{
+                                  __html: renderMathContent(opt.content),
+                                }}
+                              />
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ) : (
@@ -1160,6 +1219,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
               <div className="flex items-center gap-1 overflow-x-auto max-w-[500px] no-scrollbar py-1">
                 {activeDetail.questions.map((q, idx) => {
                   const isCurrent = idx === currentQuestionIndex;
+                  const hasAnswered = Boolean(selectedAnswers[q.id]);
                   return (
                     <button
                       key={q.id}
@@ -1168,9 +1228,11 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                       className={`w-7 h-7 rounded-md text-[11px] shrink-0 border flex items-center justify-center transition-all cursor-pointer ${
                         isCurrent
                           ? "bg-primary text-white font-bold border-primary shadow-2xs"
+                          : hasAnswered
+                          ? "bg-blue-100 text-blue-900 border-blue-300 font-bold"
                           : "bg-surface border-border text-text-body hover:bg-surface-muted"
                       }`}
-                      title={`Nomor ${idx + 1}`}
+                      title={`Nomor ${idx + 1}${hasAnswered ? " (Sudah Dijawab)" : ""}`}
                     >
                       {idx + 1}
                     </button>
