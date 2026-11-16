@@ -188,10 +188,6 @@ export default function BreakPage() {
     setProceedError("");
 
     try {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(storageKey);
-      }
-
       const res = await fetch(
         `${BACKEND_URL}/exam/${encodeURIComponent(attemptId || "")}/start-subtest`,
         {
@@ -206,6 +202,8 @@ export default function BreakPage() {
         const msg = await res.text().catch(() => "");
         throw new Error(msg || "Gagal memulai subtes berikutnya.");
       }
+
+      localStorage.removeItem(storageKey);
 
       router.push(
         `/tryout/${tryoutId}/exam/${nextSubtestId}?attemptId=${encodeURIComponent(
@@ -228,7 +226,6 @@ export default function BreakPage() {
     }
 
     if (isExpiredResume) {
-      setBreakTimeRemainingSec(null);
       return;
     }
 
@@ -246,9 +243,6 @@ export default function BreakPage() {
       const elapsedSec = Math.floor((Date.now() - startMs) / 1000);
       const remaining = Math.max(0, configuredBreakSec - elapsedSec);
       setBreakTimeRemainingSec(remaining);
-      if (remaining === 0 && !proceedingRef.current) {
-        void handleProceedToNext();
-      }
     };
 
     updateCountdown();
@@ -257,7 +251,7 @@ export default function BreakPage() {
     return () => {
       clearInterval(timer);
     };
-  }, [attemptId, tryoutId, router, storageKey, configuredBreakSec, isExpiredResume, handleProceedToNext]);
+  }, [attemptId, tryoutId, router, storageKey, configuredBreakSec, isExpiredResume]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
@@ -288,7 +282,7 @@ export default function BreakPage() {
                 </span>
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] text-amber-300">
                   <Clock className="w-3 h-3" />
-                  {isExpiredResume ? "Timer terjeda" : "Otomatis lanjut"}
+                  {isExpiredResume || breakTimeRemainingSec === 0 ? "Siap lanjut" : "Timer terjeda"}
                 </span>
               </div>
               {isExpiredResume ? (
@@ -339,7 +333,9 @@ export default function BreakPage() {
                 <>
                   {isExpiredResume
                     ? "Mulai Subtes Berikutnya"
-                    : "Lewati Jeda & Lanjut Sekarang"}
+                    : breakTimeRemainingSec === 0
+                      ? "Mulai Subtes Berikutnya"
+                      : "Lewati Jeda & Lanjut Sekarang"}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}

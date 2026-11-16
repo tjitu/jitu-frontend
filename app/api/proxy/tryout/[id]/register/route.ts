@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
+import { isUserPremiumActive } from "@/lib/premium";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -59,10 +60,13 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
     }
 
     const { id: tryoutId } = await params;
+    const body = await request.json().catch(() => ({}));
+    const mode = body?.mode === "PREMIUM" ? "PREMIUM" : "FREE";
+    const expectedPrice = Number(body?.expectedSolutionPrice);
     const pool = getDbPool();
 
     const tryoutResult = await pool.query(
-      `SELECT id, "scheduledStart", "scheduledEnd"
+      `SELECT id, "scheduledStart", "scheduledEnd", "solutionPrice"
        FROM "TryOut" WHERE id = $1 LIMIT 1`,
       [tryoutId],
     );
@@ -107,33 +111,88 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
       }
     }
 
-    const existingResult = await pool.query(
-      `SELECT id FROM "TryOutAttempt"
-       WHERE "userId" = $1 AND try_out_id = $2
-       LIMIT 1`,
-      [user.id, tryoutId],
-    );
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const userResult = await client.query(
+        `SELECT id, "tokenBalance", "isPremium", "premiumExpiresAt" FROM "user" WHERE id = $1 FOR UPDATE`,
+        [user.id],
+      );
+      if (!userResult.rows[0]) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ message: "Pengguna tidak ditemukan." }, { status: 404 });
+      }
 
-    if (existingResult.rows[0]) {
+      const priceResult = await client.query(
+        `SELECT "solutionPrice" FROM "TryOut" WHERE id = $1 FOR SHARE`,
+        [tryoutId],
+      );
+      const price = Number(priceResult.rows[0]?.solutionPrice ?? 0);
+      if (Number.isFinite(expectedPrice) && expectedPrice !== price) {
+        await client.query("ROLLBACK");
+        return NextResponse.json(
+          { message: `Biaya pembahasan berubah menjadi ${price} coin. Muat ulang halaman lalu daftar kembali.`, solutionPrice: price },
+          { status: 409 },
+        );
+      }
+
+      const existingResult = await client.query(
+        `SELECT id FROM "TryOutAttempt" WHERE "userId" = $1 AND try_out_id = $2 LIMIT 1`,
+        [user.id, tryoutId],
+      );
+      const attemptId = existingResult.rows[0]?.id || randomUUID();
+      if (!existingResult.rows[0]) {
+        await client.query(
+          `INSERT INTO "TryOutAttempt" (id, "userId", try_out_id, status, total_score, current_subtest_order, started_at)
+           VALUES ($1, $2, $3, 'NOT_STARTED', 0, 0, NOW())`,
+          [attemptId, user.id, tryoutId],
+        );
+      }
+
+      let isPremium = false;
+      if (mode === "PREMIUM" && price > 0) {
+        const unlockResult = await client.query(
+          `SELECT id FROM "UnlockedSolution" WHERE "userId" = $1 AND "tryOutId" = $2 LIMIT 1`,
+          [user.id, tryoutId],
+        );
+        isPremium = true;
+        if (!unlockResult.rows[0] && !isUserPremiumActive(userResult.rows[0])) {
+          const deducted = await client.query(
+            `UPDATE "user" SET "tokenBalance" = "tokenBalance" - $1, "updatedAt" = NOW()
+             WHERE id = $2 AND "tokenBalance" >= $1 RETURNING "tokenBalance"`,
+            [price, user.id],
+          );
+          if (deducted.rowCount === 0) {
+            await client.query("ROLLBACK");
+            return NextResponse.json({ message: "Coin tidak cukup. Buka Shop untuk mendapatkan coin." }, { status: 400 });
+          }
+          await client.query(
+            `INSERT INTO "TokenTransaction" (id, "userId", amount, type, "referenceId", "createdAt")
+             VALUES ($1, $2, $3, 'PURCHASE_SOLUTION', $4, NOW())`,
+            [randomUUID(), user.id, -price, tryoutId],
+          );
+          await client.query(
+            `INSERT INTO "UnlockedSolution" (id, "userId", "tryOutId", "unlockedAt")
+             VALUES ($1, $2, $3, NOW())`,
+            [randomUUID(), user.id, tryoutId],
+          );
+        }
+      }
+
+      await client.query("COMMIT");
       return NextResponse.json({
-        message: "User sudah terdaftar pada tryout ini",
-        attemptId: existingResult.rows[0].id,
+        message: isPremium ? "Berhasil daftar dengan pembahasan." : "Berhasil mendaftar tryout",
+        attemptId,
         isRegistered: true,
+        isPremium,
+        solutionPrice: price,
       });
+    } catch (txError) {
+      await client.query("ROLLBACK");
+      throw txError;
+    } finally {
+      client.release();
     }
-
-    const newAttemptId = randomUUID();
-    await pool.query(
-      `INSERT INTO "TryOutAttempt" (id, "userId", try_out_id, status, total_score, current_subtest_order, started_at)
-       VALUES ($1, $2, $3, 'NOT_STARTED', 0, 0, NOW())`,
-      [newAttemptId, user.id, tryoutId],
-    );
-
-    return NextResponse.json({
-      message: "Berhasil mendaftar tryout",
-      attemptId: newAttemptId,
-      isRegistered: true,
-    });
   } catch (error) {
     console.error("POST /api/proxy/tryout/[id]/register error:", error);
     return NextResponse.json(

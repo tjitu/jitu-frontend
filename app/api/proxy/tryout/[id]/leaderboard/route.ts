@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
 import { parsePtnTargets, PtnChoice } from "@/lib/target";
+import { isUserPremiumActive } from "@/lib/premium";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     const pool = getDbPool();
 
     const tryoutRes = await pool.query(
-      `SELECT id, "scheduledEnd" FROM "TryOut" WHERE id = $1 LIMIT 1`,
+      `SELECT id, "scheduledEnd", "solutionPrice" FROM "TryOut" WHERE id = $1 LIMIT 1`,
       [tryoutId],
     );
     const tryout = tryoutRes.rows[0];
@@ -40,6 +41,27 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         { message: "Tryout tidak ditemukan." },
         { status: 404 },
       );
+    }
+
+    const solutionPrice = Number(tryout.solutionPrice ?? 0);
+    if (solutionPrice > 0 && user.role !== "ADMIN") {
+      const [unlockResult, premiumResult] = await Promise.all([
+        pool.query(
+          `SELECT 1 FROM "UnlockedSolution" WHERE "userId" = $1 AND "tryOutId" = $2 LIMIT 1`,
+          [user.id, tryoutId],
+        ),
+        pool.query(
+          `SELECT "isPremium", "premiumExpiresAt" FROM "user" WHERE id = $1 LIMIT 1`,
+          [user.id],
+        ),
+      ]);
+      const premiumPass = isUserPremiumActive(premiumResult.rows[0]);
+      if (!premiumPass && unlockResult.rows.length === 0) {
+        return NextResponse.json(
+          { message: `Upgrade ${solutionPrice} coin untuk melihat ranking.`, solutionPrice },
+          { status: 403 },
+        );
+      }
     }
 
     const scheduledEndDate = tryout.scheduledEnd ? new Date(tryout.scheduledEnd) : null;

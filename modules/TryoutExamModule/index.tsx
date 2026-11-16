@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BACKEND_URL } from "@/lib/api";
-import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
+import { getActiveTryoutSandboxToken, getTryoutDetail } from "@/lib/api/tryout";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
@@ -321,14 +321,25 @@ export default function TryoutExamModule() {
           credentials: "include",
         });
 
-        if (res.status === 404 || res.status === 500) {
-          router.replace(`/tryout/${tryoutId}`);
-          return;
-        }
-
         if (!res.ok) {
-          const msg = await res.text().catch(() => "");
-          throw new Error(msg || "Data gagal dimuat. Muat ulang halaman.");
+          if (res.status === 403 && !isReviewMode) {
+            const detail = await getTryoutDetail(tryoutId);
+            if (detail.isWaitingTransition && detail.resumeUrl) {
+              router.replace(detail.resumeUrl);
+              return;
+            }
+            if (detail.latestAttemptStatus === "FINISHED") {
+              router.replace(`/tryout/${tryoutId}`);
+              return;
+            }
+          }
+          const payload = await res.json().catch(() => null);
+          const message = payload?.message;
+          throw new Error(
+            typeof message === "string"
+              ? message
+              : "Data gagal dimuat. Muat ulang halaman.",
+          );
         }
 
         const raw = await res.json();

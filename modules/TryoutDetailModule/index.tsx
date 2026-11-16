@@ -22,6 +22,7 @@ const TryoutDetailModule = () => {
     leaderboardData,
     isLoading,
     error,
+    actionError,
     leaderboardError,
     isRegistering,
     isStartingAttempt,
@@ -85,7 +86,7 @@ const TryoutDetailModule = () => {
     tryoutData.isFree ||
     (Array.isArray(tryoutData.unlockedSolutions) &&
       tryoutData.unlockedSolutions.length > 0);
-  const cost = tryoutData.tokenCost || 1;
+  const cost = tryoutData.tokenCost ?? 0;
   const finalScore = Math.round(tryoutData.latestScore ?? 0);
   const targets = parsePtnTargets((session?.user as any)?.target);
 
@@ -129,11 +130,15 @@ const TryoutDetailModule = () => {
         isFinished={isFinished}
         isUnlocked={isUnlocked}
         finalScore={finalScore}
-        onUnlockClick={() => setUnlockModalOpen(true)}
         onStart={handleStart}
       />
 
       {/* Action Bar or Result Summary */}
+      {actionError && (
+        <div role="alert" className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-text">
+          {actionError}
+        </div>
+      )}
       {isFinished ? (
         <TryoutResultSummary
           tryoutData={tryoutData}
@@ -164,6 +169,8 @@ const TryoutDetailModule = () => {
             categories={tryoutData.categories || []}
             isFinished={isFinished}
             isUnlocked={isUnlocked}
+            cost={cost}
+            onUnlockClick={() => setUnlockModalOpen(true)}
             onStartSubtest={handleStartSubtest}
           />
         </div>
@@ -198,7 +205,7 @@ const TryoutDetailModule = () => {
         onConfirm={onConfirmUnlock}
         tryoutTitle={tryoutData?.title || ""}
         tryoutNumber={tryoutData?.number}
-        tokenCost={tryoutData?.tokenCost || 1}
+        tokenCost={tryoutData?.tokenCost ?? 0}
         userBalance={userBalance}
         isLoading={unlockLoading}
         error={unlockError}

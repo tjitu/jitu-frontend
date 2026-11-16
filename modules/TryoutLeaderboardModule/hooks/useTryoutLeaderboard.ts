@@ -46,14 +46,9 @@ export function useTryoutLeaderboard() {
     setIsLoading(true);
     setError("");
     try {
-      const [detailRes, lbRes] = await Promise.all([
-        getTryoutDetail(tryoutId).catch(() => null),
-        getTryoutLeaderboard(tryoutId).catch(() => null),
-      ]);
-
-      if (!detailRes) {
-        throw new Error("Tryout tidak ditemukan.");
-      }
+      const detailRes = await getTryoutDetail(tryoutId);
+      const canView = detailRes.isFree || detailRes.unlockedSolutions.length > 0;
+      const lbRes = canView ? await getTryoutLeaderboard(tryoutId) : null;
       setTryoutData(detailRes);
       setLeaderboardData(lbRes);
     } catch (err: any) {

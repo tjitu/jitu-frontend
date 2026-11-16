@@ -33,7 +33,7 @@ export function computeAttemptProgress(
   nowMs: number = Date.now(),
 ): AttemptProgressResult {
   const ordered = [...subtests].sort((a, b) => a.order - b.order);
-  let status = latestAttempt?.status;
+  const status = latestAttempt?.status;
   let isWaitingTransition = false;
   let nextSubtestOrder: number | null = null;
   let resumeUrl: string | null = null;
@@ -44,7 +44,6 @@ export function computeAttemptProgress(
 
   if (status === "IN_PROGRESS" && latestAttempt) {
     if (scheduleEnded) {
-      status = "FINISHED";
       needAutoFinish = true;
       resumeUrl = `/tryout/${tryoutId}`;
     } else {
@@ -63,7 +62,6 @@ export function computeAttemptProgress(
           nextSubtestOrder = nextSubtest.order;
           resumeUrl = `/tryout/${tryoutId}/break/${nextSubtest.order}?attemptId=${encodeURIComponent(latestAttempt.id)}&expired=true`;
         } else {
-          status = "FINISHED";
           needAutoFinish = true;
           resumeUrl = `/tryout/${tryoutId}`;
         }
@@ -107,11 +105,13 @@ export async function triggerAutoFinishIfNeeded(
 
   await Promise.all(
     attemptIds.map((id) =>
-      fetch(`${backendUrl}/exam/finish/${encodeURIComponent(id)}`, {
+      fetch(`${backendUrl}/exam/${encodeURIComponent(id)}/finish`, {
         method: "POST",
         headers: { Authorization: authorizationHeader },
         signal: AbortSignal.timeout(4000),
-      }).catch(() => undefined),
+      }).then((response) => {
+        if (!response.ok) console.error(`Auto-finish attempt ${id} failed: ${response.status}`);
+      }).catch((error) => console.error(`Auto-finish attempt ${id} failed:`, error)),
     ),
   );
 }

@@ -37,7 +37,6 @@ import {
   getDailyQuestionStatus,
   getLatestDashboardArticles,
   getCachedDashboardData,
-  isDashboardCacheFresh,
   setCachedDashboardData,
   invalidateDashboardCache,
   UserStats,
@@ -51,6 +50,7 @@ import { toast } from "sonner";
 import { RegisterModal } from "./components/RegisterModal";
 import { invalidateTryoutCatalogCache } from "../TryoutModule";
 import { BACKEND_URL } from "@/lib/api";
+import { getTryoutDetail } from "@/lib/api/tryout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TryoutCardBanner } from "@/components/ui/tryout-card-banner";
 import { TryoutScheduleTimeline } from "@/components/ui/tryout-schedule-timeline";
@@ -187,7 +187,7 @@ const DashboardModule = () => {
         router.push("/login");
       } else if ((session.user as unknown as UserWithRole).role === "ADMIN") {
         router.push("/admin");
-      } else if (!isDashboardCacheFresh()) {
+      } else {
         void loadDashboardData(!getCachedDashboardData());
       }
     }
@@ -237,13 +237,18 @@ const DashboardModule = () => {
     }
   };
 
-  const handleRegisterClick = (tryout: OngoingTryout) => {
-    setSelectedTryout(tryout);
-    setRegisterError("");
-    setRegisterModalOpen(true);
+  const handleRegisterClick = async (tryout: OngoingTryout) => {
+    try {
+      const detail = await getTryoutDetail(tryout.id);
+      setSelectedTryout({ ...tryout, solutionPrice: detail.tokenCost ?? 0 });
+      setRegisterError("");
+      setRegisterModalOpen(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal memuat biaya pembahasan.");
+    }
   };
 
-  const onConfirmRegister = async () => {
+  const onConfirmRegister = async (mode: "FREE" | "PREMIUM") => {
     if (!selectedTryout) return;
     setRegisterLoading(true);
     setRegisterError("");
@@ -255,6 +260,7 @@ const DashboardModule = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
+          body: JSON.stringify({ mode, expectedSolutionPrice: selectedTryout.solutionPrice }),
         }
       );
 
@@ -437,8 +443,8 @@ const DashboardModule = () => {
           ? featuredTryout.status === "IN_PROGRESS"
             ? "Sedang mengerjakan"
             : featuredTryout.status === "FINISHED"
-              ? "Selesai"
-              : "Belum mulai"
+              ? "Selesai mengerjakan"
+              : "Terdaftar"
           : "Belum terdaftar"}
       </span>
     </span>
@@ -561,7 +567,7 @@ const DashboardModule = () => {
                 badge={featuredStatusBadge}
                 sublabel={
                   <span className="inline-flex items-center gap-1.5">
-                    <span>Free · {featuredTryout.solutionPrice || 1}</span>
+                    <span>Free · {featuredTryout.solutionPrice ?? 0}</span>
                     <PixelCoin size={13} />
                     <span>untuk pembahasan</span>
                   </span>
@@ -623,7 +629,7 @@ const DashboardModule = () => {
                           ? "Review Hasil"
                           : featuredTryout.status === "IN_PROGRESS"
                             ? "Lanjutkan Tryout"
-                            : "Kerjakan tryout"}
+                            : "Mulai Tryout"}
                       </span>
                       <ArrowRight className="w-4 h-4 stroke-[1.75]" aria-hidden="true" />
                     </Button>
@@ -841,10 +847,10 @@ const DashboardModule = () => {
                       )}
                       <span>
                         {isFinished
-                          ? "Selesai"
+                          ? "Selesai mengerjakan"
                           : isProgress
                             ? "Sedang mengerjakan"
-                            : "Belum mulai"}
+                            : "Terdaftar"}
                       </span>
                     </span>
                   );
@@ -863,7 +869,7 @@ const DashboardModule = () => {
                         badge={statusBadge}
                         sublabel={
                           <span className="inline-flex items-center gap-1.5">
-                            <span>Free · {tryout.solutionPrice || 1}</span>
+                            <span>Free · {tryout.solutionPrice ?? 0}</span>
                             <PixelCoin size={13} />
                             <span>untuk pembahasan</span>
                           </span>
@@ -921,7 +927,7 @@ const DashboardModule = () => {
                               ? "Review Hasil"
                               : isProgress
                                 ? "Lanjutkan Tryout"
-                                : "Kerjakan tryout"}
+                                : "Mulai Tryout"}
                           </span>
                           <ArrowRight className="w-4 h-4 stroke-[1.75]" />
                         </Button>
@@ -971,7 +977,7 @@ const DashboardModule = () => {
                       }
                       sublabel={
                         <span className="inline-flex items-center gap-1.5">
-                          <span>Free · {tryout.solutionPrice || 1}</span>
+                          <span>Free · {tryout.solutionPrice ?? 0}</span>
                           <PixelCoin size={13} />
                           <span>untuk pembahasan</span>
                         </span>

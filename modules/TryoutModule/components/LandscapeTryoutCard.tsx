@@ -53,7 +53,7 @@ export function LandscapeTryoutCard({
         className="w-full h-44 md:h-auto md:w-80 md:min-w-[300px] border-b md:border-b-0 md:border-r border-border/60"
         sublabel={
           <span className="inline-flex items-center gap-1.5">
-            <span>Free · {tryout.solutionPrice || 1}</span>
+            <span>Free · {tryout.solutionPrice ?? 0}</span>
             <PixelCoin size={13} />
             <span>untuk pembahasan</span>
           </span>

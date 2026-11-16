@@ -162,7 +162,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       ),
     ]);
 
-    const attempt = attemptResult.rows[0] ?? null;
+    let attempt = attemptResult.rows[0] ?? null;
     const answeredBySubtest = new Map<string, number>();
     if (attempt?.status === "IN_PROGRESS") {
       const { rows } = await pool.query(
@@ -197,6 +197,9 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         isCompleted:
           actualCount > 0 &&
           (answeredBySubtest.get(subtest.id) ?? 0) >= actualCount,
+        correctCount: 0,
+        wrongCount: 0,
+        emptyCount: 0,
       };
     });
     const premiumUser = premiumResult.rows[0];
@@ -207,9 +210,9 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     const unlockedSolutions = premiumActive
       ? [{ id: "premium-pass", userId: user.id, tryOutId: id }]
       : unlockResult.rows;
-    const latestFinishedAttempt = finishedAttemptResult.rows[0] ?? null;
+    let latestFinishedAttempt = finishedAttemptResult.rows[0] ?? null;
 
-    const progress = computeAttemptProgress(
+    let progress = computeAttemptProgress(
       id,
       attempt,
       latestFinishedAttempt,
@@ -222,6 +225,50 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         [String(attempt.id)],
         request.headers.get("authorization"),
       );
+      const refreshed = await pool.query(
+        `SELECT id, status, total_score AS "totalScore", finished_at AS "finishedAt",
+                started_at AS "startedAt", current_subtest_order AS "currentSubtestOrder",
+                subtest_started_at AS "subtestStartedAt"
+         FROM "TryOutAttempt" WHERE id = $1 AND "userId" = $2 LIMIT 1`,
+        [attempt.id, user.id],
+      );
+      attempt = refreshed.rows[0] ?? attempt;
+      if (attempt.status === "FINISHED") latestFinishedAttempt = attempt;
+      progress = computeAttemptProgress(
+        id,
+        attempt,
+        latestFinishedAttempt,
+        categories.map((c) => ({ order: c.id, durationMinutes: c.duration })),
+        tryout.scheduledEnd,
+      );
+    }
+
+    const resultAccess = Number(tryout.solutionPrice ?? 0) === 0 || unlockedSolutions.length > 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let emptyCount = 0;
+    if (resultAccess && latestFinishedAttempt?.id) {
+      const counts = await pool.query(
+        `SELECT s."order", COUNT(q.id)::int AS total,
+                COUNT(ua.id) FILTER (WHERE ua."isCorrect" = true)::int AS correct,
+                COUNT(ua.id) FILTER (WHERE ua."isCorrect" = false)::int AS wrong
+         FROM "Subtest" s
+         LEFT JOIN "Question" q ON q.subtest_id = s.id AND COALESCE(q.status, 'DRAFT') = 'READY'
+         LEFT JOIN "UserAnswer" ua ON ua.question_id = q.id AND ua.tryout_attempt_id = $2
+         WHERE s.try_out_id = $1
+         GROUP BY s."order"`,
+        [id, latestFinishedAttempt.id],
+      );
+      const byOrder = new Map(counts.rows.map((row) => [Number(row.order), row]));
+      for (const category of categories) {
+        const row = byOrder.get(category.id);
+        category.correctCount = Number(row?.correct ?? 0);
+        category.wrongCount = Number(row?.wrong ?? 0);
+        category.emptyCount = Math.max(0, Number(row?.total ?? 0) - category.correctCount - category.wrongCount);
+        correctCount += category.correctCount;
+        wrongCount += category.wrongCount;
+        emptyCount += category.emptyCount;
+      }
     }
 
     return NextResponse.json({
@@ -249,7 +296,12 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       isWaitingTransition: progress.isWaitingTransition,
       nextSubtestOrder: progress.nextSubtestOrder,
       resumeUrl: progress.resumeUrl,
-      latestScore: Math.round(Number(latestFinishedAttempt?.totalScore) || 0),
+      latestScore: resultAccess
+        ? Math.round(Number(latestFinishedAttempt?.totalScore) || 0)
+        : 0,
+      correctCount,
+      wrongCount,
+      emptyCount,
       curationStatus,
       questionsReleased,
       breakSeconds,

@@ -157,6 +157,19 @@ export async function GET(request: NextRequest) {
         toFinishIds,
         request.headers.get("authorization"),
       );
+      const refreshed = await pool.query(
+        `SELECT id, status FROM "TryOutAttempt" WHERE "userId" = $1 AND id = ANY($2::text[])`,
+        [user?.id, toFinishIds],
+      );
+      const finishedIds = new Set(
+        refreshed.rows.filter((row) => row.status === "FINISHED").map((row) => String(row.id)),
+      );
+      for (const item of result) {
+        if (item.latestAttemptId && finishedIds.has(item.latestAttemptId)) {
+          item.latestAttemptStatus = "FINISHED";
+          item.latestFinishedAttemptId = item.latestAttemptId;
+        }
+      }
     }
 
     return NextResponse.json(result, { status: 200 });

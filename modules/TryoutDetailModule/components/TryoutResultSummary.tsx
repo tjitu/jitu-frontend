@@ -45,7 +45,7 @@ export function TryoutResultSummary({
               Buka Hasil &amp; Pembahasan
             </h3>
             <p className="text-sm text-text-body leading-relaxed">
-              Gunakan {cost} coin untuk membuka skor dan pembahasan lengkap {tryoutData.title}.
+              Upgrade pendaftaran dengan {cost} coin untuk membuka pembahasan, ranking, dan hasil IRT {tryoutData.title}.
             </p>
           </div>
 
@@ -57,7 +57,7 @@ export function TryoutResultSummary({
               className="inline-flex items-center gap-2"
             >
               <PixelCoin size={16} />
-              <span>Buka Pembahasan · {cost} coin</span>
+              <span>Upgrade · {cost} coin</span>
             </Button>
 
             {userBalance < cost ? (
@@ -80,7 +80,7 @@ export function TryoutResultSummary({
   }
 
   const currentUser = leaderboardData?.currentUserRank;
-  const nationalRank = currentUser?.rank ?? 1;
+  const nationalRank = currentUser?.rank ?? null;
   const totalNational =
     currentUser?.totalParticipants ??
     (tryoutData.participants > 0 ? tryoutData.participants : 1);
@@ -107,7 +107,7 @@ export function TryoutResultSummary({
               </div>
               <div className="flex items-baseline gap-1.5">
                 <span className="font-mono text-xl sm:text-2xl font-black text-black tabular-nums">
-                  #{nationalRank}
+                  {nationalRank ? `#${nationalRank}` : "—"}
                 </span>
                 <span className="text-xs font-semibold text-black/70">
                   / {totalNational} peserta
@@ -140,7 +140,7 @@ export function TryoutResultSummary({
                       {p1.jurusan || "Semua Jurusan"}
                     </span>
                     <span className="font-mono text-xs sm:text-sm font-black text-black tabular-nums">
-                      #{p1Rank}
+                      {p1Rank ? `#${p1Rank}` : "—"}
                     </span>
                     <span className="text-[11px] sm:text-xs font-semibold text-black/70">
                       / {p1Total} peminat

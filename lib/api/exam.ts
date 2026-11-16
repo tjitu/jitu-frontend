@@ -32,7 +32,11 @@ export const startTryoutAttempt = async (
   return String(id);
 };
 
-export const registerTryout = async (tryoutId: string) => {
+export const registerTryout = async (
+  tryoutId: string,
+  mode: "FREE" | "PREMIUM" = "FREE",
+  expectedSolutionPrice?: number,
+) => {
   const sandboxToken = getActiveTryoutSandboxToken();
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (sandboxToken) headers["x-sandbox-token"] = sandboxToken;
@@ -40,6 +44,7 @@ export const registerTryout = async (tryoutId: string) => {
     method: "POST",
     headers,
     credentials: "include",
+    body: JSON.stringify({ mode, expectedSolutionPrice }),
   });
 
   const data = await res.json();

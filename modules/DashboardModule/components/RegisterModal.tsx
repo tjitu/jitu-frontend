@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ import { TryoutScheduleTimeline } from "@/components/ui/tryout-schedule-timeline
 interface RegisterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (mode: "FREE" | "PREMIUM") => void;
   tryoutTitle: string;
   tokenCost?: number;
   scheduledStart?: string | Date | null;
@@ -35,7 +36,7 @@ export function RegisterModal({
   onClose,
   onConfirm,
   tryoutTitle,
-  tokenCost = 1,
+  tokenCost = 0,
   scheduledStart,
   scheduledEnd,
   duration = 195,
@@ -51,7 +52,7 @@ export function RegisterModal({
         : `${duration} menit`
       : "195 menit";
 
-  const displayCost = tokenCost && tokenCost > 0 ? tokenCost : 1;
+  const displayCost = tokenCost ?? 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -130,7 +131,7 @@ export function RegisterModal({
                   <span>Biaya pembahasan</span>
                 </span>
                 <span className="font-semibold text-text font-mono flex items-center gap-1">
-                  <span>{displayCost} coin</span>
+                  <span>{displayCost === 0 ? "Gratis (0 coin)" : `${displayCost} coin`}</span>
                 </span>
               </div>
             </div>
@@ -143,24 +144,29 @@ export function RegisterModal({
             >
               <AlertCircle className="w-4 h-4 stroke-[1.75] text-danger mt-0.5 shrink-0" aria-hidden="true" />
               <span>{error}</span>
+              {error.toLowerCase().includes("coin tidak cukup") && (
+                <Link href="/shop" className="font-semibold underline">Buka Shop</Link>
+              )}
             </div>
           )}
         </div>
 
-        <DialogFooter className="gap-2 pt-2 sm:space-x-0">
+        <DialogFooter className="flex-col gap-2 pt-2 sm:flex-col sm:space-x-0">
+          {displayCost > 0 && (
+            <Button
+              variant="primary"
+              onClick={() => onConfirm("PREMIUM")}
+              disabled={isLoading}
+              className="w-full h-10 text-xs px-5 font-semibold"
+            >
+              {isLoading ? "Mendaftarkan…" : `Daftar + Pembahasan · ${displayCost} coin`}
+            </Button>
+          )}
           <Button
-            variant="outline"
-            onClick={onClose}
+            variant={displayCost > 0 ? "outline" : "primary"}
+            onClick={() => onConfirm("FREE")}
             disabled={isLoading}
-            className="flex-1 sm:flex-none h-10 text-xs px-4"
-          >
-            Batal
-          </Button>
-          <Button
-            variant="primary"
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="flex-1 sm:flex-none h-10 text-xs px-5 font-semibold"
+            className="w-full h-10 text-xs px-5 font-semibold"
           >
             {isLoading ? (
               <span className="inline-flex items-center gap-1.5">
@@ -168,7 +174,7 @@ export function RegisterModal({
                 <span>Mendaftarkan…</span>
               </span>
             ) : (
-              "Daftar tryout"
+              displayCost > 0 ? "Daftar Gratis" : "Daftar tryout"
             )}
           </Button>
         </DialogFooter>

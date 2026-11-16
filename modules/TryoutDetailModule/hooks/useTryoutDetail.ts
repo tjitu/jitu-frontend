@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { TryoutDetail } from "../interface";
@@ -17,6 +17,7 @@ import { startTryoutAttempt, registerTryout } from "@/lib/api/exam";
 export function useTryoutDetail() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
 
   const tryoutId = useMemo(() => {
     const id = (params as any)?.id;
@@ -30,6 +31,7 @@ export function useTryoutDetail() {
     useState<LeaderboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [leaderboardError, setLeaderboardError] = useState("");
 
   const [isRegistering] = useState(false);
@@ -67,6 +69,9 @@ export function useTryoutDetail() {
       setIsLoading(true);
       const data = await getTryoutDetail(tryoutId);
       setTryoutData(data);
+      if (searchParams.get("upgrade") === "true" && !data.isFree && data.unlockedSolutions.length === 0) {
+        setUnlockModalOpen(true);
+      }
 
       if (
         data.latestAttemptStatus === "FINISHED" ||
@@ -106,19 +111,25 @@ export function useTryoutDetail() {
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!tryoutId) return;
-    setRegisterError("");
-    setRegisterModalOpen(true);
+    try {
+      const detail = await getTryoutDetail(tryoutId);
+      setTryoutData(detail);
+      setRegisterError("");
+      setRegisterModalOpen(true);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Gagal memuat biaya pembahasan.");
+    }
   };
 
-  const onConfirmRegister = async () => {
+  const onConfirmRegister = async (mode: "FREE" | "PREMIUM") => {
     if (!tryoutId) return;
     setRegisterLoading(true);
     setRegisterError("");
 
     try {
-      const data = await registerTryout(tryoutId);
+      const data = await registerTryout(tryoutId, mode, tryoutData?.tokenCost);
       toast.success(data.message || "Terdaftar di tryout.");
       invalidateDashboardCache();
       invalidateTryoutCatalogCache();
@@ -141,10 +152,15 @@ export function useTryoutDetail() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({ expectedSolutionPrice: tryoutData?.tokenCost ?? 0 }),
       });
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 409) {
+          setUnlockModalOpen(false);
+          void fetchDetail();
+        }
         throw new Error(data.message || "Gagal membuka pembahasan.");
       }
 
@@ -159,12 +175,12 @@ export function useTryoutDetail() {
   };
 
   const handleStart = async () => {
-    setError("");
+    setActionError("");
     try {
       if (tryoutData?.latestAttemptStatus === "FINISHED") {
         const finishedId = tryoutData.latestFinishedAttemptId;
         if (!finishedId) {
-          setError("Data pembahasan belum tersedia.");
+          setActionError("Data pembahasan belum tersedia.");
           return;
         }
 
@@ -191,7 +207,7 @@ export function useTryoutDetail() {
       const orderToStart = tryoutData?.currentSubtestOrder || 1;
       router.push(`/tryout/${tryoutId}/exam/${orderToStart}?attemptId=${id}`);
     } catch (e: any) {
-      setError(e?.message || "Gagal memulai tryout.");
+      setActionError(e?.message || "Gagal memulai tryout.");
     }
   };
 
@@ -211,7 +227,7 @@ export function useTryoutDetail() {
       }
       const finishedAttemptId = tryoutData.latestFinishedAttemptId;
       if (!finishedAttemptId) {
-        setError("Data pembahasan belum tersedia.");
+        setActionError("Data pembahasan belum tersedia.");
         return;
       }
       router.push(
@@ -222,7 +238,7 @@ export function useTryoutDetail() {
       return;
     }
 
-    setError("");
+    setActionError("");
     try {
       const id = await ensureAttempt();
       router.push(
@@ -231,7 +247,7 @@ export function useTryoutDetail() {
         )}`
       );
     } catch (e: any) {
-      setError(e?.message || "Gagal memulai subtes.");
+      setActionError(e?.message || "Gagal memulai subtes.");
     }
   };
 
@@ -251,6 +267,7 @@ export function useTryoutDetail() {
     leaderboardData,
     isLoading,
     error,
+    actionError,
     leaderboardError,
     isRegistering,
     isStartingAttempt,

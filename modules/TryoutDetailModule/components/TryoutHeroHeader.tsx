@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Clock, Lock, Plus, BookOpen } from "lucide-react";
+import { Clock, Plus, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TryoutDetail } from "../interface";
 import { getDisplayedParticipants } from "@/lib/tryout-display";
@@ -13,53 +13,29 @@ interface TryoutHeroHeaderProps {
   isFinished?: boolean;
   isUnlocked?: boolean;
   finalScore?: number;
-  onUnlockClick?: () => void;
   onStart?: () => void;
 }
 
 function useCountdown(endDateStr?: string) {
-  const [timeLeft, setTimeLeft] = useState<string>("");
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!endDateStr) {
-      setTimeLeft("Jadwal belum ditentukan");
-      return;
-    }
-
-    const calculate = () => {
-      const target = new Date(endDateStr).getTime();
-      const now = Date.now();
-      const diff = target - now;
-
-      if (isNaN(target)) {
-        setTimeLeft("-");
-        return;
-      }
-
-      if (diff <= 0) {
-        setTimeLeft("Selesai");
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      const dStr = days < 10 ? `0${days}` : `${days}`;
-      if (days > 0) {
-        setTimeLeft(`${dStr}d ${hours}h ${minutes}m ${seconds}s`);
-      } else {
-        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-      }
-    };
-
-    calculate();
-    const interval = setInterval(calculate, 1000);
+    const interval = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(interval);
-  }, [endDateStr]);
+  }, []);
 
-  return timeLeft;
+  if (!endDateStr) return "Jadwal belum ditentukan";
+  const target = new Date(endDateStr).getTime();
+  if (Number.isNaN(target)) return "-";
+  const diff = target - nowMs;
+  if (diff <= 0) return "Selesai";
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+  return days > 0
+    ? `${days < 10 ? `0${days}` : days}d ${hours}h ${minutes}m ${seconds}s`
+    : `${hours}h ${minutes}m ${seconds}s`;
 }
 
 function getTryoutAvatars(tryoutId: string, count = 6) {
@@ -82,7 +58,6 @@ export function TryoutHeroHeader({
   isFinished = false,
   isUnlocked = false,
   finalScore = 0,
-  onUnlockClick,
   onStart,
 }: TryoutHeroHeaderProps) {
   const participantsCount = getDisplayedParticipants(
@@ -189,7 +164,7 @@ export function TryoutHeroHeader({
       <div className="p-6 sm:p-8">
         <div
           className={`flex flex-col sm:flex-row sm:items-center ${
-            isFinished && isUnlocked && onStart
+            isFinished && onStart
               ? "justify-between"
               : "justify-center"
           } gap-6`}
@@ -202,7 +177,7 @@ export function TryoutHeroHeader({
                 Benar
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-emerald-600 tabular-nums">
-                {isFinished ? (tryoutData.correctCount ?? 0) : "-"}
+                {isFinished && isUnlocked ? (tryoutData.correctCount ?? 0) : "-"}
               </div>
             </div>
 
@@ -212,7 +187,7 @@ export function TryoutHeroHeader({
                 Salah
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-rose-600 tabular-nums">
-                {isFinished ? (tryoutData.wrongCount ?? 0) : "-"}
+                {isFinished && isUnlocked ? (tryoutData.wrongCount ?? 0) : "-"}
               </div>
             </div>
 
@@ -222,7 +197,7 @@ export function TryoutHeroHeader({
                 Kosong
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
-                {isFinished ? (tryoutData.emptyCount ?? 0) : "-"}
+                {isFinished && isUnlocked ? (tryoutData.emptyCount ?? 0) : "-"}
               </div>
             </div>
 
@@ -238,7 +213,7 @@ export function TryoutHeroHeader({
           </div>
 
           {/* Right: Lihat Pembahasan Lengkap Button */}
-          {isFinished && isUnlocked && onStart && (
+          {isFinished && onStart && (
             <div className="shrink-0 w-full sm:w-auto">
               <Button
                 variant="primary"

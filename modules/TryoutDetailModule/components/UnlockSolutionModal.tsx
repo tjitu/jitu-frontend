@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, Lock } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PixelCoin } from "@/components/ui/pixel-coin";
 
@@ -35,7 +35,7 @@ export function UnlockSolutionModal({
   error,
 }: UnlockSolutionModalProps) {
   const router = useRouter();
-  const cost = tokenCost || 1;
+  const cost = tokenCost ?? 0;
   const isSufficient = userBalance >= cost;
   const remaining = Math.max(0, userBalance - cost);
   const label = tryoutNumber ? `Tryout #${tryoutNumber}` : tryoutTitle;
@@ -49,7 +49,7 @@ export function UnlockSolutionModal({
             <span>Konfirmasi coin</span>
           </div>
           <DialogTitle>
-            Pakai {cost} coin untuk {label}?
+            Upgrade {label} dengan {cost} coin?
           </DialogTitle>
           <DialogDescription className="text-sm text-text-body pt-1">
             {isSufficient ? (

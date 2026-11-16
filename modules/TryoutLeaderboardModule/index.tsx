@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, Loader2, AlertCircle, Trophy, Users, Sparkles, Check, Wallet } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle, Trophy, Users, Sparkles, Check, Wallet, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useTryoutLeaderboard } from "./hooks/useTryoutLeaderboard";
 import { LeaderboardSummaryCard } from "./components/LeaderboardSummaryCard";
 import { LeaderboardTable } from "./components/LeaderboardTable";
+import { PixelCoin } from "@/components/ui/pixel-coin";
 
 export function TryoutLeaderboardModule() {
   const {
@@ -58,6 +59,28 @@ export function TryoutLeaderboardModule() {
               Muat Ulang
             </Button>
           </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!tryoutData.isFree && tryoutData.unlockedSolutions.length === 0) {
+    const cost = tryoutData.tokenCost ?? 0;
+    return (
+      <div className="max-w-lg mx-auto px-4 py-12">
+        <Card className="p-8 text-center space-y-4">
+          <Lock className="w-10 h-10 text-primary mx-auto" />
+          <h1 className="text-xl font-bold text-text">Ranking terkunci</h1>
+          <p className="text-sm text-text-body">
+            Upgrade pendaftaran tryout ini untuk melihat ranking dan hasil IRT.
+          </p>
+          <Button
+            variant="primary"
+            onClick={() => router.push(`/tryout/${tryoutId}?upgrade=true`)}
+            className="inline-flex items-center gap-2"
+          >
+            <PixelCoin size={15} /> Upgrade · {cost} coin
+          </Button>
         </Card>
       </div>
     );

@@ -21,13 +21,10 @@ import { LandscapeTryoutCard } from "./components/LandscapeTryoutCard";
 import { PortraitTryoutCard } from "./components/PortraitTryoutCard";
 import { useTryoutRegistration } from "./hooks/useTryoutRegistration";
 
-const TRYOUT_STALE_MS = 30_000;
 let cachedTryouts: TryOutData[] | null = null;
-let cachedTryoutsAt = 0;
 
 export function invalidateTryoutCatalogCache() {
   cachedTryouts = null;
-  cachedTryoutsAt = 0;
 }
 
 const TryoutModule = () => {
@@ -53,16 +50,10 @@ const TryoutModule = () => {
     onConfirmRegister,
   } = useTryoutRegistration(setTryouts, (updated) => {
     cachedTryouts = updated;
-    cachedTryoutsAt = Date.now();
   });
 
   useEffect(() => {
     const sandboxToken = getActiveTryoutSandboxToken();
-    if (!sandboxToken && cachedTryouts && Date.now() - cachedTryoutsAt < TRYOUT_STALE_MS) {
-      setIsLoading(false);
-      return;
-    }
-
     let active = true;
     const fetchTryouts = async () => {
       try {
@@ -98,19 +89,24 @@ const TryoutModule = () => {
           number: item.number || String(idx + 1).padStart(2, "0"),
           participants: item.participants || 0,
           badge: item.badge || "SNBT",
-          solutionPrice: item.solutionPrice || 0,
+          solutionPrice: Number(item.solutionPrice ?? 0),
           isPublic: item.isPublic ?? true,
           scheduledStart: item.scheduledStart,
           scheduledEnd: item.scheduledEnd,
           duration: item.duration || 195,
           isRegistered: item.isRegistered ?? false,
+          latestAttemptStatus: item.latestAttemptStatus ?? null,
+          latestAttemptId: item.latestAttemptId ?? null,
+          latestFinishedAttemptId: item.latestFinishedAttemptId ?? null,
+          resumeUrl: item.resumeUrl ?? null,
+          isWaitingTransition: Boolean(item.isWaitingTransition),
+          nextSubtestOrder: item.nextSubtestOrder ?? null,
           curationStatus: item.curationStatus,
           isSandboxPreview: Boolean(item.isSandboxPreview || item.curationStatus === "QC_SANDBOX"),
         }));
 
         if (!sandboxToken) {
           cachedTryouts = mappedData;
-          cachedTryoutsAt = Date.now();
         }
 
         if (active) {

@@ -15,7 +15,7 @@ export function getTryoutCardActionInfo(tryout: TryOutData): TryoutCardActionInf
     return {
       badgeLabel: "QC Sandbox",
       badgeVariant: "sandbox",
-      ctaLabel: tryout.isRegistered ? "Kerjakan tryout" : "Daftar tryout",
+      ctaLabel: tryout.isRegistered ? "Mulai Tryout" : "Daftar tryout",
       targetUrl: `/tryout/${tryout.id}`,
       isOutline: false,
     };
@@ -24,7 +24,7 @@ export function getTryoutCardActionInfo(tryout: TryOutData): TryoutCardActionInf
   if (status === "FINISHED") {
     const resultUrl = tryout.resumeUrl || `/tryout/${tryout.id}`;
     return {
-      badgeLabel: "Selesai",
+      badgeLabel: "Selesai mengerjakan",
       badgeVariant: "finished",
       ctaLabel: "Review Hasil",
       targetUrl: resultUrl,
@@ -44,9 +44,9 @@ export function getTryoutCardActionInfo(tryout: TryOutData): TryoutCardActionInf
 
   if (tryout.isRegistered) {
     return {
-      badgeLabel: "Belum mulai",
+      badgeLabel: "Terdaftar",
       badgeVariant: "not_started",
-      ctaLabel: "Kerjakan tryout",
+      ctaLabel: "Mulai Tryout",
       targetUrl: `/tryout/${tryout.id}`,
       isOutline: false,
     };

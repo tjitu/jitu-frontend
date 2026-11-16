@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CategoryDetail } from "../interface";
@@ -11,6 +11,8 @@ interface SubtestListCardProps {
   categories: CategoryDetail[];
   isFinished: boolean;
   isUnlocked: boolean;
+  cost: number;
+  onUnlockClick: () => void;
   onStartSubtest: (subtestOrder: number, isCompleted?: boolean) => void;
 }
 
@@ -18,6 +20,8 @@ export function SubtestListCard({
   categories,
   isFinished,
   isUnlocked,
+  cost,
+  onUnlockClick,
   onStartSubtest,
 }: SubtestListCardProps) {
   const totalSubtests = categories.length;
@@ -75,7 +79,7 @@ export function SubtestListCard({
 
                   <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs tabular-nums pt-0.5">
                     <span className="text-text-muted">{category.duration} menit</span>
-                    {isFinished && (
+                    {isFinished && isUnlocked && (
                       <>
                         <span className="text-border">·</span>
                         <span className="text-emerald-600 font-semibold">
@@ -101,13 +105,18 @@ export function SubtestListCard({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onStartSubtest(index + 1, true)}
+                    onClick={() => onStartSubtest(category.id, true)}
                     className="font-medium"
                   >
                     <span>Bahas Subtes</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                   </Button>
                 </div>
+              )}
+              {isFinished && !isUnlocked && (
+                <Button variant="outline" size="sm" onClick={onUnlockClick} className="shrink-0 gap-1.5">
+                  <Lock className="w-3.5 h-3.5" /> Upgrade · {cost} coin
+                </Button>
               )}
             </div>
           );
