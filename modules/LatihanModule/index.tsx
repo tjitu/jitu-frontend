@@ -43,6 +43,7 @@ import {
   renderMathContent,
 } from "@/components/interactive-solution-deck";
 import { PracticeHistoryTab } from "./PracticeHistoryTab";
+import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/SubtestIcons";
 import type {
   PracticeQuestionSummary,
   QuestionSolutionData,
@@ -662,40 +663,39 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
           TOP HEADER: SUBTEST FILTER & DAILY LIMIT PROGRESSIVE BAR
           ============================================================ */}
       <div className="bg-surface border-b border-border shadow-2xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              {isSandboxMode ? (
-                <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 border border-amber-300 text-xs font-bold">
-                    <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
-                    Sandbox QC
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-surface-muted text-text-muted border border-border text-[11px] font-semibold">
-                    Pratinjau Antrean QC · Non-destruktif
-                  </span>
-                </div>
-              ) : isPremiumUser ? (
-                <div className="mb-1.5">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-300 text-xs font-bold">
-                    <Crown className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                    PTN Premium Pass
-                  </span>
-                </div>
-              ) : null}
-              <h1 className="text-xl sm:text-2xl font-extrabold text-text tracking-tight m-0">
+        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 py-3 sm:py-3.5">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <h1 className="text-lg sm:text-xl font-extrabold text-text tracking-tight m-0 whitespace-nowrap">
                 {isSandboxMode
                   ? "Sandbox Preview · Soal & Pembahasan"
                   : "Latihan Soal SNBT & UTBK"}
               </h1>
 
+              {isSandboxMode ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 border border-amber-300 text-xs font-bold">
+                    <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
+                    Sandbox QC
+                  </span>
+                  <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full bg-surface-muted text-text-muted border border-border text-[11px] font-semibold">
+                    Pratinjau Antrean QC
+                  </span>
+                </div>
+              ) : isPremiumUser ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-300 text-xs font-bold">
+                  <Crown className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                  PTN Premium Pass
+                </span>
+              ) : null}
+
               {/* Primary Mode Switcher: Kerjakan Soal vs Riwayat & Pembahasan (hidden in Sandbox mode) */}
               {!isSandboxMode && (
-                <div className="mt-3 inline-flex items-center p-1 rounded-xl bg-surface-muted border border-border gap-1">
+                <div className="inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-surface-muted border border-border gap-1">
                   <button
                     type="button"
                     onClick={() => setViewMode("PRACTICE")}
-                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       viewMode === "PRACTICE"
                         ? "bg-surface text-text shadow-2xs"
                         : "text-text-muted hover:text-text"
@@ -707,7 +707,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                   <button
                     type="button"
                     onClick={() => setViewMode("HISTORY")}
-                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       viewMode === "HISTORY"
                         ? "bg-surface text-text shadow-2xs"
                         : "text-text-muted hover:text-text"
@@ -730,7 +730,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
             </div>
 
             {/* Right Group: Progressive Bar / Sandbox Pill & Filter Chips */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {isSandboxMode ? (
                 sandboxAuthorized ? (
                   <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs whitespace-nowrap">
@@ -960,95 +960,6 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
         ) : activeQuestion ? (
           <div className="space-y-5">
             {/* ------------------------------------------------------------
-                QUESTION NAVIGATOR STRIP
-                Premium / Sandbox: Navigasi Soal (1, 2, 3...) + Prev / Next
-                Free: No navigasi soal (cuma ada Prev & Next)
-                ------------------------------------------------------------ */}
-            <div className="bg-surface border border-border rounded-2xl p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              {isPremiumUser || isSandboxMode ? (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                  <span className="text-xs font-semibold text-text-muted mr-1 whitespace-nowrap">
-                    Navigasi Soal:
-                  </span>
-                  {questions.map((q, idx) => {
-                    const isActive = q.id === activeQuestion.id;
-                    const attempt = attempts[q.id];
-                    const isAnswered = Boolean(attempt);
-                    const isCorrect = attempt?.isCorrect;
-
-                    let badgeStyles =
-                      "bg-surface-muted text-text-body border-border hover:border-blue-400";
-
-                    if (isActive) {
-                      badgeStyles =
-                        "bg-primary text-on-primary border-primary ring-2 ring-primary/30 shadow-xs font-bold";
-                    } else if (isAnswered) {
-                      if (isCorrect) {
-                        badgeStyles =
-                          "bg-emerald-50 text-emerald-700 border-emerald-300 font-bold";
-                      } else {
-                        badgeStyles =
-                          "bg-rose-50 text-rose-700 border-rose-300 font-bold";
-                      }
-                    }
-
-                    return (
-                      <button
-                        key={q.id}
-                        type="button"
-                        onClick={() => handleSelectQuestion(q.id)}
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-xs transition-all cursor-pointer ${badgeStyles}`}
-                        title={`Soal ${idx + 1} (${q.subtest.replace(/_/g, " ")})`}
-                      >
-                        {isAnswered && !isActive ? (
-                          isCorrect ? (
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          ) : (
-                            <X className="w-3.5 h-3.5 stroke-[3]" />
-                          )
-                        ) : (
-                          idx + 1
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-text-muted">
-                    Latihan Soal UTBK
-                  </span>
-                </div>
-              )}
-
-              {/* Prev / Next Navigation Buttons */}
-              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border ml-auto">
-                <span className="text-xs font-medium text-text-muted sm:hidden">
-                  {activeQuestionIndex + 1} / {questions.length}
-                </span>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={handlePrevQuestion}
-                    disabled={activeQuestionIndex === 0}
-                    className="px-3.5 py-1.5 rounded-lg border border-border text-xs font-semibold text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <ChevronLeft className="h-4 w-4" /> Prev
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNextQuestion}
-                    disabled={activeQuestionIndex >= questions.length - 1}
-                    className="px-3.5 py-1.5 rounded-lg border border-border text-xs font-semibold text-text hover:bg-surface-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    Next <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* ------------------------------------------------------------
                 CARDS GRID: CARD SOAL (KIRI) + CARD PEMBAHASAN (KANAN)
                 User Request: "bukan sidebar sebagai new window gini, tapi lebih ke card yang setara dengan card soal"
                 ------------------------------------------------------------ */}
@@ -1095,10 +1006,17 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                         showSolutionCard ? "pb-3" : "pb-4"
                       }`}
                     >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
-                          Soal {activeQuestionIndex + 1} · {activeQuestion.subtest.replace(/_/g, " ")}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        {(() => {
+                          const subInfo = getSubtestInfo(activeQuestion.subtest);
+                          const SubIcon = subInfo.IconComponent;
+                          return (
+                            <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-text">
+                              <SubIcon size={18} className="text-primary shrink-0 stroke-[2.2]" />
+                              <span>{subInfo.name}</span>
+                            </div>
+                          );
+                        })()}
                         <span
                           className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
                             DIFFICULTIES.find((d) => d.id === activeQuestion.difficulty)?.color ||
