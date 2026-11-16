@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Zap,
+  Clock,
   Flame,
   X,
   Lightbulb,
@@ -864,172 +865,206 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
           </div>
         </div>
 
-        {/* Block 2: Sub-bar (Limit Free Pass di kiri, Subtest Filter di kanan - locked di free) */}
+        {/* ============================================================
+            BAR 2: DEDICATED LIMIT (FREE PASS) BAR
+            ============================================================ */}
         {viewMode === "PRACTICE" && (
-          <div className="bg-surface-muted/20">
-            <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-2.5 sm:py-3 transition-all duration-300`}>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                {/* Kiri: Limit (Free Pass) */}
-                <div className="flex items-center gap-3 shrink-0">
-                  {isSandboxMode ? (
-                    sandboxAuthorized ? (
-                      <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs whitespace-nowrap">
-                        <FlaskConical className="w-4 h-4 text-amber-600" />
-                        <span>{questions.length} Soal Antrean QC</span>
+          <div className="border-b border-border/50 bg-surface-muted/20">
+            <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-2 sm:py-2.5 transition-all duration-300`}>
+              {isSandboxMode ? (
+                sandboxAuthorized ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                      <FlaskConical className="w-4 h-4 text-amber-600" />
+                      <span>{questions.length} Soal Antrean QC</span>
+                    </div>
+                    <span className="text-[11px] text-text-muted hidden sm:inline">
+                      Mode Sandbox Quality Control
+                    </span>
+                  </div>
+                ) : null
+              ) : !isPremiumUser ? (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+                  {/* Left: Clock Icon & Label with Hover Tooltip */}
+                  <div
+                    className="relative group cursor-pointer shrink-0"
+                    onClick={() => {
+                      setPremiumModalReason("LIMIT");
+                      setIsDailyLimitModalOpen(true);
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Clock
+                        className={`w-4 h-4 shrink-0 ${
+                          dailyAnsweredCount >= DAILY_FREE_LIMIT
+                            ? "text-rose-500"
+                            : "text-amber-500"
+                        }`}
+                      />
+                      <span className="text-xs font-bold text-text whitespace-nowrap">
+                        Limit (Free Pass):
+                      </span>
+                      <span className="font-mono text-primary font-black text-xs">
+                        {dailyAnsweredCount}/{DAILY_FREE_LIMIT}
+                      </span>
+                    </div>
+
+                    {/* Hover Info Tooltip */}
+                    <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 rounded-2xl bg-surface border border-border shadow-xl text-left transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
+                      <div className="flex items-start gap-2.5 mb-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-yellow-600 flex items-center justify-center shrink-0">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-text">
+                            Batas 10 Soal Harian (Free Pass)
+                          </h4>
+                          <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
+                            Kamu sudah mengerjakan{" "}
+                            <strong>
+                              {dailyAnsweredCount} dari {DAILY_FREE_LIMIT} soal
+                            </strong>{" "}
+                            hari ini. Limit direset otomatis tiap tengah malam WIB.
+                          </p>
+                        </div>
                       </div>
-                    ) : null
-                  ) : !isPremiumUser ? (
+
+                      <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-950 space-y-1 mb-3">
+                        <div className="font-bold flex items-center gap-1 text-blue-900">
+                          <span>Mau latihan ribuan soal tanpa batas?</span>
+                        </div>
+                        <p className="text-blue-800/90 leading-relaxed">
+                          Upgrade ke <strong>PTN Premium Pass</strong> untuk latihan
+                          unlimited, bebas buka riwayat pembahasan, dan analisis skor IRT.
+                        </p>
+                      </div>
+
+                      <Link
+                        href="/shop?highlight=premium-pass"
+                        className="w-full py-2 px-3 rounded-lg bg-[#FFD13B] hover:bg-[#ffc81f] text-black text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                      >
+                        <span>Buka Akses PTN Premium Pass</span>
+                        <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Center: Full-width Progressive Bar */}
+                  <div className="flex-1 max-w-none sm:max-w-md h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
                     <div
-                      className="relative group cursor-pointer"
+                      className={`h-full transition-all duration-500 rounded-full ${
+                        dailyAnsweredCount >= DAILY_FREE_LIMIT
+                          ? "bg-rose-500"
+                          : dailyAnsweredCount >= 7
+                          ? "bg-amber-500"
+                          : "bg-primary"
+                      }`}
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (dailyAnsweredCount / DAILY_FREE_LIMIT) * 100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+
+                  {/* Right: Reset Note & Fast Pass CTA */}
+                  <div className="flex items-center gap-2.5 shrink-0 justify-between sm:justify-end">
+                    <span className="text-[11px] text-text-muted hidden md:inline">
+                      Reset tiap 00:00 WIB
+                    </span>
+                    <button
+                      type="button"
                       onClick={() => {
                         setPremiumModalReason("LIMIT");
                         setIsDailyLimitModalOpen(true);
                       }}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2.5 py-1 rounded-lg border border-amber-300/60 transition-colors cursor-pointer"
                     >
-                      <div className="flex items-center gap-2.5 py-0.5">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-text whitespace-nowrap">
-                          <Zap
-                            className={`w-3.5 h-3.5 ${
-                              dailyAnsweredCount >= DAILY_FREE_LIMIT
-                                ? "text-rose-500 fill-rose-500"
-                                : "text-amber-500 fill-amber-500"
-                            }`}
-                          />
-                          <span>Limit (Free Pass):</span>
-                          <span className="font-mono text-primary font-black">
-                            {dailyAnsweredCount}/{DAILY_FREE_LIMIT}
-                          </span>
-                        </div>
-
-                        {/* Progressive Bar */}
-                        <div className="w-24 sm:w-32 h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
-                          <div
-                            className={`h-full transition-all duration-500 rounded-full ${
-                              dailyAnsweredCount >= DAILY_FREE_LIMIT
-                                ? "bg-rose-500"
-                                : dailyAnsweredCount >= 7
-                                ? "bg-amber-500"
-                                : "bg-primary"
-                            }`}
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (dailyAnsweredCount / DAILY_FREE_LIMIT) * 100
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Hover Info Tooltip */}
-                      <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 rounded-2xl bg-surface border border-border shadow-xl text-left transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
-                        <div className="flex items-start gap-2.5 mb-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-yellow-600 flex items-center justify-center shrink-0">
-                            <Sparkles className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-text">
-                              Batas 10 Soal Harian (Free Pass)
-                            </h4>
-                            <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
-                              Kamu sudah mengerjakan{" "}
-                              <strong>
-                                {dailyAnsweredCount} dari {DAILY_FREE_LIMIT} soal
-                              </strong>{" "}
-                              hari ini. Limit direset otomatis tiap tengah malam WIB.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-950 space-y-1 mb-3">
-                          <div className="font-bold flex items-center gap-1 text-blue-900">
-                            <span>Mau latihan ribuan soal tanpa batas?</span>
-                          </div>
-                          <p className="text-blue-800/90 leading-relaxed">
-                            Upgrade ke <strong>PTN Premium Pass</strong> untuk latihan
-                            unlimited, bebas buka riwayat pembahasan, dan analisis skor IRT.
-                          </p>
-                        </div>
-
-                        <Link
-                          href="/shop?highlight=premium-pass"
-                          className="w-full py-2 px-3 rounded-lg bg-[#FFD13B] hover:bg-[#ffc81f] text-black text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-                        >
-                          <span>Buka Akses PTN Premium Pass</span>
-                          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                        </Link>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs">
-                      <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
-                      <span>Akses Unlimited Aktif</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Kanan: Subtest & Sandbox Batch Quick Filter */}
-                {(!isSandboxMode || sandboxAuthorized) && (
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    {isSandboxMode && (
-                      <select
-                        aria-label="Filter Batch QC"
-                        value={selectedBatch}
-                        onChange={(e) => setSelectedBatch(e.target.value)}
-                        className="h-8 px-2.5 rounded-full text-xs font-semibold bg-surface-muted text-text border border-border cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
-                      >
-                        <option value="ALL">Semua Batch</option>
-                        <option value="__NONE__">Tanpa Batch</option>
-                        {availableBatches.map((batchName) => (
-                          <option key={batchName} value={batchName}>
-                            Batch: {batchName}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    {SUBTEST_FILTER_ITEMS.map((sub) => {
-                      const isAll = sub.id === "ALL";
-                      const isLocked = !isAll && !isPremiumUser && !isSandboxMode;
-                      const isActive = selectedSubtest === sub.id;
-                      const SubIcon = sub.Icon;
-
-                      return (
-                        <button
-                          key={sub.id}
-                          type="button"
-                          onClick={() => handleSubtestClick(sub.id)}
-                          title={
-                            isLocked
-                              ? `Fitur PTN Premium Pass: Buka akses untuk latihan ${sub.fullName}`
-                              : `Filter ${sub.fullName}`
-                          }
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
-                            isActive
-                              ? "bg-primary text-on-primary shadow-xs border border-primary"
-                              : isLocked
-                              ? "bg-surface-muted/40 text-text-muted/70 hover:bg-amber-50/80 hover:text-amber-950 hover:border-amber-300 border border-border/70"
-                              : "bg-surface text-text hover:bg-surface-muted border border-border/80 hover:border-primary/40 shadow-2xs"
-                          }`}
-                        >
-                          {isLocked ? (
-                            <>
-                              <Lock className="w-3 h-3 text-amber-600 shrink-0" />
-                              <SubIcon size={14} className="text-text-muted/50 shrink-0 opacity-60" />
-                            </>
-                          ) : (
-                            <SubIcon
-                              size={14}
-                              className={`shrink-0 transition-colors ${
-                                isActive ? "text-on-primary" : sub.colorClass
-                              }`}
-                            />
-                          )}
-                          <span>{sub.label}</span>
-                        </button>
-                      );
-                    })}
+                      <Crown className="w-3 h-3 text-amber-700 fill-amber-500" />
+                      <span>Buka Unlimited</span>
+                    </button>
                   </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs">
+                    <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
+                    <span>Akses Unlimited Aktif (PTN Premium Pass)</span>
+                  </div>
+                  <span className="text-[11px] text-text-muted hidden sm:inline">
+                    Latihan tanpa limit kuota harian
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================
+            BAR 3: DEDICATED SUBTEST SELECTION BAR
+            ============================================================ */}
+        {viewMode === "PRACTICE" && (!isSandboxMode || sandboxAuthorized) && (
+          <div className="bg-surface">
+            <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-2 sm:py-2.5 transition-all duration-300`}>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                {isSandboxMode && (
+                  <select
+                    aria-label="Filter Batch QC"
+                    value={selectedBatch}
+                    onChange={(e) => setSelectedBatch(e.target.value)}
+                    className="h-8 px-2.5 rounded-full text-xs font-semibold bg-surface-muted text-text border border-border cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="ALL">Semua Batch</option>
+                    <option value="__NONE__">Tanpa Batch</option>
+                    {availableBatches.map((batchName) => (
+                      <option key={batchName} value={batchName}>
+                        Batch: {batchName}
+                      </option>
+                    ))}
+                  </select>
                 )}
+                {SUBTEST_FILTER_ITEMS.map((sub) => {
+                  const isAll = sub.id === "ALL";
+                  const isLocked = !isAll && !isPremiumUser && !isSandboxMode;
+                  const isActive = selectedSubtest === sub.id;
+                  const SubIcon = sub.Icon;
+
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => handleSubtestClick(sub.id)}
+                      title={
+                        isLocked
+                          ? `Fitur PTN Premium Pass: Buka akses untuk latihan ${sub.fullName}`
+                          : `Filter ${sub.fullName}`
+                      }
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
+                        isActive
+                          ? "bg-primary text-on-primary shadow-xs border border-primary"
+                          : isLocked
+                          ? "bg-surface-muted/40 text-text-muted/70 hover:bg-amber-50/80 hover:text-amber-950 hover:border-amber-300 border border-border/70"
+                          : "bg-surface text-text hover:bg-surface-muted border border-border/80 hover:border-primary/40 shadow-2xs"
+                      }`}
+                    >
+                      {isLocked ? (
+                        <>
+                          <Lock className="w-3 h-3 text-amber-600 shrink-0" />
+                          <SubIcon size={14} className="text-text-muted/50 shrink-0 opacity-60" />
+                        </>
+                      ) : (
+                        <SubIcon
+                          size={14}
+                          className={`shrink-0 transition-colors ${
+                            isActive ? "text-on-primary" : sub.colorClass
+                          }`}
+                        />
+                      )}
+                      <span>{sub.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
