@@ -136,7 +136,31 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [isDailyLimitModalOpen, setIsDailyLimitModalOpen] = useState(false);
+  const [premiumModalReason, setPremiumModalReason] = useState<
+    "LIMIT" | "SUBTEST" | "HISTORY"
+  >("LIMIT");
   const [showProgressTooltip, setShowProgressTooltip] = useState(false);
+
+  // Subtest click handler: locks individual subtests for free tier
+  const handleSubtestClick = (subId: string) => {
+    if (subId === "ALL") {
+      setSelectedSubtest("ALL");
+      return;
+    }
+    if (!isPremiumUser && !isSandboxMode) {
+      setPremiumModalReason("SUBTEST");
+      setIsDailyLimitModalOpen(true);
+      return;
+    }
+    setSelectedSubtest(subId);
+  };
+
+  // Ensure free accounts always default to ALL subtests
+  useEffect(() => {
+    if (!isPremiumUser && !isSandboxMode && selectedSubtest !== "ALL") {
+      setSelectedSubtest("ALL");
+    }
+  }, [isPremiumUser, isSandboxMode, selectedSubtest]);
 
   // Capture signed preview token from URL into sessionStorage and strip it from address bar
   useEffect(() => {
@@ -660,12 +684,15 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
   return (
     <div className="min-h-screen bg-bg pb-24 text-text selection:bg-blue-100 selection:text-blue-900">
       {/* ============================================================
-          TOP HEADER: SUBTEST FILTER & DAILY LIMIT PROGRESSIVE BAR
+          TOP HEADER: 2-TIER BLOCKS
+          Block 1: Latihan Soal SNBT & UTBK + Switcher Tab (Kerjakan Soal / Riwayat Kegembok)
+          Block 2: Kuota Limit (kiri) + Subtest Filter (kanan, locked di free)
           ============================================================ */}
       <div className="bg-surface border-b border-border shadow-2xs">
-        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 py-3 sm:py-3.5">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
+        {/* Block 1: Main Title & Mode Tabs */}
+        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border/60">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <h1 className="text-lg sm:text-xl font-extrabold text-text tracking-tight m-0 whitespace-nowrap">
                 {isSandboxMode
                   ? "Sandbox Preview · Soal & Pembahasan"
@@ -689,13 +716,13 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                 </span>
               ) : null}
 
-              {/* Primary Mode Switcher: Kerjakan Soal vs Riwayat & Pembahasan (hidden in Sandbox mode) */}
+              {/* Primary Mode Switcher: Kerjakan Soal vs Riwayat & Pembahasan */}
               {!isSandboxMode && (
                 <div className="inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-surface-muted border border-border gap-1">
                   <button
                     type="button"
                     onClick={() => setViewMode("PRACTICE")}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       viewMode === "PRACTICE"
                         ? "bg-surface text-text shadow-2xs"
                         : "text-text-muted hover:text-text"
@@ -707,7 +734,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                   <button
                     type="button"
                     onClick={() => setViewMode("HISTORY")}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       viewMode === "HISTORY"
                         ? "bg-surface text-text shadow-2xs"
                         : "text-text-muted hover:text-text"
@@ -728,109 +755,115 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            {/* Right Group: Progressive Bar / Sandbox Pill & Filter Chips */}
-            <div className="flex flex-wrap items-center gap-3">
-              {isSandboxMode ? (
-                sandboxAuthorized ? (
-                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs whitespace-nowrap">
-                    <FlaskConical className="w-4 h-4 text-amber-600" />
-                    <span>{questions.length} Soal Antrean QC</span>
-                  </div>
-                ) : null
-              ) : !isPremiumUser ? (
-                <div
-                  className="relative group cursor-pointer"
-                  onClick={() => {
-                    if (dailyAnsweredCount >= DAILY_FREE_LIMIT) {
+        {/* Block 2: Sub-bar (Kuota Limit di kiri, Subtest Filter di kanan - locked di free) */}
+        {viewMode === "PRACTICE" && (
+          <div className="max-w-[1580px] mx-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-surface-muted/20">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              {/* Kiri: Kuota Limit */}
+              <div className="flex items-center gap-3 shrink-0">
+                {isSandboxMode ? (
+                  sandboxAuthorized ? (
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs whitespace-nowrap">
+                      <FlaskConical className="w-4 h-4 text-amber-600" />
+                      <span>{questions.length} Soal Antrean QC</span>
+                    </div>
+                  ) : null
+                ) : !isPremiumUser ? (
+                  <div
+                    className="relative group cursor-pointer"
+                    onClick={() => {
+                      setPremiumModalReason("LIMIT");
                       setIsDailyLimitModalOpen(true);
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-2.5 py-1">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-text whitespace-nowrap">
-                      <Zap
-                        className={`w-3.5 h-3.5 ${
-                          dailyAnsweredCount >= DAILY_FREE_LIMIT
-                            ? "text-rose-500 fill-rose-500"
-                            : "text-amber-500 fill-amber-500"
-                        }`}
-                      />
-                      <span>Kuota:</span>
-                      <span className="font-mono text-primary font-black">
-                        {dailyAnsweredCount}/{DAILY_FREE_LIMIT}
-                      </span>
-                    </div>
-
-                    {/* Progressive Bar */}
-                    <div className="w-20 sm:w-28 h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 rounded-full ${
-                          dailyAnsweredCount >= DAILY_FREE_LIMIT
-                            ? "bg-rose-500"
-                            : dailyAnsweredCount >= 7
-                            ? "bg-amber-500"
-                            : "bg-primary"
-                        }`}
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (dailyAnsweredCount / DAILY_FREE_LIMIT) * 100
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Hover Info Tooltip (direct to PTN Premium Pass) */}
-                  <div className="absolute right-0 top-full mt-2 z-50 w-80 p-4 rounded-2xl bg-surface border border-border shadow-xl text-left transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
-                    <div className="flex items-start gap-2.5 mb-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-yellow-600 flex items-center justify-center shrink-0">
-                        <Sparkles className="w-4 h-4" />
+                    }}
+                  >
+                    <div className="flex items-center gap-2.5 py-0.5">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-text whitespace-nowrap">
+                        <Zap
+                          className={`w-3.5 h-3.5 ${
+                            dailyAnsweredCount >= DAILY_FREE_LIMIT
+                              ? "text-rose-500 fill-rose-500"
+                              : "text-amber-500 fill-amber-500"
+                          }`}
+                        />
+                        <span>Kuota:</span>
+                        <span className="font-mono text-primary font-black">
+                          {dailyAnsweredCount}/{DAILY_FREE_LIMIT}
+                        </span>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-text">
-                          Batas 10 Soal Harian
-                        </h4>
-                        <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
-                          Kamu sudah mengerjakan{" "}
-                          <strong>
-                            {dailyAnsweredCount} dari {DAILY_FREE_LIMIT} soal
-                          </strong>{" "}
-                          hari ini. Kuota direset otomatis tiap tengah malam WIB.
+
+                      {/* Progressive Bar */}
+                      <div className="w-24 sm:w-32 h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 rounded-full ${
+                            dailyAnsweredCount >= DAILY_FREE_LIMIT
+                              ? "bg-rose-500"
+                              : dailyAnsweredCount >= 7
+                              ? "bg-amber-500"
+                              : "bg-primary"
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              (dailyAnsweredCount / DAILY_FREE_LIMIT) * 100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Hover Info Tooltip */}
+                    <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 rounded-2xl bg-surface border border-border shadow-xl text-left transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
+                      <div className="flex items-start gap-2.5 mb-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-yellow-600 flex items-center justify-center shrink-0">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-text">
+                            Batas 10 Soal Harian
+                          </h4>
+                          <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
+                            Kamu sudah mengerjakan{" "}
+                            <strong>
+                              {dailyAnsweredCount} dari {DAILY_FREE_LIMIT} soal
+                            </strong>{" "}
+                            hari ini. Kuota direset otomatis tiap tengah malam WIB.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-950 space-y-1 mb-3">
+                        <div className="font-bold flex items-center gap-1 text-blue-900">
+                          <span>Mau latihan ribuan soal tanpa batas?</span>
+                        </div>
+                        <p className="text-blue-800/90 leading-relaxed">
+                          Upgrade ke <strong>PTN Premium Pass</strong> untuk latihan
+                          unlimited, bebas buka riwayat pembahasan, dan analisis skor IRT.
                         </p>
                       </div>
-                    </div>
 
-                    <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-950 space-y-1 mb-3">
-                      <div className="font-bold flex items-center gap-1 text-blue-900">
-                        <span>Mau latihan ribuan soal tanpa batas?</span>
-                      </div>
-                      <p className="text-blue-800/90 leading-relaxed">
-                        Upgrade ke <strong>PTN Premium Pass</strong> untuk latihan
-                        unlimited, bebas buka riwayat pembahasan, dan analisis skor IRT.
-                      </p>
+                      <Link
+                        href="/shop?highlight=premium-pass"
+                        className="w-full py-2 px-3 rounded-lg bg-[#FFD13B] hover:bg-[#ffc81f] text-black text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                      >
+                        <span>Buka Akses PTN Premium Pass</span>
+                        <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </Link>
                     </div>
-
-                    <Link
-                      href="/shop?highlight=premium-pass"
-                      className="w-full py-2 px-3 rounded-lg bg-[#FFD13B] hover:bg-[#ffc81f] text-black text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-                    >
-                      <span>Buka Akses PTN Premium Pass</span>
-                      <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                    </Link>
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs">
-                  <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
-                  <span>Akses Unlimited Aktif</span>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs">
+                    <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
+                    <span>Akses Unlimited Aktif</span>
+                  </div>
+                )}
+              </div>
 
-              {/* Subtest & Sandbox Batch Quick Filter */}
-              {viewMode === "PRACTICE" && (!isSandboxMode || sandboxAuthorized) && (
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              {/* Kanan: Subtest & Sandbox Batch Quick Filter */}
+              {(!isSandboxMode || sandboxAuthorized) && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   {isSandboxMode && (
                     <select
                       aria-label="Filter Batch QC"
@@ -848,19 +881,30 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                     </select>
                   )}
                   {SUBTESTS.map((sub) => {
+                    const isAll = sub.id === "ALL";
+                    const isLocked = !isAll && !isPremiumUser && !isSandboxMode;
                     const isActive = selectedSubtest === sub.id;
+
                     return (
                       <button
                         key={sub.id}
                         type="button"
-                        onClick={() => setSelectedSubtest(sub.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                        onClick={() => handleSubtestClick(sub.id)}
+                        title={
+                          isLocked
+                            ? "Fitur PTN Premium Pass: Buka akses untuk latihan subtes spesifik"
+                            : `Filter ${sub.label}`
+                        }
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
                           isActive
                             ? "bg-primary text-on-primary shadow-xs"
+                            : isLocked
+                            ? "bg-surface-muted/60 text-text-muted hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300 border border-border/80"
                             : "bg-surface-muted text-text hover:bg-border/60"
                         }`}
                       >
-                        {sub.label}
+                        {isLocked && <Lock className="w-3 h-3 text-amber-600 shrink-0" />}
+                        <span>{sub.label}</span>
                       </button>
                     );
                   })}
@@ -868,7 +912,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
               )}
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ============================================================
@@ -1423,10 +1467,18 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                   PTN Premium Pass
                 </span>
                 <DialogTitle className="text-xl sm:text-2xl font-black text-white leading-tight">
-                  Limit 10 Soal Hari Ini Tercapai!
+                  {premiumModalReason === "SUBTEST"
+                    ? "Latihan Per Subtes Khusus PTN Premium Pass!"
+                    : premiumModalReason === "HISTORY"
+                    ? "Buka Riwayat & Pembahasan Lengkap!"
+                    : "Limit 10 Soal Hari Ini Tercapai!"}
                 </DialogTitle>
                 <DialogDescription className="text-xs sm:text-sm text-blue-200">
-                  Kamu telah menyelesaikan kuota 10 soal latihan harian untuk akun Free.
+                  {premiumModalReason === "SUBTEST"
+                    ? "Akun Free berlatih dengan kurasi soal campuran. Dapatkan PTN Pass untuk bebas pilih dan fokus di subtes tertentu."
+                    : premiumModalReason === "HISTORY"
+                    ? "Seluruh riwayat soal yang pernah kamu kerjakan dapat dibuka kembali kapan saja dengan PTN Premium Pass."
+                    : "Kamu telah menyelesaikan kuota 10 soal latihan harian untuk akun Free."}
                 </DialogDescription>
               </div>
             </div>
