@@ -174,12 +174,23 @@ export async function getSoalAsliPackageDetail(
         [pkg.id]
       );
 
-      const questions: SoalAsliQuestion[] = qRes.rows.map((row, index) => {
+      // IDs look like "<pkg>-q12"; a plain string sort gives q1,q10,q11,...,q2,
+      // which breaks numbering and passage references. Sort by numeric suffix.
+      const suffixNumber = (id: string): number => {
+        const m = /-q(\d+)$/.exec(id);
+        return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+      };
+      const sortedRows = [...qRes.rows].sort(
+        (a, b) => suffixNumber(a.id) - suffixNumber(b.id) || String(a.id).localeCompare(String(b.id))
+      );
+
+      const questions: SoalAsliQuestion[] = sortedRows.map((row, index) => {
         const rawOpts = Array.isArray(row.options) ? row.options : [];
         const alphabet = ["A", "B", "C", "D", "E"];
+        const parsedNumber = suffixNumber(row.id);
         return {
           id: row.id,
-          number: index + 1,
+          number: parsedNumber !== Number.MAX_SAFE_INTEGER ? parsedNumber : index + 1,
           type: row.type || (rawOpts.length >= 2 ? "PILIHAN_GANDA" : "ISIAN_SINGKAT"),
           narration: row.narration || null,
           content: row.content || "",
