@@ -796,10 +796,8 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
         <div className="border-b border-border/60">
           <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-3 sm:py-3.5 transition-all duration-300`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-red-500 text-white shadow-xs shrink-0 ring-2 ring-orange-500/20">
-                  <Flame className="w-4.5 h-4.5 fill-amber-200 text-white animate-pulse" />
-                </div>
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 fill-orange-500 shrink-0" />
                 <h1 className="text-lg sm:text-xl font-extrabold text-text tracking-tight m-0 whitespace-nowrap">
                   {isSandboxMode
                     ? "Sandbox Preview · Soal & Pembahasan"
