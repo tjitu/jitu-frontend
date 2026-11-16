@@ -101,7 +101,8 @@ export async function triggerAutoFinishIfNeeded(
 ): Promise<void> {
   if (!attemptIds.length || !authorizationHeader) return;
   const backendUrl =
-    process.env.NESTJS_BACKEND_URL || "http://localhost:3000";
+    (process.env.NESTJS_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000")
+      .replace(/\/$/, "");
 
   await Promise.all(
     attemptIds.map((id) =>
