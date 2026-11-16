@@ -244,6 +244,36 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
     }
   }, [loading, isSandboxMode, isPremiumUser, dailyAnsweredCount]);
 
+  // Subtest horizontal scroll track & navigation arrows
+  const subtestScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateSubtestScrollState = useCallback(() => {
+    const el = subtestScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 6);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    const el = subtestScrollRef.current;
+    if (!el) return;
+    updateSubtestScrollState();
+    el.addEventListener("scroll", updateSubtestScrollState, { passive: true });
+    window.addEventListener("resize", updateSubtestScrollState);
+    return () => {
+      el.removeEventListener("scroll", updateSubtestScrollState);
+      window.removeEventListener("resize", updateSubtestScrollState);
+    };
+  }, [updateSubtestScrollState]);
+
+  const handleScrollSubtests = (direction: "left" | "right") => {
+    if (!subtestScrollRef.current) return;
+    const offset = direction === "left" ? -220 : 220;
+    subtestScrollRef.current.scrollBy({ left: offset, behavior: "smooth" });
+  };
+
   // Capture signed preview token from URL into sessionStorage and strip it from address bar
   useEffect(() => {
     if (!isSandboxMode) {
@@ -795,9 +825,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
       <div className="bg-surface border-b border-border shadow-2xs">
         {/* Block 1: Main Title & Mode Tabs */}
         <div className="border-b border-border/60">
-          <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-3 sm:py-3.5 transition-all duration-300`}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+          <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-2.5 sm:py-3.5 transition-all duration-300`}>
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+              <div className="hidden sm:flex items-center gap-2">
                 <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 fill-orange-500 shrink-0" />
                 <h1 className="text-lg sm:text-xl font-extrabold text-text tracking-tight m-0 whitespace-nowrap">
                   {isSandboxMode
@@ -825,11 +855,11 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
 
               {/* Primary Mode Switcher: Kerjakan Soal vs Riwayat & Pembahasan */}
               {!isSandboxMode && (
-                <div className="inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-surface-muted border border-border gap-1">
+                <div className="w-full sm:w-auto grid grid-cols-2 sm:flex items-center p-0.5 sm:p-1 rounded-xl bg-surface-muted border border-border gap-1">
                   <button
                     type="button"
                     onClick={() => setViewMode("PRACTICE")}
-                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       viewMode === "PRACTICE"
                         ? "bg-surface text-text shadow-2xs"
                         : "text-text-muted hover:text-text"
@@ -841,7 +871,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                   <button
                     type="button"
                     onClick={() => setViewMode("HISTORY")}
-                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       viewMode === "HISTORY"
                         ? "bg-surface text-text shadow-2xs"
                         : "text-text-muted hover:text-text"
@@ -884,7 +914,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                   </div>
                 ) : null
               ) : !isPremiumUser ? (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+                <div className="flex items-center justify-between gap-2.5 sm:gap-4">
                   {/* Left: Clock Icon & Label with Hover Tooltip */}
                   <div
                     className="relative group cursor-pointer shrink-0"
@@ -893,9 +923,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                       setIsDailyLimitModalOpen(true);
                     }}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <Clock
-                        className={`w-4 h-4 shrink-0 ${
+                        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${
                           dailyAnsweredCount >= DAILY_FREE_LIMIT
                             ? "text-rose-500"
                             : "text-amber-500"
@@ -950,7 +980,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                   </div>
 
                   {/* Center: Full-width Progressive Bar */}
-                  <div className="flex-1 max-w-none sm:max-w-md h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
+                  <div className="flex-1 min-w-[50px] max-w-none sm:max-w-md h-2 rounded-full bg-surface-muted border border-border/80 overflow-hidden">
                     <div
                       className={`h-full transition-all duration-500 rounded-full ${
                         dailyAnsweredCount >= DAILY_FREE_LIMIT
@@ -969,7 +999,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                   </div>
 
                   {/* Right: Reset Note & Fast Pass CTA */}
-                  <div className="flex items-center gap-2.5 shrink-0 justify-between sm:justify-end">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[11px] text-text-muted hidden md:inline">
                       Reset tiap 00:00 WIB
                     </span>
@@ -979,9 +1009,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                         setPremiumModalReason("LIMIT");
                         setIsDailyLimitModalOpen(true);
                       }}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2.5 py-1 rounded-lg border border-amber-300/60 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2 sm:px-2.5 py-1 rounded-lg border border-amber-300/60 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
                     >
-                      <Crown className="w-3 h-3 text-amber-700 fill-amber-500" />
+                      <Crown className="w-3 h-3 text-amber-700 fill-amber-500 shrink-0" />
                       <span>Buka Unlimited</span>
                     </button>
                   </div>
@@ -1002,69 +1032,107 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
         )}
 
         {/* ============================================================
-            BAR 3: DEDICATED SUBTEST SELECTION BAR
+            BAR 3: DEDICATED SUBTEST SELECTION BAR (With Left/Right Arrows)
             ============================================================ */}
         {viewMode === "PRACTICE" && (!isSandboxMode || sandboxAuthorized) && (
           <div className="bg-surface">
             <div className={`${contentMaxWidthClass} mx-auto px-4 sm:px-6 py-2 sm:py-2.5 transition-all duration-300`}>
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {isSandboxMode && (
-                  <select
-                    aria-label="Filter Batch QC"
-                    value={selectedBatch}
-                    onChange={(e) => setSelectedBatch(e.target.value)}
-                    className="h-8 px-2.5 rounded-full text-xs font-semibold bg-surface-muted text-text border border-border cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="ALL">Semua Batch</option>
-                    <option value="__NONE__">Tanpa Batch</option>
-                    {availableBatches.map((batchName) => (
-                      <option key={batchName} value={batchName}>
-                        Batch: {batchName}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                {SUBTEST_FILTER_ITEMS.map((sub) => {
-                  const isAll = sub.id === "ALL";
-                  const isLocked = !isAll && !isPremiumUser && !isSandboxMode;
-                  const isActive = selectedSubtest === sub.id;
-                  const SubIcon = sub.Icon;
+              <div className="relative flex items-center gap-1.5 sm:gap-2">
+                {/* Left Scroll Arrow */}
+                <button
+                  type="button"
+                  onClick={() => handleScrollSubtests("left")}
+                  disabled={!canScrollLeft}
+                  title="Geser subtes ke kiri"
+                  aria-label="Scroll subtests left"
+                  className={`w-7 h-7 rounded-full bg-surface border border-border shadow-2xs flex items-center justify-center text-text hover:text-primary transition-all shrink-0 ${
+                    canScrollLeft
+                      ? "opacity-100 hover:bg-surface-muted cursor-pointer"
+                      : "opacity-25 cursor-not-allowed pointer-events-none"
+                  }`}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
 
-                  return (
-                    <button
-                      key={sub.id}
-                      type="button"
-                      onClick={() => handleSubtestClick(sub.id)}
-                      title={
-                        isLocked
-                          ? `Fitur PTN Premium Pass: Buka akses untuk latihan ${sub.fullName}`
-                          : `Filter ${sub.fullName}`
-                      }
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
-                        isActive
-                          ? "bg-primary text-on-primary shadow-xs border border-primary"
-                          : isLocked
-                          ? "bg-surface-muted/40 text-text-muted/70 hover:bg-amber-50/80 hover:text-amber-950 hover:border-amber-300 border border-border/70"
-                          : "bg-surface text-text hover:bg-surface-muted border border-border/80 hover:border-primary/40 shadow-2xs"
-                      }`}
+                {/* Subtest Scroll Track */}
+                <div
+                  ref={subtestScrollRef}
+                  className="flex-1 flex items-center gap-1.5 overflow-x-auto scroll-smooth py-0.5 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  {isSandboxMode && (
+                    <select
+                      aria-label="Filter Batch QC"
+                      value={selectedBatch}
+                      onChange={(e) => setSelectedBatch(e.target.value)}
+                      className="h-8 px-2.5 rounded-full text-xs font-semibold bg-surface-muted text-text border border-border cursor-pointer shrink-0 focus:outline-none focus:ring-1 focus:ring-primary"
                     >
-                      {isLocked ? (
-                        <>
-                          <Lock className="w-3 h-3 text-amber-600 shrink-0" />
-                          <SubIcon size={14} className="text-text-muted/50 shrink-0 opacity-60" />
-                        </>
-                      ) : (
-                        <SubIcon
-                          size={14}
-                          className={`shrink-0 transition-colors ${
-                            isActive ? "text-on-primary" : sub.colorClass
-                          }`}
-                        />
-                      )}
-                      <span>{sub.label}</span>
-                    </button>
-                  );
-                })}
+                      <option value="ALL">Semua Batch</option>
+                      <option value="__NONE__">Tanpa Batch</option>
+                      {availableBatches.map((batchName) => (
+                        <option key={batchName} value={batchName}>
+                          Batch: {batchName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {SUBTEST_FILTER_ITEMS.map((sub) => {
+                    const isAll = sub.id === "ALL";
+                    const isLocked = !isAll && !isPremiumUser && !isSandboxMode;
+                    const isActive = selectedSubtest === sub.id;
+                    const SubIcon = sub.Icon;
+
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => handleSubtestClick(sub.id)}
+                        title={
+                          isLocked
+                            ? `Fitur PTN Premium Pass: Buka akses untuk latihan ${sub.fullName}`
+                            : `Filter ${sub.fullName}`
+                        }
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                          isActive
+                            ? "bg-primary text-on-primary shadow-xs border border-primary"
+                            : isLocked
+                            ? "bg-surface-muted/40 text-text-muted/70 hover:bg-amber-50/80 hover:text-amber-950 hover:border-amber-300 border border-border/70"
+                            : "bg-surface text-text hover:bg-surface-muted border border-border/80 hover:border-primary/40 shadow-2xs"
+                        }`}
+                      >
+                        {isLocked ? (
+                          <>
+                            <Lock className="w-3 h-3 text-amber-600 shrink-0" />
+                            <SubIcon size={14} className="text-text-muted/50 shrink-0 opacity-60" />
+                          </>
+                        ) : (
+                          <SubIcon
+                            size={14}
+                            className={`shrink-0 transition-colors ${
+                              isActive ? "text-on-primary" : sub.colorClass
+                            }`}
+                          />
+                        )}
+                        <span>{sub.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Right Scroll Arrow */}
+                <button
+                  type="button"
+                  onClick={() => handleScrollSubtests("right")}
+                  disabled={!canScrollRight}
+                  title="Geser subtes ke kanan"
+                  aria-label="Scroll subtests right"
+                  className={`w-7 h-7 rounded-full bg-surface border border-border shadow-2xs flex items-center justify-center text-text hover:text-primary transition-all shrink-0 ${
+                    canScrollRight
+                      ? "opacity-100 hover:bg-surface-muted cursor-pointer"
+                      : "opacity-25 cursor-not-allowed pointer-events-none"
+                  }`}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
