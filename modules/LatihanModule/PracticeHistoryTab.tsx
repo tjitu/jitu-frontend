@@ -4,8 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
+  ChevronRight,
   Crown,
   History,
   Lock,
@@ -14,9 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { PracticeHistoryItem } from "@/lib/practice-store";
-import InteractiveSolutionDeck, {
-  renderMathContent,
-} from "@/components/interactive-solution-deck";
+import { renderMathContent } from "@/components/interactive-solution-deck";
 
 type PracticeHistoryTabProps = {
   isPremium: boolean;
@@ -47,7 +44,6 @@ export function PracticeHistoryTab({
   const [error, setError] = useState("");
   const [subtest, setSubtest] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
     if (!isPremium || !isAuthenticated) return;
@@ -194,23 +190,13 @@ export function PracticeHistoryTab({
       ) : (
         <div className="space-y-3">
           {items.map((item) => {
-            const isOpen = expandedId === item.questionId;
-            const letters = ["A", "B", "C", "D", "E"];
             return (
-              <div
+              <Link
                 key={item.attemptId}
-                className="rounded-2xl border border-border bg-surface overflow-hidden shadow-2xs"
+                href={`/latihan/riwayat/${encodeURIComponent(item.attemptId)}`}
+                className="block rounded-2xl border border-border bg-surface overflow-hidden shadow-2xs"
               >
                 <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setExpandedId(isOpen ? null : item.questionId)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setExpandedId(isOpen ? null : item.questionId);
-                    }
-                  }}
                   className="p-4 sm:p-5 flex items-start justify-between gap-4 cursor-pointer hover:bg-surface-muted/30 transition-colors"
                 >
                   <div className="space-y-2 flex-1 min-w-0">
@@ -259,83 +245,11 @@ export function PracticeHistoryTab({
                   </div>
 
                   <div className="shrink-0 flex items-center gap-1 text-xs font-bold text-primary pt-1">
-                    <span>{isOpen ? "Tutup" : "Lihat Bahas"}</span>
-                    {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    <span>Lihat Bahas</span>
+                    <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>
-
-                {isOpen && (
-                  <div className="border-t border-border p-4 sm:p-6 bg-surface-muted/20 space-y-5">
-                    {item.narration && (
-                      <div
-                        className="p-4 rounded-xl bg-surface border border-border text-sm text-text-body leading-relaxed whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{
-                          __html: renderMathContent(item.narration, { animatedHighlights: false }),
-                        }}
-                      />
-                    )}
-
-                    <div
-                      className="text-sm sm:text-base font-medium text-text leading-relaxed whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{
-                        __html: renderMathContent(item.content, { animatedHighlights: false }),
-                      }}
-                    />
-
-                    {item.options.length > 0 ? (
-                      <div className="space-y-2">
-                        {item.options.map((opt, idx) => {
-                          const isUserChoice = item.selectedOptionId === opt.id;
-                          const isKey = opt.isCorrect;
-                          return (
-                            <div
-                              key={opt.id}
-                              className={`p-3 rounded-xl border text-sm flex items-start gap-3 ${
-                                isKey
-                                  ? "border-emerald-400 bg-emerald-50/70 text-emerald-950 font-semibold"
-                                  : isUserChoice
-                                  ? "border-rose-300 bg-rose-50/70 text-rose-900"
-                                  : "border-border bg-surface text-text-body"
-                              }`}
-                            >
-                              <span className="font-bold shrink-0">{letters[idx] || idx + 1}.</span>
-                              <div
-                                className="flex-1"
-                                dangerouslySetInnerHTML={{
-                                  __html: renderMathContent(opt.content, { animatedHighlights: false }),
-                                }}
-                              />
-                              {isKey && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
-                              {!isKey && isUserChoice && <XCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="p-3.5 rounded-xl bg-surface border border-border text-sm space-y-1">
-                        <div>
-                          Jawaban Kamu:{" "}
-                          <strong className={item.isCorrect ? "text-emerald-600" : "text-rose-600"}>
-                            {item.inputText || "(Tidak menjawab)"}
-                          </strong>
-                        </div>
-                        <div>
-                          Kunci Jawaban:{" "}
-                          <strong className="text-emerald-700">{item.correctAnswerText || "-"}</strong>
-                        </div>
-                      </div>
-                    )}
-
-                    {item.solution ? (
-                      <InteractiveSolutionDeck solution={item.solution} />
-                    ) : (
-                      <div className="p-4 rounded-xl border border-border bg-surface text-xs text-text-muted italic">
-                        Pembahasan detail untuk soal ini sedang dilengkapi oleh tim akademik.
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              </Link>
             );
           })}
         </div>

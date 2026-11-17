@@ -706,7 +706,7 @@ export async function evaluatePracticeAnswer(
 
 export async function getPracticeHistory(
   userId: string,
-  params?: { subtest?: string; search?: string }
+  params?: { subtest?: string; search?: string; attemptId?: string }
 ): Promise<{
   locked: boolean;
   isPremium: boolean;
@@ -726,6 +726,11 @@ export async function getPracticeHistory(
   const pool = getDbPool();
   const values: any[] = [userId];
   const clauses: string[] = [`pat."user_id" = $1`, `pat."status" = 'ANSWERED'`];
+
+  if (params?.attemptId) {
+    values.push(params.attemptId);
+    clauses.push(`pat."id" = $${values.length}`);
+  }
 
   const subtestAliases = expandSubtestAliases(params?.subtest);
   if (subtestAliases.length > 0) {
@@ -789,7 +794,7 @@ export async function getPracticeHistory(
     LEFT JOIN public."QuestionSolution" sol ON sol."questionId" = q."id"
     WHERE ${clauses.join(" AND ")}
     ORDER BY pat."answered_at" DESC NULLS LAST, pat."updated_at" DESC
-    LIMIT 200
+    LIMIT ${params?.attemptId ? 1 : 200}
   `;
 
   const { rows } = await pool.query(query, values);

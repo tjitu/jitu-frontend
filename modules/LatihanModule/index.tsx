@@ -168,7 +168,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
   const [selectedDifficulty, setSelectedDifficulty] = useState("ALL");
   const [selectedBatch, setSelectedBatch] = useState("ALL");
   const [availableBatches, setAvailableBatches] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<"PRACTICE" | "HISTORY">("PRACTICE");
+  const [viewMode, setViewMode] = useState<"PRACTICE" | "HISTORY">(
+    searchParams.get("view") === "history" ? "HISTORY" : "PRACTICE"
+  );
 
   // Sandbox preview token & auth state
   const [sandboxToken, setSandboxToken] = useState<string | null>(null);
