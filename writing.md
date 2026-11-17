@@ -4,11 +4,14 @@ Reference for every word on the site and in the app: landing, student app, admin
 
 Reworked 19 Oct 2026. Replaces the earlier version that modelled siakjuara.com. The reference voices are now SainsIn and Pahamify.
 
-## 0. How to use this file
+## 0. How to use this file (Mutable & Non-Limiting)
+
+> **Scope & mutability:** This file governs **`jitu-frontend`** (landing, student app, student-facing emails/WA, and student admin labels). For `team-frontend` internal ops copy, see `team-frontend/writing.md`.
+> Copy decks (§7) and microcopy (§8) are **structural patterns, not rigid cages**. Whenever a sprint changes product facts (dates, counts, pricing, mechanics), update **§9 Fact sheet** and affected copy here instead of bending the product to outdated numbers.
 
 1. Find the surface you're writing for (§3) and use its register.
 2. Find the closest example in §7 (landing) or §8 (microcopy). Copy its shape, not its exact words.
-3. Check every fact against §9. If a fact isn't there, don't invent it.
+3. Check every fact against §9. If a fact isn't there, update §9 with verified facts first—never invent numbers.
 4. Run the checklist in §10 before finishing.
 
 Placeholders like `[confirm]` live in code comments or this file only. They never render in the UI.

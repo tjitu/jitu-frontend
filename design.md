@@ -1,20 +1,23 @@
 # design.md
 
-Visual language for a web product: marketing site, app UI, dashboards. Style only; no business context. Drop it into any project and rename the tokens' prefix if needed.
+Visual language for **Jitu (`jitu-frontend`)**: marketing site, student app, exam runner, and internal admin views.
 
 **Character:** calm, confident, a little warm. Blue does the work, one yellow accent adds reward and emphasis, cool-tinted neutrals keep everything quiet. Borders over shadows, real content over decoration.
 
-> **Provenance.** Hex values are a reconstruction of the blue-and-yellow palette family seen on jituptn.com (blue brand, yellow pixel-coin accent). Replace them with your exact brand tokens if they differ; the structure and rules below don't change.
+> **Mutable & Non-Limiting Contract.** This document is a **living element-level guide**, not a layout cage.
+> - **Binding invariants:** semantic color tokens (`app/globals.css`), accessibility (contrast, focus ring, 44px touch targets), full interactive states (hover/focus/disabled/loading), and the anti-slop checklist.
+> - **Flexible / non-limiting:** page layout, grid composition, information density per context (e.g., distraction-free `TryoutExamModule` vs `DashboardModule` vs dense `Admin*Module`), and new domain-specific components.
+> - **Living updates:** If a sprint introduces a better UI pattern or reusable element, implement it cleanly and update this file instead of forcing new UX into outdated specs.
 
 ---
 
 ## 1. Principles
 
-1. **One primary color.** Blue is for actions, links, focus and brand. Nothing else competes with it.
-2. **Accent is rare.** Yellow marks one thing: a reward, a highlight, a "recommended". If it appears more than a few times per screen, remove some.
-3. **Quiet chrome, loud content.** UI frames stay neutral so content (media, data, product visuals) carries the color.
-4. **Structure from borders and space**, not shadows, gradients or glass.
-5. **Show real things.** Real screenshots, real numbers, real photos. No abstract blobs, no glowing orbs, no generic "AI" imagery.
+1. **Clear primary anchor.** `blue-600` anchors primary actions, links, and focus so users immediately know what's clickable. Other brand/semantic hues can support the UI as long as primary actions stay unmistakable.
+2. **Purposeful yellow accent.** Yellow highlights rewards, coins, streaks, or key emphasis. It can appear multiple times on a screen wherever it genuinely guides attention—just keep it secondary to the neutral/blue hierarchy.
+3. **Quiet chrome, expressive content.** UI frames stay calm so content, product visuals, and data stand out clearly.
+4. **Structure from borders and space**, rather than heavy shadows, generic gradients, or frosted glass.
+5. **Authentic visuals, open creativity.** Feel free to use custom illustrations, pixel art, interactive product previews, diagrams, or photography. Just avoid generic AI-slop clichés (floating abstract blobs, glowing neon orbs, stock handshakes).
 6. **Accessible by default.** Visible focus, 4.5:1 text contrast, 44px touch targets.
 
 ## 2. Color
@@ -136,15 +139,17 @@ Max line length 68ch. Headings use `text-wrap: balance`; paragraphs use `text-wr
   - `shadow-modal`: `0 24px 64px rgba(18, 31, 71, 0.22)`
 - **Z-index:** base 0 · sticky 10 · dropdown 20 · modal 30 · toast 40.
 
-## 5. Components
+## 5. Components (Element Guardrails — Extendable)
+
+> **Non-limiting rule:** Specs below define default behavior and tokens per element. Domain-specific variants (e.g. `sm` 36px buttons in dense toolbars, custom KaTeX math blocks, exam timer/navigator, mobile `BottomNav`) are valid as long as they inherit semantic tokens and accessibility rules.
 
 **Button**
-- Primary: `--primary` fill, `--on-primary` text, 10px radius, 44px tall (48px for hero CTAs). Hover `--primary-hover`, pressed `--primary-pressed`.
+- Primary: `--primary` fill, `--on-primary` text, 10px radius, 44px tall default (`36px` `sm` for dense toolbars/tables, `48px` `lg` for hero CTAs). Hover `--primary-hover`, pressed `--primary-pressed`.
 - Secondary: `--surface` fill, `1px --border`, `--text` label. Hover `--surface-muted`.
 - Ghost: transparent, `--primary` label. Hover `blue-50`.
-- Accent (rare): `yellow-400` fill, `ink-900` label. At most once per page.
+- Accent: `yellow-400` fill, `ink-900` label. Use purposefully for rewards, coins, or special highlights without arbitrary page limits.
 - Destructive: `--danger` fill, white label; always confirm.
-- Loading: spinner replaces the icon, label stays, width doesn't jump. Disabled: `blue-300` fill, no pointer.
+- Loading: spinner replaces the icon, label stays, width doesn't jump. Disabled: `blue-300` fill (or `ink-100`/`ink-500` on neutral), no pointer.
 
 **Input, select, textarea:** white, `1px --border`, radius 10, 44px tall, 12px horizontal padding. Hover border `ink-300`. Focus: border `--primary` plus `0 0 0 3px blue-200`. Error: border `--danger`, message below in `--danger` text with icon. Helper text 14px `--text-muted`. Labels above, never placeholder-only.
 
@@ -168,7 +173,11 @@ Max line length 68ch. Headings use `text-wrap: balance`; paragraphs use `text-wr
 
 **Skeleton:** `ink-100` shapes with a 1.4s shimmer; same dimensions as the loaded content to avoid layout shift.
 
-**Navigation:** 64px top bar, white, `1px` bottom border; collapses to a drawer under 768px. Active item gets `blue-50` bg and `blue-700` text.
+**Navigation:** 64px top bar, white, `1px` bottom border; collapses to drawer/mobile `BottomNav` under 768px (`components/elements/Navbar/`). Active item gets `blue-50` bg and `blue-700` text. Distraction-free flows like `TryoutExamModule` may replace main nav with a focused exam header.
+
+**Domain & Rich Content Elements (KaTeX, RichTextEditor, Pagination, Sheet):**
+- Math (`katex`) and rich question content inherit `--text-body`, clean line spacing, and overflow-safe horizontal scroll on narrow screens without breaking layout width.
+- `Sheet` / drawers and `Pagination` follow `--surface`, `1px --border`, and standard focus-visible / keyboard navigation rules.
 
 **Pricing / plan cards (if used):** equal height, recommended plan gets `2px --primary` border and a `yellow-300` ribbon; per-unit price in `--text-muted` under the total.
 
@@ -178,7 +187,7 @@ Max line length 68ch. Headings use `text-wrap: balance`; paragraphs use `text-wr
 - **Accent icon:** at most one filled, colored icon family in the whole UI, fill `yellow-400` with a 1.5px `ink-900` outline so it reads on white and blue.
 - **Logo:** single flat color: `blue-600` on light, white on dark.
 - **Photography:** documentary, daylight, people doing real things. No 3D gloss, no robots or brains, no stock handshake.
-- **Illustration (optional):** pixel-art scenes for empty states, 404 and onboarding only. Keep the grid crisp with `image-rendering: pixelated` and integer scaling.
+- **Illustration (creative & flexible):** custom illustrations, diagrams, or pixel-art scenes are welcome whenever they clarify or add character (empty states, onboarding, hero visuals, badges). Keep pixel art crisp with `image-rendering: pixelated` and integer scaling.
 - **Image treatment:** radius 16-24, `1px --border` on light backgrounds, no filters or duotone overlays.
 
 ## 7. Motion
@@ -200,21 +209,21 @@ Max line length 68ch. Headings use `text-wrap: balance`; paragraphs use `text-wr
 
 ## 9. Writing in the UI
 
-- Short verbs on buttons: "Save", "Continue", "Download". No "Submit".
-- Say what happens and what it costs in the same place as the action.
+- Short verbs on buttons: "Save", "Continue", "Download" (in ID: "Simpan", "Lanjut", "Kumpulkan"). No vague "Submit".
+- Keep action UI lean—only state cost or irreversible impact when it isn't obvious (e.g., spending 1 coin or deleting data). Avoid padding buttons/cards with extra AI-generated explanation paragraphs.
 - Errors say what went wrong and what to do next. No blame, no exclamation marks.
-- No hype words ("magic", "revolutionary", "seamless", "supercharge").
+- No hype words ("magic", "revolutionary", "seamless", "supercharge"). See `writing.md` for full Indonesian copy rules.
 
-## 10. Anti-slop checklist
+## 10. Layout Guardrails & Anti-Slop Checklist
 
-- [ ] One primary color, and it is `blue-600`.
-- [ ] Yellow appears in at most a few places per screen.
-- [ ] No gradient backgrounds, glassmorphism, glow, or blob shapes.
-- [ ] No row of three identical icon-title-text cards as the main explanation; show the real product or data.
-- [ ] No emoji as icons.
-- [ ] Real numbers and real visuals in every section.
-- [ ] Focus state, hover state, disabled state and loading state exist for every control.
-- [ ] Contrast verified, including on dark mode and on `yellow` surfaces.
+- [ ] **Layout & hierarchy:** Clean spacing, clear visual anchor, readable line lengths, and zero unintended horizontal overflow across breakpoints.
+- [ ] **Intentional color balance:** Primary actions (`blue-600`) remain unmistakable and yellow accents support emphasis without turning into visual noise.
+- [ ] **No AI-slop visuals:** No gratuitous neon gradients, glassmorphism, glowing orbs, or generic blob decorations.
+- [ ] **No boilerplate filler:** Don't default to repetitive 3-column icon-title-text cards when tailored layouts, interactive previews, or real data communicate better.
+- [ ] **No copy bloat:** Avoid verbose AI-generated helper paragraphs or disclaimers crowding controls and cards.
+- [ ] **No emoji as icons:** Use proper stroke icons (`lucide-react`) or custom pixel/brand icons.
+- [ ] **Complete states:** Focus, hover, disabled, loading, and empty/error states are handled cleanly.
+- [ ] **Contrast verified:** Text and controls meet contrast ratios, including dark mode and `ink-900` on `yellow` surfaces.
 
 ## 11. Tokens
 
@@ -267,14 +276,6 @@ Max line length 68ch. Headings use `text-wrap: balance`; paragraphs use `text-wr
 }
 ```
 
-### Tailwind (v3 `theme.extend`)
+### Tailwind v4 (`app/globals.css` `@theme inline`)
 
-```js
-colors: {
-  blue:   { 50:'#EFF5FF',100:'#DBE8FF',200:'#BFD6FF',300:'#93BAFF',400:'#5E95FA',500:'#3A72F0',600:'#2557DB',700:'#1D44B8',800:'#1C3A92',900:'#1B3475',950:'#121F47' },
-  yellow: { 100:'#FFF3C4',300:'#FFD84D',400:'#FFC81F',500:'#F5B000',700:'#A86F00' },
-  ink:    { 25:'#FAFBFD',50:'#F4F6FA',100:'#E9EDF4',200:'#D8DEE9',300:'#B9C2D3',500:'#6B778C',700:'#3A4458',900:'#151B2B' },
-},
-borderRadius: { sm:'6px', md:'10px', lg:'16px', xl:'24px' },
-fontFamily: { sans:['"Plus Jakarta Sans"','system-ui','sans-serif'], mono:['"JetBrains Mono"','ui-monospace','monospace'] },
-```
+> `jitu-frontend` uses **Tailwind CSS v4** (`@theme inline` in `jitu-frontend/app/globals.css`) mapped directly to the CSS variables above (`--color-bg`, `--color-surface`, `--color-primary`, `--color-ink-*`, `--color-blue-*`, `--color-yellow-*`, `--radius-*`). Keep semantic class names (`bg-surface`, `text-text-muted`, `border-border`, `bg-primary`) aligned with `app/globals.css`.
