@@ -49,17 +49,6 @@ import {
 } from "./components/ProfilePasswordModal";
 import { getStudentAvatarUrl } from "@/lib/avatar";
 
-let cachedProfileData: {
-  stats: ProfileStatsData;
-  attempts: AttemptItem[];
-  phone: string;
-  school: string;
-  isPremium?: boolean;
-  premiumExpiresAt?: string | null;
-  fetchedAt: number;
-} | null = null;
-const PROFILE_STALE_MS = 30_000;
-
 export default function ProfileModule() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -68,27 +57,20 @@ export default function ProfileModule() {
     "overview" | "history" | "transactions" | "settings"
   >("overview");
 
-  const [stats, setStats] = useState<ProfileStatsData>(
-    cachedProfileData?.stats ?? {
-      lastScore: 0,
-      averageScore: 0,
-      streak: 0,
-      totalTryout: 0,
-    }
-  );
-  const [attempts, setAttempts] = useState<AttemptItem[]>(
-    cachedProfileData?.attempts ?? []
-  );
-  const [phone, setPhone] = useState<string>(cachedProfileData?.phone ?? "");
-  const [school, setSchool] = useState<string>(cachedProfileData?.school ?? "");
+  const [stats, setStats] = useState<ProfileStatsData>({
+    lastScore: 0,
+    averageScore: 0,
+    streak: 0,
+    totalTryout: 0,
+  });
+  const [attempts, setAttempts] = useState<AttemptItem[]>([]);
+  const [phone, setPhone] = useState<string>("");
+  const [school, setSchool] = useState<string>("");
   const [profilePremium, setProfilePremium] = useState<{
     isPremium?: boolean;
     premiumExpiresAt?: string | null;
-  }>({
-    isPremium: cachedProfileData?.isPremium,
-    premiumExpiresAt: cachedProfileData?.premiumExpiresAt,
-  });
-  const [isLoadingData, setIsLoadingData] = useState(!cachedProfileData);
+  }>({});
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -138,14 +120,7 @@ export default function ProfileModule() {
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!session) return;
-      if (
-        cachedProfileData &&
-        Date.now() - cachedProfileData.fetchedAt < PROFILE_STALE_MS
-      ) {
-        setIsLoadingData(false);
-        return;
-      }
-      if (!cachedProfileData) setIsLoadingData(true);
+      setIsLoadingData(true);
       try {
         const res = await fetch(`${BACKEND_URL}/profile`, {
           method: "GET",
@@ -158,7 +133,7 @@ export default function ProfileModule() {
           const nextStats = data.stats ?? stats;
           const nextAttempts = data.attempts ?? attempts;
           const nextPhone = data.user?.phone ?? (session.user as { phone?: string })?.phone ?? "";
-          const nextSchool = data.user?.school ?? (session.user as { school?: string })?.school ?? "";
+          const nextSchool = typeof data.user?.school === "string" ? data.user.school : "";
           const nextIsPremium =
             typeof data.user?.isPremium === "boolean"
               ? data.user.isPremium
@@ -173,15 +148,6 @@ export default function ProfileModule() {
             isPremium: nextIsPremium,
             premiumExpiresAt: nextPremiumExpiresAt,
           });
-          cachedProfileData = {
-            stats: nextStats,
-            attempts: nextAttempts,
-            phone: nextPhone,
-            school: nextSchool,
-            isPremium: nextIsPremium,
-            premiumExpiresAt: nextPremiumExpiresAt,
-            fetchedAt: Date.now(),
-          };
         }
       } catch (error) {
         console.error("Gagal memuat data profil:", error);
@@ -276,13 +242,6 @@ export default function ProfileModule() {
 
       setPhone(nextPhone.trim());
       setSchool(nextSchool.trim());
-      if (cachedProfileData) {
-        cachedProfileData = {
-          ...cachedProfileData,
-          phone: nextPhone.trim(),
-          school: nextSchool.trim(),
-        };
-      }
 
       toast.success("Profil berhasil diperbarui.");
       setIsEditOpen(false);

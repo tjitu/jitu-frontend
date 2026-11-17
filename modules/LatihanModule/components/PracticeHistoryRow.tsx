@@ -45,8 +45,8 @@ export function PracticeHistoryRow({ item, isOpen, onToggle }: PracticeHistoryRo
               {item.difficulty}
             </span>
             {item.isRevealOnly ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold">
-                <BookOpen className="w-3 h-3" /> Pembahasan
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-surface-muted text-text-muted border border-border text-[11px] font-bold">
+                <BookOpen className="w-3 h-3" /> Belum dijawab
               </span>
             ) : item.isCorrect ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">

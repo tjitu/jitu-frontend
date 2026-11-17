@@ -108,8 +108,8 @@ export default function PracticeHistoryDetail({ attemptId }: { attemptId: string
                 <p>Kunci Jawaban: <strong className="text-emerald-700">{item.correctAnswerText || "-"}</strong></p>
               </div>
             )}
-            <p className={`text-sm font-bold ${item.isRevealOnly ? "text-primary" : item.isCorrect ? "text-emerald-700" : "text-rose-700"}`}>
-              {item.isRevealOnly ? "Intip Pembahasan" : item.isCorrect ? "Jawaban benar" : "Jawaban kurang tepat"}
+            <p className={`text-sm font-bold ${item.isRevealOnly ? "text-text-muted" : item.isCorrect ? "text-emerald-700" : "text-rose-700"}`}>
+              {item.isRevealOnly ? "Belum dijawab" : item.isCorrect ? "Jawaban benar" : "Jawaban kurang tepat"}
             </p>
           </div>
 

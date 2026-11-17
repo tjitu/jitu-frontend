@@ -202,7 +202,7 @@ export function PracticeHistoryTab({
           </div>
         </div>
 
-        {/* Quick Filter Pills (Semua, Benar, Kurang Tepat, Pembahasan) */}
+        {/* Quick Filter Pills (Semua, Benar, Kurang Tepat, Belum Dijawab) */}
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/70">
           <button
             type="button"
@@ -246,7 +246,7 @@ export function PracticeHistoryTab({
                 : "bg-blue-50 text-blue-800 hover:bg-blue-100"
             }`}
           >
-            <BookOpen className="w-3 h-3" /> Pembahasan ({counts.reveal})
+            <BookOpen className="w-3 h-3" /> Belum dijawab ({counts.reveal})
           </button>
         </div>
       </div>
