@@ -13,23 +13,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SchoolPicker } from "@/components/ptn/SchoolPicker";
-import { PtnTargetPicker } from "@/components/PtnTargetPicker";
-import { PtnChoice, PtnTargets } from "@/lib/target";
 
 export interface ProfileSavePayload {
   name: string;
   phone: string;
   school: string;
-  targets: PtnTargets;
 }
 
 interface ProfileEditModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   initialName: string;
+  email: string;
   initialPhone: string;
   initialSchool: string;
-  initialTargets: PtnTargets;
   onSave: (payload: ProfileSavePayload) => Promise<void>;
   isSaving: boolean;
 }
@@ -44,24 +41,23 @@ export function ProfileEditModal(props: ProfileEditModalProps) {
 
 function ProfileEditModalContent({
   initialName,
+  email,
   initialPhone,
   initialSchool,
-  initialTargets,
   onSave,
   isSaving,
 }: ProfileEditModalProps) {
   const [name, setName] = useState(initialName);
   const [phone, setPhone] = useState(initialPhone);
   const [school, setSchool] = useState(initialSchool);
-  const [targets, setTargets] = useState<PtnTargets>(initialTargets);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await onSave({ name, phone, school, targets });
+    await onSave({ name, phone, school });
   };
 
   return (
-    <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-[520px]">
       <DialogHeader>
         <DialogTitle>Ubah profil</DialogTitle>
       </DialogHeader>
@@ -79,6 +75,25 @@ function ProfileEditModalContent({
               placeholder="Nama lengkap kamu"
               className="mt-1.5"
               required
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="email" className="text-xs font-semibold">
+                Email terdaftar
+              </Label>
+              <span className="text-[10px] font-medium text-text-muted">
+                Tidak dapat diubah
+              </span>
+            </div>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              disabled
+              readOnly
+              className="mt-1.5 bg-surface-muted/70 text-text-muted cursor-not-allowed select-none opacity-80"
             />
           </div>
 
@@ -110,43 +125,7 @@ function ProfileEditModalContent({
           </div>
         </div>
 
-        <div className="space-y-3 pt-4 border-t border-border">
-          <div>
-            <Label className="text-sm font-semibold text-text">
-              Target PTN &amp; Program Studi
-            </Label>
-            <p className="text-xs text-text-muted mt-0.5">
-              Pilih kampus dan program studi aktif (maksimal 3 pilihan SNBT).
-            </p>
-          </div>
-
-          <PtnTargetPicker
-            label="Pilihan 1"
-            isPrimary
-            choice={targets.pilihan1}
-            onChange={(choice: PtnChoice | null) =>
-              setTargets((prev) => ({ ...prev, pilihan1: choice }))
-            }
-          />
-
-          <PtnTargetPicker
-            label="Pilihan 2"
-            choice={targets.pilihan2}
-            onChange={(choice: PtnChoice | null) =>
-              setTargets((prev) => ({ ...prev, pilihan2: choice }))
-            }
-          />
-
-          <PtnTargetPicker
-            label="Pilihan 3"
-            choice={targets.pilihan3}
-            onChange={(choice: PtnChoice | null) =>
-              setTargets((prev) => ({ ...prev, pilihan3: choice }))
-            }
-          />
-        </div>
-
-        <DialogFooter className="gap-2 pt-2">
+        <DialogFooter className="gap-2 pt-3 border-t border-border mt-5">
           <DialogClose asChild>
             <Button variant="outline" type="button">
               Batal

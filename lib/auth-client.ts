@@ -33,6 +33,9 @@ export type JituUser = {
   isPremium?: boolean;
   premiumExpiresAt?: string | null;
   hasPassword?: boolean;
+  school?: string | null;
+  phone?: string | null;
+  phoneNumber?: string | null;
 };
 
 type AuthResult<T = unknown> = { data?: T; error?: { message: string } | null };

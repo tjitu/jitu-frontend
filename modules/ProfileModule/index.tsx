@@ -27,7 +27,7 @@ import {
 } from "@/lib/auth-client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { parsePtnTargets, serializePtnTargets } from "@/lib/target";
+import { parsePtnTargets, serializePtnTargets, type PtnTargets } from "@/lib/target";
 import { isUserPremiumActive } from "@/lib/premium";
 import { UniversityLogo } from "@/components/UniversityLogo";
 import { ProfileStreakWidget } from "./components/ProfileStreakWidget";
@@ -92,6 +92,8 @@ export default function ProfileModule() {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingTargets, setIsSavingTargets] = useState(false);
+  const [isTargetEditingDirectly, setIsTargetEditingDirectly] = useState(false);
 
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
@@ -239,16 +241,23 @@ export default function ProfileModule() {
     });
   };
 
+  const handleNavigateTargetSettings = () => {
+    setActiveTab("settings");
+    setIsTargetEditingDirectly(true);
+    setTimeout(() => {
+      document
+        .getElementById("target-ptn-section")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
+
   const handleSaveProfile = async ({
     name: nextName,
     phone: nextPhone,
     school: nextSchool,
-    targets,
   }: ProfileSavePayload) => {
     setIsSaving(true);
     try {
-      const serializedTarget = serializePtnTargets(targets);
-
       const res = await fetch(`${BACKEND_URL}/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -257,7 +266,6 @@ export default function ProfileModule() {
           name: nextName,
           phone: nextPhone,
           school: nextSchool,
-          target: serializedTarget,
         }),
       });
 
@@ -285,6 +293,37 @@ export default function ProfileModule() {
       toast.error("Gagal menyimpan perubahan.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveTargets = async (targets: PtnTargets) => {
+    setIsSavingTargets(true);
+    try {
+      const serializedTarget = serializePtnTargets(targets);
+
+      const res = await fetch(`${BACKEND_URL}/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          target: serializedTarget,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Gagal menyimpan target PTN.");
+      }
+
+      toast.success("Target PTN berhasil diperbarui.");
+      setIsTargetEditingDirectly(false);
+      await refreshSession();
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal menyimpan target PTN.");
+    } finally {
+      setIsSavingTargets(false);
     }
   };
 
@@ -404,7 +443,7 @@ export default function ProfileModule() {
               {ptnTargets.pilihan1 ? (
                 <button
                   type="button"
-                  onClick={() => setIsEditOpen(true)}
+                  onClick={handleNavigateTargetSettings}
                   title="Klik untuk ubah target PTN"
                   className="px-3 py-1 rounded-full text-[13.5px] font-semibold inline-flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer"
                 >
@@ -422,14 +461,7 @@ export default function ProfileModule() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveTab("settings");
-                    setTimeout(() => {
-                      document
-                        .getElementById("target-ptn-section")
-                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }, 60);
-                  }}
+                  onClick={handleNavigateTargetSettings}
                   title="Klik untuk mengatur pilihan target PTN kamu"
                   className="px-3 py-1 rounded-full text-[13px] font-semibold inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer"
                 >
@@ -509,6 +541,7 @@ export default function ProfileModule() {
               isLoadingData={isLoadingData}
               ptnTargets={ptnTargets}
               onOpenEditModal={() => setIsEditOpen(true)}
+              onNavigateTargetSettings={handleNavigateTargetSettings}
               onViewAllHistory={() => setActiveTab("history")}
               onNavigateTryout={() => router.push("/tryout")}
             />
@@ -568,6 +601,9 @@ export default function ProfileModule() {
               ptnTargets={ptnTargets}
               onOpenEditModal={() => setIsEditOpen(true)}
               onOpenPasswordModal={() => setIsPasswordOpen(true)}
+              onSaveTargets={handleSaveTargets}
+              isSavingTargets={isSavingTargets}
+              isInitialEditingTargets={isTargetEditingDirectly}
             />
           )}
         </div>
@@ -578,9 +614,9 @@ export default function ProfileModule() {
         isOpen={isEditOpen}
         onOpenChange={setIsEditOpen}
         initialName={user.name}
+        email={user.email}
         initialPhone={user.phone}
         initialSchool={user.school}
-        initialTargets={ptnTargets}
         onSave={handleSaveProfile}
         isSaving={isSaving}
       />

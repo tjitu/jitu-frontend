@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     // Direct database query fallback via pool
     const pool = getDbPool();
     const userRes = await pool.query(
-      `SELECT id, name, email, image, "tokenBalance", target, "currentStreak", "isPremium", "premiumExpiresAt"
+      `SELECT id, name, email, image, "tokenBalance", target, "currentStreak", "isPremium", "premiumExpiresAt", school, "phoneNumber"
        FROM "user" WHERE id = $1`,
       [authUser.id]
     );
@@ -74,6 +74,9 @@ export async function GET(req: NextRequest) {
         image: user.image,
         tokenBalance: Number(user.tokenBalance) || 0,
         target: user.target,
+        school: user.school || null,
+        phone: user.phoneNumber || null,
+        phoneNumber: user.phoneNumber || null,
         isPremium: isUserPremiumActive({
           isPremium: user.isPremium,
           premiumExpiresAt: user.premiumExpiresAt,
@@ -115,7 +118,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { name, target, image } = body;
+    const { name, target, image, school, phone, phoneNumber } = body;
+    const finalPhone = phone !== undefined ? phone : phoneNumber;
 
     const pool = getDbPool();
     const updates: string[] = [];
@@ -133,6 +137,14 @@ export async function PATCH(req: NextRequest) {
     if (typeof image === "string") {
       updates.push(`"image" = $${idx++}`);
       values.push(image.trim());
+    }
+    if (typeof school === "string") {
+      updates.push(`"school" = $${idx++}`);
+      values.push(school.trim());
+    }
+    if (typeof finalPhone === "string") {
+      updates.push(`"phoneNumber" = $${idx++}`);
+      values.push(finalPhone.trim());
     }
 
     if (updates.length > 0) {
@@ -152,7 +164,10 @@ export async function PATCH(req: NextRequest) {
           ...(authorization ? { Authorization: authorization } : {}),
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          ...body,
+          phoneNumber: finalPhone,
+        }),
       }).catch(() => {});
     } catch {
       // ignore

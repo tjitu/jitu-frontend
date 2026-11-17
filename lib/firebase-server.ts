@@ -31,6 +31,9 @@ export interface AppUserProfile {
   target?: string | null;
   image?: string | null;
   emailVerified: boolean;
+  school?: string | null;
+  phone?: string | null;
+  phoneNumber?: string | null;
 }
 
 let cachedGoogleCerts: { keys: Record<string, string>; expiresAt: number } | null = null;
@@ -133,7 +136,7 @@ export async function resolveFirebaseUser(
 
   // 1. Try finding an existing account mapping (firebase-*)
   const mappedRes = await pool.query(
-    `SELECT u.id, u.name, u.email, u.role, u."tokenBalance", u."isPremium", u."premiumExpiresAt", u.target, u.image, u."emailVerified"
+    `SELECT u.id, u.name, u.email, u.role, u."tokenBalance", u."isPremium", u."premiumExpiresAt", u.target, u.image, u."emailVerified", u.school, u."phoneNumber"
      FROM "account" a
      JOIN "user" u ON a."userId" = u.id
      WHERE a."providerId" LIKE 'firebase-%' AND a."accountId" = $1
@@ -167,12 +170,15 @@ export async function resolveFirebaseUser(
       target: row.target ?? null,
       image: row.image ?? null,
       emailVerified: Boolean(row.emailVerified),
+      school: row.school ?? null,
+      phone: row.phoneNumber ?? null,
+      phoneNumber: row.phoneNumber ?? null,
     };
   }
 
   // 2. Try finding user by email (case-insensitive)
   const existingUserRes = await pool.query(
-    `SELECT id, name, email, role, "tokenBalance", "isPremium", "premiumExpiresAt", target, image, "emailVerified"
+    `SELECT id, name, email, role, "tokenBalance", "isPremium", "premiumExpiresAt", target, image, "emailVerified", school, "phoneNumber"
      FROM "user"
      WHERE LOWER(email) = LOWER($1)
      LIMIT 1`,
@@ -207,7 +213,7 @@ export async function resolveFirebaseUser(
     const insertUserRes = await pool.query(
       `INSERT INTO "user" (id, name, email, "emailVerified", image, role, "tokenBalance", "currentStreak", "createdAt", "updatedAt")
        VALUES ($1, $2, $3, true, $4, 'USER', 0, 0, NOW(), NOW())
-       RETURNING id, name, email, role, "tokenBalance", "isPremium", "premiumExpiresAt", target, image, "emailVerified"`,
+       RETURNING id, name, email, role, "tokenBalance", "isPremium", "premiumExpiresAt", target, image, "emailVerified", school, "phoneNumber"`,
       [newUserId, displayName, email, image]
     );
 
@@ -238,5 +244,8 @@ export async function resolveFirebaseUser(
     target: userRecord.target ?? null,
     image: userRecord.image ?? null,
     emailVerified: Boolean(userRecord.emailVerified),
+    school: userRecord.school ?? null,
+    phone: userRecord.phoneNumber ?? null,
+    phoneNumber: userRecord.phoneNumber ?? null,
   };
 }

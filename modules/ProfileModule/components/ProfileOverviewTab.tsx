@@ -28,6 +28,7 @@ interface ProfileOverviewTabProps {
   isLoadingData: boolean;
   ptnTargets: PtnTargets;
   onOpenEditModal: () => void;
+  onNavigateTargetSettings: () => void;
   onViewAllHistory: () => void;
   onNavigateTryout: () => void;
 }
@@ -38,6 +39,7 @@ export function ProfileOverviewTab({
   isLoadingData,
   ptnTargets,
   onOpenEditModal,
+  onNavigateTargetSettings,
   onViewAllHistory,
   onNavigateTryout,
 }: ProfileOverviewTabProps) {
@@ -84,7 +86,7 @@ export function ProfileOverviewTab({
           <Button
             variant="outline"
             size="sm"
-            onClick={onOpenEditModal}
+            onClick={onNavigateTargetSettings}
             className="shrink-0 text-xs gap-1.5 self-start sm:self-center"
           >
             <Pencil size={13} />
