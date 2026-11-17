@@ -8,7 +8,6 @@ import {
   CoinsIcon,
   HomeIcon,
   NotebookPenIcon,
-  Sparkles,
   UserIcon,
   LogOut,
   Menu,
@@ -34,11 +33,6 @@ const items = [
     title: "Kelola tryout",
     path: "/admin/tryout",
     icon: NotebookPenIcon,
-  },
-  {
-    title: "Generator soal AI",
-    path: "/admin/ai-generator",
-    icon: Sparkles,
   },
   {
     title: "Kelola siswa",

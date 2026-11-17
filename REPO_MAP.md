@@ -11,7 +11,7 @@ jitu-frontend/
 ├── app/                         # Next.js 16 App Router (port 5173)
 │   ├── (auth)/                  # Auth flows (/forgot-password, /reset-password; /login, /register at root)
 │   ├── (main)/                  # Student-facing pages (/dashboard, /tryout, /latihan, /daily-streak, /arsip-soal, /soal-asli, /shop, /profile, /referral, /sandbox)
-│   ├── (admin)/admin/           # Admin views (/admin/tryout, /admin/create-to, /admin/daily, /admin/ai-generator, /admin/packages, /admin/payments, /admin/user, /admin/hiring)
+│   ├── (admin)/admin/           # Admin views (/admin/tryout, /admin/create-to, /admin/daily, /admin/packages, /admin/payments, /admin/user, /admin/hiring)
 │   ├── blog/, careers/, hiring/, open-hiring/ # Public editorial & hiring routes
 │   ├── api/                     # Route handlers & proxies (/api/proxy/*, /api/analytics/*, /api/catalog/*, /api/practice/*, /api/soal-asli/*, /api/hiring/*)
 │   ├── layout.tsx               # Root layout (fonts, providers, Sonner toaster)
@@ -26,7 +26,7 @@ jitu-frontend/
 │   ├── LatihanModule/, DailyStreakModule/ # Daily practice & streak drills
 │   ├── ShopModule/, PendingTransactionsModule/, PastTransactionsModule/ # Coin packages & Midtrans checkout
 │   ├── ProfileModule/, ReferralModule/, HiringModule/ # Settings, PTN targets, referrals, careers
-│   └── Admin*Module/, CreateTryoutModule/, EditTryoutModule/ # Admin tryout, AI generator, daily, packages, payments, users, hiring
+│   └── Admin*Module/, CreateTryoutModule/, EditTryoutModule/ # Admin tryout, daily, packages, payments, users, hiring
 ├── components/                  # Reusable UI components
 │   ├── ui/                      # Core primitives (Button, Card, Dialog, Table, Tabs, Sheet, RichTextEditor, pixel icons, etc.)
 │   ├── elements/                # Domain components (Navbar, BottomNav, AdminNavbar, StatCard, Leaderboard)

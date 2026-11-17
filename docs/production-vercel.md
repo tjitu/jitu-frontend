@@ -5,7 +5,7 @@ Target production shape:
 - Frontend: Vercel Pro
 - Backend API: GCP Cloud Run
 - Database: Supabase, used by backend services
-- Assets: Cloudinary, rendered by frontend from backend/AI service payloads
+- Assets: Cloudinary, rendered by frontend from backend payloads
 
 ## Required Vercel Environment
 
