@@ -10,7 +10,6 @@ import {
   Search,
   Sparkles,
   XCircle,
-  BookOpen,
   X,
 } from "lucide-react";
 import type { PracticeHistoryItem } from "@/lib/practice-store";
@@ -23,7 +22,7 @@ type PracticeHistoryTabProps = {
   getAuthHeaders: () => Promise<Record<string, string>>;
 };
 
-type StatusFilter = "ALL" | "CORRECT" | "WRONG" | "REVEAL";
+type StatusFilter = "ALL" | "CORRECT" | "WRONG";
 
 const SUBTEST_OPTIONS = [
   { id: "ALL", label: "Semua Subtes" },
@@ -81,16 +80,14 @@ export function PracticeHistoryTab({
   }, [fetchHistory]);
 
   const counts = useMemo(() => {
-    const correct = items.filter((i) => !i.isRevealOnly && i.isCorrect).length;
-    const wrong = items.filter((i) => !i.isRevealOnly && !i.isCorrect).length;
-    const reveal = items.filter((i) => i.isRevealOnly).length;
-    return { all: items.length, correct, wrong, reveal };
+    const correct = items.filter((i) => i.isCorrect).length;
+    const wrong = items.filter((i) => !i.isCorrect).length;
+    return { all: items.length, correct, wrong };
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    if (statusFilter === "CORRECT") return items.filter((i) => !i.isRevealOnly && i.isCorrect);
-    if (statusFilter === "WRONG") return items.filter((i) => !i.isRevealOnly && !i.isCorrect);
-    if (statusFilter === "REVEAL") return items.filter((i) => i.isRevealOnly);
+    if (statusFilter === "CORRECT") return items.filter((i) => i.isCorrect);
+    if (statusFilter === "WRONG") return items.filter((i) => !i.isCorrect);
     return items;
   }, [items, statusFilter]);
 
@@ -236,17 +233,6 @@ export function PracticeHistoryTab({
             }`}
           >
             <XCircle className="w-3 h-3" /> Kurang Tepat ({counts.wrong})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter("REVEAL")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
-              statusFilter === "REVEAL"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "bg-blue-50 text-blue-800 hover:bg-blue-100"
-            }`}
-          >
-            <BookOpen className="w-3 h-3" /> Belum dijawab ({counts.reveal})
           </button>
         </div>
       </div>

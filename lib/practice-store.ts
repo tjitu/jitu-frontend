@@ -59,6 +59,7 @@ export type PracticeFeedResult = UserPracticeContext & {
 
 export type PracticeEvaluationResult = {
   limitReached: boolean;
+  answerRequired: boolean;
   isCorrect: boolean;
   correctOptionId: string | null;
   correctAnswerText: string | null;
@@ -92,7 +93,6 @@ export type PracticeHistoryItem = {
   correctOptionId: string | null;
   correctAnswerText: string | null;
   isCorrect: boolean;
-  isRevealOnly: boolean;
   answeredAt: string;
   solution: QuestionSolutionData | null;
 };
@@ -170,9 +170,13 @@ export async function getUserPracticeContext(userId?: string | null): Promise<Us
       `SELECT
         COUNT(*) FILTER (
           WHERE "status" = 'ANSWERED'
+            AND COALESCE("is_reveal_only", false) = false
             AND ("answered_at" AT TIME ZONE 'Asia/Jakarta')::date = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
         )::int AS "dailyCount",
-        COUNT(*) FILTER (WHERE "status" = 'ANSWERED')::int AS "totalAnswered"
+        COUNT(*) FILTER (
+          WHERE "status" = 'ANSWERED'
+            AND COALESCE("is_reveal_only", false) = false
+        )::int AS "totalAnswered"
       FROM public."PracticeAttempt"
       WHERE "user_id" = $1`,
       [userId]
@@ -288,7 +292,7 @@ export async function getPracticeQuestions(params: {
     values.push(params.userId);
     const uidParam = `$${values.length}`;
     attemptJoin = `LEFT JOIN public."PracticeAttempt" pat ON pat."question_id" = q."id" AND pat."user_id" = ${uidParam}`;
-    clauses.push(`COALESCE(pat."status", '') <> 'ANSWERED'`);
+    clauses.push(`(COALESCE(pat."status", '') <> 'ANSWERED' OR COALESCE(pat."is_reveal_only", false) = true)`);
   }
 
   const subtestAliases = expandSubtestAliases(params.subtest);
@@ -456,7 +460,7 @@ export async function getHotQuestions(
     values.push(userId);
     const uidParam = `$${values.length}`;
     exclusionClauses.push(
-      `NOT EXISTS (SELECT 1 FROM public."PracticeAttempt" pat WHERE pat."question_id" = q."id" AND pat."user_id" = ${uidParam} AND pat."status" = 'ANSWERED')`
+      `NOT EXISTS (SELECT 1 FROM public."PracticeAttempt" pat WHERE pat."question_id" = q."id" AND pat."user_id" = ${uidParam} AND pat."status" = 'ANSWERED' AND COALESCE(pat."is_reveal_only", false) = false)`
     );
     exclusionClauses.push(
       `NOT EXISTS (SELECT 1 FROM public."UserAnswer" ua INNER JOIN public."TryOutAttempt" att ON att."id" = ua."tryout_attempt_id" WHERE ua."question_id" = q."id" AND att."userId" = ${uidParam})`
@@ -538,8 +542,16 @@ export async function skipPracticeQuestion(
     `INSERT INTO public."PracticeAttempt" ("id", "user_id", "question_id", "status", "updated_at")
      VALUES ($1, $2, $3, 'SKIPPED', CURRENT_TIMESTAMP)
      ON CONFLICT ("user_id", "question_id")
-     DO UPDATE SET "status" = 'SKIPPED', "updated_at" = CURRENT_TIMESTAMP
-     WHERE public."PracticeAttempt"."status" <> 'ANSWERED'`,
+     DO UPDATE SET
+       "status" = 'SKIPPED',
+       "is_reveal_only" = false,
+       "is_correct" = NULL,
+       "selected_option_id" = NULL,
+       "input_text" = NULL,
+       "answered_at" = NULL,
+       "updated_at" = CURRENT_TIMESTAMP
+     WHERE public."PracticeAttempt"."status" <> 'ANSWERED'
+       OR COALESCE(public."PracticeAttempt"."is_reveal_only", false) = true`,
     [randomUUID(), userId, questionId]
   );
   return { skipped: true, questionId };
@@ -632,6 +644,7 @@ export async function evaluatePracticeAnswer(
   if (!q) {
     return {
       limitReached: false,
+      answerRequired: false,
       isCorrect: false,
       correctOptionId: null,
       correctAnswerText: null,
@@ -653,15 +666,16 @@ export async function evaluatePracticeAnswer(
     let alreadyAnswered = false;
     if (userId) {
       const existingRes = await pool.query(
-        `SELECT "status" FROM public."PracticeAttempt" WHERE "user_id" = $1 AND "question_id" = $2 LIMIT 1`,
+        `SELECT "status", "is_reveal_only" AS "isRevealOnly" FROM public."PracticeAttempt" WHERE "user_id" = $1 AND "question_id" = $2 LIMIT 1`,
         [userId, questionId]
       );
-      alreadyAnswered = existingRes.rows[0]?.status === "ANSWERED";
+      alreadyAnswered = existingRes.rows[0]?.status === "ANSWERED" && !existingRes.rows[0]?.isRevealOnly;
     }
 
     if (userId && !ctx.isPremium && !alreadyAnswered && ctx.dailyAnsweredCount >= ctx.dailyLimit) {
       return {
         limitReached: true,
+        answerRequired: false,
         isCorrect: false,
         correctOptionId: null,
         correctAnswerText: null,
@@ -685,6 +699,22 @@ export async function evaluatePracticeAnswer(
     ? String(correctOpt.content)
     : null;
 
+  const answerRequired = !revealOnly && (isShort ? !inputText : !selectedOptionId);
+  if (answerRequired) {
+    return {
+      limitReached: false,
+      answerRequired: true,
+      isCorrect: false,
+      correctOptionId: null,
+      correctAnswerText: null,
+      solution: null,
+      dailyAnsweredCount: ctx.dailyAnsweredCount,
+      dailyLimit: ctx.dailyLimit,
+      isPremium: ctx.isPremium,
+      totalAnswered: ctx.totalAnswered,
+    };
+  }
+
   let isCorrect = false;
   if (!revealOnly) {
     if (isShort) {
@@ -697,28 +727,22 @@ export async function evaluatePracticeAnswer(
     }
   }
 
-  // Persist ANSWERED attempt only in regular mode (keep QC testing non-destructive)
-  if (!isSandboxEvaluation && userId) {
+  // Reveal-only requests can show the solution but must not create an answered attempt.
+  if (!revealOnly && !isSandboxEvaluation && userId) {
     await pool.query(
       `INSERT INTO public."PracticeAttempt" (
         "id", "user_id", "question_id", "status", "selected_option_id", "input_text",
         "is_correct", "is_reveal_only", "answered_at", "updated_at"
       )
-      VALUES ($1, $2, $3, 'ANSWERED', $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      VALUES ($1, $2, $3, 'ANSWERED', $4, $5, $6, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       ON CONFLICT ("user_id", "question_id")
       DO UPDATE SET
         "status" = 'ANSWERED',
         "selected_option_id" = COALESCE(EXCLUDED."selected_option_id", public."PracticeAttempt"."selected_option_id"),
         "input_text" = COALESCE(EXCLUDED."input_text", public."PracticeAttempt"."input_text"),
-        "is_correct" = CASE
-          WHEN EXCLUDED."is_reveal_only" = false THEN EXCLUDED."is_correct"
-          ELSE public."PracticeAttempt"."is_correct"
-        END,
-        "is_reveal_only" = CASE
-          WHEN EXCLUDED."is_reveal_only" = false THEN false
-          ELSE public."PracticeAttempt"."is_reveal_only"
-        END,
-        "answered_at" = COALESCE(public."PracticeAttempt"."answered_at", CURRENT_TIMESTAMP),
+        "is_correct" = EXCLUDED."is_correct",
+        "is_reveal_only" = false,
+        "answered_at" = EXCLUDED."answered_at",
         "updated_at" = CURRENT_TIMESTAMP`,
       [
         randomUUID(),
@@ -727,20 +751,18 @@ export async function evaluatePracticeAnswer(
         selectedOptionId || null,
         inputText || null,
         isCorrect,
-        revealOnly,
       ]
     );
 
     // Update streak for active question answering in latihan (minimal 1 soal latihan)
-    if (!revealOnly) {
-      void updateUserStreakForPractice(pool, userId);
-    }
+    void updateUserStreakForPractice(pool, userId);
   }
 
-  const updatedCtx = !isSandboxEvaluation && userId ? await getUserPracticeContext(userId) : ctx;
+  const updatedCtx = !revealOnly && !isSandboxEvaluation && userId ? await getUserPracticeContext(userId) : ctx;
 
   return {
     limitReached: false,
+    answerRequired: false,
     isCorrect,
     correctOptionId,
     correctAnswerText,
@@ -773,7 +795,13 @@ export async function getPracticeHistory(
 
   const pool = getDbPool();
   const values: any[] = [userId];
-  const clauses: string[] = [`pat."user_id" = $1`, `pat."status" = 'ANSWERED'`];
+  const clauses: string[] = [
+    `pat."user_id" = $1`,
+    `pat."status" = 'ANSWERED'`,
+    `COALESCE(pat."is_reveal_only", false) = false`,
+    `pat."is_correct" IS NOT NULL`,
+    `(pat."selected_option_id" IS NOT NULL OR NULLIF(BTRIM(pat."input_text"), '') IS NOT NULL)`,
+  ];
 
   if (params?.attemptId) {
     values.push(params.attemptId);
@@ -801,7 +829,6 @@ export async function getPracticeHistory(
       pat."selected_option_id" AS "selectedOptionId",
       pat."input_text" AS "inputText",
       COALESCE(pat."is_correct", false) AS "isCorrect",
-      COALESCE(pat."is_reveal_only", false) AS "isRevealOnly",
       pat."answered_at" AS "answeredAt",
       q."subtest",
       q."difficulty",
@@ -873,7 +900,6 @@ export async function getPracticeHistory(
         ? String(correctOpt.content)
         : null,
       isCorrect: Boolean(r.isCorrect),
-      isRevealOnly: Boolean(r.isRevealOnly),
       answeredAt: r.answeredAt ? new Date(r.answeredAt).toISOString() : new Date().toISOString(),
       solution: mapSolutionRow(r),
     };

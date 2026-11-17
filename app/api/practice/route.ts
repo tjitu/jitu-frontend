@@ -122,6 +122,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (result.answerRequired) {
+      return NextResponse.json(
+        { success: false, ...result, error: "Pilih atau isi jawaban terlebih dahulu." },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ success: true, ...result });
   } catch (err: any) {
     console.error("POST /api/practice error:", err);

@@ -6,7 +6,6 @@ import {
   ChevronDown,
   ChevronUp,
   XCircle,
-  BookOpen,
 } from "lucide-react";
 import type { PracticeHistoryItem } from "@/lib/practice-store";
 import InteractiveSolutionDeck, {
@@ -44,11 +43,7 @@ export function PracticeHistoryRow({ item, isOpen, onToggle }: PracticeHistoryRo
             <span className="px-2 py-0.5 rounded-md bg-surface-muted text-text-muted text-[11px] font-semibold">
               {item.difficulty}
             </span>
-            {item.isRevealOnly ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-surface-muted text-text-muted border border-border text-[11px] font-bold">
-                <BookOpen className="w-3 h-3" /> Belum dijawab
-              </span>
-            ) : item.isCorrect ? (
+            {item.isCorrect ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
                 <CheckCircle2 className="w-3 h-3" /> Benar
               </span>
