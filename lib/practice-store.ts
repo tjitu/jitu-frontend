@@ -545,6 +545,49 @@ export async function skipPracticeQuestion(
   return { skipped: true, questionId };
 }
 
+async function updateUserStreakForPractice(
+  pool: ReturnType<typeof getDbPool>,
+  userId: string
+): Promise<void> {
+  try {
+    const userRes = await pool.query(
+      `SELECT "currentStreak", "lastDailyDate" FROM public."user" WHERE id = $1`,
+      [userId]
+    );
+    const user = userRes.rows[0];
+    if (!user) return;
+
+    const now = new Date();
+    // WIB Date calculation (UTC+7)
+    const toWibDate = (d: Date) => {
+      const wib = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+      return wib.toISOString().slice(0, 10);
+    };
+
+    const todayStr = toWibDate(now);
+    const lastDate = user.lastDailyDate;
+    const lastDateStr = lastDate ? toWibDate(new Date(lastDate)) : null;
+
+    // Already recorded activity today -> maintain current streak
+    if (lastDateStr === todayStr) return;
+
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const yesterdayStr = toWibDate(yesterday);
+
+    let newStreak = 1;
+    if (lastDateStr === yesterdayStr) {
+      newStreak = (Number(user.currentStreak) || 0) + 1;
+    }
+
+    await pool.query(
+      `UPDATE public."user" SET "currentStreak" = $1, "lastDailyDate" = CURRENT_TIMESTAMP, "updatedAt" = NOW() WHERE id = $2`,
+      [newStreak, userId]
+    );
+  } catch (err) {
+    console.warn("Failed to update streak in practice:", err);
+  }
+}
+
 export async function evaluatePracticeAnswer(
   questionId: string,
   selectedOptionId: string | null,
@@ -668,12 +711,12 @@ export async function evaluatePracticeAnswer(
         "selected_option_id" = COALESCE(EXCLUDED."selected_option_id", public."PracticeAttempt"."selected_option_id"),
         "input_text" = COALESCE(EXCLUDED."input_text", public."PracticeAttempt"."input_text"),
         "is_correct" = CASE
-          WHEN public."PracticeAttempt"."status" = 'ANSWERED' THEN public."PracticeAttempt"."is_correct"
-          ELSE EXCLUDED."is_correct"
+          WHEN EXCLUDED."is_reveal_only" = false THEN EXCLUDED."is_correct"
+          ELSE public."PracticeAttempt"."is_correct"
         END,
         "is_reveal_only" = CASE
-          WHEN public."PracticeAttempt"."status" = 'ANSWERED' THEN public."PracticeAttempt"."is_reveal_only"
-          ELSE EXCLUDED."is_reveal_only"
+          WHEN EXCLUDED."is_reveal_only" = false THEN false
+          ELSE public."PracticeAttempt"."is_reveal_only"
         END,
         "answered_at" = COALESCE(public."PracticeAttempt"."answered_at", CURRENT_TIMESTAMP),
         "updated_at" = CURRENT_TIMESTAMP`,
@@ -687,6 +730,11 @@ export async function evaluatePracticeAnswer(
         revealOnly,
       ]
     );
+
+    // Update streak for active question answering in latihan (minimal 1 soal latihan)
+    if (!revealOnly) {
+      void updateUserStreakForPractice(pool, userId);
+    }
   }
 
   const updatedCtx = !isSandboxEvaluation && userId ? await getUserPracticeContext(userId) : ctx;
