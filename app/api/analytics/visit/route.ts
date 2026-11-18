@@ -6,9 +6,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function getDatabaseUrl(): string {
-  let url =
-    process.env.DATABASE_URL ||
-    "postgresql://postgres.oyyhjyyadrsviehamztc:JituPes13DbM3l3tusyyy@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres";
+  let url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("DATABASE_URL environment variable is required.");
+  }
   if (url.includes("pooler.supabase.com:5432")) {
     url = url.replace("pooler.supabase.com:5432", "pooler.supabase.com:6543");
   }
