@@ -55,3 +55,16 @@ export const registerTryout = async (
 
   return data;
 };
+
+export async function startNextSubtest(attemptId: string, subtestOrder: number) {
+  const response = await fetch(`${BACKEND_URL}/exam/${encodeURIComponent(attemptId)}/start-subtest`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ subtestOrder }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(typeof error?.message === "string" ? error.message : "Subtes gagal dimulai. Coba lagi.");
+  }
+}
