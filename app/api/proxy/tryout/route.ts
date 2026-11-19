@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
+import { ATTEMPT_TIMESTAMPS, TRYOUT_SCHEDULE } from "@/lib/tryout-timing-sql";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import {
+  type AttemptSummaryRow,
   computeAttemptProgress,
   triggerAutoFinishIfNeeded,
 } from "@/lib/tryout-attempt-helper";
@@ -27,8 +29,7 @@ export async function GET(request: NextRequest) {
           t.batch,
           t."solutionPrice",
           t."isPublic",
-          t."scheduledStart",
-          t."scheduledEnd",
+          ${TRYOUT_SCHEDULE},
           COUNT(DISTINCT a.id)::int as participants,
           COALESCE(BOOL_OR(a."userId" = $1), false) as is_registered
         FROM "TryOut" t
@@ -46,8 +47,7 @@ export async function GET(request: NextRequest) {
           t.batch,
           t."solutionPrice",
           t."isPublic",
-          t."scheduledStart",
-          t."scheduledEnd",
+          ${TRYOUT_SCHEDULE},
           COUNT(DISTINCT a.id)::int as participants,
           false as is_registered
         FROM "TryOut" t
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     const values = user?.id ? [user.id] : [];
     const { rows } = await pool.query(query, values);
 
-    const attemptsByTryout = new Map<string, any[]>();
+    const attemptsByTryout = new Map<string, AttemptSummaryRow[]>();
     const subtestsByTryout = new Map<
       string,
       Array<{ order: number; durationMinutes: number }>
@@ -70,11 +70,9 @@ export async function GET(request: NextRequest) {
     if (user?.id && rows.length > 0) {
       const tryoutIds = rows.map((r) => String(r.id));
       const [attemptRes, subtestRes] = await Promise.all([
-        pool.query(
+        pool.query<AttemptSummaryRow & { tryOutId: string }>(
           `SELECT id, try_out_id AS "tryOutId", status, total_score AS "totalScore",
-                  started_at AS "startedAt", finished_at AS "finishedAt",
-                  current_subtest_order AS "currentSubtestOrder",
-                  subtest_started_at AS "subtestStartedAt"
+                  ${ATTEMPT_TIMESTAMPS}, current_subtest_order AS "currentSubtestOrder"
            FROM "TryOutAttempt"
            WHERE "userId" = $1 AND try_out_id = ANY($2::text[])
            ORDER BY started_at DESC`,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
+import { ATTEMPT_TIMESTAMPS, TRYOUT_SCHEDULE } from "@/lib/tryout-timing-sql";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import {
   computeAttemptProgress,
@@ -25,15 +26,14 @@ export async function GET(request: NextRequest) {
          COALESCE(t."solutionPrice", 0)::int AS "solutionPrice",
          t."isPublic",
          COALESCE(t."isSpecial", false) AS "isSpecial",
-         t."scheduledStart",
-         t."scheduledEnd",
+         ${TRYOUT_SCHEDULE},
          t."createdAt",
          COUNT(DISTINCT a.id)::int AS participants
        FROM "TryOut" t
        LEFT JOIN "TryOutAttempt" a ON a.try_out_id = t.id
        WHERE t."isPublic" = true
          AND COALESCE(t.curation_status, 'PUBLISHED') = 'PUBLISHED'
-         AND (t."scheduledStart" IS NULL OR t."scheduledStart" <= NOW())
+         AND (t."scheduledStart" IS NULL OR t."scheduledStart" <= (NOW() AT TIME ZONE 'UTC'))
        GROUP BY t.id, t.title, t.description, t."solutionPrice", t."isPublic", t."isSpecial", t."scheduledStart", t."scheduledEnd", t."createdAt"
        ORDER BY t."scheduledStart" DESC NULLS LAST`,
     );
@@ -46,9 +46,7 @@ export async function GET(request: NextRequest) {
     const [attemptRes, subtestRes] = await Promise.all([
       pool.query(
         `SELECT id, try_out_id AS "tryOutId", status, total_score AS "totalScore",
-                started_at AS "startedAt", finished_at AS "finishedAt",
-                current_subtest_order AS "currentSubtestOrder",
-                subtest_started_at AS "subtestStartedAt"
+                ${ATTEMPT_TIMESTAMPS}, current_subtest_order AS "currentSubtestOrder"
          FROM "TryOutAttempt"
          WHERE "userId" = $1 AND try_out_id = ANY($2::text[])
          ORDER BY started_at DESC`,
