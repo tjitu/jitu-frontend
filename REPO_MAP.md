@@ -46,3 +46,5 @@ jitu-frontend/
 * **Proxied Backend Requests**: Requests to `/api/proxy/*` are handled first by local Next.js route handlers (such as `/api/proxy/tryout`, `/api/proxy/tryout/[id]`, `/api/proxy/tryout/[id]/leaderboard`, `/api/proxy/tryout/[id]/register`, `/api/proxy/tryout/[id]/unlock`, `/api/proxy/dashboard/*`, `/api/proxy/profile/*`, `/api/proxy/shop/*`, `/api/proxy/auth/*`) and fall back to `http://localhost:3000` via `next.config.ts` rewrites.
 * **Styling & Design**: Tailwind CSS v4 (`@theme inline` in `app/globals.css`) wired to semantic variables defined in [design.md](file:///C:/JITU-ECOSYSTEM/jitu-frontend/design.md). Copy follows [writing.md](file:///C:/JITU-ECOSYSTEM/jitu-frontend/writing.md).
 * **State & Data Fetching**: React Server Components where possible; client components use `fetch` or hooks for dynamic polling.
+
+* Sandbox revision feedback uses POST /api/practice/revision, lib/sandbox-revision.ts, and SandboxRevisionButton to move QC questions to NEEDS_REVISION with reviewer notes.

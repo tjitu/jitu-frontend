@@ -1,3 +1,4 @@
+import { normalizeSolutionText } from "./solution-text";
 import katex from "katex";
 import { convertLatexTabularToHtml } from "./latex-tabular";
 
@@ -14,7 +15,7 @@ export function renderMathContent(
   const { animatedHighlights = false } = options;
 
   // 0. Convert \begin{tabular}...\end{tabular} into HTML tables before KaTeX parsing
-  const preNormalized = convertLatexTabularToHtml(content);
+  const preNormalized = convertLatexTabularToHtml(normalizeSolutionText(content));
 
   // 1. Replace block math $$...$$ with compact, balanced math card
   let processed = preNormalized.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {

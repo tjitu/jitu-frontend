@@ -1,4 +1,5 @@
 "use client";
+import { SandboxRevisionButton } from "./components/SandboxRevisionButton";
 
 import React, { Suspense, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
@@ -1327,6 +1328,15 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                         )}
                       </div>
 
+                      {isSandboxMode && <SandboxRevisionButton key={activeQuestion.id}
+                        questionId={activeQuestion.id} disabled={Boolean(approvingId)} getAuthHeaders={getAuthHeaders}
+                        onRevised={(id) => {
+                          const remaining = questions.filter(question => question.id !== id);
+                          setQuestions(remaining);
+                          setActiveQuestionId(remaining[0]?.id || null);
+                          setIsSolutionOpen(false);
+                          toast.success("Feedback tersimpan. Soal dipindahkan ke Kotak Revisi.");
+                        }} />}
                       {isSandboxMode && (
                         <button
                           type="button"
