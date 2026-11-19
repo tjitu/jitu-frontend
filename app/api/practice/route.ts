@@ -111,6 +111,10 @@ export async function POST(req: NextRequest) {
       }
     );
 
+    if (result.notFound) {
+      return NextResponse.json({ success: false, error: "Soal tidak ditemukan." }, { status: 404 });
+    }
+
     if (result.limitReached) {
       return NextResponse.json(
         {

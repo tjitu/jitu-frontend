@@ -58,6 +58,7 @@ export type PracticeFeedResult = UserPracticeContext & {
 };
 
 export type PracticeEvaluationResult = {
+  notFound?: boolean;
   limitReached: boolean;
   answerRequired: boolean;
   isCorrect: boolean;
@@ -623,9 +624,19 @@ export async function evaluatePracticeAnswer(
         sol."keyFormula" AS "solutionKeyFormula", sol."defaultView" AS "solutionDefaultView"
       FROM public."Question" q
       LEFT JOIN public."QuestionSolution" sol ON sol."questionId" = q."id"
-      WHERE q."id" = $1
+      LEFT JOIN public."Subtest" sub ON sub."id" = q."subtest_id"
+      LEFT JOIN public."TryOut" tout ON tout."id" = q."tryoutId"
+      LEFT JOIN public."TryOut" sub_tout ON sub_tout."id" = sub."try_out_id"
+      WHERE q."id" = $1 AND (
+        ($2::boolean AND $3::boolean AND COALESCE(q."status", 'DRAFT') = 'QC_SANDBOX')
+        OR
+        (NOT $2::boolean AND COALESCE(q."status", 'DRAFT') = 'READY'
+         AND COALESCE(q."target", 'FOR_PRACTICE') <> 'SOAL_ASLI'
+         AND COALESCE(tout."status"::text, sub_tout."status"::text, '') NOT IN ('NOT_STARTED', 'IN_PROGRESS')
+         AND EXISTS (SELECT 1 FROM public."PracticeAssignment" pa WHERE pa."question_id" = q."id"))
+      )
       LIMIT 1`,
-      [questionId]
+      [questionId, Boolean(options?.sandbox), ctx.isSandbox || Boolean(options?.sandboxTokenValid)]
     ),
     pool.query(
       `SELECT "id", "content", "is_correct" AS "isCorrect", "order"
@@ -639,6 +650,7 @@ export async function evaluatePracticeAnswer(
   const q = qRes.rows[0];
   if (!q) {
     return {
+      notFound: true,
       limitReached: false,
       answerRequired: false,
       isCorrect: false,
