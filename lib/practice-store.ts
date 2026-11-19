@@ -400,28 +400,24 @@ export async function getPracticeQuestions(params: {
     LIMIT ${safeLimit}
   `;
 
-  const { rows } = await pool.query(query, values);
-
-  let availableBatches: string[] | undefined;
-  if (isSandboxTarget) {
-    try {
-      const batchRes = await pool.query(
+  const [feedRes, batchRes] = await Promise.all([
+    pool.query(query, values),
+    isSandboxTarget
+      ? pool.query(
         `SELECT DISTINCT TRIM(q."batch") AS "batch"
          FROM public."Question" q
          WHERE COALESCE(q."status", 'DRAFT') = 'QC_SANDBOX'
            AND q."batch" IS NOT NULL
            AND TRIM(q."batch") <> ''
          ORDER BY 1 ASC`
-      );
-      availableBatches = batchRes.rows
-        .map((row) => String(row.batch || "").trim())
-        .filter(Boolean);
-    } catch {
-      availableBatches = [];
-    }
-  }
+      ).catch(() => ({ rows: [] }))
+      : Promise.resolve(undefined),
+  ]);
+  const availableBatches = batchRes?.rows
+    .map((row) => String(row.batch || "").trim())
+    .filter(Boolean);
 
-  const questions: PracticeQuestionSummary[] = rows.map((r) => ({
+  const questions: PracticeQuestionSummary[] = feedRes.rows.map((r) => ({
     id: String(r.id),
     subtest: String(r.subtest),
     difficulty: String(r.difficulty || "MEDIUM"),
