@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pg"],
   experimental: {
+    agentUpgrade: "security",
     optimizePackageImports: ["lucide-react", "chart.js", "react-chartjs-2", "katex"],
   },
   images: {
