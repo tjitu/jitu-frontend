@@ -49,3 +49,4 @@ jitu-frontend/
 
 * Sandbox revision feedback uses POST /api/practice/revision, lib/sandbox-revision.ts, and SandboxRevisionButton to move QC questions to NEEDS_REVISION with reviewer notes.
 * Practice questions use `PracticeQuestionText` for passages, stanzas and stems. Shared list rendering and short-answer guidance live in `lib/content-lists.ts` and `lib/question-guidance.ts`.
+* Dashboard stats are aggregated in `lib/dashboard-stats.ts` from submitted practice, daily and tryout answers. Streak days follow Asia/Jakarta and IRT scores come from finished tryouts.

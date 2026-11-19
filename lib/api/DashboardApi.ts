@@ -108,6 +108,7 @@ export const getUserStats = async (): Promise<UserStats> => {
   const response = await fetch(`${BACKEND_URL}/dashboard/stats`, {
     method: "GET",
     credentials: "include",
+    cache: "no-store",
   });
 
   if (!response.ok) {
