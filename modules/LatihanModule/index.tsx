@@ -439,9 +439,12 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
   const isActiveShortAnswer = Boolean(
     activeQuestion &&
       (activeQuestion.type === "SHORT_ANSWER" ||
-        activeQuestion.type === "ISIAN_SINGKAT" ||
-        activeQuestion.options.length === 0)
+        activeQuestion.type === "ISIAN_SINGKAT")
   );
+
+  const incompleteOptions = Boolean(activeQuestion && !isActiveShortAnswer && (
+    activeQuestion.options.length < 2 || activeQuestion.options.some(option => !option.content.trim())
+  ));
 
   // Active question's evaluated attempt (if any)
   const currentAttempt = activeQuestion ? attempts[activeQuestion.id] || null : null;
@@ -471,7 +474,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
         return;
       }
 
-      if (activeQuestion && !currentAttempt && !isActiveShortAnswer) {
+      if (activeQuestion && !currentAttempt && !isActiveShortAnswer && !incompleteOptions) {
         const key = e.key.toUpperCase();
         const optionIndex = OPTION_LETTERS.indexOf(key);
         if (optionIndex !== -1 && activeQuestion.options[optionIndex]) {
@@ -482,7 +485,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isSolutionOpen, activeQuestion, currentAttempt, isActiveShortAnswer]);
+  }, [isSolutionOpen, activeQuestion, currentAttempt, isActiveShortAnswer, incompleteOptions]);
 
   // Switch to another question
   const handleSelectQuestion = (qId: string) => {
@@ -1327,7 +1330,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                       {isSandboxMode && (
                         <button
                           type="button"
-                          disabled={Boolean(approvingId)}
+                          disabled={Boolean(approvingId) || incompleteOptions}
                           onClick={() => void handleApproveSandboxQuestion(activeQuestion)}
                           title="Lolos QC dan langsung ubah status soal ke READY"
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ml-auto"
@@ -1405,7 +1408,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                     </div>
 
                     {/* Options List A - E or Short Answer Input */}
-                    {isActiveShortAnswer ? (
+                    {incompleteOptions ? (
+                      <p role="status" className="text-sm font-medium text-text-muted">Pilihan jawaban belum lengkap. Silakan lanjut ke soal lain.</p>
+                    ) : isActiveShortAnswer ? (
                       <div className={showSolutionCard ? "space-y-2 pt-1" : "space-y-3 pt-2"}>
                         <div className="text-xs font-semibold text-text-muted">
                           <span>TULISKAN JAWABAN SINGKAT:</span>
@@ -1559,7 +1564,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                               type="button"
                               disabled={
                                 submitting ||
-                                (isActiveShortAnswer ? !shortAnswerInput.trim() : !selectedOptionId)
+                                incompleteOptions || (isActiveShortAnswer ? !shortAnswerInput.trim() : !selectedOptionId)
                               }
                               onClick={handleSubmitAnswer}
                               className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm shadow-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"

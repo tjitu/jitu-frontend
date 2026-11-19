@@ -975,7 +975,7 @@ export async function approveSandboxQuestion(
   }
 
   const updatedRes = await pool.query(
-    `UPDATE public."Question"
+    `UPDATE public."Question" q
      SET
        "status" = 'READY',
        "target" = CASE
@@ -988,6 +988,11 @@ export async function approveSandboxQuestion(
        "updatedAt" = CURRENT_TIMESTAMP
      WHERE "id" = $1
        AND COALESCE("status", 'DRAFT') = 'QC_SANDBOX'
+       AND (q.type::text <> 'PILIHAN_GANDA' OR (
+         SELECT count(*) >= 2 AND count(*) FILTER (WHERE i.is_correct) = 1
+           AND count(DISTINCT nullif(trim(i.content), '')) = count(*)
+         FROM public."QuestionItem" i WHERE i.question_id = q.id
+       ))
      RETURNING
        "id",
        COALESCE("status", 'READY') AS "status",
@@ -1005,7 +1010,7 @@ export async function approveSandboxQuestion(
       target: String(existingRes.rows[0].target || "DRAFT"),
       reviewedBy: null,
       reviewedAt: null,
-      error: "Status soal berubah sebelum proses ACC selesai. Muat ulang halaman.",
+      error: "Periksa kelengkapan pilihan dan kunci jawaban, lalu muat ulang status QC.",
       statusCode: 409,
     };
   }
