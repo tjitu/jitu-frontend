@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getMidtransStatus, confirmPaymentInDb } from "@/lib/midtrans-server";
+import { getAuthenticatedAppUser } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -10,11 +11,23 @@ export async function POST(
   context: { params: Promise<{ orderId: string }> }
 ) {
   try {
+    const user = await getAuthenticatedAppUser(req);
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
     const { orderId } = await context.params;
     if (!orderId) {
       return NextResponse.json({ message: "Order ID required" }, { status: 400 });
     }
 
+    const pool = getDbPool();
+    const payment = await pool.query(
+      `SELECT id FROM "Payment" WHERE "orderId" = $1 AND "userId" = $2 LIMIT 1`,
+      [orderId, user.id]
+    );
+    if (!payment.rows[0]) {
+      return NextResponse.json({ message: "Transaksi tidak ditemukan." }, { status: 404 });
+    }
     const midtransData = await getMidtransStatus(orderId);
     if (!midtransData) {
       return NextResponse.json(
@@ -49,11 +62,13 @@ export async function POST(
       txStatus === "deny" ||
       fraudStatus === "deny"
     ) {
-      const pool = getDbPool();
-      await pool.query(
-        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE "orderId" = $1 AND status != 'CONFIRMED'`,
+      const result = await pool.query(
+        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE "orderId" = $1 AND status != 'CONFIRMED' RETURNING status`,
         [orderId]
-      ).catch(() => {});
+      );
+      if (!result.rowCount) {
+        return NextResponse.json({ status: "CONFIRMED", success: true }, { status: 200 });
+      }
 
       return NextResponse.json(
         { status: "CANCELLED", success: false, message: "Transaksi telah kedaluwarsa atau dibatalkan." },

@@ -12,7 +12,6 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   try {
     const notification = await req.json();
-    console.log("Midtrans webhook notification received:", notification);
 
     const {
       order_id,
@@ -69,7 +68,7 @@ export async function POST(req: NextRequest) {
       await pool.query(
         `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE "orderId" = $1 AND status != 'CONFIRMED'`,
         [order_id]
-      ).catch(() => {});
+      );
       console.log(`Payment ${order_id} marked as CANCELLED via webhook.`);
     }
 

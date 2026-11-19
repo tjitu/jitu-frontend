@@ -33,10 +33,13 @@ export async function POST(
     }
 
     if (payment.status === "PENDING") {
-      await pool.query(
-        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE id = $1`,
+      const updated = await pool.query(
+        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE id = $1 AND status = 'PENDING' RETURNING id`,
         [payment.id]
       );
+      if (!updated.rowCount) {
+        return NextResponse.json({ message: "Status transaksi telah berubah. Muat ulang halaman." }, { status: 409 });
+      }
       if (payment.orderId) {
         cancelMidtransTransaction(payment.orderId).catch(() => {});
       }

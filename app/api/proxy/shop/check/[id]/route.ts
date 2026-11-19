@@ -51,7 +51,9 @@ export async function POST(
 
       let newStatus: "PENDING" | "CONFIRMED" | "CANCELLED" | "DECLINED" = "PENDING";
 
-      if (
+      if (fraudStatus === "deny") {
+        newStatus = "CANCELLED";
+      } else if (
         transactionStatus === "capture" ||
         transactionStatus === "settlement"
       ) {
@@ -71,18 +73,20 @@ export async function POST(
       if (newStatus === "CONFIRMED" && payment.status !== "CONFIRMED") {
         await confirmPaymentInDb(payment.orderId, midtransData);
       } else if (newStatus !== payment.status && newStatus !== "PENDING") {
-        await pool.query(
-          `UPDATE "Payment" SET status = $1, "updatedAt" = NOW() WHERE id = $2`,
+        const updated = await pool.query(
+          `UPDATE "Payment" SET status = $1, "updatedAt" = NOW() WHERE id = $2 AND status <> 'CONFIRMED' RETURNING status`,
           [newStatus, payment.id]
         );
+        if (!updated.rowCount) newStatus = "CONFIRMED";
       }
 
       return NextResponse.json({ status: newStatus, qrCodeUrl });
-    } catch {
-      return NextResponse.json({ status: payment.status });
+    } catch (error) {
+      console.error("Failed to reconcile payment status:", error);
+      return NextResponse.json({ message: "Status pembayaran belum dapat diperiksa." }, { status: 503 });
     }
   } catch (error) {
     console.error("POST /api/proxy/shop/check/[id] error:", error);
-    return NextResponse.json({ status: "PENDING" });
+    return NextResponse.json({ message: "Status pembayaran belum dapat diperiksa." }, { status: 500 });
   }
 }

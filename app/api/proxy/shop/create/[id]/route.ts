@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { getDbPool } from "@/lib/db";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { createQrisTransaction, getMidtransConfig } from "@/lib/midtrans-server";
+import { createFreePayment } from "@/lib/free-voucher-payment";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -178,7 +179,7 @@ export async function POST(
       // If older than 15 minutes, cancel it
       if (ageMs > 15 * 60 * 1000) {
         await pool.query(
-          `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE id = $1`,
+          `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE id = $1 AND status = 'PENDING'`,
           [existing.id]
         ).catch(() => {});
       } else {
@@ -199,48 +200,11 @@ export async function POST(
     // If 100% discount (free voucher): confirm immediately
     if (finalPrice === 0) {
       const paymentId = crypto.randomUUID();
-      const isPass = pkg.name.toLowerCase().includes("pass");
-      await pool.query(
-        `INSERT INTO "Payment" (id, "userId", "tokenPackageId", "orderId", amount, "originalAmount", "discountAmount", "voucherId", "voucherCode", "tokenAmount", status, "paymentMethod", "createdAt", "updatedAt", metadata)
-         VALUES ($1, $2, $3, $4, 0, $5, $6, $7, $8, $9, 'CONFIRMED', 'FREE_VOUCHER', NOW(), NOW(), $10)`,
-        [
-          paymentId,
-          user.id,
-          pkg.id,
-          orderId,
-          pkg.price,
-          discountAmount,
-          voucherId,
-          appliedVoucherCode,
-          pkg.tokenAmount,
-          JSON.stringify({ package_name: pkg.name, created_via: "free_voucher" }),
-        ]
-      );
-
-      if (isPass) {
-        await pool.query(
-          `UPDATE "user" SET "tokenBalance" = "tokenBalance" + $1, "isPremium" = true, "premiumExpiresAt" = NOW() + INTERVAL '30 days' WHERE id = $2`,
-          [pkg.tokenAmount, user.id]
-        );
-      } else {
-        await pool.query(
-          `UPDATE "user" SET "tokenBalance" = "tokenBalance" + $1 WHERE id = $2`,
-          [pkg.tokenAmount, user.id]
-        );
-      }
-
-      if (voucherId) {
-        await pool.query(
-          `UPDATE "Voucher" SET "usedCount" = "usedCount" + 1, "updatedAt" = NOW() WHERE id = $1`,
-          [voucherId]
-        ).catch(() => {});
-        await pool.query(
-          `INSERT INTO "VoucherUsage" (id, "voucherId", "userId", "paymentId", discount, "createdAt")
-           VALUES ($1, $2, $3, $4, $5, NOW())`,
-          [crypto.randomUUID(), voucherId, user.id, paymentId, discountAmount]
-        ).catch(() => {});
-      }
-
+      await createFreePayment(pool, {
+        paymentId, userId: user.id, packageId: pkg.id, packageName: pkg.name,
+        orderId, price: pkg.price, discount: discountAmount, voucherId,
+        voucherCode: appliedVoucherCode, tokenAmount: pkg.tokenAmount,
+      });
       return NextResponse.json(
         {
           transactionId: paymentId,

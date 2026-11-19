@@ -278,7 +278,7 @@ export async function confirmPaymentInDb(orderId: string, rawNotification?: unkn
   const pool = getDbPool();
 
   const paymentRes = await pool.query(
-    `SELECT id, "userId", "tokenPackageId", "orderId", amount, "tokenAmount", status, metadata
+    `SELECT id, "userId", "tokenPackageId", "orderId", amount, "tokenAmount", status, metadata, "voucherId", "discountAmount"
      FROM "Payment"
      WHERE "orderId" = $1
      LIMIT 1`,
@@ -287,7 +287,17 @@ export async function confirmPaymentInDb(orderId: string, rawNotification?: unkn
 
   const payment = paymentRes.rows[0];
   if (!payment) {
-    return { success: false, message: "Payment not found" };
+    throw new Error("Payment not found for Midtrans order");
+  }
+
+  const amount = rawNotification && typeof rawNotification === "object"
+    ? (rawNotification as { gross_amount?: unknown }).gross_amount
+    : undefined;
+  if ((typeof amount !== "string" && typeof amount !== "number")
+      || String(amount).trim() === ""
+      || !Number.isFinite(Number(amount))
+      || Number(amount) !== Number(payment.amount)) {
+    throw new Error("Midtrans payment amount does not match the order");
   }
 
   if (payment.status === "CONFIRMED") {
@@ -359,6 +369,17 @@ export async function confirmPaymentInDb(orderId: string, rawNotification?: unkn
        VALUES ($1, $2, $3, 'PURCHASE_PACKAGE', $4, NOW())`,
       [txId, payment.userId, payment.tokenAmount, payment.id]
     );
+    if (payment.voucherId) {
+      await client.query(
+        `UPDATE "Voucher" SET "usedCount" = "usedCount" + 1, "updatedAt" = NOW() WHERE id = $1`,
+        [payment.voucherId]
+      );
+      await client.query(
+        `INSERT INTO "VoucherUsage" (id, "voucherId", "userId", "paymentId", discount, "createdAt")
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+        [crypto.randomUUID(), payment.voucherId, payment.userId, payment.id, payment.discountAmount || 0]
+      );
+    }
 
     await client.query("COMMIT");
     return { success: true, message: "Payment confirmed and tokens credited", payment };

@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
     if (isExpired) {
       await pool.query(
-        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE id = $1`,
+        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE id = $1 AND status = 'PENDING'`,
         [pending.id]
       ).catch(() => {});
       return NextResponse.json({ pending: null }, { status: 200 });
