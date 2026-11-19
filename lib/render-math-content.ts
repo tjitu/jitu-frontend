@@ -1,3 +1,4 @@
+import { renderContentLists } from "./content-lists";
 import { normalizeSolutionText } from "./solution-text";
 import katex from "katex";
 import { convertLatexTabularToHtml } from "./latex-tabular";
@@ -18,7 +19,7 @@ export function renderMathContent(
   const preNormalized = convertLatexTabularToHtml(normalizeSolutionText(content));
 
   // 1. Replace block math $$...$$ with compact, balanced math card
-  let processed = preNormalized.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
+  let processed = renderContentLists(preNormalized).replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
     try {
       const rendered = katex.renderToString(math.trim(), {
         displayMode: true,
@@ -59,8 +60,8 @@ export function renderMathContent(
 
   // Clean extra newlines directly adjacent to block-level HTML cards so whitespace-pre-wrap stays crisp
   processed = processed
-    .replace(/\n+(<(?:div|blockquote)\b)/g, "$1")
-    .replace(/(<\/(?:div|blockquote)>)\n+/g, "$1");
+    .replace(/\n+(<(?:div|blockquote|ul|ol)\b)/g, "$1")
+    .replace(/(<\/(?:div|blockquote|ul|ol)>)\n+/g, "$1");
 
   // 5. Highlight syntax ==text== -> yellow animated stabilo ONLY for truly crucial insights
   if (animatedHighlights) {

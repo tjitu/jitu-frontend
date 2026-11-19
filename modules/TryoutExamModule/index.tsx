@@ -28,6 +28,9 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { renderContentLists } from "@/lib/content-lists";
+import { splitQuestionGuidance } from "@/lib/question-guidance";
+import { AnswerFormatGuide } from "@/components/answer-format-guide";
 import { FontSizeControl } from "./components/FontSizeControl";
 import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
@@ -758,6 +761,7 @@ export default function TryoutExamModule() {
     );
   }
 
+  const { question, guidance } = splitQuestionGuidance(currentQuestion.questionText);
   const totalQuestions = examData.questions.length;
   const answeredCount = examData.questions.filter((q) => {
     const val = answers[q.id];
@@ -1043,10 +1047,14 @@ export default function TryoutExamModule() {
                   className="prose max-w-[65ch] text-text whitespace-pre-wrap leading-[1.65]"
                   style={{ fontSize: `${fontSize}px` }}
                   dangerouslySetInnerHTML={{
-                    __html: currentQuestion.questionText,
+                    __html: renderContentLists(question),
                   }}
                 />
               </div>
+
+              {guidance && currentQuestion.options.length > 0 && currentQuestion.type !== "ISIAN_SINGKAT" && (
+                <AnswerFormatGuide text={guidance} />
+              )}
 
               {/* Options A–E (Pilihan Ganda) */}
               {currentQuestion.type !== "ISIAN_SINGKAT" && currentQuestion.options.length > 0 && (
@@ -1100,7 +1108,7 @@ export default function TryoutExamModule() {
                         <div
                           className="flex-1 option-text leading-[1.55]"
                           style={{ fontSize: `${fontSize}px` }}
-                          dangerouslySetInnerHTML={{ __html: opt.text }}
+                          dangerouslySetInnerHTML={{ __html: renderContentLists(opt.text) }}
                         />
                         {isReviewMode && isCorrectKey && (
                           <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
@@ -1118,7 +1126,7 @@ export default function TryoutExamModule() {
               {(currentQuestion.type === "ISIAN_SINGKAT" || currentQuestion.options.length === 0) && (
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-semibold text-text">
+                    <label htmlFor="exam-short-answer" className="block text-sm font-semibold text-text">
                       Jawaban Isian Singkat
                     </label>
                     <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded bg-blue-500/10 text-primary border border-blue-500/20">
@@ -1126,17 +1134,12 @@ export default function TryoutExamModule() {
                     </span>
                   </div>
 
-                  {!isReviewMode && (
-                    <div className="p-3.5 rounded-lg bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40 text-xs text-text leading-relaxed flex items-start gap-2.5">
-                      <span className="text-primary font-bold text-sm leading-none shrink-0 mt-0.5">ℹ️</span>
-                      <div>
-                        <strong className="text-primary font-semibold block mb-0.5">Petunjuk Format Menjawab:</strong>
-                        Tuliskan jawaban akhir hanya dalam bentuk <strong>bilangan bulat (0-9999)</strong>. Jangan menyertakan satuan (seperti <em>cm, kg, jam</em>), koma, desimal, atau teks penjelasan. Jawaban tidak terpengaruh oleh spasi ekstra.
-                      </div>
-                    </div>
+                  {(!isReviewMode || guidance) && (
+                    <AnswerFormatGuide id="exam-format-guide" text={guidance || "Masukkan bilangan bulat dari 0 sampai 9999 tanpa satuan atau tanda baca."} />
                   )}
-
                   <input
+                    id="exam-short-answer"
+                    aria-describedby={!isReviewMode || guidance ? "exam-format-guide" : undefined}
                     className={`w-full h-12 px-4 rounded-md bg-surface border font-mono text-lg outline-none transition-colors ${
                       isReviewMode
                         ? isQuestionCorrect(currentQuestion)
@@ -1144,7 +1147,7 @@ export default function TryoutExamModule() {
                           : "border-danger bg-danger-soft text-danger-text font-bold"
                         : "border-border focus:border-primary focus:ring-3 focus:ring-blue-200"
                     }`}
-                    placeholder="Masukkan angka jawaban akhir (contoh: 42)..."
+                    placeholder="Masukkan jawaban"
                     style={{ fontSize: `${fontSize + 2}px` }}
                     value={answers[currentQuestion.id] || ""}
                     onChange={(e) => handleAnswerSelect(e.target.value)}
@@ -1170,11 +1173,11 @@ export default function TryoutExamModule() {
                     <span>Pembahasan langkah demi langkah</span>
                   </div>
                   <div
-                    className="prose prose-sm max-w-[65ch] text-text-body leading-[1.65]"
+                    className="prose prose-sm learning-content max-w-[65ch]"
                     style={{ fontSize: `${fontSize}px` }}
                   >
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {currentQuestion.solution}
+                      {currentQuestion.solution.replace(/^•[ \t]+/gm, "* ")}
                     </ReactMarkdown>
                   </div>
                 </div>

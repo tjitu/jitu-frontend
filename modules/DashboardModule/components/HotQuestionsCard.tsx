@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getFirebaseAuth } from "@/lib/firebase";
+import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { renderMathContent } from "@/components/interactive-solution-deck";
 import { sanitizePreviewSnippet } from "@/lib/latex-tabular";
 import type { PracticeQuestionSummary } from "@/lib/practice-store";
@@ -222,7 +223,7 @@ export function HotQuestionsCard() {
                   q.topicTitle?.trim() ||
                   q.subtopicTitle?.trim() ||
                   `Tantangan ${qSub.name}`;
-                const previewHtml = formatQuestionSnippetHtml(q.content);
+                const previewHtml = formatQuestionSnippetHtml(splitQuestionGuidance(q.content || "").question);
 
                 return (
                   <div key={q.id} className="w-full shrink-0 space-y-1.5 pr-0.5">

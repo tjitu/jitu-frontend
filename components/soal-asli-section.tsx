@@ -24,6 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AnswerFormatGuide } from "@/components/answer-format-guide";
+import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { renderMathContent } from "@/components/interactive-solution-deck";
 import {
   SoalAsliPackage,
@@ -253,6 +255,8 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     activeDetail && activeDetail.questions && activeDetail.questions.length > 0
       ? activeDetail.questions[currentQuestionIndex]
       : null;
+
+  const { question, guidance } = splitQuestionGuidance(currentQuestion?.content ?? "");
 
   // -------------------------------------------------------------------------
   // RENDER: LANDING PAGE VARIANT
@@ -607,9 +611,10 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                         <div
                           className="text-[16px] font-medium leading-relaxed text-text whitespace-pre-wrap"
                           dangerouslySetInnerHTML={{
-                            __html: renderMathContent(currentQuestion.content),
+                            __html: renderMathContent(question),
                           }}
                         />
+                        <AnswerFormatGuide text={guidance} />
                       </div>
 
                       {currentQuestion.options && currentQuestion.options.length > 0 ? (
@@ -1120,9 +1125,10 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
                   <div
                     className="text-[15px] sm:text-[16px] font-medium leading-relaxed text-text space-y-2 whitespace-pre-wrap"
                     dangerouslySetInnerHTML={{
-                      __html: renderMathContent(currentQuestion.content),
+                      __html: renderMathContent(question),
                     }}
                   />
+                  <AnswerFormatGuide text={guidance} />
 
                   {/* Options List (Selectable without backend processing) */}
                   {currentQuestion.options && currentQuestion.options.length > 0 ? (

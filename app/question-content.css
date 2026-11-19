@@ -1,0 +1,58 @@
+.learning-content {
+  color: var(--text);
+  font-weight: 400;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.learning-content strong {
+  color: inherit;
+  font-weight: 600;
+}
+
+.learning-list,
+.learning-content :where(ul, ol) {
+  white-space: normal;
+  padding-inline-start: 1.5em;
+  margin-block: 0.75em;
+  line-height: 1.75;
+  list-style-position: outside;
+}
+
+ul.learning-list,
+.learning-content ul {
+  list-style-type: disc;
+}
+
+ol.learning-list,
+.learning-content ol {
+  list-style-type: decimal;
+}
+
+.learning-list li,
+.learning-content li {
+  padding-inline-start: 0.25em;
+}
+
+.learning-list li + li,
+.learning-content li + li {
+  margin-block-start: 0.65em;
+}
+
+.learning-list li::marker {
+  color: inherit;
+}
+
+.answer-format-guide {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--text-body);
+  max-width: 68ch;
+  margin-block: 0.5rem 0.75rem;
+}
+
+ol.numbered-passage > li::marker {
+  content: "(" counter(list-item) ")  ";
+  font-variant-numeric: tabular-nums;
+}

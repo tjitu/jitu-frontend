@@ -1,4 +1,7 @@
 "use client";
+import { PracticeQuestionText } from "@/components/practice-question-text";
+import { AnswerFormatGuide } from "@/components/answer-format-guide";
+import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { SandboxRevisionButton } from "./components/SandboxRevisionButton";
 
 import React, { Suspense, useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -443,6 +446,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
         activeQuestion.type === "ISIAN_SINGKAT")
   );
 
+  const { question, guidance } = splitQuestionGuidance(activeQuestion?.content ?? "");
   const incompleteOptions = Boolean(activeQuestion && !isActiveShortAnswer && (
     activeQuestion.options.length < 2 || activeQuestion.options.some(option => !option.content.trim())
   ));
@@ -1377,35 +1381,9 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                       </div>
                     )}
 
-                    {/* ============================================================
-                        UNIFIED QUESTION CONTENT (Wacana/Stimulus + Pertanyaan)
-                        User Request: "gaperlu di kasih tau kalo itu wacana/stimulus soal, textnya samain stylenya kayak pertanyaan"
-                        ============================================================ */}
-                    <div
-                      className={`font-semibold text-text leading-relaxed ${
-                        showSolutionCard
-                          ? "space-y-2.5 text-sm sm:text-[15px]"
-                          : "space-y-4 text-base sm:text-lg"
-                      }`}
-                    >
-                      {activeQuestion.narration && (
-                        <div
-                          className="whitespace-pre-wrap"
-                          dangerouslySetInnerHTML={{
-                            __html: renderMathContent(activeQuestion.narration, {
-                              animatedHighlights: false,
-                            }),
-                          }}
-                        />
-                      )}
-                      <div
-                        className="whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{
-                          __html: renderMathContent(activeQuestion.content, {
-                            animatedHighlights: false,
-                          }),
-                        }}
-                      />
+                    <div className={showSolutionCard ? "space-y-2.5 text-sm sm:text-[15px]" : "space-y-4 text-base sm:text-lg"}>
+                      <PracticeQuestionText narration={activeQuestion.narration} question={question} />
+                      {!isActiveShortAnswer && <AnswerFormatGuide text={guidance} />}
                       {activeQuestion.imageUrl && (
                         <div className="pt-1">
                           <img
@@ -1422,15 +1400,16 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                       <p role="status" className="text-sm font-medium text-text-muted">Pilihan jawaban belum lengkap. Silakan lanjut ke soal lain.</p>
                     ) : isActiveShortAnswer ? (
                       <div className={showSolutionCard ? "space-y-2 pt-1" : "space-y-3 pt-2"}>
-                        <div className="text-xs font-semibold text-text-muted">
-                          <span>TULISKAN JAWABAN SINGKAT:</span>
-                        </div>
+                        <label htmlFor="practice-short-answer" className="block text-sm font-semibold text-text">Jawaban singkat</label>
+                        <AnswerFormatGuide id="practice-format-guide" text={guidance} />
                         <input
+                          id="practice-short-answer"
+                          aria-describedby={guidance ? "practice-format-guide" : undefined}
                           type="text"
                           disabled={Boolean(currentAttempt)}
                           value={currentAttempt?.inputText ?? shortAnswerInput}
                           onChange={(e) => setShortAnswerInput(e.target.value)}
-                          placeholder="Masukkan jawaban akhir (misal: 42)"
+                          placeholder="Masukkan jawaban"
                           className="w-full sm:max-w-xs px-4 py-3 rounded-xl border border-border bg-surface text-sm font-mono font-bold text-text focus:outline-none focus:border-primary disabled:opacity-75"
                         />
                         {currentAttempt && currentAttempt.correctAnswerText && (

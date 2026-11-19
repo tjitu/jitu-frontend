@@ -238,7 +238,7 @@ function InteractiveSolutionDeckContent({
 
               {/* Step Content: Balanced reading scale matching Card Soal */}
               <div
-                className="text-sm sm:text-[15px] text-text-body leading-relaxed space-y-2.5 whitespace-pre-wrap font-sans"
+                className="learning-content text-sm sm:text-[15px] whitespace-pre-wrap font-sans"
                 dangerouslySetInnerHTML={{
                   __html: renderMathContent(currentStep.content, {
                     animatedHighlights: true,
@@ -248,7 +248,7 @@ function InteractiveSolutionDeckContent({
             </div>
           ) : solution.staticContent ? (
             <div
-              className="text-sm sm:text-[15px] text-text-body leading-relaxed space-y-2.5 whitespace-pre-wrap font-sans"
+              className="learning-content text-sm sm:text-[15px] whitespace-pre-wrap font-sans"
               dangerouslySetInnerHTML={{
                 __html: renderMathContent(solution.staticContent, {
                   animatedHighlights: false,

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { ArrowLeft, CheckCircle2, Crown, XCircle } from "lucide-react";
 import { getFirebaseAuth } from "@/lib/firebase";
+import { PracticeQuestionText } from "@/components/practice-question-text";
+import { AnswerFormatGuide } from "@/components/answer-format-guide";
+import { splitQuestionGuidance } from "@/lib/question-guidance";
 import type { PracticeHistoryItem } from "@/lib/practice-store";
 import InteractiveSolutionDeck, {
   renderMathContent,
@@ -54,6 +57,7 @@ export default function PracticeHistoryDetail({ attemptId }: { attemptId: string
     };
   }, [attemptId]);
 
+  const { question, guidance } = splitQuestionGuidance(item?.content ?? "");
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-7 sm:py-10 space-y-6">
       <Link href={historyUrl} className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
@@ -84,8 +88,8 @@ export default function PracticeHistoryDetail({ attemptId }: { attemptId: string
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-5 sm:p-7 space-y-6">
-            {item.narration && <div className="rounded-xl border border-border bg-surface-muted/40 p-4 text-sm leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMathContent(item.narration, { animatedHighlights: false }) }} />}
-            <div className="text-base font-medium leading-relaxed text-text whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: renderMathContent(item.content, { animatedHighlights: false }) }} />
+            <PracticeQuestionText narration={item.narration} question={question} />
+            <AnswerFormatGuide text={guidance} />
             {item.imageUrl && <img src={item.imageUrl} alt="Ilustrasi soal" className="max-h-96 w-auto max-w-full rounded-xl border border-border object-contain" />}
 
             {item.options.length > 0 ? (

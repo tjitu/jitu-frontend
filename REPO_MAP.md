@@ -48,3 +48,4 @@ jitu-frontend/
 * **State & Data Fetching**: React Server Components where possible; client components use `fetch` or hooks for dynamic polling.
 
 * Sandbox revision feedback uses POST /api/practice/revision, lib/sandbox-revision.ts, and SandboxRevisionButton to move QC questions to NEEDS_REVISION with reviewer notes.
+* Practice questions use `PracticeQuestionText` for passages, stanzas and stems. Shared list rendering and short-answer guidance live in `lib/content-lists.ts` and `lib/question-guidance.ts`.

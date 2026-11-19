@@ -7,6 +7,9 @@ import {
   ChevronUp,
   XCircle,
 } from "lucide-react";
+import { PracticeQuestionText } from "@/components/practice-question-text";
+import { AnswerFormatGuide } from "@/components/answer-format-guide";
+import { splitQuestionGuidance } from "@/lib/question-guidance";
 import type { PracticeHistoryItem } from "@/lib/practice-store";
 import InteractiveSolutionDeck, {
   renderMathContent,
@@ -19,6 +22,7 @@ interface PracticeHistoryRowProps {
 }
 
 export function PracticeHistoryRow({ item, isOpen, onToggle }: PracticeHistoryRowProps) {
+  const { question, guidance } = splitQuestionGuidance(item.content);
   const letters = ["A", "B", "C", "D", "E"];
 
   return (
@@ -64,7 +68,7 @@ export function PracticeHistoryRow({ item, isOpen, onToggle }: PracticeHistoryRo
           <div
             className="text-sm text-text line-clamp-2"
             dangerouslySetInnerHTML={{
-              __html: renderMathContent(item.content, { animatedHighlights: false }),
+              __html: renderMathContent(question),
             }}
           />
 
@@ -84,21 +88,8 @@ export function PracticeHistoryRow({ item, isOpen, onToggle }: PracticeHistoryRo
 
       {isOpen && (
         <div className="border-t border-border p-4 sm:p-6 bg-surface-muted/20 space-y-5">
-          {item.narration && (
-            <div
-              className="p-4 rounded-xl bg-surface border border-border text-sm text-text-body leading-relaxed whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{
-                __html: renderMathContent(item.narration, { animatedHighlights: false }),
-              }}
-            />
-          )}
-
-          <div
-            className="text-sm sm:text-base font-medium text-text leading-relaxed whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{
-              __html: renderMathContent(item.content, { animatedHighlights: false }),
-            }}
-          />
+          <PracticeQuestionText narration={item.narration} question={question} />
+          <AnswerFormatGuide text={guidance} />
 
           {item.options.length > 0 ? (
             <div className="space-y-2">
