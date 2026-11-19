@@ -17,6 +17,7 @@ const jetbrainsMono = localFont({
   src: "./fonts/JetBrainsMono-Variable.ttf",
   weight: "100 800",
   display: "swap",
+  preload: false,
   variable: "--font-jetbrains-mono",
 });
 

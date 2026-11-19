@@ -37,25 +37,34 @@ export interface AppUserProfile {
 }
 
 let cachedGoogleCerts: { keys: Record<string, string>; expiresAt: number } | null = null;
+let pendingGoogleCerts: Promise<Record<string, string>> | null = null;
 
 async function getGooglePublicCerts(): Promise<Record<string, string>> {
   if (cachedGoogleCerts && cachedGoogleCerts.expiresAt > Date.now()) {
     return cachedGoogleCerts.keys;
   }
-  try {
-    const res = await fetch(
-      "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com",
-      { cache: "no-store" }
-    );
-    if (res.ok) {
-      const keys = (await res.json()) as Record<string, string>;
-      cachedGoogleCerts = { keys, expiresAt: Date.now() + 3600 * 1000 };
-      return keys;
+  if (pendingGoogleCerts) return pendingGoogleCerts;
+  pendingGoogleCerts = (async () => {
+    try {
+      const res = await fetch(
+        "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com",
+        { cache: "no-store" }
+      );
+      if (res.ok) {
+        const keys = (await res.json()) as Record<string, string>;
+        cachedGoogleCerts = { keys, expiresAt: Date.now() + 3600 * 1000 };
+        return keys;
+      }
+    } catch (err) {
+      console.warn("Failed to fetch Google public certs for token verification:", err);
     }
-  } catch (err) {
-    console.warn("Failed to fetch Google public certs for token verification:", err);
+    return cachedGoogleCerts?.keys || {};
+  })();
+  try {
+    return await pendingGoogleCerts;
+  } finally {
+    pendingGoogleCerts = null;
   }
-  return cachedGoogleCerts?.keys || {};
 }
 
 export async function verifyFirebaseIdToken(token: string): Promise<FirebaseTokenPayload | null> {
@@ -127,6 +136,9 @@ export async function resolveFirebaseUser(
   const email = token.email?.trim().toLowerCase();
   if (!email) {
     throw new Error("Akun Firebase harus memiliki alamat email.");
+  }
+  if (token.email_verified !== true) {
+    throw new Error("Verifikasi email terlebih dahulu sebelum menggunakan akun Jitu.");
   }
 
   const pool = getDbPool();

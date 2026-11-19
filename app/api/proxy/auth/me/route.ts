@@ -29,6 +29,12 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+    if (payload.email_verified !== true) {
+      return NextResponse.json(
+        { message: "Verifikasi email terlebih dahulu sebelum menggunakan akun Jitu." },
+        { status: 403 }
+      );
+    }
 
     const user = await resolveFirebaseUser(payload);
     if (!user) {

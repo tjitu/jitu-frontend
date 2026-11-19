@@ -63,6 +63,8 @@ const LoginModule = () => {
     const nextErrors: { email?: string; password?: string } = {};
     if (!loginData.email.trim()) {
       nextErrors.email = "Masukkan alamat email akunmu.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginData.email.trim())) {
+      nextErrors.email = "Masukkan alamat email yang valid.";
     }
     if (!loginData.password) {
       nextErrors.password = "Masukkan kata sandi akunmu.";

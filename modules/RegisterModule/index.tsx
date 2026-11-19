@@ -13,7 +13,7 @@ import { signUp, signIn } from "@/lib/auth-client";
 /**
  * DESIGN.md Section 6.2 — Auth (Sign up)
  * Single 420px column, white card, centered.
- * Sign up: name, email or WhatsApp, password, school.
+ * Sign up: name, email, and password.
  * Inline per-field errors; password has show/hide. One signal CTA per screen.
  */
 const RegisterModule = () => {
@@ -23,7 +23,6 @@ const RegisterModule = () => {
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
-    school?: string;
     password?: string;
     confirmPassword?: string;
     form?: string;
@@ -34,7 +33,6 @@ const RegisterModule = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    school: "",
   });
 
   const handleChange = (field: keyof RegisterData, value: string) => {
@@ -54,6 +52,8 @@ const RegisterModule = () => {
     }
     if (!registerData.email.trim()) {
       nextErrors.email = "Masukkan email aktif.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerData.email.trim())) {
+      nextErrors.email = "Masukkan alamat email yang valid.";
     }
     if (registerData.password.length < 8) {
       nextErrors.password = "Kata sandi minimal 8 karakter.";
@@ -80,13 +80,12 @@ const RegisterModule = () => {
       {
         onSuccess: (ctx) => {
           setLoading(false);
-          toast.success("Akun berhasil dibuat! Selamat datang di Jitu.");
-          const user = ctx.data.user as { role?: string };
-          if (user?.role === "ADMIN") {
-            router.push("/admin");
-          } else {
-            router.push("/dashboard");
+          if (!ctx.data.verificationRequired) {
+            router.push(ctx.data.user?.role === "ADMIN" ? "/admin" : "/dashboard");
+            return;
           }
+          toast.success("Akun dibuat. Periksa email untuk verifikasi sebelum masuk.");
+          router.push("/login");
         },
         onError: (ctx) => {
           setLoading(false);
@@ -199,23 +198,6 @@ const RegisterModule = () => {
                   <span>{errors.email}</span>
                 </p>
               )}
-            </div>
-
-            {/* School */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="school"
-                className="block text-[14px] font-semibold text-text"
-              >
-                Asal SMA / SMK
-              </label>
-              <Input
-                id="school"
-                type="text"
-                placeholder="Contoh: SMAN 8 Jakarta"
-                value={registerData.school || ""}
-                onChange={(e) => handleChange("school", e.target.value)}
-              />
             </div>
 
             {/* Password */}
