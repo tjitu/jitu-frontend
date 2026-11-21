@@ -194,11 +194,15 @@ const DashboardModule = () => {
   }, [session, isPending, router]);
 
   const loadDashboardData = async (showSkeleton = false) => {
+    const statsRequest = getUserStats().then((stats) => {
+      setUserStats(stats);
+      return stats;
+    });
     try {
       if (showSkeleton) setLoading(true);
-      const [stats, ongoing, available, history, daily, latestArticles] =
-        await Promise.all([
-          getUserStats(),
+      const [statsResult, ongoingResult, availableResult, historyResult, dailyResult, articlesResult] =
+        await Promise.allSettled([
+          statsRequest,
           getOngoingTryouts(),
           getAvailableTryouts(),
           getScoreHistory(),
@@ -206,7 +210,14 @@ const DashboardModule = () => {
           getLatestDashboardArticles(3),
         ]);
 
-      setUserStats(stats);
+      if (statsResult.status === "rejected") throw statsResult.reason;
+      const stats = statsResult.value;
+      const cached = getCachedDashboardData();
+      const ongoing = ongoingResult.status === "fulfilled" ? ongoingResult.value : cached?.ongoing ?? [];
+      const available = availableResult.status === "fulfilled" ? availableResult.value : cached?.available ?? [];
+      const history = historyResult.status === "fulfilled" ? historyResult.value : cached?.history ?? [];
+      const daily = dailyResult.status === "fulfilled" ? dailyResult.value : cached?.dailyStatus ?? null;
+      const latestArticles = articlesResult.status === "fulfilled" ? articlesResult.value : cached?.articles ?? [];
       setOngoingTryouts(ongoing);
       setAvailableTryoutsData(available);
       setScoreHistory(history);

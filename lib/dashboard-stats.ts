@@ -37,7 +37,7 @@ export async function getLearningStats(pool: Pool, userId: string) {
          CASE WHEN pg_typeof(pa.answered_at) = 'timestamp with time zone'::regtype
            THEN COALESCE(pa.answered_at, pa.updated_at) AT TIME ZONE 'Asia/Jakarta'
            ELSE (COALESCE(pa.answered_at, pa.updated_at) AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Jakarta'
-         END AS activity_at
+         END AS activity_at, true AS count_answer
        FROM public."PracticeAttempt" pa
        WHERE pa.user_id = $1 AND pa.status = 'ANSWERED'
          AND COALESCE(pa.is_reveal_only, false) = false
@@ -46,13 +46,19 @@ export async function getLearningStats(pool: Pool, userId: string) {
     : "";
   const { rows } = await pool.query<StatsRow>(
     `WITH activity AS (
-       SELECT (ua."createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Jakarta' AS activity_at
+       SELECT (ua."createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Jakarta' AS activity_at, true AS count_answer
        FROM public."UserAnswer" ua
        JOIN public."TryOutAttempt" att ON att.id = ua.tryout_attempt_id
        WHERE att."userId" = $1
          AND (ua.question_item_id IS NOT NULL OR NULLIF(BTRIM(ua."inputText"), '') IS NOT NULL)
        UNION ALL
-       SELECT (d."completedAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Jakarta'
+       SELECT (ua."updatedAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Jakarta', false
+       FROM public."UserAnswer" ua
+       JOIN public."TryOutAttempt" att ON att.id = ua.tryout_attempt_id
+       WHERE att."userId" = $1
+         AND (ua.question_item_id IS NOT NULL OR NULLIF(BTRIM(ua."inputText"), '') IS NOT NULL)
+       UNION ALL
+       SELECT (d."completedAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Jakarta', true
        FROM public."DailyQuestionLog" d
        WHERE d."userId" = $1 AND NULLIF(BTRIM(d."userAnswer"), '') IS NOT NULL
        ${practice}
@@ -66,7 +72,7 @@ export async function getLearningStats(pool: Pool, userId: string) {
        (SELECT COUNT(*)::int FROM finished) AS "totalFinished",
        (SELECT COUNT(*)::int FROM public."TryOutAttempt"
         WHERE "userId" = $1 AND started_at >= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - INTERVAL '7 days') AS "weeklyActivity",
-       COUNT(*)::int AS "solvedQuestions",
+       COUNT(*) FILTER (WHERE count_answer)::int AS "solvedQuestions",
        COALESCE(ARRAY_AGG(DISTINCT TO_CHAR(activity_at::date, 'YYYY-MM-DD'))
          FILTER (WHERE activity_at IS NOT NULL), ARRAY[]::text[]) AS days
      FROM activity`,
