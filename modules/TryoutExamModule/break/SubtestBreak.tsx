@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, CheckCircle2, Clock, ListChecks, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startNextSubtest } from "@/lib/api/exam";
@@ -12,6 +12,8 @@ import { getSubtestMeta } from "@/lib/soal-asli-types";
 import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/subtest-meta";
 import type { CategoryDetail } from "@/modules/TryoutDetailModule/interface";
 import { BreakCountdown } from "./BreakCountdown";
+import { BreakIntro } from "./BreakIntro";
+import styles from "./BreakIntro.module.css";
 import { BreakProgress } from "./BreakProgress";
 import { resolveBreak } from "./resolve-break";
 
@@ -38,17 +40,11 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
   const [startError, setStartError] = useState("");
   const [starting, setStarting] = useState(false);
   const [resumeBreak, setResumeBreak] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+  const dismissIntro = useCallback(() => setShowIntro(false), []);
   const startingRef = useRef(false);
   const detailUrl = `/tryout/${encodeURIComponent(tryoutId)}`;
   const storageKey = `break_started_at_${attemptId}_${order}`;
-
-  useEffect(() => {
-    try {
-      setResumeBreak(Boolean(localStorage.getItem(storageKey)));
-    } catch {
-      setResumeBreak(false);
-    }
-  }, [storageKey]);
 
   useEffect(() => {
     if (!attemptId || !Number.isSafeInteger(order) || order < 1) {
@@ -61,7 +57,13 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
       if (!active) return;
       const state = resolveBreak(data, attemptId, order, expiredLink);
       if (state.subtests) {
-        setView({ ...state, title: data.title, breakSeconds: data.breakSeconds ?? 60 });
+        const breakSeconds = data.breakSeconds ?? 60;
+        let resuming = false;
+        try { resuming = Boolean(localStorage.getItem(storageKey)); } catch { /* Storage is optional. */ }
+        setResumeBreak(resuming);
+        setShowIntro(!resuming && !expiredLink && breakSeconds >= 4 &&
+          document.visibilityState === "visible" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        setView({ ...state, title: data.title, breakSeconds });
       } else {
         router.replace(state.redirect);
       }
@@ -69,11 +71,12 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
       if (active) setLoadError(error instanceof Error ? error.message : "Progres tryout gagal dimuat.");
     });
     return () => { active = false; };
-  }, [attemptId, detailUrl, expiredLink, isPending, order, retry, router, tryoutId]);
+  }, [attemptId, detailUrl, expiredLink, isPending, order, retry, router, storageKey, tryoutId]);
 
   async function proceed() {
     if (startingRef.current) return;
     startingRef.current = true;
+    dismissIntro();
     setStarting(true);
     setStartError("");
     try {
@@ -89,7 +92,7 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
 
   if (!view) {
     return (
-      <div className="grid min-h-svh place-items-center bg-bg p-6">
+      <div className="grid min-h-svh place-items-center bg-white p-6">
         {loadError ? (
           <div className="w-full max-w-sm rounded-xl border border-border bg-surface p-6">
             <h1 className="text-lg font-bold text-text">Progres belum bisa dimuat</h1>
@@ -99,20 +102,21 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
               <Button asChild variant="ghost"><Link href={detailUrl}>Detail tryout</Link></Button>
             </div>
           </div>
-        ) : <p role="status" className="flex items-center gap-2 text-sm"><Loader2 className="size-4 animate-spin" />Memeriksa waktu subtes…</p>}
+        ) : <p role="status" className={`${styles.loading} flex items-center gap-2 text-sm text-ink-700`}><Loader2 className="size-4 animate-spin" />Memeriksa waktu subtes…</p>}
       </div>
     );
   }
 
   const { subtests, nextIndex, breakSeconds } = view;
   const next = subtests[nextIndex];
-  const NextSubtestIcon = getSubtestInfo(next.name, nextIndex).IconComponent;
+  const { IconComponent: NextSubtestIcon, code } = getSubtestInfo(next.name, nextIndex);
+  const nextLabel = `${getSubtestMeta(next.name).label} (${code})`;
   const previous = subtests[nextIndex - 1];
   const previousName = previous ? `${getSubtestMeta(previous.name).label} (${getSubtestInfo(previous.name, nextIndex - 1).code})` : "Subtes sebelumnya";
-  const nextCode = getSubtestInfo(next.name, nextIndex).code;
   return (
     <div className="grid min-h-svh place-items-center bg-bg px-4 py-6 sm:px-8 sm:py-12">
-      <section className="w-full max-w-5xl overflow-hidden rounded-xl border border-border bg-surface">
+      {showIntro && <BreakIntro nextLabel={nextLabel} Icon={NextSubtestIcon} onDismiss={dismissIntro} />}
+      <section inert={showIntro} className="w-full max-w-5xl overflow-hidden rounded-xl border border-border bg-surface">
         <header className="flex items-center gap-3 border-b border-border px-6 py-4 sm:px-8">
           <BookOpen aria-hidden="true" className="size-5 shrink-0 text-primary" />
           <span className="font-display text-sm font-semibold text-text">{view.title}</span>
@@ -128,7 +132,7 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
               <p className="mb-2 text-sm font-semibold text-primary">NEXT</p>
               <div className="flex items-center gap-3">
                 <NextSubtestIcon aria-hidden="true" className="size-10 shrink-0 text-primary sm:size-12" size={48} />
-                <h1 className="break-words font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">{getSubtestMeta(next.name).label} ({nextCode})</h1>
+                <h1 className="break-words font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">{nextLabel}</h1>
               </div>
               <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-text-body">
                 <span className="inline-flex items-center gap-2"><ListChecks aria-hidden="true" className="size-4" />{next.questionCount} soal</span>
