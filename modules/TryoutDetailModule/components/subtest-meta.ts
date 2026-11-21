@@ -57,9 +57,9 @@ export const SUBTEST_DIRECTORY: Record<string, SubtestMeta> = {
  * Resolves raw subtest name into clean metadata
  */
 export function getSubtestInfo(rawName: string, index = 0): SubtestMeta {
-  const normalized = (rawName || "").trim().toUpperCase();
+  const normalized = (rawName || "").trim().toUpperCase().replace(/_/g, " ");
 
-  if (normalized.includes("PU") && !normalized.includes("PPU")) {
+  if ((normalized.includes("PU") && !normalized.includes("PPU")) || normalized.includes("PENALARAN UMUM")) {
     return SUBTEST_DIRECTORY.PU;
   }
   if (normalized.includes("PPU") || normalized.includes("PEMAHAMAN UMUM")) {
@@ -68,6 +68,7 @@ export function getSubtestInfo(rawName: string, index = 0): SubtestMeta {
   if (
     normalized.includes("PBM") ||
     normalized.includes("MEMAHAMI BACAAN") ||
+    normalized.includes("PEMAHAMAN BACAAN") ||
     normalized.includes("BACAAN DAN MENULIS")
   ) {
     return SUBTEST_DIRECTORY.PBM;
