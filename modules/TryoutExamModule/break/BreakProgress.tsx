@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import { getSubtestMeta } from "@/lib/soal-asli-types";
+import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/subtest-meta";
 import type { CategoryDetail } from "@/modules/TryoutDetailModule/interface";
 
 export function BreakProgress({ subtests, nextIndex }: { subtests: CategoryDetail[]; nextIndex: number }) {
@@ -19,7 +20,7 @@ export function BreakProgress({ subtests, nextIndex }: { subtests: CategoryDetai
               </span>
               <div className="min-w-0">
                 <span className={`block break-words text-sm leading-6 ${next ? "font-bold text-text" : "text-text-muted"}`}>
-                  {getSubtestMeta(subtest.name).label}
+                  {getSubtestMeta(subtest.name).label} ({getSubtestInfo(subtest.name, index).code})
                 </span>
                 <span className="sr-only">{done ? "Selesai" : next ? "Berikutnya" : "Belum dimulai"}</span>
               </div>

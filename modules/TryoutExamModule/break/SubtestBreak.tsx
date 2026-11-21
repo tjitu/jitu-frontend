@@ -37,9 +37,18 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
   const [retry, setRetry] = useState(0);
   const [startError, setStartError] = useState("");
   const [starting, setStarting] = useState(false);
+  const [resumeBreak, setResumeBreak] = useState(false);
   const startingRef = useRef(false);
   const detailUrl = `/tryout/${encodeURIComponent(tryoutId)}`;
   const storageKey = `break_started_at_${attemptId}_${order}`;
+
+  useEffect(() => {
+    try {
+      setResumeBreak(Boolean(localStorage.getItem(storageKey)));
+    } catch {
+      setResumeBreak(false);
+    }
+  }, [storageKey]);
 
   useEffect(() => {
     if (!attemptId || !Number.isSafeInteger(order) || order < 1) {
@@ -99,7 +108,8 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
   const next = subtests[nextIndex];
   const NextSubtestIcon = getSubtestInfo(next.name, nextIndex).IconComponent;
   const previous = subtests[nextIndex - 1];
-  const previousName = previous ? getSubtestMeta(previous.name).label : "Subtes sebelumnya";
+  const previousName = previous ? `${getSubtestMeta(previous.name).label} (${getSubtestInfo(previous.name, nextIndex - 1).code})` : "Subtes sebelumnya";
+  const nextCode = getSubtestInfo(next.name, nextIndex).code;
   return (
     <div className="grid min-h-svh place-items-center bg-bg px-4 py-6 sm:px-8 sm:py-12">
       <section className="w-full max-w-5xl overflow-hidden rounded-xl border border-border bg-surface">
@@ -118,14 +128,16 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
               <p className="mb-2 text-sm font-semibold text-primary">NEXT</p>
               <div className="flex items-center gap-3">
                 <NextSubtestIcon aria-hidden="true" className="size-10 shrink-0 text-primary sm:size-12" size={48} />
-                <h1 className="break-words font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">{getSubtestMeta(next.name).label}</h1>
+                <h1 className="break-words font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">{getSubtestMeta(next.name).label} ({nextCode})</h1>
               </div>
               <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-text-body">
                 <span className="inline-flex items-center gap-2"><ListChecks aria-hidden="true" className="size-4" />{next.questionCount} soal</span>
                 <span className="inline-flex items-center gap-2"><Clock aria-hidden="true" className="size-4" />{next.duration} menit</span>
               </div>
             </div>
-            {!expiredLink && breakSeconds > 0 && <BreakCountdown storageKey={storageKey} seconds={breakSeconds} />}
+            {(!expiredLink || resumeBreak) && (
+              <BreakCountdown storageKey={storageKey} seconds={breakSeconds} onElapsed={() => void proceed()} />
+            )}
             <div className="space-y-3">
               {startError && <p role="alert" className="text-sm text-danger-text">{startError}</p>}
               <Button size="lg" className="w-full sm:w-auto" onClick={proceed} disabled={starting}>

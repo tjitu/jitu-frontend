@@ -32,6 +32,7 @@ import remarkGfm from "remark-gfm";
 import { renderContentLists } from "@/lib/content-lists";
 import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { AnswerFormatGuide } from "@/components/answer-format-guide";
+import { pendingBreakOrder } from "./break/pending-break";
 import { FontSizeControl } from "./components/FontSizeControl";
 import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
@@ -293,6 +294,17 @@ export default function TryoutExamModule() {
         router.replace(`/tryout/${encodeURIComponent(tryoutId)}`);
         return;
       }
+      if (!isReviewMode && attemptId) {
+        try {
+          const pendingOrder = pendingBreakOrder(localStorage, attemptId, currentSubtestOrder);
+          if (pendingOrder) {
+            router.replace(`/tryout/${encodeURIComponent(tryoutId)}/break/${pendingOrder}?attemptId=${encodeURIComponent(attemptId)}`);
+            return;
+          }
+        } catch {
+          // Continue normally when browser storage is unavailable.
+        }
+      }
 
       try {
         setLoading(true);
@@ -426,6 +438,7 @@ export default function TryoutExamModule() {
     session?.user?.id,
     attemptId,
     attemptIdFromQuery,
+    currentSubtestOrder,
     router,
   ]);
 
