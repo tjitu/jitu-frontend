@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/subtest-meta";
 import { BACKEND_URL } from "@/lib/api";
 import { getActiveTryoutSandboxToken, getTryoutDetail } from "@/lib/api/tryout";
@@ -919,7 +918,6 @@ export default function TryoutExamModule() {
         <div className="max-w-[1200px] mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 py-2 sm:flex-nowrap">
           {/* Left: Subtest name + Font size toggle */}
           <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
-            <Image src="/blue-jitu-logo.png" alt="Jitu" width={40} height={32} className="h-7 w-auto shrink-0 object-contain" priority />
             {isReviewMode && (
               <Button
                 variant="outline"
