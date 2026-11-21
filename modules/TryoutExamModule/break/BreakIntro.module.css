@@ -1,7 +1,7 @@
 /* All tracks share a clock so the handoff also stays in sync on a slow frame. */
 .screen,
 .screen :is(.seal, .ring, .tick, .ripple, .icon, .kicker, .name) {
-  animation-duration: 3.2s;
+  animation-duration: 5.6s;
   animation-fill-mode: both;
   animation-timing-function: cubic-bezier(.22, .7, .22, 1);
 }

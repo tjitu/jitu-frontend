@@ -61,7 +61,7 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
         let resuming = false;
         try { resuming = Boolean(localStorage.getItem(storageKey)); } catch { /* Storage is optional. */ }
         setResumeBreak(resuming);
-        setShowIntro(!resuming && !expiredLink && breakSeconds >= 4 &&
+        setShowIntro(!resuming && !expiredLink && breakSeconds >= 7 &&
           document.visibilityState === "visible" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         setView({ ...state, title: data.title, breakSeconds });
       } else {
