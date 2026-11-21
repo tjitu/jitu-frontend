@@ -14,8 +14,8 @@ export function BreakProgress({ subtests, nextIndex }: { subtests: CategoryDetai
           return (
             <li key={subtest.id} aria-current={next ? "step" : undefined}
               className="flex items-start gap-3 px-3 py-2.5">
-              <span aria-hidden="true" className={`grid size-6 shrink-0 place-items-center rounded-full border border-border text-xs ${next ? "font-bold text-text" : "text-text-muted"}`}>
-                {done ? <Check className="size-4" /> : index + 1}
+              <span aria-hidden="true" className={`grid size-6 shrink-0 place-items-center rounded-full text-xs ${done ? "bg-success-soft text-success-text" : next ? "bg-primary text-on-primary" : "border border-border text-text-muted"}`}>
+                {done || next ? <Check className="size-4" /> : index + 1}
               </span>
               <div className="min-w-0">
                 <span className={`block break-words text-sm leading-6 ${next ? "font-bold text-text" : "text-text-muted"}`}>

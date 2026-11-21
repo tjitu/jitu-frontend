@@ -115,9 +115,9 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
               {expiredLink ? `Waktu untuk ${previousName} sudah habis.` : `${previousName} selesai.`}
             </p>
             <div>
-              <p className="mb-2 text-sm font-semibold text-primary">Subtes {nextIndex + 1} dari {subtests.length}</p>
-              <div className="flex items-start gap-3">
-                <NextSubtestIcon aria-hidden="true" className="mt-1 size-8 shrink-0 text-primary sm:size-9" size={36} />
+              <p className="mb-2 text-sm font-semibold text-primary">NEXT</p>
+              <div className="flex items-center gap-3">
+                <NextSubtestIcon aria-hidden="true" className="size-10 shrink-0 text-primary sm:size-12" size={48} />
                 <h1 className="break-words font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">{getSubtestMeta(next.name).label}</h1>
               </div>
               <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-text-body">
@@ -126,8 +126,7 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
               </div>
             </div>
             {!expiredLink && breakSeconds > 0 && <BreakCountdown storageKey={storageKey} seconds={breakSeconds} />}
-            <div className="space-y-3 border-t border-border pt-5">
-              <p className="text-sm leading-relaxed text-text-body">Waktu pengerjaan mulai berjalan saat kamu menekan tombol di bawah.</p>
+            <div className="space-y-3">
               {startError && <p role="alert" className="text-sm text-danger-text">{startError}</p>}
               <Button size="lg" className="w-full sm:w-auto" onClick={proceed} disabled={starting}>
                 {starting ? <>Memulai subtes… <Loader2 className="size-4 animate-spin" /></> :
