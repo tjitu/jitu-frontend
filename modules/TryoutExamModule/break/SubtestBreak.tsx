@@ -9,6 +9,7 @@ import { startNextSubtest } from "@/lib/api/exam";
 import { getTryoutDetail } from "@/lib/api/tryout";
 import { useSession } from "@/lib/auth-client";
 import { getSubtestMeta } from "@/lib/soal-asli-types";
+import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/subtest-meta";
 import type { CategoryDetail } from "@/modules/TryoutDetailModule/interface";
 import { BreakCountdown } from "./BreakCountdown";
 import { BreakProgress } from "./BreakProgress";
@@ -96,6 +97,7 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
 
   const { subtests, nextIndex, breakSeconds } = view;
   const next = subtests[nextIndex];
+  const NextSubtestIcon = getSubtestInfo(next.name, nextIndex).IconComponent;
   const previous = subtests[nextIndex - 1];
   const previousName = previous ? getSubtestMeta(previous.name).label : "Subtes sebelumnya";
   return (
@@ -114,7 +116,10 @@ export function SubtestBreak({ tryoutId, attemptId, order, expiredLink }: BreakP
             </p>
             <div>
               <p className="mb-2 text-sm font-semibold text-primary">Subtes {nextIndex + 1} dari {subtests.length}</p>
-              <h1 className="break-words font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">{getSubtestMeta(next.name).label}</h1>
+              <div className="flex items-start gap-3">
+                <NextSubtestIcon aria-hidden="true" className="mt-1 size-8 shrink-0 text-primary sm:size-9" size={36} />
+                <h1 className="break-words font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">{getSubtestMeta(next.name).label}</h1>
+              </div>
               <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-text-body">
                 <span className="inline-flex items-center gap-2"><ListChecks aria-hidden="true" className="size-4" />{next.questionCount} soal</span>
                 <span className="inline-flex items-center gap-2"><Clock aria-hidden="true" className="size-4" />{next.duration} menit</span>

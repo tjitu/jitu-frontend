@@ -13,16 +13,15 @@ export function BreakProgress({ subtests, nextIndex }: { subtests: CategoryDetai
           const next = index === nextIndex;
           return (
             <li key={subtest.id} aria-current={next ? "step" : undefined}
-              className={`flex items-start gap-3 rounded-md px-3 py-2.5 ${next ? "bg-surface ring-1 ring-border" : ""}`}>
-              <span aria-hidden="true" className={`grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold ${done ? "bg-success-soft text-success-text" : next ? "bg-primary text-on-primary" : "border border-border text-text-body"}`}>
+              className="flex items-start gap-3 px-3 py-2.5">
+              <span aria-hidden="true" className={`grid size-6 shrink-0 place-items-center rounded-full border border-border text-xs ${next ? "font-bold text-text" : "text-text-muted"}`}>
                 {done ? <Check className="size-4" /> : index + 1}
               </span>
               <div className="min-w-0">
-                <span className={`block break-words text-sm leading-6 ${next ? "font-bold text-text" : "text-text-body"}`}>
+                <span className={`block break-words text-sm leading-6 ${next ? "font-bold text-text" : "text-text-muted"}`}>
                   {getSubtestMeta(subtest.name).label}
                 </span>
-                {next ? <span className="text-xs font-semibold text-primary">Berikutnya</span> :
-                  <span className="sr-only">{done ? "Selesai" : "Belum dimulai"}</span>}
+                <span className="sr-only">{done ? "Selesai" : next ? "Berikutnya" : "Belum dimulai"}</span>
               </div>
             </li>
           );
