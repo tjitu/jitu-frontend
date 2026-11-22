@@ -33,6 +33,10 @@ export const metadata: Metadata = {
     shortcut: "/icon.png",
     apple: "/apple-icon.png",
   },
+  // Proves ownership of jituptn.com to Google Search Console (needed for OAuth brand verification).
+  verification: {
+    google: "LL4IErne72W99g1iILyPYJ7xlJYzhV-QL3HieXdPG5g",
+  },
 };
 
 export default function RootLayout({
