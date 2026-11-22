@@ -8,6 +8,9 @@ import {
   resolvePositionTitle,
 } from "@/lib/hiring-store";
 import { HiringApplication, HIRING_POSITIONS } from "@/lib/hiring-types";
+import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { evaluateAdminAccess } from "@/lib/admin-access";
+import { toPublicTrackRecord } from "@/lib/hiring-public";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,6 +20,19 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const track = searchParams.get("track")?.trim();
     const isAdmin = searchParams.get("admin") === "true";
+
+    // Admin mode returns every applicant's personal data, so it must be backed by a
+    // verified admin session. The `admin` query parameter alone grants nothing.
+    if (isAdmin) {
+      const appUser = await getAuthenticatedAppUser(req).catch(() => null);
+      const access = evaluateAdminAccess(appUser);
+      if (!access.ok) {
+        return NextResponse.json(
+          { message: access.message },
+          { status: access.status, headers: { "Cache-Control": "no-store" } }
+        );
+      }
+    }
 
     const applications = await getAllApplications();
 
@@ -28,20 +44,7 @@ export async function GET(req: NextRequest) {
             app.id.toLowerCase() === normalized ||
             app.email.toLowerCase() === normalized
         )
-        .map((app) => ({
-          id: app.id,
-          fullName: app.fullName,
-          email: app.email,
-          university: app.university,
-          primaryRole: app.primaryRole,
-          primaryDivision: app.primaryDivision,
-          secondaryRole: app.secondaryRole,
-          availability: app.availability,
-          startDate: app.startDate,
-          status: app.status,
-          createdAt: app.createdAt,
-          updatedAt: app.updatedAt,
-        }));
+        .map(toPublicTrackRecord);
 
       return NextResponse.json({
         found: matched.length > 0,

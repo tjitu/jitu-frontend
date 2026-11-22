@@ -27,6 +27,18 @@ import {
   type HiringApplication,
   type HiringDivision,
 } from "@/lib/hiring-types";
+import { getFirebaseAuth } from "@/lib/firebase";
+
+// /api/hiring is admin-only, and the global fetch wrapper only attaches the Firebase
+// token to /api/proxy/* requests, so these calls add the Authorization header themselves.
+async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  const auth = getFirebaseAuth();
+  await auth.authStateReady();
+  const token = await auth.currentUser?.getIdToken();
+  const headers = new Headers(init.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return fetch(input, { ...init, headers });
+}
 
 export default function AdminHiringModule() {
   const [applications, setApplications] = useState<HiringApplication[]>([]);
@@ -44,7 +56,7 @@ export default function AdminHiringModule() {
   const fetchApplications = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/hiring?admin=true", { cache: "no-store" });
+      const res = await adminFetch("/api/hiring?admin=true", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data?.message || "Gagal memuat data pelamar.");
@@ -117,7 +129,7 @@ export default function AdminHiringModule() {
     if (!selectedApp) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/hiring/${encodeURIComponent(selectedApp.id)}`, {
+      const res = await adminFetch(`/api/hiring/${encodeURIComponent(selectedApp.id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -148,7 +160,7 @@ export default function AdminHiringModule() {
   const handleDeleteApplication = async (id: string) => {
     if (!window.confirm(`Hapus permanen lamaran ${id}?`)) return;
     try {
-      const res = await fetch(`/api/hiring/${encodeURIComponent(id)}`, {
+      const res = await adminFetch(`/api/hiring/${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       if (!res.ok) {

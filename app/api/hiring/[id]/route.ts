@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateApplication, deleteApplication } from "@/lib/hiring-store";
 import { ApplicationStatus } from "@/lib/hiring-types";
+import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { evaluateAdminAccess } from "@/lib/admin-access";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+async function denyUnlessAdmin(req: NextRequest): Promise<NextResponse | null> {
+  const appUser = await getAuthenticatedAppUser(req).catch(() => null);
+  const access = evaluateAdminAccess(appUser);
+  if (access.ok) return null;
+  return NextResponse.json(
+    { message: access.message },
+    { status: access.status, headers: { "Cache-Control": "no-store" } }
+  );
+}
 
 const VALID_STATUSES: ApplicationStatus[] = [
   "SUBMITTED",
@@ -17,6 +29,9 @@ export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const denied = await denyUnlessAdmin(req);
+  if (denied) return denied;
+
   try {
     const { id } = await context.params;
     const body = await req.json();
@@ -52,9 +67,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const denied = await denyUnlessAdmin(req);
+  if (denied) return denied;
+
   try {
     const { id } = await context.params;
     const deleted = await deleteApplication(id);

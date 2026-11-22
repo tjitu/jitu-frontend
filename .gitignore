@@ -53,3 +53,6 @@ scratch_*.*
 check_*.*
 *.scratch.*
 temp_*.*
+
+# applicant CV uploads must never be committed
+/public/uploads/
