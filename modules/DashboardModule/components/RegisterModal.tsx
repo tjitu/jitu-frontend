@@ -159,7 +159,17 @@ export function RegisterModal({
               disabled={isLoading}
               className="w-full h-10 text-xs px-5 font-semibold"
             >
-              {isLoading ? "Mendaftarkan…" : `Daftar + Pembahasan · ${displayCost} coin`}
+              {isLoading ? "Mendaftarkan…" : (
+                <span className="inline-flex items-center gap-1">
+                  <span>Daftar + Pembahasan</span>
+                  <span className="inline-flex items-center">
+                    ({displayCost}
+                    <PixelCoin size={14} className="ml-1" aria-hidden="true" />
+                    <span className="sr-only"> coin</span>
+                    )
+                  </span>
+                </span>
+              )}
             </Button>
           )}
           <Button
