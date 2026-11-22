@@ -13,6 +13,7 @@ import { FontSizeControl } from "./FontSizeControl";
 import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
 import { convertLatexTabularToHtml } from "@/lib/latex-tabular";
+import { renderSafeContentLists } from "@/lib/safe-content-lists";
 
 interface QuestionDisplayProps {
   question: any;
@@ -63,7 +64,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           { left: "\\[", right: "\\]", display: true },
         ],
         throwOnError: false,
-        trust: true,
+        trust: false,
       });
     }
   }, [question, fontSize]);
@@ -120,7 +121,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                 <div
                   className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed break-words"
                   style={{ fontSize: `${fontSize}px` }}
-                  dangerouslySetInnerHTML={{ __html: question.content }}
+                  dangerouslySetInnerHTML={{ __html: renderSafeContentLists(question.content) }}
                 />
               </div>
 
@@ -225,7 +226,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                     <div
                       className="prose prose-blue prose-sm sm:prose-base max-w-none text-blue-900 leading-relaxed font-medium italic border-l-2 sm:border-l-4 border-blue-400 pl-3 sm:pl-6"
                       style={{ fontSize: `${fontSize - 2}px` }}
-                      dangerouslySetInnerHTML={{ __html: question.explanation }}
+                      dangerouslySetInnerHTML={{ __html: renderSafeContentLists(question.explanation) }}
                     />
                   </div>
                 </div>

@@ -22,9 +22,31 @@ function parseColumnAlignments(spec: string): Array<"left" | "center" | "right">
   return aligns;
 }
 
-function renderCellContent(cell: string, isPlainText: boolean): string {
+/**
+ * Renders one cell of raw, untrusted text. `renderText` must return safe HTML for a piece
+ * of plain text (it is where escaping and math rendering happen); \textbf/\textit become
+ * tags only around text that has already gone through it.
+ */
+function renderRawCell(cell: string, renderText: (text: string) => string): string {
+  return cell
+    .split(/(\\textbf\{[^}]*\}|\\textit\{[^}]*\})/g)
+    .map((part) => {
+      const styled = /^\\(textbf|textit)\{([^}]*)\}$/.exec(part);
+      if (!styled) return renderText(part);
+      const tag = styled[1] === "textbf" ? "strong" : "em";
+      return `<${tag}>${renderText(styled[2])}</${tag}>`;
+    })
+    .join("");
+}
+
+function renderCellContent(
+  cell: string,
+  isPlainText: boolean,
+  renderText?: (text: string) => string,
+): string {
   const trimmed = cell.trim();
   if (!trimmed) return "&nbsp;";
+  if (renderText) return renderRawCell(trimmed, renderText);
 
   // Handle \textbf{...} and \text{...} when used inside tabular cells
   let processed = trimmed
@@ -61,6 +83,7 @@ function buildHtmlTable(
   colSpec: string,
   body: string,
   isPlainText: boolean,
+  renderText?: (text: string) => string,
 ): string {
   const alignments = parseColumnAlignments(colSpec);
   const rawRows = splitTabularRows(body);
@@ -77,7 +100,7 @@ function buildHtmlTable(
     const cellsHtml = cells
       .map((cell, idx) => {
         const align = alignments[idx] || "center";
-        const content = renderCellContent(cell, isPlainText);
+        const content = renderCellContent(cell, isPlainText, renderText);
         const weightClass = isHeaderRow ? "font-semibold bg-slate-50 text-slate-900" : "text-slate-700";
         return `<${tag} class="border border-slate-300 px-3 py-2 text-${align} ${weightClass}">${content}</${tag}>`;
       })
@@ -97,19 +120,32 @@ function buildHtmlTable(
  */
 export function convertLatexTabularToHtml(
   input: string,
-  options?: { escapePlainText?: boolean },
+  options?: {
+    escapePlainText?: boolean;
+    /**
+     * Pass this when `input` is raw, untrusted text: every cell goes through it, so no user
+     * text reaches the table unescaped. Without it the input is assumed to be HTML already.
+     */
+    renderText?: (text: string) => string;
+    /** Receives each finished table; lets the caller keep trusted HTML out of reach of later text processing. */
+    protect?: (html: string) => string;
+  },
 ): string {
   if (!input || !input.includes("tabular")) return input;
 
   const isPlainText = options?.escapePlainText ?? false;
+  const renderText = options?.renderText;
+  const protect = options?.protect;
 
   // Match optional outer math delimiters like `$$ ... $$` or `$ $ ... $ $` or `$ ... $`
   const wrappedTabularRegex =
     /(?:\$\$\s*|\$\s+\$|\$\s*)?\\begin\{tabular\}\{([^}]*)\}([\s\S]*?)\\end\{tabular\}(?:\s*\$\$|\s*\$\s+\$|\s*\$)?/g;
 
   return input.replace(wrappedTabularRegex, (_match, colSpec: string, body: string) => {
-    const tableHtml = buildHtmlTable(colSpec || "", body || "", isPlainText);
-    return tableHtml || escapeHtml(_match);
+    const tableHtml = buildHtmlTable(colSpec || "", body || "", isPlainText, renderText);
+    // In raw mode the caller escapes the remaining text itself, so return it untouched.
+    if (!tableHtml) return renderText ? _match : escapeHtml(_match);
+    return protect ? protect(tableHtml) : tableHtml;
   });
 }
 

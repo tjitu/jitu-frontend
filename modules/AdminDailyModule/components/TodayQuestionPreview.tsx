@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { DailyQuestionResponse } from "@/lib/api/AdminDailyApi";
 import { BookOpen, Calendar } from "lucide-react";
+import { renderMathContent } from "@/lib/render-math-content";
 
 interface TodayQuestionPreviewProps {
   question: DailyQuestionResponse;
@@ -33,7 +34,7 @@ export const TodayQuestionPreview: React.FC<TodayQuestionPreviewProps> = ({ ques
           </div>
           <div 
             className="prose prose-sm max-w-none p-4 rounded-md bg-surface-muted border border-border"
-            dangerouslySetInnerHTML={{ __html: question.content }}
+            dangerouslySetInnerHTML={{ __html: renderMathContent(question.content) }}
           />
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">

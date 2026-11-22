@@ -2,24 +2,64 @@ import { renderContentLists } from "./content-lists";
 import { normalizeSolutionText } from "./solution-text";
 import katex from "katex";
 import { convertLatexTabularToHtml } from "./latex-tabular";
+import { createVault, escapeHtml, stripReservedChars, toSafeText } from "./safe-html";
+
+export { toSafeText };
 
 export interface RenderMathOptions {
   animatedHighlights?: boolean;
 }
 
-/** Coerce any untrusted value (DB/JSON data) into a safe display string. */
-export function toSafeText(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  if (Array.isArray(value)) return value.map(toSafeText).filter(Boolean).join("\n");
+const BLOCK_MATH = /\$\$([\s\S]*?)\$\$/g;
+const INLINE_MATH = /\$([^$\n]+?)\$/g;
+
+const BLOCK_CARD_CLASS =
+  "step-math-card my-2.5 py-2.5 px-4 rounded-xl bg-surface-muted/85 border border-primary/20 text-center overflow-x-auto text-sm sm:text-base";
+
+function renderKatex(math: string, displayMode: boolean): string {
+  // trust is false (KaTeX's default, stated on purpose): \href, \url, \includegraphics and
+  // \html* stay disabled, so a formula can never create a link or load a resource.
+  return katex.renderToString(math.trim(), { displayMode, throwOnError: false, trust: false });
+}
+
+function renderBlockMath(math: string): string {
   try {
-    return JSON.stringify(value);
+    return `<div class="${BLOCK_CARD_CLASS}">${renderKatex(math, true)}</div>`;
   } catch {
-    return "";
+    return `<div class="${BLOCK_CARD_CLASS.replace("text-center", "font-mono text-center")}">${escapeHtml(`$$${math}$$`)}</div>`;
   }
 }
 
+function renderInlineMath(math: string): string {
+  try {
+    return `<span class="inline-math px-0.5">${renderKatex(math, false)}</span>`;
+  } catch {
+    return escapeHtml(`$${math}$`);
+  }
+}
+
+/** Plain text to safe HTML: formulas are rendered by KaTeX, everything else is escaped. */
+function renderInlineText(text: string): string {
+  const pattern = /\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
+  let output = "";
+  let last = 0;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text)) !== null) {
+    output += escapeHtml(text.slice(last, match.index));
+    output += match[1] !== undefined ? renderBlockMath(match[1]) : renderInlineMath(match[2]);
+    last = match.index + match[0].length;
+  }
+  return output + escapeHtml(text.slice(last));
+}
+
+/**
+ * Turns untrusted lesson text into HTML that is safe for dangerouslySetInnerHTML.
+ *
+ * The input is plain text with a little markup of our own (**bold**, ==highlight==, lists,
+ * "> quote", "✅ note", $math$ and LaTeX tabulars). Any HTML in it is escaped and shown as
+ * text. Markup that this function produces (KaTeX output, tables) is kept behind
+ * placeholders while the text is processed, so user text can never be mistaken for it.
+ */
 export function renderMathContent(
   rawContent: unknown,
   options: RenderMathOptions = {}
@@ -28,34 +68,22 @@ export function renderMathContent(
   if (!content) return "";
 
   const { animatedHighlights = false } = options;
+  const vault = createVault();
 
-  // 0. Convert \begin{tabular}...\end{tabular} into HTML tables before KaTeX parsing
-  const preNormalized = convertLatexTabularToHtml(normalizeSolutionText(content));
-
-  // 1. Replace block math $$...$$ with compact, balanced math card
-  let processed = renderContentLists(preNormalized).replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
-    try {
-      const rendered = katex.renderToString(math.trim(), {
-        displayMode: true,
-        throwOnError: false,
-      });
-      return `<div class="step-math-card my-2.5 py-2.5 px-4 rounded-xl bg-surface-muted/85 border border-primary/20 text-center overflow-x-auto text-sm sm:text-base">${rendered}</div>`;
-    } catch {
-      return `<div class="step-math-card my-2.5 py-2.5 px-4 rounded-xl bg-surface-muted/85 border border-primary/20 font-mono text-center overflow-x-auto text-sm sm:text-base">$$${math}$$</div>`;
-    }
+  // 0. Convert \begin{tabular}...\end{tabular} into HTML tables. Cells are rendered from raw
+  //    text through renderInlineText, and each finished table goes into the vault.
+  let processed = convertLatexTabularToHtml(normalizeSolutionText(stripReservedChars(content)), {
+    renderText: renderInlineText,
+    protect: vault.store,
   });
 
-  // 2. Replace inline math $...$ naturally in prose flow without boxy badges
-  processed = processed.replace(/\$([^\$\n]+?)\$/g, (_, math) => {
-    try {
-      return `<span class="inline-math px-0.5">${katex.renderToString(
-        math.trim(),
-        { displayMode: false, throwOnError: false }
-      )}</span>`;
-    } catch {
-      return `$${math}$`;
-    }
-  });
+  // 1. Replace block math $$...$$ with a compact, balanced math card, then inline math
+  //    $...$ naturally in prose flow. The rendered HTML is stored in the vault.
+  processed = processed.replace(BLOCK_MATH, (_, math: string) => vault.store(renderBlockMath(math)));
+  processed = processed.replace(INLINE_MATH, (_, math: string) => vault.store(renderInlineMath(math)));
+
+  // 2. Whatever is left is plain text: escape it, build lists, then bring the trusted pieces back.
+  processed = vault.restore(renderContentLists(escapeHtml(processed)));
 
   // 3. Special callout for checklist / conclusion lines starting with ✅
   processed = processed.replace(
@@ -66,9 +94,9 @@ export function renderMathContent(
     </div>`
   );
 
-  // 4. Blockquotes > ...
+  // 4. Blockquotes > ... (the text was escaped, so a leading ">" is now "&gt;")
   processed = processed.replace(
-    /^>\s*(.*?)$/gm,
+    /^(?:>|&gt;)\s*(.*?)$/gm,
     `<blockquote class="border-l-4 border-primary pl-3.5 py-2 my-2.5 bg-blue-50/50 rounded-r-xl text-sm sm:text-[15px] text-text-body italic leading-relaxed">$1</blockquote>`
   );
 
@@ -98,4 +126,3 @@ export function renderMathContent(
 
   return processed;
 }
-

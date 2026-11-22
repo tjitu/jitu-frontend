@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { renderContentLists } from "@/lib/content-lists";
+import { renderSafeContentLists } from "@/lib/safe-content-lists";
 import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { AnswerFormatGuide } from "@/components/answer-format-guide";
 import { pendingBreakOrder } from "./break/pending-break";
@@ -245,7 +245,7 @@ export default function TryoutExamModule() {
           { left: "\\[", right: "\\]", display: true },
         ],
         throwOnError: false,
-        trust: true,
+        trust: false,
       });
     }
   }, [currentQuestionIndex, examData, fontSize]);
@@ -1068,7 +1068,7 @@ export default function TryoutExamModule() {
                   className="prose max-w-[65ch] text-text whitespace-pre-wrap leading-[1.65]"
                   style={{ fontSize: `${fontSize}px` }}
                   dangerouslySetInnerHTML={{
-                    __html: renderContentLists(question),
+                    __html: renderSafeContentLists(question),
                   }}
                 />
               </div>
@@ -1129,7 +1129,7 @@ export default function TryoutExamModule() {
                         <div
                           className="flex-1 option-text leading-[1.55]"
                           style={{ fontSize: `${fontSize}px` }}
-                          dangerouslySetInnerHTML={{ __html: renderContentLists(opt.text) }}
+                          dangerouslySetInnerHTML={{ __html: renderSafeContentLists(opt.text) }}
                         />
                         {isReviewMode && isCorrectKey && (
                           <CheckCircle2 className="w-5 h-5 text-success shrink-0" />

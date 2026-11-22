@@ -26,9 +26,9 @@ const QuestionList: React.FC<QuestionListProps> = ({
   isLoading,
 }) => {
   const stripHtml = (html: string) => {
-    const tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
+    // DOMParser builds an inert document: scripts do not run and images do not load, unlike
+    // assigning untrusted HTML to innerHTML on an element, where <img onerror> still fires.
+    return new DOMParser().parseFromString(html, "text/html").body.textContent || "";
   };
 
   const truncate = (text: string, length: number) => {
