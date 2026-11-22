@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -10,10 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Info, Flag, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FontSizeControl } from "./FontSizeControl";
-import renderMathInElement from "katex/contrib/auto-render";
-import "katex/dist/katex.min.css";
-import { convertLatexTabularToHtml } from "@/lib/latex-tabular";
-import { renderSafeContentLists } from "@/lib/safe-content-lists";
+import { PracticeQuestionText } from "@/components/practice-question-text";
+import { TryoutSolution } from "@/components/tryout-solution";
+import { renderMathContent } from "@/lib/render-math-content";
 
 interface QuestionDisplayProps {
   question: any;
@@ -42,33 +41,6 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   canPrev,
   canNext,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current && question) {
-      const contentElements = containerRef.current.querySelectorAll(".prose");
-      contentElements.forEach((el) => {
-        if (el.innerHTML.includes("&amp;")) {
-          el.innerHTML = el.innerHTML.replace(/&amp;/g, "&");
-        }
-        if (el.innerHTML.includes("tabular")) {
-          el.innerHTML = convertLatexTabularToHtml(el.innerHTML);
-        }
-      });
-
-      renderMathInElement(containerRef.current, {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
-          { left: "\\(", right: "\\)", display: false },
-          { left: "\\[", right: "\\]", display: true },
-        ],
-        throwOnError: false,
-        trust: false,
-      });
-    }
-  }, [question, fontSize]);
-
   return (
     <div className="lg:col-span-9 space-y-6">
       <Card className="bg-white shadow-sm border-gray-200 overflow-hidden">
@@ -116,13 +88,15 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
               Belum ada soal tersedia.
             </div>
           ) : (
-            <div className="space-y-6 sm:space-y-10" ref={containerRef}>
+            <div className="space-y-6 sm:space-y-10">
               <div className="w-full overflow-x-auto pb-2 custom-scrollbar">
                 <div
                   className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-800 leading-relaxed break-words"
                   style={{ fontSize: `${fontSize}px` }}
-                  dangerouslySetInnerHTML={{ __html: renderSafeContentLists(question.content) }}
-                />
+                >
+                  <PracticeQuestionText narration={question.narration} question={question.content ?? ""} />
+                  {question.imageUrl && <img src={question.imageUrl} alt="Ilustrasi soal" className="mt-4 max-h-96 rounded-xl object-contain" />}
+                </div>
               </div>
 
               <div className="space-y-2 sm:space-y-3">
@@ -153,9 +127,8 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                               : "text-gray-700"
                           }`}
                           style={{ fontSize: `${fontSize}px` }}
-                        >
-                          {item.content}
-                        </span>
+                          dangerouslySetInnerHTML={{ __html: renderMathContent(item.content) }}
+                        />
                       </div>
                       {item.isCorrect && (
                         <Badge className="bg-emerald-600 hover:bg-emerald-600 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
@@ -202,9 +175,8 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                               : "text-gray-400"
                           }`}
                           style={{ fontSize: `${fontSize + 2}px` }}
-                        >
-                          {item.content}
-                        </span>
+                          dangerouslySetInnerHTML={{ __html: renderMathContent(item.content) }}
+                        />
                         {item.isCorrect && (
                           <Badge className="bg-emerald-600 hover:bg-emerald-600 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-wider">
                             Jawaban
@@ -216,7 +188,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                 )}
               </div>
 
-              {question.explanation && (
+              {(question.structuredSolution || question.explanation) && (
                 <div className="mt-6 sm:mt-12 p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-blue-50 border-2 border-blue-100 relative overflow-hidden">
                   <div className="relative z-10 space-y-2 sm:space-y-4">
                     <div className="flex items-center gap-2 text-blue-700 font-black text-[10px] sm:text-xs uppercase tracking-widest">
@@ -226,8 +198,9 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                     <div
                       className="prose prose-blue prose-sm sm:prose-base max-w-none text-blue-900 leading-relaxed font-medium italic border-l-2 sm:border-l-4 border-blue-400 pl-3 sm:pl-6"
                       style={{ fontSize: `${fontSize - 2}px` }}
-                      dangerouslySetInnerHTML={{ __html: renderSafeContentLists(question.explanation) }}
-                    />
+                    >
+                      <TryoutSolution solution={question.structuredSolution} explanation={question.explanation} />
+                    </div>
                   </div>
                 </div>
               )}

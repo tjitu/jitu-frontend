@@ -64,7 +64,9 @@ export function renderMathContent(
   rawContent: unknown,
   options: RenderMathOptions = {}
 ): string {
-  const content = toSafeText(rawContent);
+  const content = toSafeText(rawContent)
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_, math: string) => `$$${math}$$`)
+    .replace(/\\\(([^\n]*?)\\\)/g, (_, math: string) => `$${math}$`);
   if (!content) return "";
 
   const { animatedHighlights = false } = options;

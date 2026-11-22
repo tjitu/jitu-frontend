@@ -27,16 +27,15 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { renderSafeContentLists } from "@/lib/safe-content-lists";
+import { PracticeQuestionText } from "@/components/practice-question-text";
+import { TryoutSolution } from "@/components/tryout-solution";
+import { renderMathContent } from "@/lib/render-math-content";
+import type { QuestionSolutionData } from "@/lib/practice-store";
 import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { AnswerFormatGuide } from "@/components/answer-format-guide";
 import { pendingBreakOrder } from "./break/pending-break";
 import { FontSizeControl } from "./components/FontSizeControl";
-import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
-import { convertLatexTabularToHtml } from "@/lib/latex-tabular";
 import { toast } from "sonner";
 import {
   Select,
@@ -50,6 +49,9 @@ type UiOption = { id: string; text: string };
 type UiQuestion = {
   id: string;
   questionText: string;
+  narration?: string;
+  imageUrl?: string;
+  structuredSolution?: QuestionSolutionData | null;
   options: UiOption[];
   correctAnswerId?: string;
   correctAnswerText?: string;
@@ -128,7 +130,6 @@ export default function TryoutExamModule() {
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("ALL");
   const [isOnline, setIsOnline] = useState(true);
   const [fontSize, setFontSize] = useState(16);
-  const questionContainerRef = useRef<HTMLDivElement>(null);
   const endTimeMsRef = useRef<number | null>(null);
   const finishingRef = useRef(false);
   const autosaveTimerRef = useRef<number | null>(null);
@@ -224,32 +225,6 @@ export default function TryoutExamModule() {
     }
   };
 
-  useEffect(() => {
-    if (questionContainerRef.current) {
-      const contentElements =
-        questionContainerRef.current.querySelectorAll(".prose, .option-text");
-      contentElements.forEach((el) => {
-        if (el.innerHTML.includes("&amp;")) {
-          el.innerHTML = el.innerHTML.replace(/&amp;/g, "&");
-        }
-        if (el.innerHTML.includes("tabular")) {
-          el.innerHTML = convertLatexTabularToHtml(el.innerHTML);
-        }
-      });
-
-      renderMathInElement(questionContainerRef.current, {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
-          { left: "\\(", right: "\\)", display: false },
-          { left: "\\[", right: "\\]", display: true },
-        ],
-        throwOnError: false,
-        trust: false,
-      });
-    }
-  }, [currentQuestionIndex, examData, fontSize]);
-
   const mapQuestionsPayloadToUi = (
     raw: any,
     effectiveAttemptId: string,
@@ -268,6 +243,9 @@ export default function TryoutExamModule() {
       return {
         id: s(q?.id),
         questionText: s(q?.questionText),
+        narration: s(q?.narration),
+        imageUrl: s(q?.imageUrl),
+        structuredSolution: q?.structuredSolution,
         options,
         type: s(q?.type),
         solution: s(q?.solution),
@@ -1061,16 +1039,16 @@ export default function TryoutExamModule() {
               </div>
             </div>
 
-            <div ref={questionContainerRef}>
+            <div>
               {/* Question Passage / Text Box */}
               <div className="mb-6 bg-surface-muted rounded-md border border-border p-4 sm:p-5 overflow-x-auto max-h-[420px] overflow-y-auto">
                 <div
                   className="prose max-w-[65ch] text-text whitespace-pre-wrap leading-[1.65]"
                   style={{ fontSize: `${fontSize}px` }}
-                  dangerouslySetInnerHTML={{
-                    __html: renderSafeContentLists(question),
-                  }}
-                />
+                >
+                  <PracticeQuestionText narration={currentQuestion.narration} question={question} />
+                  {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="Ilustrasi soal" className="mt-4 max-h-96 rounded-xl object-contain" />}
+                </div>
               </div>
 
               {guidance && currentQuestion.options.length > 0 && currentQuestion.type !== "ISIAN_SINGKAT" && (
@@ -1129,7 +1107,7 @@ export default function TryoutExamModule() {
                         <div
                           className="flex-1 option-text leading-[1.55]"
                           style={{ fontSize: `${fontSize}px` }}
-                          dangerouslySetInnerHTML={{ __html: renderSafeContentLists(opt.text) }}
+                          dangerouslySetInnerHTML={{ __html: renderMathContent(opt.text) }}
                         />
                         {isReviewMode && isCorrectKey && (
                           <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
@@ -1187,7 +1165,7 @@ export default function TryoutExamModule() {
               )}
 
               {/* Solution Box in Review Mode */}
-              {isReviewMode && currentQuestion.solution && (
+              {isReviewMode && (currentQuestion.structuredSolution || currentQuestion.solution) && (
                 <div className="mt-6 p-5 sm:p-6 rounded-lg bg-surface-muted border border-border">
                   <div className="flex items-center gap-2 text-label text-primary pb-3 mb-3 border-b border-border">
                     <BookOpen className="w-4 h-4" />
@@ -1197,9 +1175,7 @@ export default function TryoutExamModule() {
                     className="prose prose-sm learning-content max-w-[65ch]"
                     style={{ fontSize: `${fontSize}px` }}
                   >
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {currentQuestion.solution.replace(/^•[ \t]+/gm, "* ")}
-                    </ReactMarkdown>
+                    <TryoutSolution solution={currentQuestion.structuredSolution} explanation={currentQuestion.solution} />
                   </div>
                 </div>
               )}
