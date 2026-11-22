@@ -1955,18 +1955,18 @@ const LandingPageModule = () => {
               >
                 Daftar gratis
               </Link>
-              <a
-                href="#"
+              <Link
+                href="/syarat-ketentuan"
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
               >
                 Syarat & Ketentuan
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/kebijakan-privasi"
                 className="hover:text-white underline underline-offset-4 decoration-blue-400/50 hover:decoration-white transition-all"
               >
                 Privasi
-              </a>
+              </Link>
             </nav>
           </div>
 
