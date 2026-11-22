@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import { Loader2, Ticket, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -28,24 +28,31 @@ export default function PaymentOptions({
 }: PaymentOptionsProps) {
   return (
     <>
-      <DialogHeader className="items-center text-center sm:text-center">
-        <DialogTitle className="flex items-center justify-center gap-2 text-3xl font-bold text-text">
+      <DialogHeader>
+        <DialogTitle>Konfirmasi pembelian</DialogTitle>
+        <DialogDescription className="sr-only">
+          Periksa jumlah coin dan nominal sebelum memilih metode pembayaran.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col items-center gap-1 py-1">
+        <div className="flex items-center gap-2 text-3xl font-bold text-text">
           {tokenAmount} <PixelCoin size={36} />
           <span className="sr-only">coin</span>
-        </DialogTitle>
-        <DialogDescription className="text-lg font-semibold text-text">
+        </div>
+        <div className="text-lg font-semibold text-text">
           {voucher && (
             <span className="mr-2 text-sm font-normal text-text-muted line-through">
               Rp{price.toLocaleString("id-ID")}
             </span>
           )}
           Rp{(voucher?.finalPrice ?? price).toLocaleString("id-ID")}
-        </DialogDescription>
-      </DialogHeader>
+        </div>
+      </div>
 
       {!voucher ? (
-        <div className="rounded-xl border border-border bg-surface-muted/50 p-3">
-          <label htmlFor="payment-voucher" className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-text">
+        <div className="space-y-2">
+          <label htmlFor="payment-voucher" className="flex items-center gap-1.5 text-sm font-semibold text-text">
             <Ticket className="h-4 w-4 text-primary" />
             Punya kode voucher / diskon?
           </label>
@@ -71,7 +78,7 @@ export default function PaymentOptions({
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
+        <div className="flex items-center justify-between text-emerald-600">
           <div className="text-sm text-text">
             <div className="font-semibold">{voucher.code} · Hemat {voucher.discountPercent}%</div>
             <div className="mt-1 text-xs text-text-muted">
@@ -86,16 +93,18 @@ export default function PaymentOptions({
         </div>
       )}
 
-      <div className="flex items-center gap-3 text-xs font-semibold text-text-muted">
-        <div className="h-px flex-1 bg-border" />
-        <span>Pilih metode pembayaran</span>
-        <div className="h-px flex-1 bg-border" />
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 text-xs font-semibold text-text-muted">
+          <div className="h-px flex-1 bg-border" />
+          <span>Pilih metode pembayaran</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+        <button type="button" onClick={onPay}
+          className="flex w-full items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-left font-semibold text-text transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+          <span>QRIS</span>
+          <Image src="/icons/qris.svg" alt="" width={70} height={27} unoptimized />
+        </button>
       </div>
-      <button type="button" onClick={onPay}
-        className="flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-left font-semibold text-text transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-        <span>QRIS</span>
-        <Image src="/icons/qris.svg" alt="" width={70} height={27} unoptimized />
-      </button>
     </>
   );
 }
