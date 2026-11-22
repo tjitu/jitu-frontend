@@ -1,24 +1,10 @@
 import crypto from "crypto";
 import { getDbPool } from "./db";
 import { isUserPremiumActive } from "@/lib/premium";
+import { verifyFirebaseIdToken, type FirebaseTokenPayload } from "./firebase-token";
 
-export interface FirebaseTokenPayload {
-  iss: string;
-  aud: string;
-  auth_time: number;
-  user_id: string;
-  sub: string;
-  iat: number;
-  exp: number;
-  email?: string;
-  email_verified?: boolean;
-  firebase?: {
-    identities?: Record<string, string[]>;
-    sign_in_provider?: string;
-  };
-  name?: string;
-  picture?: string;
-}
+export { verifyFirebaseIdToken };
+export type { FirebaseTokenPayload };
 
 export interface AppUserProfile {
   id: string;
@@ -34,93 +20,6 @@ export interface AppUserProfile {
   school?: string | null;
   phone?: string | null;
   phoneNumber?: string | null;
-}
-
-let cachedGoogleCerts: { keys: Record<string, string>; expiresAt: number } | null = null;
-let pendingGoogleCerts: Promise<Record<string, string>> | null = null;
-
-async function getGooglePublicCerts(): Promise<Record<string, string>> {
-  if (cachedGoogleCerts && cachedGoogleCerts.expiresAt > Date.now()) {
-    return cachedGoogleCerts.keys;
-  }
-  if (pendingGoogleCerts) return pendingGoogleCerts;
-  pendingGoogleCerts = (async () => {
-    try {
-      const res = await fetch(
-        "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com",
-        { cache: "no-store" }
-      );
-      if (res.ok) {
-        const keys = (await res.json()) as Record<string, string>;
-        cachedGoogleCerts = { keys, expiresAt: Date.now() + 3600 * 1000 };
-        return keys;
-      }
-    } catch (err) {
-      console.warn("Failed to fetch Google public certs for token verification:", err);
-    }
-    return cachedGoogleCerts?.keys || {};
-  })();
-  try {
-    return await pendingGoogleCerts;
-  } finally {
-    pendingGoogleCerts = null;
-  }
-}
-
-export async function verifyFirebaseIdToken(token: string): Promise<FirebaseTokenPayload | null> {
-  try {
-    if (!token || typeof token !== "string") return null;
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-
-    const [headerB64, payloadB64, signatureB64] = parts;
-    const header = JSON.parse(Buffer.from(headerB64, "base64url").toString("utf8"));
-    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8")) as FirebaseTokenPayload;
-
-    const expectedProject =
-      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
-      process.env.FIREBASE_PROJECT_ID ||
-      "jitu-ptn-main-auth";
-
-    // 1. Check expiration
-    const nowSec = Math.floor(Date.now() / 1000);
-    if (!payload.exp || payload.exp < nowSec - 60) {
-      console.warn("Firebase token expired. exp:", payload.exp, "now:", nowSec);
-      return null;
-    }
-
-    // 2. Check audience and issuer
-    if (payload.aud !== expectedProject) {
-      console.warn("Firebase token audience mismatch:", payload.aud, "expected:", expectedProject);
-      return null;
-    }
-
-    const expectedIssuer = `https://securetoken.google.com/${expectedProject}`;
-    if (payload.iss !== expectedIssuer) {
-      console.warn("Firebase token issuer mismatch:", payload.iss, "expected:", expectedIssuer);
-      return null;
-    }
-
-    // 3. Cryptographic signature check against Google public certs
-    if (header.kid) {
-      const certs = await getGooglePublicCerts();
-      const cert = certs[header.kid];
-      if (cert) {
-        const verifier = crypto.createVerify("RSA-SHA256");
-        verifier.update(`${headerB64}.${payloadB64}`);
-        const isValid = verifier.verify(cert, Buffer.from(signatureB64, "base64url"));
-        if (!isValid) {
-          console.warn("Firebase token signature verification failed for kid:", header.kid);
-          return null;
-        }
-      }
-    }
-
-    return payload;
-  } catch (err) {
-    console.error("Error decoding/verifying Firebase ID token:", err);
-    return null;
-  }
 }
 
 function resolveProviderId(signInProvider?: string): string {
