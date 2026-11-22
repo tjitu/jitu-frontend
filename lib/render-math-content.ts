@@ -7,10 +7,24 @@ export interface RenderMathOptions {
   animatedHighlights?: boolean;
 }
 
+/** Coerce any untrusted value (DB/JSON data) into a safe display string. */
+export function toSafeText(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.map(toSafeText).filter(Boolean).join("\n");
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "";
+  }
+}
+
 export function renderMathContent(
-  content: string,
+  rawContent: unknown,
   options: RenderMathOptions = {}
 ): string {
+  const content = toSafeText(rawContent);
   if (!content) return "";
 
   const { animatedHighlights = false } = options;

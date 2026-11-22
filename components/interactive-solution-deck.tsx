@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { InlineSolutionLabel } from "./inline-solution-label";
 import "katex/dist/katex.min.css";
-import { renderMathContent } from "@/lib/render-math-content";
+import { renderMathContent, toSafeText } from "@/lib/render-math-content";
 import type { QuestionSolutionData } from "@/lib/practice-store";
 
 export { renderMathContent } from "@/lib/render-math-content";
@@ -34,7 +34,7 @@ function InteractiveSolutionDeckContent({
   onStepChange,
   onClose,
 }: InteractiveSolutionDeckProps) {
-  const steps = solution.steps || [];
+  const steps = Array.isArray(solution.steps) ? solution.steps.filter(Boolean) : [];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showKeyFormula, setShowKeyFormula] = useState(false);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -103,7 +103,8 @@ function InteractiveSolutionDeckContent({
             {steps.map((st, idx) => {
               const isActive = idx === currentSlide;
               const isCompleted = idx < currentSlide;
-              const categoryLabel = st.category || `Langkah ${st.stepNumber}`;
+              const categoryLabel =
+                toSafeText(st.category) || `Langkah ${toSafeText(st.stepNumber) || idx + 1}`;
 
               return (
                 <button
@@ -233,7 +234,7 @@ function InteractiveSolutionDeckContent({
             >
               {/* Step Title */}
               <h3 className="text-base sm:text-lg font-extrabold text-text tracking-tight leading-snug m-0">
-                <InlineSolutionLabel text={currentStep.title} />
+                <InlineSolutionLabel text={toSafeText(currentStep.title)} />
               </h3>
 
               {/* Step Content: Balanced reading scale matching Card Soal */}
