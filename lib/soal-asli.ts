@@ -205,6 +205,18 @@ export async function getSoalAsliPackageDetail(
         };
       });
 
+      // A package can remain in the catalogue while its imported questions are
+      // temporarily unavailable. Prefer the checked-in archive export in that
+      // case instead of rendering a misleading empty package.
+      if (qRes.rows.length === 0) {
+        const fallbackDetail = loadPackageDetailFromJson(packageIdOrSlug);
+        if (fallbackDetail) {
+          cachedPackageDetails.set(fallbackDetail.id, fallbackDetail);
+          if (fallbackDetail.slug) cachedPackageDetails.set(fallbackDetail.slug, fallbackDetail);
+          return fallbackDetail;
+        }
+      }
+
       const detail: SoalAsliPackageDetail = {
         ...pkg,
         questions: resolvePassageReferences(questions),
