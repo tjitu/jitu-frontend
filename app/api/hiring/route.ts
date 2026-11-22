@@ -27,6 +27,19 @@ export async function GET(req: NextRequest) {
       const appUser = await getAuthenticatedAppUser(req).catch(() => null);
       const access = evaluateAdminAccess(appUser);
       if (!access.ok) {
+        // Someone opening this URL directly in a browser gets a readable page instead of raw JSON.
+        // Programmatic callers (fetch) still receive the JSON error with the real status code.
+        const wantsPage =
+          req.headers.get("sec-fetch-dest") === "document" ||
+          (req.headers.get("accept") ?? "").includes("text/html");
+        if (wantsPage) {
+          const target = new URL("/akses-ditolak", req.url);
+          target.searchParams.set("status", String(access.status));
+          return NextResponse.redirect(target, {
+            status: 303,
+            headers: { "Cache-Control": "no-store" },
+          });
+        }
         return NextResponse.json(
           { message: access.message },
           { status: access.status, headers: { "Cache-Control": "no-store" } }
