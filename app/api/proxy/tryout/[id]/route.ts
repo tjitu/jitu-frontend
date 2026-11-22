@@ -1,3 +1,4 @@
+import { areTryoutResultsAvailable } from "@/lib/tryout-results";
 import { canPreviewTryout } from "./_lib/can-preview-tryout";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
@@ -204,6 +205,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       );
     }
 
+    const resultsAvailable = areTryoutResultsAvailable(tryout.scheduledEnd);
     const resultAccess = Number(tryout.solutionPrice ?? 0) === 0 || unlockedSolutions.length > 0;
     let correctCount = 0;
     let wrongCount = 0;
@@ -257,9 +259,10 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       isWaitingTransition: progress.isWaitingTransition,
       nextSubtestOrder: progress.nextSubtestOrder,
       resumeUrl: progress.resumeUrl,
-      latestScore: resultAccess
-        ? Math.round(Number(latestFinishedAttempt?.totalScore) || 0)
-        : 0,
+      latestScore: resultAccess && resultsAvailable && latestFinishedAttempt
+        ? Math.round(Number(latestFinishedAttempt.totalScore) || 0)
+        : null,
+      resultsAvailable,
       correctCount,
       wrongCount,
       emptyCount,

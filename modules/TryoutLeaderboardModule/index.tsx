@@ -43,7 +43,7 @@ export function TryoutLeaderboardModule() {
         <Card className="p-8 max-w-lg mx-auto text-center space-y-4">
           <AlertCircle className="w-10 h-10 text-danger mx-auto" />
           <h3 className="font-display text-xl font-bold text-text">
-            Leaderboard gagal dimuat
+            {tryoutData && !tryoutData.resultsAvailable ? "Peringkat belum tersedia" : "Leaderboard gagal dimuat"}
           </h3>
           <p className="text-sm text-text-muted">
             {error || "Tryout tidak ditemukan."}

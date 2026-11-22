@@ -24,7 +24,8 @@ export interface TryoutDetail {
   isWaitingTransition?: boolean;
   nextSubtestOrder?: number | null;
   resumeUrl?: string | null;
-  latestScore?: number;
+  latestScore?: number | null;
+  resultsAvailable?: boolean;
   correctCount?: number;
   wrongCount?: number;
   emptyCount?: number;

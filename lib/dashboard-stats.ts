@@ -63,12 +63,13 @@ export async function getLearningStats(pool: Pool, userId: string) {
        WHERE d."userId" = $1 AND NULLIF(BTRIM(d."userAnswer"), '') IS NOT NULL
        ${practice}
      ), finished AS (
-       SELECT total_score, finished_at FROM public."TryOutAttempt"
-       WHERE "userId" = $1 AND status = 'FINISHED'
+       SELECT a.total_score, a.finished_at, t."scheduledEnd" FROM public."TryOutAttempt" a
+       JOIN public."TryOut" t ON t.id = a.try_out_id
+       WHERE a."userId" = $1 AND a.status = 'FINISHED'
      )
      SELECT
-       (SELECT total_score FROM finished ORDER BY finished_at DESC NULLS LAST LIMIT 1) AS "lastScore",
-       (SELECT MAX(total_score) FROM finished) AS "personalBest",
+       (SELECT total_score FROM finished WHERE "scheduledEnd" <= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') ORDER BY finished_at DESC NULLS LAST LIMIT 1) AS "lastScore",
+       (SELECT MAX(total_score) FROM finished WHERE "scheduledEnd" <= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')) AS "personalBest",
        (SELECT COUNT(*)::int FROM finished) AS "totalFinished",
        (SELECT COUNT(*)::int FROM public."TryOutAttempt"
         WHERE "userId" = $1 AND started_at >= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - INTERVAL '7 days') AS "weeklyActivity",

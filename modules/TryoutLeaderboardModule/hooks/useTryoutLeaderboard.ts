@@ -47,9 +47,14 @@ export function useTryoutLeaderboard() {
     setError("");
     try {
       const detailRes = await getTryoutDetail(tryoutId);
+      setTryoutData(detailRes);
+      if (!detailRes.resultsAvailable) {
+        setLeaderboardData(null);
+        setError("Skor IRT dan peringkat tersedia setelah periode tryout berakhir.");
+        return;
+      }
       const canView = detailRes.isFree || detailRes.unlockedSolutions.length > 0;
       const lbRes = canView ? await getTryoutLeaderboard(tryoutId) : null;
-      setTryoutData(detailRes);
       setLeaderboardData(lbRes);
     } catch (err: any) {
       setError(err?.message || "Gagal memuat data leaderboard.");

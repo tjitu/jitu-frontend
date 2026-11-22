@@ -1,3 +1,5 @@
+import { areTryoutResultsAvailable } from "@/lib/tryout-results";
+
 export interface SubtestTiming {
   order: number;
   durationMinutes: number;
@@ -86,12 +88,13 @@ export function computeAttemptProgress(
     nextSubtestOrder,
     resumeUrl,
     needAutoFinish,
-    score:
-      latestFinished?.totalScore != null
+    score: areTryoutResultsAvailable(scheduledEnd, nowMs)
+      ? latestFinished?.totalScore != null
         ? Number(latestFinished.totalScore)
         : latestAttempt?.totalScore != null
           ? Number(latestAttempt.totalScore)
-          : undefined,
+          : undefined
+      : undefined,
   };
 }
 

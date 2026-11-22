@@ -207,7 +207,7 @@ export function TryoutHeroHeader({
                 Skor IRT
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-primary tabular-nums">
-                {isFinished ? (isUnlocked ? finalScore : "???") : "-"}
+                {isFinished && tryoutData.resultsAvailable ? (isUnlocked ? finalScore : "???") : "?"}
               </div>
             </div>
           </div>

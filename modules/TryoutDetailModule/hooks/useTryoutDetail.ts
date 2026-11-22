@@ -74,8 +74,7 @@ export function useTryoutDetail() {
       }
 
       if (
-        data.latestAttemptStatus === "FINISHED" ||
-        (data.endDate && new Date() > new Date(data.endDate))
+        data.resultsAvailable
       ) {
         try {
           const lbData = await getTryoutLeaderboard(tryoutId);

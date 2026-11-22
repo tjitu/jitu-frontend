@@ -45,7 +45,7 @@ export function TryoutResultSummary({
               Buka Hasil &amp; Pembahasan
             </h3>
             <p className="text-sm text-text-body leading-relaxed">
-              Upgrade pendaftaran dengan {cost} coin untuk membuka pembahasan, ranking, dan hasil IRT {tryoutData.title}.
+              Upgrade pendaftaran dengan {cost} coin untuk membuka pembahasan dan hasil {tryoutData.title}. Skor IRT dan peringkat tersedia setelah periode tryout berakhir.
             </p>
           </div>
 
@@ -75,6 +75,15 @@ export function TryoutResultSummary({
             )}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!tryoutData.resultsAvailable) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-text-body">
+        <p className="font-semibold text-text">Skor IRT dan peringkat belum tersedia</p>
+        <p className="mt-1">Hasil akan tersedia setelah periode tryout berakhir.</p>
       </div>
     );
   }

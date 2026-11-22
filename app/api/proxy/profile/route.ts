@@ -51,14 +51,14 @@ export async function GET(req: NextRequest) {
     }
 
     const statsRes = await pool.query(
-      `SELECT COUNT(*)::int as total, COALESCE(AVG(total_score), 0)::numeric as avg_score
-       FROM "TryOutAttempt" WHERE "userId" = $1 AND status = 'FINISHED'`,
+      `SELECT COUNT(*)::int as total, COALESCE(AVG(a.total_score) FILTER (WHERE t."scheduledEnd" <= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')), 0)::numeric as avg_score
+       FROM "TryOutAttempt" a JOIN "TryOut" t ON t.id = a.try_out_id WHERE a."userId" = $1 AND a.status = 'FINISHED'`,
       [authUser.id]
     );
     const statsRow = statsRes.rows[0];
 
     const attemptsRes = await pool.query(
-      `SELECT a.id, t.title, a.started_at as date, a.total_score as score, a.status
+      `SELECT a.id, t.title, a.started_at as date, CASE WHEN a.status = 'FINISHED' AND t."scheduledEnd" <= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') THEN a.total_score ELSE NULL END as score, a.status
        FROM "TryOutAttempt" a
        JOIN "TryOut" t ON a.try_out_id = t.id
        WHERE a."userId" = $1

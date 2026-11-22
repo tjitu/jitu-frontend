@@ -1,3 +1,4 @@
+import { areTryoutResultsAvailable } from "@/lib/tryout-results";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
@@ -65,7 +66,13 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     }
 
     const scheduledEndDate = tryout.scheduledEnd ? new Date(tryout.scheduledEnd) : null;
-    const isEnded = scheduledEndDate ? new Date() >= scheduledEndDate : true;
+    if (!areTryoutResultsAvailable(scheduledEndDate)) {
+      return NextResponse.json(
+        { message: "Skor IRT dan peringkat tersedia setelah periode tryout berakhir." },
+        { status: 403 },
+      );
+    }
+    const isEnded = true;
 
     let attempts: FinishedAttemptRow[] = [];
     try {
@@ -100,17 +107,6 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         [tryoutId],
       );
       attempts = rows;
-    }
-
-    const userHasFinished = attempts.some((a) => a.userId === user.id);
-    const isAdmin = user.role === "ADMIN";
-
-    // If tryout has not ended and user hasn't finished, hide leaderboard to prevent spoilers
-    if (!isEnded && !userHasFinished && !isAdmin) {
-      return NextResponse.json(
-        { message: "Selesaikan tryout terlebih dahulu untuk melihat leaderboard." },
-        { status: 403 },
-      );
     }
 
     const eligibleAttempts = isEnded && scheduledEndDate

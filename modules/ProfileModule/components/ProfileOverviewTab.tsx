@@ -11,7 +11,7 @@ export interface AttemptItem {
   id: string;
   title: string;
   date: string;
-  score: number;
+  score: number | null;
   status: string;
 }
 
@@ -210,7 +210,7 @@ export function HistoryRow({ attempt }: { attempt: AttemptItem }) {
             Skor
           </div>
           <div className="font-mono text-lg font-bold text-primary tabular-nums">
-            {attempt.score}
+            {attempt.score ?? "Menunggu"}
           </div>
         </div>
       </div>
