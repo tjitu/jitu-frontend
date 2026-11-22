@@ -1,0 +1,71 @@
+/* All tracks share a clock so the handoff also stays in sync on a slow frame. */
+.screen,
+.screen :is(.seal, .ring, .tick, .ripple, .icon, .kicker, .name) {
+  animation-duration: 5.6s;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(.22, .7, .22, 1);
+}
+
+.screen { animation-name: revealBreak; }
+.seal { animation-name: stamp; }
+.ring, .tick { stroke-dasharray: 1; }
+.ring { animation-name: traceRing; }
+.tick { animation-name: traceTick; }
+.ripple { animation-name: ripple; transform-origin: center; }
+.icon { animation-name: liftIcon; }
+.kicker { animation-name: liftLabel; }
+.name { animation-name: uncoverName; }
+
+@keyframes stamp {
+  0% { opacity: 0; transform: scale(.82); }
+  12% { opacity: 1; transform: scale(1); }
+  23% { transform: scale(1.045); }
+  31% { opacity: 1; transform: scale(1); }
+  40%, 100% { opacity: 0; transform: translateY(-8px) scale(.94); }
+}
+
+@keyframes traceRing {
+  0% { stroke-dashoffset: 1; }
+  17%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes traceTick {
+  0%, 10% { stroke-dashoffset: 1; opacity: 0; }
+  11% { opacity: 1; }
+  23%, 100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes ripple {
+  0%, 20% { opacity: 0; transform: scale(1); }
+  21% { opacity: .45; }
+  38%, 100% { opacity: 0; transform: scale(1.38); }
+}
+
+@keyframes liftIcon {
+  0%, 39% { opacity: 0; transform: translateY(12px) scale(.88); }
+  54%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes liftLabel {
+  0%, 42% { opacity: 0; transform: translateY(6px); }
+  56%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes uncoverName {
+  0%, 45% { opacity: 0; transform: translateY(105%); }
+  61%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes revealBreak {
+  0%, 86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.loading {
+  animation: showStatus 180ms ease-out 700ms backwards;
+}
+
+@keyframes showStatus {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/subtest-meta";
 import { BACKEND_URL } from "@/lib/api";
 import { getActiveTryoutSandboxToken, getTryoutDetail } from "@/lib/api/tryout";
 import { useSession } from "@/lib/auth-client";
@@ -31,6 +32,7 @@ import remarkGfm from "remark-gfm";
 import { renderContentLists } from "@/lib/content-lists";
 import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { AnswerFormatGuide } from "@/components/answer-format-guide";
+import { pendingBreakOrder } from "./break/pending-break";
 import { FontSizeControl } from "./components/FontSizeControl";
 import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
@@ -288,6 +290,21 @@ export default function TryoutExamModule() {
   useEffect(() => {
     const load = async () => {
       if (!tryoutId || !subtestId) return;
+      if (!isReviewMode && !attemptId && !attemptIdFromQuery) {
+        router.replace(`/tryout/${encodeURIComponent(tryoutId)}`);
+        return;
+      }
+      if (!isReviewMode && attemptId) {
+        try {
+          const pendingOrder = pendingBreakOrder(localStorage, attemptId, currentSubtestOrder);
+          if (pendingOrder) {
+            router.replace(`/tryout/${encodeURIComponent(tryoutId)}/break/${pendingOrder}?attemptId=${encodeURIComponent(attemptId)}`);
+            return;
+          }
+        } catch {
+          // Continue normally when browser storage is unavailable.
+        }
+      }
 
       try {
         setLoading(true);
@@ -421,6 +438,7 @@ export default function TryoutExamModule() {
     session?.user?.id,
     attemptId,
     attemptIdFromQuery,
+    currentSubtestOrder,
     router,
   ]);
 
@@ -763,6 +781,8 @@ export default function TryoutExamModule() {
 
   const { question, guidance } = splitQuestionGuidance(currentQuestion.questionText);
   const totalQuestions = examData.questions.length;
+  const subtest = getSubtestInfo(examData.subtestName, subtestIndex);
+  const SubtestIcon = subtest.IconComponent;
   const answeredCount = examData.questions.filter((q) => {
     const val = answers[q.id];
     return val !== undefined && val !== "";
@@ -871,18 +891,18 @@ export default function TryoutExamModule() {
 
       {/* Legend at bottom of panel */}
       {!isReviewMode ? (
-        <div className="pt-3 border-t border-ink-100 grid grid-cols-3 gap-2 text-[11px] text-text-muted font-medium">
+        <div className="pt-3 border-t border-ink-100 flex items-center justify-between gap-2 text-[10px] sm:text-[11px] text-text-muted font-medium">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-xs bg-primary shrink-0" />
-            <span>Dijawab ({answeredCount})</span>
+            <span className="whitespace-nowrap">Dijawab ({answeredCount})</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-xs bg-yellow-300 shrink-0" />
-            <span>Ragu ({raguCount})</span>
+            <span className="whitespace-nowrap">Ragu ({raguCount})</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-xs bg-surface border border-border shrink-0" />
-            <span>Kosong ({unansweredCount})</span>
+            <span className="whitespace-nowrap">Kosong ({unansweredCount})</span>
           </div>
         </div>
       ) : (
@@ -907,10 +927,10 @@ export default function TryoutExamModule() {
   return (
     <div className="min-h-screen bg-bg text-text-body flex flex-col">
       {/* Sticky Top Bar (64px, white, 1px bottom border) */}
-      <header className="sticky top-0 z-10 h-16 bg-surface text-text border-b border-border px-3 sm:px-6">
-        <div className="max-w-[1200px] mx-auto h-full flex items-center justify-between gap-2">
+      <header className="sticky top-0 z-10 min-h-16 bg-surface text-text border-b border-border px-3 sm:px-6">
+        <div className="max-w-[1200px] mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 py-2 sm:flex-nowrap">
           {/* Left: Subtest name + Font size toggle */}
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
             {isReviewMode && (
               <Button
                 variant="outline"
@@ -922,9 +942,10 @@ export default function TryoutExamModule() {
                 <span className="hidden sm:inline">Kembali</span>
               </Button>
             )}
-            <div className="truncate">
-              <span className="font-semibold text-sm sm:text-base text-text truncate">
-                {examData.subtestName}
+            <div className="flex items-center gap-2 min-w-0">
+              <SubtestIcon className="h-5 w-5 shrink-0 text-primary" size={20} />
+              <span className="font-semibold text-sm sm:text-base text-text">
+                {subtest.name} ({subtest.code})
               </span>
               <span className="hidden md:inline font-mono text-xs text-text-muted ml-2 tabular-nums">
                 · Subtes {(activeSubtests.findIndex((s) => Number(s.order) === currentSubtestOrder) + 1) || (subtestIndex + 1)}/{totalSubtestsCount}

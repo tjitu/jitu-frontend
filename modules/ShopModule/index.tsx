@@ -13,19 +13,17 @@ import { toast } from "sonner";
 import {
   AlertCircleIcon,
   Loader2,
-  Smartphone,
-  Monitor,
   XCircle,
   Check,
   Sparkles,
   ArrowRight,
   CheckCircle2,
-  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import TokenCard from "./components/TokenCard";
+import PaymentOptions from "./components/PaymentOptions";
 import { PixelCoin } from "@/components/ui/pixel-coin";
 import { contactInfos, tokenPackages as fallbackTokenPackages } from "./payload";
 import { BACKEND_URL } from "@/lib/api";
@@ -1061,118 +1059,17 @@ const ShopModule = () => {
           showCloseButton={!(transactionId && !isModalLoading && !showContact && paymentData?.redirectUrl && paymentData?.snapToken && !paymentData?.qrCodeUrl && !paymentData?.qrCode && !showOuterSnapClose)}
         >
           {!isModalLoading && !transactionId && (
-            <>
-              <DialogHeader>
-                <div className="text-label text-primary mb-1">
-                  PEMBAYARAN INSTAN
-                </div>
-                <DialogTitle className="text-[20px] font-bold text-text">
-                  Bayar {selectedPkg?.tokenAmount} coin via QRIS
-                </DialogTitle>
-                <DialogDescription className="text-[14px] text-text-body">
-                  Total tagihan{" "}
-                  {appliedVoucher ? (
-                    <>
-                      <span className="font-mono text-text-muted line-through mr-1.5">
-                        Rp{(selectedPkg?.price ?? 0).toLocaleString("id-ID")}
-                      </span>
-                      <span className="font-mono font-bold text-emerald-500 text-base">
-                        Rp{appliedVoucher.finalPrice.toLocaleString("id-ID")}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="font-mono font-semibold text-text">
-                      Rp{(selectedPkg?.price ?? 0).toLocaleString("id-ID")}
-                    </span>
-                  )}
-                  . Bisa dibayar pakai GoPay, OVO, DANA, ShopeePay, atau
-                  m-banking.
-                </DialogDescription>
-              </DialogHeader>
-
-              {/* Voucher / Referral Code Input Box */}
-              {!appliedVoucher ? (
-                <div className="mt-2 p-3 rounded-xl border border-border bg-surface-muted/50">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-text mb-2">
-                    <Ticket className="w-3.5 h-3.5 text-primary" />
-                    <span>Punya Kode Voucher / Referal?</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="Masukkan kode..."
-                      className="flex-1 uppercase font-mono text-xs px-3 py-2 rounded-lg border border-border bg-background text-text focus:outline-none focus:ring-1 focus:ring-primary placeholder:normal-case placeholder:font-sans"
-                      value={voucherInput}
-                      onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleApplyVoucher();
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={handleApplyVoucher}
-                      disabled={!voucherInput.trim() || validatingVoucher}
-                      className="h-8 text-xs font-semibold px-3"
-                    >
-                      {validatingVoucher ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        "Gunakan"
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-2 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs">
-                      %
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-emerald-400">
-                        <span>{appliedVoucher.code}</span>
-                        <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                          Hemat {appliedVoucher.discountPercent}%
-                        </span>
-                      </div>
-                      <small className="text-[11px] text-text-muted block mt-0.5">
-                        Potongan Rp{appliedVoucher.discountAmount.toLocaleString("id-ID")}
-                        {appliedVoucher.referrerName ? ` • Referal: ${appliedVoucher.referrerName}` : ""}
-                      </small>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveVoucher}
-                    className="text-text-muted hover:text-red-400 text-xs px-2 py-1 rounded transition-colors"
-                    title="Hapus voucher"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-
-              <div className="pt-2">
-                <Button
-                  className="w-full"
-                  variant="default"
-                  size="lg"
-                  onClick={handleCreatePayment}
-                >
-                  {isMobile ? (
-                    <Smartphone className="w-4 h-4 mr-2" />
-                  ) : (
-                    <Monitor className="w-4 h-4 mr-2" />
-                  )}
-                  Buat kode QRIS
-                </Button>
-              </div>
-            </>
+            <PaymentOptions
+              tokenAmount={selectedPkg?.tokenAmount ?? 0}
+              price={selectedPkg?.price ?? 0}
+              voucher={appliedVoucher}
+              voucherInput={voucherInput}
+              validatingVoucher={validatingVoucher}
+              onVoucherInputChange={setVoucherInput}
+              onApplyVoucher={handleApplyVoucher}
+              onRemoveVoucher={handleRemoveVoucher}
+              onPay={handleCreatePayment}
+            />
           )}
 
           {isModalLoading && (

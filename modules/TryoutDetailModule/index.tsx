@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,12 @@ import { ExecutionPeriodCard } from "./components/ExecutionPeriodCard";
 import { TryoutResultSummary } from "./components/TryoutResultSummary";
 import { useTryoutDetail } from "./hooks/useTryoutDetail";
 import { parsePtnTargets } from "@/lib/target";
+import { StartTryoutDialog } from "./components/StartTryoutDialog";
 
 const TryoutDetailModule = () => {
+  const [confirmStart, setConfirmStart] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
+  const startPending = useRef(false);
   const {
     tryoutData,
     leaderboardData,
@@ -45,6 +49,25 @@ const TryoutDetailModule = () => {
     router,
     session,
   } = useTryoutDetail();
+  const requestStart = () => {
+    if (tryoutData?.latestAttemptStatus === "IN_PROGRESS" || tryoutData?.latestAttemptStatus === "FINISHED") {
+      void handleStart();
+    } else {
+      setConfirmStart(true);
+    }
+  };
+  const confirmAndStart = async () => {
+    if (startPending.current) return;
+    startPending.current = true;
+    setStartLoading(true);
+    try {
+      await handleStart();
+      setConfirmStart(false);
+    } finally {
+      startPending.current = false;
+      setStartLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -130,7 +153,7 @@ const TryoutDetailModule = () => {
         isFinished={isFinished}
         isUnlocked={isUnlocked}
         finalScore={finalScore}
-        onStart={handleStart}
+        onStart={requestStart}
       />
 
       {/* Action Bar or Result Summary */}
@@ -147,7 +170,7 @@ const TryoutDetailModule = () => {
           finalScore={finalScore}
           userBalance={userBalance}
           onUnlockClick={() => setUnlockModalOpen(true)}
-          onStart={handleStart}
+          onStart={requestStart}
           leaderboardData={leaderboardData}
           targets={targets}
         />
@@ -156,7 +179,7 @@ const TryoutDetailModule = () => {
           tryoutData={tryoutData}
           isStartingAttempt={isStartingAttempt}
           isRegistering={isRegistering}
-          onStart={handleStart}
+          onStart={requestStart}
           onRegister={handleRegister}
         />
       )}
@@ -186,6 +209,7 @@ const TryoutDetailModule = () => {
       </div>
 
       {/* Registration & Unlock Modals */}
+      <StartTryoutDialog open={confirmStart} loading={startLoading} onOpenChange={setConfirmStart} onConfirm={confirmAndStart} />
       <RegisterModal
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}

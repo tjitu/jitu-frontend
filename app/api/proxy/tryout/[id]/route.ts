@@ -1,7 +1,8 @@
-import { createHash } from "node:crypto";
+import { canPreviewTryout } from "./_lib/can-preview-tryout";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
+import { ATTEMPT_TIMESTAMPS, TRYOUT_SCHEDULE } from "@/lib/tryout-timing-sql";
 import { isUserPremiumActive } from "@/lib/premium";
 import {
   computeAttemptProgress,
@@ -12,48 +13,6 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 type TryoutParams = { params: Promise<{ id: string }> };
-
-async function canPreviewTryout(
-  request: NextRequest,
-  userId: string,
-  tryoutId: string,
-): Promise<boolean> {
-  const pool = getDbPool();
-
-  try {
-    const { rows } = await pool.query(
-      `SELECT role, COALESCE("isSandbox", false) AS "isSandbox"
-       FROM "user" WHERE id = $1 LIMIT 1`,
-      [userId],
-    );
-    if (rows[0]?.role === "ADMIN" || rows[0]?.isSandbox === true) return true;
-  } catch (error) {
-    // Older databases may not yet have the optional isSandbox column.
-    if ((error as { code?: string })?.code !== "42703") throw error;
-    const { rows } = await pool.query(
-      `SELECT role FROM "user" WHERE id = $1 LIMIT 1`,
-      [userId],
-    );
-    if (rows[0]?.role === "ADMIN") return true;
-  }
-
-  const token = request.headers.get("x-sandbox-token")?.trim() || "";
-  if (!/^[a-f0-9]{64}$/i.test(token)) return false;
-
-  try {
-    const tokenHash = createHash("sha256").update(token).digest("hex");
-    const { rows } = await pool.query(
-      `SELECT 1 FROM "QcSandboxPreviewSession"
-       WHERE token_hash = $1 AND tryout_id = $2 AND expires_at > NOW()
-       LIMIT 1`,
-      [tokenHash, tryoutId],
-    );
-    return rows.length > 0;
-  } catch {
-    // A preview token is never accepted when its session cannot be verified.
-    return false;
-  }
-}
 
 export async function GET(request: NextRequest, { params }: TryoutParams) {
   try {
@@ -66,7 +25,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     const pool = getDbPool();
     const tryoutResult = await pool.query(
       `SELECT t.id, t.title, t.description, t.code, t.batch,
-              t."solutionPrice", t."scheduledStart", t."scheduledEnd",
+              t."solutionPrice", ${TRYOUT_SCHEDULE},
               (SELECT COUNT(*)::int FROM "TryOutAttempt" a WHERE a.try_out_id = t.id) AS participants
        FROM "TryOut" t WHERE t.id = $1 LIMIT 1`,
       [id],
@@ -136,9 +95,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         ),
       pool.query(
         `SELECT id, status, total_score AS "totalScore",
-                started_at AS "startedAt", finished_at AS "finishedAt",
-                current_subtest_order AS "currentSubtestOrder",
-                subtest_started_at AS "subtestStartedAt"
+                ${ATTEMPT_TIMESTAMPS}, current_subtest_order AS "currentSubtestOrder"
          FROM "TryOutAttempt" WHERE "userId" = $1 AND try_out_id = $2
          ORDER BY started_at DESC LIMIT 1`,
         [user.id, id],
@@ -212,11 +169,16 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       : unlockResult.rows;
     let latestFinishedAttempt = finishedAttemptResult.rows[0] ?? null;
 
+    const populated = categories.filter((category) => category.questionCount > 0);
+    const timings = (populated.length ? populated : categories).map((category) => ({
+      order: category.id,
+      durationMinutes: category.duration,
+    }));
     let progress = computeAttemptProgress(
       id,
       attempt,
       latestFinishedAttempt,
-      categories.map((c) => ({ order: c.id, durationMinutes: c.duration })),
+      timings,
       tryout.scheduledEnd,
     );
 
@@ -226,9 +188,8 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         request.headers.get("authorization"),
       );
       const refreshed = await pool.query(
-        `SELECT id, status, total_score AS "totalScore", finished_at AS "finishedAt",
-                started_at AS "startedAt", current_subtest_order AS "currentSubtestOrder",
-                subtest_started_at AS "subtestStartedAt"
+        `SELECT id, status, total_score AS "totalScore",
+                ${ATTEMPT_TIMESTAMPS}, current_subtest_order AS "currentSubtestOrder"
          FROM "TryOutAttempt" WHERE id = $1 AND "userId" = $2 LIMIT 1`,
         [attempt.id, user.id],
       );
@@ -238,7 +199,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         id,
         attempt,
         latestFinishedAttempt,
-        categories.map((c) => ({ order: c.id, durationMinutes: c.duration })),
+        timings,
         tryout.scheduledEnd,
       );
     }
