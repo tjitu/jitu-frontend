@@ -44,6 +44,8 @@ export interface AvailableTryout {
   scheduledEnd?: Date | string | null;
   createdAt: Date;
   participants: number;
+  /** Server already knows: true when the signed-in user has a TryOutAttempt row for this tryout. */
+  isRegistered: boolean;
 }
 
 export interface ScoreHistory {

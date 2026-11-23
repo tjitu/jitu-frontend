@@ -400,7 +400,12 @@ const DashboardModule = () => {
       .filter((at) => !ongoingTryouts.some((ot) => ot.id === at.id))
       .map((at) => ({
         ...at,
-        isRegistered: false,
+        // The "available" endpoint already checks TryOutAttempt for this user
+        // (it only returns tryouts whose scheduledStart is in the future, so
+        // they never show up in `ongoingTryouts`); trust it instead of
+        // forcing false, or a just-registered tryout keeps showing
+        // "Belum terdaftar" forever.
+        isRegistered: Boolean(at.isRegistered),
         status: "NOT_STARTED",
       })),
   ];
@@ -981,9 +986,19 @@ const DashboardModule = () => {
                     <TryoutCardBanner
                       isSpecial={tryout.isSpecial}
                       badge={
-                        <span className="h-6 px-2.5 rounded-full bg-yellow-400 text-ink-900 text-[12px] font-bold inline-flex items-center gap-1.5 shadow-2xs">
-                          <Clock className="w-3.5 h-3.5 stroke-[2.2]" />
-                          <span>Belum terdaftar</span>
+                        <span
+                          className={`h-6 px-2.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 shadow-2xs ${
+                            tryout.isRegistered
+                              ? "bg-emerald-400 text-emerald-950"
+                              : "bg-yellow-400 text-ink-900"
+                          }`}
+                        >
+                          {tryout.isRegistered ? (
+                            <Check className="w-3.5 h-3.5 stroke-[2.2]" />
+                          ) : (
+                            <Clock className="w-3.5 h-3.5 stroke-[2.2]" />
+                          )}
+                          <span>{tryout.isRegistered ? "Terdaftar" : "Belum terdaftar"}</span>
                         </span>
                       }
                       sublabel={
