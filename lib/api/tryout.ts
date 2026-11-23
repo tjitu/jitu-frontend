@@ -143,6 +143,7 @@ export const getTryoutDetail = async (
     questionsReleased: data.questionsReleased,
     breakSeconds: data.breakSeconds,
     latestScore: data.latestScore ?? 0,
+    resultsAvailable: Boolean(data.resultsAvailable),
     correctCount: data.correctCount ?? 0,
     wrongCount: data.wrongCount ?? 0,
     emptyCount: data.emptyCount ?? 0,
