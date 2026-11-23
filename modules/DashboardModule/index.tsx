@@ -1050,10 +1050,14 @@ const DashboardModule = () => {
                           variant="primary"
                           className="w-full justify-between"
                           onClick={() =>
-                            handleRegisterClick(tryout as OngoingTryout)
+                            tryout.isRegistered
+                              ? router.push(`/tryout/${tryout.id}`)
+                              : handleRegisterClick(tryout as OngoingTryout)
                           }
                         >
-                          <span className="font-bold">Daftar tryout</span>
+                          <span className="font-bold">
+                            {tryout.isRegistered ? "Mulai Tryout" : "Daftar tryout"}
+                          </span>
                           <ArrowRight
                             className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                             aria-hidden="true"
