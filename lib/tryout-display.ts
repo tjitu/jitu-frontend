@@ -1,6 +1,7 @@
 /**
- * Deterministic display offset (150..300) per tryout ID using FNV-1a 32-bit hash.
- * Kept for backward compatibility if needed.
+ * Deterministic padding offset (150..300) per tryout ID using FNV-1a 32-bit hash.
+ * No longer added to the displayed participant count (see getDisplayedParticipants) —
+ * kept only so old callers/tests referencing it by name don't break.
  */
 export function getFixedParticipantOffset(tryoutId: string): number {
   const input = String(tryoutId || "");
@@ -14,14 +15,15 @@ export function getFixedParticipantOffset(tryoutId: string): number {
 }
 
 /**
- * Total participants shown in UI: fixed random offset (150..300) + actual registrants.
+ * Participants shown in UI: the real registrant count, nothing padded on top.
+ * This used to add getFixedParticipantOffset() as fake baseline traffic; that
+ * inflated every tryout's "peserta" number with a made-up figure.
  */
 export function getDisplayedParticipants(
   tryoutId: string,
   actualParticipants?: number | null,
 ): number {
-  const actual = Math.max(0, Number(actualParticipants) || 0);
-  return getFixedParticipantOffset(tryoutId) + actual;
+  return Math.max(0, Number(actualParticipants) || 0);
 }
 
 function formatWibDatePart(date: Date): string {
