@@ -451,14 +451,29 @@ const DashboardModule = () => {
     });
   };
 
+  // Same green-check-vs-yellow-clock convention as the "my-tryouts" tab and
+  // the Explore card below, so the hero badge doesn't look like a different
+  // (and contradictory) status indicator from the rest of the dashboard.
+  const featuredIsDone = featuredTryout?.status === "FINISHED";
+  const featuredIsInProgress = featuredTryout?.status === "IN_PROGRESS";
+  const featuredIsGreen = Boolean(featuredTryout?.isRegistered) && !featuredIsInProgress;
+
   const featuredStatusBadge = featuredTryout ? (
-    <span className="h-6 px-2.5 rounded-full bg-yellow-400 text-ink-900 text-[12px] font-bold inline-flex items-center gap-1.5 shadow-2xs">
-      <Clock className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+    <span
+      className={`h-6 px-2.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 shadow-2xs ${
+        featuredIsGreen ? "bg-emerald-400 text-emerald-950" : "bg-yellow-400 text-ink-900"
+      }`}
+    >
+      {featuredIsGreen ? (
+        <Check className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+      ) : (
+        <Clock className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+      )}
       <span>
         {featuredTryout.isRegistered
-          ? featuredTryout.status === "IN_PROGRESS"
+          ? featuredIsInProgress
             ? "Sedang mengerjakan"
-            : featuredTryout.status === "FINISHED"
+            : featuredIsDone
               ? "Selesai mengerjakan"
               : "Terdaftar"
           : "Belum terdaftar"}
