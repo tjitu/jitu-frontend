@@ -161,7 +161,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       };
     });
     const premiumUser = premiumResult.rows[0];
-    const premiumActive = isUserPremiumActive({
+    const premiumActive = id !== "sandbox-test-one-coin" && isUserPremiumActive({
       isPremium: premiumUser?.isPremium,
       premiumExpiresAt: premiumUser?.premiumExpiresAt,
     });
@@ -205,7 +205,9 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       );
     }
 
-    const resultsAvailable = areTryoutResultsAvailable(tryout.scheduledEnd);
+    const resultsAvailable = (id === "sandbox-test-free" || id === "sandbox-test-one-coin") && canPreview
+      ? Boolean(latestFinishedAttempt)
+      : areTryoutResultsAvailable(tryout.scheduledEnd);
     const resultAccess = Number(tryout.solutionPrice ?? 0) === 0 || unlockedSolutions.length > 0;
     let correctCount = 0;
     let wrongCount = 0;

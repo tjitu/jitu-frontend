@@ -156,7 +156,7 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
           [user.id, tryoutId],
         );
         isPremium = true;
-        if (!unlockResult.rows[0] && !isUserPremiumActive(userResult.rows[0])) {
+        if (!unlockResult.rows[0] && (tryoutId === "sandbox-test-one-coin" || !isUserPremiumActive(userResult.rows[0]))) {
           const deducted = await client.query(
             `UPDATE "user" SET "tokenBalance" = "tokenBalance" - $1, "updatedAt" = NOW()
              WHERE id = $2 AND "tokenBalance" >= $1 RETURNING "tokenBalance"`,

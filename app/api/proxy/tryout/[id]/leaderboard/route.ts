@@ -4,6 +4,7 @@ import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
 import { parsePtnTargets, PtnChoice } from "@/lib/target";
 import { isUserPremiumActive } from "@/lib/premium";
+import { canPreviewTryout } from "../_lib/can-preview-tryout";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -29,6 +30,10 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     }
 
     const { id: tryoutId } = await params;
+    if ((tryoutId === "sandbox-test-free" || tryoutId === "sandbox-test-one-coin") &&
+        !(await canPreviewTryout(request, user.id, tryoutId))) {
+      return NextResponse.json({ message: "Tryout tidak ditemukan." }, { status: 404 });
+    }
     const pool = getDbPool();
 
     const tryoutRes = await pool.query(
@@ -56,7 +61,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
           [user.id],
         ),
       ]);
-      const premiumPass = isUserPremiumActive(premiumResult.rows[0]);
+      const premiumPass = tryoutId !== "sandbox-test-one-coin" && isUserPremiumActive(premiumResult.rows[0]);
       if (!premiumPass && unlockResult.rows.length === 0) {
         return NextResponse.json(
           { message: `Upgrade ${solutionPrice} coin untuk melihat ranking.`, solutionPrice },

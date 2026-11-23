@@ -48,6 +48,7 @@ jitu-frontend/
 * **State & Data Fetching**: React Server Components where possible; client components use `fetch` or hooks for dynamic polling.
 
 * Sandbox revision feedback uses POST /api/practice/revision, lib/sandbox-revision.ts, and SandboxRevisionButton to move QC questions to NEEDS_REVISION with reviewer notes.
+* `/sandbox` lists two private test tryouts for sandbox users; `/api/sandbox/test-tryouts` resets only their own attempts and solution unlocks for those packages.
 * Practice questions use `PracticeQuestionText` for passages, stanzas and stems. Shared list rendering and short-answer guidance live in `lib/content-lists.ts` and `lib/question-guidance.ts`.
 * Dashboard stats are aggregated in `lib/dashboard-stats.ts` from submitted practice, daily and tryout answers. Streak days follow Asia/Jakarta and IRT scores come from finished tryouts.
 * Shop payment reconciliation uses `lib/midtrans-server.ts`; `lib/free-voucher-payment.ts` handles atomic free-voucher redemption.

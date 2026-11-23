@@ -71,7 +71,7 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
         return NextResponse.json({ message: "Pembahasan sudah terbuka" });
       }
 
-      const premiumPass = isUserPremiumActive(dbUser);
+      const premiumPass = tryoutId !== "sandbox-test-one-coin" && isUserPremiumActive(dbUser);
       if (!premiumPass && price > 0) {
         const deductRes = await client.query(
           `UPDATE "user" SET "tokenBalance" = "tokenBalance" - $1, "updatedAt" = NOW()
