@@ -5,7 +5,7 @@ import {
   History,
   Settings,
   Pencil,
-  Shield,
+  Mail,
   BookOpen,
   Target,
   CreditCard,
@@ -473,10 +473,10 @@ export default function ProfileModule() {
               size="sm"
               className="w-full justify-start"
               onClick={() =>
-                window.open("https://wa.me/628123456789", "_blank")
+                window.open("mailto:team@jituptn.com", "_blank")
               }
             >
-              <Shield className="mr-2 h-4 w-4" />
+              <Mail className="mr-2 h-4 w-4" />
               Hubungi bantuan
             </Button>
             <Button
