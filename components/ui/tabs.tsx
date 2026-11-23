@@ -31,7 +31,11 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "bg-surface-muted text-text-muted inline-flex min-h-[44px] w-fit items-center justify-start rounded-md border border-border p-1 gap-1",
+        // max-w-full + overflow-x-auto: on a narrow screen three non-wrapping
+        // triggers can be wider than the viewport (w-fit alone doesn't shrink
+        // below content size), which pushed the whole page into horizontal
+        // scroll. Scrolling just the tab strip keeps the page itself fixed.
+        "bg-surface-muted text-text-muted inline-flex min-h-[44px] w-fit max-w-full items-center justify-start overflow-x-auto rounded-md border border-border p-1 gap-1",
         className
       )}
       {...props}

@@ -1653,8 +1653,8 @@ const LandingPageModule = () => {
 
                 {/* H1: Headline (Gedean dikit lagi: 48px sweet spot) */}
                 <h1 className="text-[30px] sm:text-[38px] md:text-[44px] lg:text-[42px] xl:text-[48px] font-extrabold tracking-[-0.035em] text-text leading-[1.18] flex flex-col gap-2">
-                  <span className="whitespace-nowrap">Tryout SNBT Gratis,</span>
-                  <span className="whitespace-nowrap">
+                  <span className="whitespace-normal sm:whitespace-nowrap">Tryout SNBT Gratis,</span>
+                  <span className="whitespace-normal sm:whitespace-nowrap">
                     Demi{" "}
                     <span className="hashtag-select-badge bg-[#FFD13B] text-black font-black px-2 py-0.5 rounded-xs inline-block selection:bg-[#FFC81F] selection:text-black">
                       #RaihKampusImpian
