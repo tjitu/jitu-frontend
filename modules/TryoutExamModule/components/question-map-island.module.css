@@ -1,7 +1,8 @@
 .panel {
   position: absolute;
   bottom: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   width: min(21rem, calc(100vw - 2rem));
@@ -11,11 +12,11 @@
   border-radius: 1.5rem;
   background: var(--surface);
   box-shadow: 0 12px 40px color-mix(in srgb, var(--ink-900) 18%, transparent);
-  transform-origin: bottom right;
+  transform-origin: bottom center;
 }
 
 @keyframes expand {
-  from { clip-path: inset(calc(100% - 2.75rem) 0 0 calc(100% - 7rem) round 1.5rem); opacity: .4; }
+  from { clip-path: inset(calc(100% - 2.75rem) calc(50% - 3.25rem) 0 round 1.5rem); opacity: .4; }
   to { clip-path: inset(0 round 1.5rem); opacity: 1; }
 }
 
@@ -27,5 +28,5 @@
 /* Radix Presence needs a distinct exit animation to defer unmounting. */
 @keyframes contract {
   from { clip-path: inset(0 round 1.5rem); opacity: 1; }
-  to { clip-path: inset(calc(100% - 2.75rem) 0 0 calc(100% - 7rem) round 1.5rem); opacity: 0; }
+  to { clip-path: inset(calc(100% - 2.75rem) calc(50% - 3.25rem) 0 round 1.5rem); opacity: 0; }
 }

@@ -936,7 +936,7 @@ export default function TryoutExamModule() {
       <header className="sticky top-0 z-10 min-h-16 bg-surface text-text border-b border-border">
         <div className={`${pageWidth} mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 px-4 py-2 sm:flex-nowrap sm:px-6`}>
           {isReviewMode ? <ReviewNavbar
-            name={subtest.name} order={currentSubtestOrder} fontSize={fontSize}
+            subtest={subtest} order={currentSubtestOrder} fontSize={fontSize}
             subtests={activeSubtests.length ? activeSubtests : SUBTEST_FLOW.map((name, index) => ({ name, order: index + 1 }))}
             onBack={handleBackNavigation}
             onSelect={order => router.push(`/tryout/${tryoutId}/exam/${order}?attemptId=${attemptId}&review=true`)}
@@ -1012,7 +1012,30 @@ export default function TryoutExamModule() {
                 </span>
               ) : (
                 <div className="flex items-center gap-2">
-                  {isCurrentRagu && <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-700">Ragu-ragu</span>}
+                  <button
+                    type="button"
+                    aria-pressed={isCurrentRagu}
+                    disabled={isSaving || isSubmittingFinish}
+                    onClick={() => {
+                      const qid = currentQuestion.id;
+                      setMarkedQuestions((prev) =>
+                        prev.includes(qid)
+                          ? prev.filter((x) => x !== qid)
+                          : [...prev, qid],
+                      );
+                    }}
+                    className={`h-9 px-3 rounded-md border font-semibold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      isCurrentRagu
+                        ? "bg-yellow-300 border-yellow-400 text-ink-900"
+                        : "bg-surface border-border text-text-body hover:bg-surface-muted"
+                    }`}
+                  >
+                    <Flag className="w-3.5 h-3.5" />
+                    <span className="sr-only sm:not-sr-only">Tandai ragu</span>
+                  </button>
+                  <span className="hidden md:inline-block text-xs text-text-muted">
+                    {isSaving ? "Menyimpan…" : "Tersimpan"}
+                  </span>
                   <div className="sm:hidden">
                     <FontSizeControl fontSize={fontSize} onIncrease={() => setFontSize(p => Math.min(26, p + 2))} onDecrease={() => setFontSize(p => Math.max(13, p - 2))} />
                   </div>
@@ -1166,75 +1189,44 @@ export default function TryoutExamModule() {
 
       {/* Sticky Bottom Bar */}
       <footer className="fixed bottom-0 left-0 right-0 z-10 h-16 bg-surface border-t border-border">
-        <div className={`${pageWidth} mx-auto h-full flex items-center gap-2 px-4 sm:px-6`}>
+        <div className={`${pageWidth} mx-auto grid h-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 px-2 sm:gap-3 sm:px-6`}>
           {/* Left: "← Sebelumnya" */}
           <Button
             variant="outline"
             size="sm"
+            className="justify-self-start px-1.5 sm:px-3"
             onClick={handlePrevious}
             disabled={
               currentQuestionIndex === 0 || isSaving || isSubmittingFinish
             }
           >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            <span className="sr-only sm:not-sr-only">Sebelumnya</span>
+            <ArrowLeft className="hidden size-4 sm:block" />
+            <span>Sebelumnya</span>
           </Button>
 
-          {/* Center: "Tandai ragu" toggle + Save status + Mobile "Nomor" trigger */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {!isReviewMode && (
-              <button
-                type="button"
-                disabled={isSaving || isSubmittingFinish}
-                onClick={() => {
-                  const qid = currentQuestion.id;
-                  setMarkedQuestions((prev) =>
-                    prev.includes(qid)
-                      ? prev.filter((x) => x !== qid)
-                      : [...prev, qid],
-                  );
-                }}
-                className={`h-9 px-3 rounded-md border font-semibold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  isCurrentRagu
-                    ? "bg-yellow-300 border-yellow-400 text-ink-900"
-                    : "bg-surface border-border text-text-body hover:bg-surface-muted"
-                }`}
-              >
-                <Flag className="w-3.5 h-3.5" />
-                <span className="sr-only sm:not-sr-only">Tandai ragu</span>
-              </button>
-            )}
-
-
-
-            {!isReviewMode && (
-              <span className="hidden md:inline-block text-xs text-text-muted">
-                {isSaving ? "Menyimpan…" : "Tersimpan"}
-              </span>
-            )}
-          </div>
-
+          <QuestionMapIsland open={mapOpen} onOpenChange={setMapOpen} answered={answeredCount} total={totalQuestions}>
+            {renderNumberGrid(true)}
+          </QuestionMapIsland>
           {/* Right: "Berikutnya →" */}
           <Button
             variant="primary"
             size="sm"
+            className="justify-self-end px-1.5 sm:px-3"
             onClick={handleNext}
             disabled={isSaving || isSubmittingFinish}
           >
-            <span className="sr-only sm:not-sr-only">
+            <span>
               {currentQuestionIndex === totalQuestions - 1
                 ? isReviewMode
                   ? hasNextSubtest
                     ? "Subtes berikutnya"
                     : "Selesai bahas"
                   : "Kumpulkan"
-                : "Berikutnya"}
+                : "Selanjutnya"}
             </span>
-            <ArrowRight className="w-4 h-4 ml-1.5" />
+            <ArrowRight className="hidden size-4 sm:block" />
           </Button>
-          <QuestionMapIsland open={mapOpen} onOpenChange={setMapOpen} answered={answeredCount} total={totalQuestions}>
-            {renderNumberGrid(true)}
-          </QuestionMapIsland>
+
         </div>
       </footer>
 

@@ -13,9 +13,9 @@ interface Props {
 
 export function QuestionMapIsland({ open, onOpenChange, answered, total, children }: Props) {
   return (
-    <div className="relative ml-auto shrink-0">
+    <div className="relative justify-self-center">
       <Dialog.Root modal={false} open={open} onOpenChange={onOpenChange}>
-        <Dialog.Trigger className="flex h-11 items-center gap-2 rounded-full bg-ink-900 px-4 text-sm font-semibold text-white shadow-md transition-colors hover:bg-ink-700 focus-visible:outline-primary">
+        <Dialog.Trigger className="flex h-11 items-center gap-2 rounded-full border border-primary/25 bg-blue-50 px-3 text-sm font-semibold text-primary shadow-xs transition-colors hover:bg-blue-100 sm:px-4 focus-visible:outline-primary">
           <Grid2X2 aria-hidden className="size-4" /> Peta soal
         </Dialog.Trigger>
         <Dialog.Content className={styles.panel}>
