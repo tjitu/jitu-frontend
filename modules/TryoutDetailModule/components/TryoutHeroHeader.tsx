@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TryoutDetail } from "../interface";
 import { getDisplayedParticipants } from "@/lib/tryout-display";
 import { PRESET_AVATARS } from "@/lib/avatar";
+import { getTryoutCountdown } from "@/lib/tryout-countdown";
 
 interface TryoutHeroHeaderProps {
   tryoutData: TryoutDetail;
@@ -16,7 +17,7 @@ interface TryoutHeroHeaderProps {
   onStart?: () => void;
 }
 
-function useCountdown(endDateStr?: string) {
+function useCountdown(startDateStr?: string, endDateStr?: string) {
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
@@ -24,18 +25,7 @@ function useCountdown(endDateStr?: string) {
     return () => clearInterval(interval);
   }, []);
 
-  if (!endDateStr) return "Jadwal belum ditentukan";
-  const target = new Date(endDateStr).getTime();
-  if (Number.isNaN(target)) return "-";
-  const diff = target - nowMs;
-  if (diff <= 0) return "Selesai";
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((diff / (1000 * 60)) % 60);
-  const seconds = Math.floor((diff / 1000) % 60);
-  return days > 0
-    ? `${days < 10 ? `0${days}` : days}d ${hours}h ${minutes}m ${seconds}s`
-    : `${hours}h ${minutes}m ${seconds}s`;
+  return getTryoutCountdown(startDateStr, endDateStr, nowMs);
 }
 
 function getTryoutAvatars(tryoutId: string, count = 6) {
@@ -64,7 +54,7 @@ export function TryoutHeroHeader({
     tryoutData.id,
     tryoutData.participants
   );
-  const countdown = useCountdown(tryoutData.endDate);
+  const countdown = useCountdown(tryoutData.startDate, tryoutData.endDate);
   const avatars = useMemo(
     () => getTryoutAvatars(tryoutData.id, 6),
     [tryoutData.id]
