@@ -155,7 +155,13 @@ export function renderMathContent(
   );
 
   // 2. Whatever is left is plain text: escape it, build lists, then bring the trusted pieces back.
-  processed = vault.restore(renderContentLists(escapeHtml(processed)));
+  //    Single-asterisk *italic* (species names, foreign words) is applied before the vault is
+  //    restored, so asterisks inside formulas are never touched. "**bold**" and "* bullet" are skipped.
+  processed = renderContentLists(escapeHtml(processed)).replace(
+    /(?<![*\w])\*(?=[^\s*])([^*\n]*?[^\s*])\*(?![*\w])/g,
+    "<em>$1</em>"
+  );
+  processed = vault.restore(processed);
 
   // 3. Special callout for checklist / conclusion lines starting with ✅
   processed = processed.replace(

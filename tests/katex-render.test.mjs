@@ -46,6 +46,16 @@ test("currency $ pairs wrapping a sentence stay plain text", () => {
   assert.ok(html.includes("$120,000 per tahun naik jadi $"));
 });
 
+test("single-asterisk italic renders, bold and bullets are untouched", () => {
+  assert.ok(
+    renderMathContent("newly discovered *Pavona clavus*? It").includes("<em>Pavona clavus</em>?")
+  );
+  const bold = renderMathContent("a **tebal** b");
+  assert.ok(bold.includes("<strong") && !bold.includes("<em>"));
+  assert.ok(!renderMathContent("2 * 3 * 4").includes("<em>"));
+  assert.ok(!renderMathContent("$a*b*c$ dan teks").includes("<em>"));
+});
+
 test("real inline math is still rendered", () => {
   assert.ok(renderMathContent("Nilai $x^2 + 1$ adalah").includes("katex"));
 });
