@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     const tryoutResult = await pool.query(
       `SELECT t.id, t.title, t.description, t.code, t.batch,
               t."solutionPrice", ${TRYOUT_SCHEDULE},
-              (SELECT COUNT(*)::int FROM "TryOutAttempt" a WHERE a.try_out_id = t.id) AS participants
+              (SELECT COUNT(*)::int FROM "TryOutAttempt" a JOIN "user" u ON u.id = a."userId" WHERE a.try_out_id = t.id AND COALESCE(u."isSandbox", false) = false) AS participants
        FROM "TryOut" t WHERE t.id = $1 LIMIT 1`,
       [id],
     );
@@ -57,6 +57,8 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     }
 
     const canPreview = await canPreviewTryout(request, user.id, id);
+    const sandboxRows = await pool.query(`SELECT COALESCE("isSandbox", false) AS sandbox FROM "user" WHERE id = $1`, [user.id]);
+    const isSandbox = Boolean(sandboxRows.rows[0]?.sandbox);
     if (curationStatus !== "PUBLISHED" && !canPreview) {
       return NextResponse.json({ message: "Tryout tidak ditemukan." }, { status: 404 });
     }
@@ -180,7 +182,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       attempt,
       latestFinishedAttempt,
       timings,
-      tryout.scheduledEnd,
+      isSandbox ? null : tryout.scheduledEnd,
     );
 
     if (progress.needAutoFinish && attempt?.id) {
@@ -201,11 +203,11 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         attempt,
         latestFinishedAttempt,
         timings,
-        tryout.scheduledEnd,
+        isSandbox ? null : tryout.scheduledEnd,
       );
     }
 
-    const resultsAvailable = (id === "sandbox-test-free" || id === "sandbox-test-one-coin") && canPreview
+    const resultsAvailable = isSandbox
       ? Boolean(latestFinishedAttempt)
       : areTryoutResultsAvailable(tryout.scheduledEnd);
     const resultAccess = Number(tryout.solutionPrice ?? 0) === 0 || unlockedSolutions.length > 0;
@@ -265,13 +267,14 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
         ? Math.round(Number(latestFinishedAttempt.totalScore) || 0)
         : null,
       resultsAvailable,
+      isSandboxAccount: isSandbox,
       correctCount,
       wrongCount,
       emptyCount,
       curationStatus,
       questionsReleased,
       breakSeconds,
-      isSandboxPreview: curationStatus !== "PUBLISHED" || (!questionsReleased && canPreview),
+      isSandboxPreview: isSandbox || curationStatus !== "PUBLISHED" || (!questionsReleased && canPreview),
     });
   } catch (error) {
     console.error("GET /api/proxy/tryout/[id] error:", error);

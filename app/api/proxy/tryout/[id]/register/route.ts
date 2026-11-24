@@ -100,7 +100,8 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
       );
     }
 
-    if (curationStatus === "PUBLISHED") {
+    const sandboxRows = await pool.query(`SELECT COALESCE("isSandbox", false) AS sandbox FROM "user" WHERE id = $1`, [user.id]);
+    if (curationStatus === "PUBLISHED" && !sandboxRows.rows[0]?.sandbox) {
       const now = new Date();
       // Siswa diperbolehkan mendaftar sebelum dan selama tryout; pendaftaran hanya ditolak jika jadwal telah berakhir
       if (tryout.scheduledEnd && now > new Date(tryout.scheduledEnd)) {

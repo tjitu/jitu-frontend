@@ -33,6 +33,7 @@ export interface TryoutDetail {
   questionsReleased?: boolean;
   breakSeconds?: number;
   isSandboxPreview?: boolean;
+  isSandboxAccount?: boolean;
 }
 
 export interface CategoryDetail {

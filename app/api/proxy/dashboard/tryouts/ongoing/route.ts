@@ -28,9 +28,10 @@ export async function GET(request: NextRequest) {
          COALESCE(t."isSpecial", false) AS "isSpecial",
          ${TRYOUT_SCHEDULE},
          t."createdAt",
-         COUNT(DISTINCT a.id)::int AS participants
+         COUNT(DISTINCT a.id) FILTER (WHERE COALESCE(au."isSandbox", false) = false)::int AS participants
        FROM "TryOut" t
        LEFT JOIN "TryOutAttempt" a ON a.try_out_id = t.id
+           LEFT JOIN "user" au ON au.id = a."userId"
        WHERE t."isPublic" = true
          AND COALESCE(t.curation_status, 'PUBLISHED') = 'PUBLISHED'
          AND (t."scheduledStart" IS NULL OR t."scheduledStart" <= (NOW() AT TIME ZONE 'UTC'))

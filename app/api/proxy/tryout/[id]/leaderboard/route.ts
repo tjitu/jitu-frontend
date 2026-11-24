@@ -91,9 +91,9 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
          JOIN "user" u ON u.id = a."userId"
          WHERE a.try_out_id = $1
            AND a.status = 'FINISHED'
-           AND (COALESCE(u."isSandbox", false) = false OR a."userId" = $2)
+           AND COALESCE(u."isSandbox", false) = false
          ORDER BY a.total_score DESC`,
-        [tryoutId, user.id],
+        [tryoutId],
       );
       attempts = rows;
     } catch (error) {

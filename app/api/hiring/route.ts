@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
   );
 }
 
-export async function _DISABLED_POST(req: NextRequest) {
+async function _DISABLED_POST(req: NextRequest) {
   try {
     const body = await req.json();
 

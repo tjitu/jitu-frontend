@@ -30,10 +30,11 @@ export async function GET(request: NextRequest) {
           t."solutionPrice",
           t."isPublic",
           ${TRYOUT_SCHEDULE},
-          COUNT(DISTINCT a.id)::int as participants,
+          COUNT(DISTINCT a.id) FILTER (WHERE COALESCE(au."isSandbox", false) = false)::int as participants,
           COALESCE(BOOL_OR(a."userId" = $1), false) as is_registered
         FROM "TryOut" t
         LEFT JOIN "TryOutAttempt" a ON a.try_out_id = t.id
+        LEFT JOIN "user" au ON au.id = a."userId"
         WHERE t."isPublic" = true
           ${curationFilter}
         GROUP BY t.id, t.title, t.code, t.batch, t."solutionPrice", t."isPublic", t."scheduledStart", t."scheduledEnd"
@@ -48,10 +49,11 @@ export async function GET(request: NextRequest) {
           t."solutionPrice",
           t."isPublic",
           ${TRYOUT_SCHEDULE},
-          COUNT(DISTINCT a.id)::int as participants,
+          COUNT(DISTINCT a.id) FILTER (WHERE COALESCE(au."isSandbox", false) = false)::int as participants,
           false as is_registered
         FROM "TryOut" t
         LEFT JOIN "TryOutAttempt" a ON a.try_out_id = t.id
+        LEFT JOIN "user" au ON au.id = a."userId"
         WHERE t."isPublic" = true
           ${curationFilter}
         GROUP BY t.id, t.title, t.code, t.batch, t."solutionPrice", t."isPublic", t."scheduledStart", t."scheduledEnd"

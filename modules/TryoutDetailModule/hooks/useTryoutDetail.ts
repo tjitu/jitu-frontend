@@ -74,7 +74,7 @@ export function useTryoutDetail() {
       }
 
       if (
-        data.resultsAvailable
+        data.resultsAvailable && !data.isSandboxAccount
       ) {
         try {
           const lbData = await getTryoutLeaderboard(tryoutId);

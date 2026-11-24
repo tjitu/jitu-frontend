@@ -88,6 +88,10 @@ export function TryoutResultSummary({
     );
   }
 
+  if (tryoutData.isSandboxAccount) {
+    return <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-text-body">Simulasi selesai. Hasil akun sandbox tidak masuk peringkat peserta.</div>;
+  }
+
   const currentUser = leaderboardData?.currentUserRank;
   const nationalRank = currentUser?.rank ?? null;
   const totalNational =

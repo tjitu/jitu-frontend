@@ -149,6 +149,7 @@ export const getTryoutDetail = async (
     emptyCount: data.emptyCount ?? 0,
     curationStatus: data.curationStatus,
     isSandboxPreview: Boolean(data.isSandboxPreview),
+    isSandboxAccount: Boolean(data.isSandboxAccount),
   };
 
   return mappedData;
