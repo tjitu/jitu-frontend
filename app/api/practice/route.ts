@@ -23,6 +23,29 @@ export async function GET(req: NextRequest) {
     const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined;
     const sandboxToken = req.headers.get("x-sandbox-token") || undefined;
 
+    // Reading the question bank used to need no auth at all (only answering
+    // did), so anyone could dump the whole bank with ?limit=200 and no
+    // account. Require login, except for the one legitimate anonymous path:
+    // a QC reviewer holding a short-lived Sandbox preview token for one
+    // specific question.
+    if (!appUser) {
+      const isSandboxTarget = String(target || "").toUpperCase().trim() === "SANDBOX";
+      const tokenCheck = isSandboxTarget
+        ? await verifySandboxPreviewToken(sandboxToken)
+        : { valid: false, questionId: null, createdBy: null };
+
+      if (!tokenCheck.valid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Silakan masuk ke akun terlebih dahulu untuk melihat soal latihan.",
+            requiresAuth: true,
+          },
+          { status: 401 }
+        );
+      }
+    }
+
     const feed = await getPracticeQuestions({
       subtest,
       difficulty,
