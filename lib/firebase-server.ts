@@ -36,10 +36,6 @@ export async function resolveFirebaseUser(
   if (!email) {
     throw new Error("Akun Firebase harus memiliki alamat email.");
   }
-  if (token.email_verified !== true) {
-    throw new Error("Verifikasi email terlebih dahulu sebelum menggunakan akun Jitu.");
-  }
-
   const pool = getDbPool();
   const provider = token.firebase?.sign_in_provider || "password";
   const providerId = resolveProviderId(provider);
@@ -99,6 +95,9 @@ export async function resolveFirebaseUser(
   let userRecord = existingUserRes.rows[0];
 
   if (userRecord) {
+    if (token.email_verified !== true) {
+      throw new Error("Akun ini perlu ditautkan dengan aman sebelum digunakan.");
+    }
     // Link Firebase account to existing user
     const linkId = `firebase:${accountId}:${providerId}`;
     await pool.query(
@@ -123,9 +122,9 @@ export async function resolveFirebaseUser(
 
     const insertUserRes = await pool.query(
       `INSERT INTO "user" (id, name, email, "emailVerified", image, role, "tokenBalance", "currentStreak", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, true, $4, 'USER', 0, 0, NOW(), NOW())
+       VALUES ($1, $2, $3, $5, $4, 'USER', 0, 0, NOW(), NOW())
        RETURNING id, name, email, role, "tokenBalance", "isPremium", "premiumExpiresAt", target, image, "emailVerified", school, "phoneNumber"`,
-      [newUserId, displayName, email, image]
+      [newUserId, displayName, email, image, token.email_verified === true]
     );
 
     userRecord = insertUserRes.rows[0];

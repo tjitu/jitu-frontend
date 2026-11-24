@@ -80,12 +80,7 @@ const RegisterModule = () => {
       {
         onSuccess: (ctx) => {
           setLoading(false);
-          if (!ctx.data.verificationRequired) {
-            router.push(ctx.data.user?.role === "ADMIN" ? "/admin" : "/dashboard");
-            return;
-          }
-          toast.success("Akun dibuat. Periksa email untuk verifikasi sebelum masuk.");
-          router.push("/login");
+          router.push(ctx.data.user?.role === "ADMIN" ? "/admin" : "/dashboard");
         },
         onError: (ctx) => {
           setLoading(false);

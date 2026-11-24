@@ -7,7 +7,6 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
-  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -238,7 +237,17 @@ export const ensureAuthenticatedFetch = () => {
   };
 };
 
-const getAppUser = async (user: User): Promise<JituUser> => {
+const pendingAppUsers = new Map<string, Promise<JituUser>>();
+
+const getAppUser = (user: User): Promise<JituUser> => {
+  const pending = pendingAppUsers.get(user.uid);
+  if (pending) return pending;
+  const request = fetchAppUser(user).finally(() => pendingAppUsers.delete(user.uid));
+  pendingAppUsers.set(user.uid, request);
+  return request;
+};
+
+const fetchAppUser = async (user: User): Promise<JituUser> => {
   ensureAuthenticatedFetch();
   const idToken = await user.getIdToken();
   const response = await (originalFetch ?? window.fetch.bind(window))(
@@ -247,7 +256,7 @@ const getAppUser = async (user: User): Promise<JituUser> => {
   );
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.message || 'Akun belum siap digunakan. Periksa verifikasi email lalu masuk lagi.');
+    throw new Error(body?.message || 'Akun belum siap digunakan. Coba masuk lagi.');
   }
   const payload = await response.json();
   return payload.user as JituUser;
@@ -356,11 +365,6 @@ const startSession = () => {
       emitSession({ data: null, isPending: false });
       return;
     }
-    if (!firebaseUser.emailVerified) {
-      sessionRevision++;
-      emitSession({ data: null, isPending: false });
-      return;
-    }
     // Update activity timestamp if user is authenticated
     touchActivity();
     if (previousUid === firebaseUser.uid && sessionSnapshot.data) return;
@@ -420,18 +424,6 @@ export const signIn = {
           input.email.trim(),
           input.password
         );
-        if (!credential.user.emailVerified) {
-          try {
-            await sendEmailVerification(credential.user, {
-              url: `${window.location.origin}/login?emailVerified=1`,
-            });
-          } catch {
-            await signOut();
-            throw new Error('Email belum terverifikasi. Email verifikasi belum dapat dikirim ulang. Coba lagi nanti.');
-          }
-          await signOut();
-          throw new Error('Email belum terverifikasi. Kami telah mengirim ulang tautan verifikasi ke emailmu.');
-        }
         currentFirebaseUser = credential.user;
         const user = await getAppUser(credential.user);
         lastSessionFetchAt = Date.now();
@@ -486,11 +478,12 @@ export const signUp = {
         if (input.name) {
           await updateProfile(credential.user, { displayName: input.name });
         }
-        await sendEmailVerification(credential.user, {
-          url: `${window.location.origin}/login?emailVerified=1`,
-        });
-        await signOut();
-        return { verificationRequired: true };
+        currentFirebaseUser = credential.user;
+        const user = await getAppUser(credential.user);
+        lastSessionFetchAt = Date.now();
+        touchActivity(true);
+        emitSession({ data: { user }, isPending: false });
+        return { user, verificationRequired: false };
       } catch (err: unknown) {
         const firebaseErr = err as { code?: string; message?: string };
         if (firebaseErr?.code === 'auth/email-already-in-use') {
@@ -498,10 +491,6 @@ export const signUp = {
         }
         if (firebaseErr?.code === 'auth/weak-password') {
           throw new Error('Kata sandi terlalu lemah. Gunakan minimal 8 karakter.');
-        }
-        if (getFirebaseAuth().currentUser && !getFirebaseAuth().currentUser?.emailVerified) {
-          await signOut();
-          throw new Error('Akun sudah dibuat, tetapi email verifikasi belum terkirim. Masuk kembali untuk mengirim ulang email verifikasi.');
         }
         throw new Error(firebaseErr?.message || 'Gagal mendaftar. Silakan coba lagi.');
       }
