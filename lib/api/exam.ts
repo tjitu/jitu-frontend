@@ -5,6 +5,19 @@ export class TryoutStartError extends Error {
   constructor(message: string, public readonly code?: string) { super(message); }
 }
 
+export async function restartSandboxTryout(tryoutId: string, attemptId: string) {
+  const res = await fetch(`${BACKEND_URL}/tryout/${encodeURIComponent(tryoutId)}/restart`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ attemptId }),
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message || "Gagal memulai ulang tryout.");
+  }
+}
+
 export const startTryoutAttempt = async (
   tryoutId: string,
   userId: string,

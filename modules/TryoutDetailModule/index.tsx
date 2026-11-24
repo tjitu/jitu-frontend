@@ -16,6 +16,7 @@ import { TryoutResultSummary } from "./components/TryoutResultSummary";
 import { useTryoutDetail } from "./hooks/useTryoutDetail";
 import { parsePtnTargets } from "@/lib/target";
 import { StartTryoutDialog } from "./components/StartTryoutDialog";
+import { SandboxRestartButton } from "./components/SandboxRestartButton";
 import { NotStartedDialog } from "./components/NotStartedDialog";
 import { isTryoutBeforeStart } from "@/lib/tryout-start";
 
@@ -149,9 +150,11 @@ const TryoutDetailModule = () => {
                 : "Tryout ini sedang diuji di Sandbox dan belum dirilis ke siswa umum."}
             </span>
           </div>
-          <Badge variant="default" className="shrink-0 bg-blue-600 text-white">
+          {tryoutData.latestAttemptId && (isFinished || tryoutData.latestAttemptStatus === "IN_PROGRESS") ? (
+            <SandboxRestartButton tryoutId={tryoutData.id} attemptId={tryoutData.latestAttemptId} title={tryoutData.title} />
+          ) : <Badge variant="default" className="shrink-0 bg-blue-600 text-white">
             {tryoutData.curationStatus === "PUBLISHED" ? "Simulasi" : "Antrean QC"}
-          </Badge>
+          </Badge>}
         </div>
       )}
 
