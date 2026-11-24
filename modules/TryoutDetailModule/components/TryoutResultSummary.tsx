@@ -31,6 +31,14 @@ export function TryoutResultSummary({
   leaderboardData,
   targets,
 }: TryoutResultSummaryProps) {
+  if (!tryoutData.resultsAvailable) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-text-body">
+        <p className="font-semibold text-text">Pengerjaan selesai</p>
+        <p className="mt-1">Pembahasan, skor IRT, dan peringkat tersedia setelah periode tryout berakhir.</p>
+      </div>
+    );
+  }
   if (!isUnlocked) {
     return (
       <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-xs">
@@ -75,15 +83,6 @@ export function TryoutResultSummary({
             )}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (!tryoutData.resultsAvailable) {
-    return (
-      <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-text-body">
-        <p className="font-semibold text-text">Skor IRT dan peringkat belum tersedia</p>
-        <p className="mt-1">Hasil akan tersedia setelah periode tryout berakhir.</p>
       </div>
     );
   }

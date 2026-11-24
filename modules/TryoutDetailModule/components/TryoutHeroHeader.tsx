@@ -55,6 +55,7 @@ export function TryoutHeroHeader({
     tryoutData.participants
   );
   const countdown = useCountdown(tryoutData.startDate, tryoutData.endDate);
+  const summaryOnly = isFinished && !tryoutData.resultsAvailable;
   const avatars = useMemo(
     () => getTryoutAvatars(tryoutData.id, 6),
     [tryoutData.id]
@@ -167,7 +168,7 @@ export function TryoutHeroHeader({
                 Benar
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-emerald-600 tabular-nums">
-                {isFinished && isUnlocked ? (tryoutData.correctCount ?? 0) : "-"}
+                {isFinished && (isUnlocked || summaryOnly) ? (tryoutData.correctCount ?? 0) : "-"}
               </div>
             </div>
 
@@ -177,11 +178,11 @@ export function TryoutHeroHeader({
                 Salah
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-rose-600 tabular-nums">
-                {isFinished && isUnlocked ? (tryoutData.wrongCount ?? 0) : "-"}
+                {isFinished && (isUnlocked || summaryOnly) ? (tryoutData.wrongCount ?? 0) : "-"}
               </div>
             </div>
 
-            {/* 3. Kosong (Item Agak Abu) */}
+            {!summaryOnly && <>
             <div className="flex-1 sm:w-28 md:w-32 text-center px-2 sm:px-5 space-y-1">
               <div className="text-xs font-semibold text-text-muted">
                 Kosong
@@ -200,6 +201,7 @@ export function TryoutHeroHeader({
                 {isFinished && tryoutData.resultsAvailable ? (isUnlocked ? finalScore : "???") : "?"}
               </div>
             </div>
+            </>}
           </div>
 
           {/* Right: Lihat Pembahasan Lengkap Button */}

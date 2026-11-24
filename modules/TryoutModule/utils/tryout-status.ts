@@ -27,7 +27,7 @@ export function getTryoutCardActionInfo(tryout: TryOutData): TryoutCardActionInf
     return {
       badgeLabel: "Selesai mengerjakan",
       badgeVariant: "finished",
-      ctaLabel: "Review Hasil",
+      ctaLabel: "Lihat hasil",
       targetUrl: resultUrl,
       isOutline: true,
     };

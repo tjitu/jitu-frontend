@@ -72,7 +72,8 @@ export function useTryoutDetail() {
       setIsLoading(true);
       const data = await getTryoutDetail(tryoutId);
       setTryoutData(data);
-      if (searchParams.get("upgrade") === "true" && !data.isFree && data.unlockedSolutions.length === 0) {
+      if (searchParams.get("upgrade") === "true" && !data.isFree && data.unlockedSolutions.length === 0 &&
+        (data.latestAttemptStatus !== "FINISHED" || data.resultsAvailable)) {
         setUnlockModalOpen(true);
       }
 

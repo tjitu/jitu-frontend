@@ -642,7 +642,7 @@ const DashboardModule = () => {
                     >
                       <span>
                         {featuredTryout.status === "FINISHED"
-                          ? "Review Hasil"
+                          ? "Lihat hasil"
                           : featuredTryout.status === "IN_PROGRESS"
                             ? "Lanjutkan Tryout"
                             : "Mulai Tryout"}
@@ -940,7 +940,7 @@ const DashboardModule = () => {
                         >
                           <span>
                             {isFinished
-                              ? "Review Hasil"
+                              ? "Lihat hasil"
                               : isProgress
                                 ? "Lanjutkan Tryout"
                                 : "Mulai Tryout"}

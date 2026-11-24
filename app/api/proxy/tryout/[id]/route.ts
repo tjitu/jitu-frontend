@@ -214,7 +214,7 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
     let correctCount = 0;
     let wrongCount = 0;
     let emptyCount = 0;
-    if (resultAccess && latestFinishedAttempt?.id) {
+    if ((resultAccess || !resultsAvailable) && latestFinishedAttempt?.id) {
       const counts = await pool.query(
         `SELECT s."order", COUNT(q.id)::int AS total,
                 COUNT(ua.id) FILTER (WHERE ua."isCorrect" = true)::int AS correct,

@@ -342,6 +342,10 @@ export default function TryoutExamModule() {
             }
           }
           const payload = await res.json().catch(() => null);
+          if (payload?.code === "TRYOUT_REVIEW_NOT_RELEASED") {
+            router.replace(`/tryout/${encodeURIComponent(tryoutId)}`);
+            return;
+          }
           if (payload?.code === "TRYOUT_NOT_STARTED") {
             router.replace(`/tryout/${encodeURIComponent(tryoutId)}?belumDimulai=1`);
             return;

@@ -8,6 +8,7 @@ import { CategoryDetail } from "../interface";
 import { getSubtestInfo } from "./SubtestIcons";
 
 interface SubtestListCardProps {
+  summaryOnly: boolean;
   categories: CategoryDetail[];
   isFinished: boolean;
   isUnlocked: boolean;
@@ -17,6 +18,7 @@ interface SubtestListCardProps {
 }
 
 export function SubtestListCard({
+  summaryOnly,
   categories,
   isFinished,
   isUnlocked,
@@ -79,7 +81,7 @@ export function SubtestListCard({
 
                   <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs tabular-nums pt-0.5">
                     <span className="text-text-muted">{category.duration} menit</span>
-                    {isFinished && isUnlocked && (
+                    {isFinished && (isUnlocked || summaryOnly) && (
                       <>
                         <span className="text-border">·</span>
                         <span className="text-emerald-600 font-semibold">
@@ -89,10 +91,12 @@ export function SubtestListCard({
                         <span className="text-rose-600 font-semibold">
                           {category.wrongCount ?? 0} Salah
                         </span>
-                        <span className="text-border">·</span>
-                        <span className="text-zinc-700 dark:text-zinc-300 font-semibold">
-                          {category.emptyCount ?? 0} Kosong
-                        </span>
+                        {!summaryOnly && <>
+                          <span className="text-border">·</span>
+                          <span className="text-zinc-700 dark:text-zinc-300 font-semibold">
+                            {category.emptyCount ?? 0} Kosong
+                          </span>
+                        </>}
                       </>
                     )}
                   </div>
@@ -100,7 +104,7 @@ export function SubtestListCard({
               </div>
 
               {/* Right: Action Button (when review available) */}
-              {isFinished && isUnlocked && (
+              {isFinished && !summaryOnly && isUnlocked && (
                 <div className="shrink-0">
                   <Button
                     variant="outline"
@@ -113,7 +117,7 @@ export function SubtestListCard({
                   </Button>
                 </div>
               )}
-              {isFinished && !isUnlocked && (
+              {isFinished && !summaryOnly && !isUnlocked && (
                 <Button variant="outline" size="sm" onClick={onUnlockClick} className="shrink-0 gap-1.5">
                   <Lock className="w-3.5 h-3.5" /> Upgrade · {cost} coin
                 </Button>

@@ -114,6 +114,7 @@ const TryoutDetailModule = () => {
   }
 
   const isFinished = tryoutData.latestAttemptStatus === "FINISHED";
+  const summaryOnly = isFinished && !tryoutData.resultsAvailable;
   const isUnlocked =
     tryoutData.isFree ||
     (Array.isArray(tryoutData.unlockedSolutions) &&
@@ -165,7 +166,7 @@ const TryoutDetailModule = () => {
         isFinished={isFinished}
         isUnlocked={isUnlocked}
         finalScore={finalScore}
-        onStart={requestStart}
+        onStart={summaryOnly ? undefined : requestStart}
       />
 
       {/* Action Bar or Result Summary */}
@@ -202,6 +203,7 @@ const TryoutDetailModule = () => {
         <div className="lg:col-span-8">
           <SubtestListCard
             categories={tryoutData.categories || []}
+            summaryOnly={summaryOnly}
             isFinished={isFinished}
             isUnlocked={isUnlocked}
             cost={cost}
