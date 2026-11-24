@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSoalAsliPackages, groupPackagesByYear } from "@/lib/soal-asli";
+import { getAuthenticatedAppUser } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
+    const appUser = await getAuthenticatedAppUser(req).catch(() => null);
+    if (!appUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Silakan masuk ke akun terlebih dahulu untuk mengakses Arsip Soal.",
+          requiresAuth: true,
+        },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const yearParam = searchParams.get("year");
     const subtestParam = searchParams.get("subtest") || undefined;

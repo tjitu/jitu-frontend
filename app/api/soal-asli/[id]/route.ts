@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSoalAsliPackageDetail } from "@/lib/soal-asli";
+import { getAuthenticatedAppUser } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,6 +10,18 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const appUser = await getAuthenticatedAppUser(req).catch(() => null);
+    if (!appUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Silakan masuk ke akun terlebih dahulu untuk mengakses Arsip Soal.",
+          requiresAuth: true,
+        },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     if (!id) {
       return NextResponse.json(

@@ -37,6 +37,20 @@ import {
 } from "@/lib/soal-asli-types";
 import { getSubtestInfo } from "@/modules/TryoutDetailModule/components/SubtestIcons";
 import { PixelBookIcon } from "@/components/ui/pixel-book-icon";
+import { getFirebaseAuth } from "@/lib/firebase";
+
+// /api/soal-asli now requires login (it used to return the whole archive to
+// anyone); attach the same Firebase ID token the rest of the app sends.
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    const user = getFirebaseAuth().currentUser;
+    if (!user) return {};
+    const token = await user.getIdToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
 
 const SUBTEST_OPTIONS = [
   { id: "ALL", label: "Semua Subtes" },
@@ -127,7 +141,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
     async function loadData() {
       try {
         setLoading(true);
-        const res = await fetch("/api/soal-asli");
+        const res = await fetch("/api/soal-asli", { headers: await getAuthHeaders() });
         if (res.ok) {
           const data = await res.json();
           if (active && data.success) {
@@ -195,7 +209,7 @@ export default function SoalAsliSection({ variant = "landing" }: SoalAsliSection
 
     setLoadingDetail(true);
     try {
-      const res = await fetch(`/api/soal-asli/${pkg.id}`);
+      const res = await fetch(`/api/soal-asli/${pkg.id}`, { headers: await getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.package) {
