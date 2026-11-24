@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
@@ -23,7 +22,6 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
-  Grid,
   WifiOff,
   BookOpen,
 } from "lucide-react";
@@ -39,13 +37,8 @@ import { pendingBreakOrder } from "./break/pending-break";
 import { FontSizeControl } from "./components/FontSizeControl";
 import "katex/dist/katex.min.css";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ReviewNavbar } from "./components/ReviewNavbar";
+import { QuestionMapIsland } from "./components/QuestionMapIsland";
 
 type UiOption = { id: string; text: string };
 type UiQuestion = {
@@ -128,7 +121,7 @@ export default function TryoutExamModule() {
   >({});
   const [isSubmittingFinish, setIsSubmittingFinish] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
-  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("ALL");
   const [isOnline, setIsOnline] = useState(true);
   const [fontSize, setFontSize] = useState(16);
@@ -803,7 +796,7 @@ export default function TryoutExamModule() {
   const isCurrentRagu = markedQuestions.includes(currentQuestion.id);
   const isUnderFiveMin = (timeRemainingSec ?? 999) < 300;
   const showSolution = isReviewMode && Boolean(currentQuestion.structuredSolution || currentQuestion.solution);
-  const pageWidth = showSolution ? "max-w-7xl" : isReviewMode ? "max-w-4xl" : "max-w-6xl";
+  const pageWidth = showSolution ? "max-w-7xl" : "max-w-4xl";
 
   const isQuestionCorrect = (q: UiQuestion) => {
     const ua = answers[q.id];
@@ -890,7 +883,7 @@ export default function TryoutExamModule() {
               onClick={async () => {
                 if (!isReviewMode) await saveCurrentQuestionIfDirty();
                 setCurrentQuestionIndex(index);
-                if (closeOnSelect) setMobileSheetOpen(false);
+                if (closeOnSelect) setMapOpen(false);
               }}
               className={`w-full h-10 rounded-md border font-mono text-sm font-medium tabular-nums flex items-center justify-center transition-colors cursor-pointer ${cellClass} ${
                 isCurrent ? "ring-2 ring-primary ring-offset-1" : ""
@@ -942,19 +935,15 @@ export default function TryoutExamModule() {
       {/* Sticky Top Bar (64px, white, 1px bottom border) */}
       <header className="sticky top-0 z-10 min-h-16 bg-surface text-text border-b border-border">
         <div className={`${pageWidth} mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 px-4 py-2 sm:flex-nowrap sm:px-6`}>
-          {/* Left: Subtest name + Font size toggle */}
+          {isReviewMode ? <ReviewNavbar
+            name={subtest.name} order={currentSubtestOrder} fontSize={fontSize}
+            subtests={activeSubtests.length ? activeSubtests : SUBTEST_FLOW.map((name, index) => ({ name, order: index + 1 }))}
+            onBack={handleBackNavigation}
+            onSelect={order => router.push(`/tryout/${tryoutId}/exam/${order}?attemptId=${attemptId}&review=true`)}
+            onIncrease={() => setFontSize(p => Math.min(26, p + 2))}
+            onDecrease={() => setFontSize(p => Math.max(13, p - 2))}
+          /> : <>
           <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
-            {isReviewMode && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBackNavigation}
-                className="shrink-0"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span className="sr-only sm:not-sr-only">Kembali</span>
-              </Button>
-            )}
             <div className="flex items-center gap-2 min-w-0">
               <SubtestIcon className="h-5 w-5 shrink-0 text-primary" size={20} />
               <span className="font-semibold text-sm sm:text-base text-text">
@@ -973,8 +962,6 @@ export default function TryoutExamModule() {
             </div>
           </div>
 
-          {/* Center: Countdown timer in JetBrains Mono */}
-          {!isReviewMode ? (
             <div
               className={`font-mono text-lg sm:text-[22px] font-bold tracking-wider leading-none tabular-nums px-3 py-1.5 rounded-md ${
                 isUnderFiveMin
@@ -984,11 +971,6 @@ export default function TryoutExamModule() {
             >
               {formatTime(timeRemainingSec)}
             </div>
-          ) : null}
-
-          {/* Right: "Kumpulkan" button or Review subtest switcher */}
-          <div className="flex items-center gap-2 shrink-0">
-            {!isReviewMode ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -997,39 +979,7 @@ export default function TryoutExamModule() {
               >
                 Kumpulkan
               </Button>
-            ) : (
-              <div className="w-40 sm:w-52">
-                <Select
-                  onValueChange={(value) => {
-                    router.push(
-                      `/tryout/${tryoutId}/exam/${value}?attemptId=${attemptId}&review=true`,
-                    );
-                  }}
-                  value={String(subtestIndex + 1)}
-                >
-                  <SelectTrigger size="sm" className="w-full text-xs">
-                    <SelectValue placeholder="Pilih subtes" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {(examData?.allSubtests?.length
-                      ? examData.allSubtests
-                      : SUBTEST_FLOW.map((sName, i) => ({
-                          name: sName,
-                          order: i + 1,
-                        }))
-                    ).map((sub: any, idx) => (
-                      <SelectItem
-                        key={sub.id || idx}
-                        value={String(idx + 1)}
-                      >
-                        0{idx + 1} · {sub.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
+          </>}
         </div>
       </header>
 
@@ -1048,33 +998,26 @@ export default function TryoutExamModule() {
       <div className={`flex-1 w-full ${pageWidth} mx-auto px-4 sm:px-6 py-6 pb-24`}>
         <div className={`grid grid-cols-1 items-start gap-5 ${showSolution
           ? "lg:grid-cols-2"
-          : isReviewMode ? "" : "lg:grid-cols-[minmax(0,1fr)_15rem]"}`}>
+          : ""}`}>
           {/* Left Column: Question + Options */}
           <section aria-label="Soal tryout" className="min-w-0 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xs">
-            {/* Question Number Badge + Mobile Font Size Control */}
-            <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b border-ink-100">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold tracking-tight text-text">
-                  Soal {currentQuestionIndex + 1} <span className="text-sm font-normal text-text-muted">dari {totalQuestions}</span>
-                </h2>
-                {isReviewMode && (
-                  <span className="text-xs font-medium text-text-muted">
-                    {answers[currentQuestion.id] ? (isQuestionCorrect(currentQuestion) ? "Dijawab benar" : "Dijawab salah") : "Belum dijawab"}
-                  </span>
-                )}
-                {isCurrentRagu && !isReviewMode && (
-                  <span className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold inline-flex items-center">
-                    Ragu-ragu
-                  </span>
-                )}
-              </div>
-              <div className="sm:hidden">
-                <FontSizeControl
-                  fontSize={fontSize}
-                  onIncrease={() => setFontSize((p) => Math.min(26, p + 2))}
-                  onDecrease={() => setFontSize((p) => Math.max(13, p - 2))}
-                />
-              </div>
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+              <h2 className="flex items-baseline gap-2">
+                <span className="text-lg font-bold text-text">Soal {currentQuestionIndex + 1}</span>
+                <span className="text-sm font-normal text-text-muted">dari {totalQuestions}</span>
+              </h2>
+              {isReviewMode ? (
+                <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-text-body">
+                  {answers[currentQuestion.id] ? (isQuestionCorrect(currentQuestion) ? "Dijawab benar" : "Dijawab salah") : "Belum dijawab"}
+                </span>
+              ) : (
+                <div className="flex items-center gap-2">
+                  {isCurrentRagu && <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-700">Ragu-ragu</span>}
+                  <div className="sm:hidden">
+                    <FontSizeControl fontSize={fontSize} onIncrease={() => setFontSize(p => Math.min(26, p + 2))} onDecrease={() => setFontSize(p => Math.max(13, p - 2))} />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -1217,23 +1160,13 @@ export default function TryoutExamModule() {
             </section>
           )}
 
-          {!isReviewMode && <aside aria-label="Peta soal" className={`hidden lg:block sticky top-20 max-h-[calc(100dvh-10rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-4 shadow-xs`}>
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-ink-100">
-              <span className="text-label text-text">
-                Nomor soal
-              </span>
-              <span className="font-mono text-xs text-text-muted tabular-nums">
-                {answeredCount}/{totalQuestions}
-              </span>
-            </div>
-            {renderNumberGrid(false)}
-          </aside>}
+
         </div>
       </div>
 
       {/* Sticky Bottom Bar */}
       <footer className="fixed bottom-0 left-0 right-0 z-10 h-16 bg-surface border-t border-border">
-        <div className={`${pageWidth} mx-auto h-full flex items-center justify-between gap-2 px-4 sm:px-6`}>
+        <div className={`${pageWidth} mx-auto h-full flex items-center gap-2 px-4 sm:px-6`}>
           {/* Left: "← Sebelumnya" */}
           <Button
             variant="outline"
@@ -1268,24 +1201,11 @@ export default function TryoutExamModule() {
                 }`}
               >
                 <Flag className="w-3.5 h-3.5" />
-                <span>Tandai ragu</span>
+                <span className="sr-only sm:not-sr-only">Tandai ragu</span>
               </button>
             )}
 
-            <Dialog open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className={isReviewMode ? "" : "lg:hidden"}>
-                  <Grid className="size-4" /> Peta soal
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-h-[80dvh] overflow-y-auto sm:max-w-sm">
-                <DialogHeader>
-                  <DialogTitle>Peta soal</DialogTitle>
-                  <DialogDescription>{answeredCount} dari {totalQuestions} soal dijawab</DialogDescription>
-                </DialogHeader>
-                {renderNumberGrid(true)}
-              </DialogContent>
-            </Dialog>
+
 
             {!isReviewMode && (
               <span className="hidden md:inline-block text-xs text-text-muted">
@@ -1301,7 +1221,7 @@ export default function TryoutExamModule() {
             onClick={handleNext}
             disabled={isSaving || isSubmittingFinish}
           >
-            <span>
+            <span className="sr-only sm:not-sr-only">
               {currentQuestionIndex === totalQuestions - 1
                 ? isReviewMode
                   ? hasNextSubtest
@@ -1312,6 +1232,9 @@ export default function TryoutExamModule() {
             </span>
             <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
+          <QuestionMapIsland open={mapOpen} onOpenChange={setMapOpen} answered={answeredCount} total={totalQuestions}>
+            {renderNumberGrid(true)}
+          </QuestionMapIsland>
         </div>
       </footer>
 
