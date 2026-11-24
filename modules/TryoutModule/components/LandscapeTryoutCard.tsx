@@ -76,7 +76,7 @@ export function LandscapeTryoutCard({
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 text-[12px] font-semibold text-primary">
             <Sparkles className="w-3.5 h-3.5 stroke-[2]" />
-            <span>Sistem IRT (E-Wallet untuk 10 besar)</span>
+            <span>Sistem IRT</span>
           </div>
 
           <h2 className="text-[22px] sm:text-[24px] lg:text-[26px] font-bold text-text leading-snug tracking-[-0.015em]">
@@ -85,7 +85,7 @@ export function LandscapeTryoutCard({
 
           <p className="text-[14px] sm:text-[15px] text-text-body leading-relaxed max-w-3xl line-clamp-2 sm:line-clamp-3">
             {tryout.description?.trim() ||
-              "Tryout persiapan UTBK-SNBT 2026 nasional dengan penilaian IRT dan analisis subtes."}
+              "Tryout persiapan UTBK-SNBT dengan penilaian IRT dan analisis subtes."}
           </p>
 
           <TryoutScheduleTimeline

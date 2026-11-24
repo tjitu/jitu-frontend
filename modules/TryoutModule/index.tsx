@@ -28,9 +28,10 @@ const TryoutModule = () => {
   const [filteredTryouts, setFilteredTryouts] = useState<TryOutData[]>(cachedTryouts ?? []);
   const [isLoading, setIsLoading] = useState(!cachedTryouts);
 
+  const [currentTime, setCurrentTime] = useState(() => new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TryoutStatusFilter>("all");
-  const [sortOrder, setSortOrder] = useState<TryoutSortOrder>("newest");
+  const [sortOrder, setSortOrder] = useState<TryoutSortOrder>("oldest");
 
   const {
     registerModalOpen,
@@ -43,6 +44,11 @@ const TryoutModule = () => {
   } = useTryoutRegistration(setTryouts, (updated) => {
     cachedTryouts = updated;
   });
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const sandboxToken = getActiveTryoutSandboxToken();
@@ -78,6 +84,7 @@ const TryoutModule = () => {
         const mappedData: TryOutData[] = data.map((item: TryOutData, idx: number) => ({
           id: item.id,
           title: item.title,
+          description: item.description,
           number: item.number || String(idx + 1).padStart(2, "0"),
           participants: item.participants || 0,
           badge: item.badge || "SNBT",
@@ -143,16 +150,18 @@ const TryoutModule = () => {
     }
 
     result.sort((a, b) => {
-      const dateA = new Date(a.scheduledStart || 0).getTime();
-      const dateB = new Date(b.scheduledStart || 0).getTime();
+      const dateA = a.scheduledStart ? new Date(a.scheduledStart).getTime() : NaN;
+      const dateB = b.scheduledStart ? new Date(b.scheduledStart).getTime() : NaN;
+      if (!Number.isFinite(dateA)) return Number.isFinite(dateB) ? 1 : 0;
+      if (!Number.isFinite(dateB)) return -1;
       return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
     });
 
     setFilteredTryouts(result);
   }, [tryouts, activeTab, searchQuery, sortOrder]);
 
-  // Featured ongoing tryout for the top landscape card
-  const { ongoing: ongoingTryouts } = classifyTryouts(tryouts);
+  // Show live tryouts and those starting within 24 hours.
+  const { featured: featuredTryouts } = classifyTryouts(tryouts, currentTime);
 
   return (
     <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -160,20 +169,20 @@ const TryoutModule = () => {
         <h1 className="text-h1 text-text">Daftar jadwal tryout</h1>
       </div>
 
-      {/* 2. Landscape Card: Tryout sedang berlangsung */}
+      {/* 2. Landscape Card: Tryout sedang dan segera berlangsung */}
       {isLoading ? (
         <div className="h-64 sm:h-72 w-full rounded-xl jitu-skeleton" />
       ) : (
-        ongoingTryouts.length > 0 && (
-          <section aria-label="Tryout sedang berlangsung" className="space-y-3">
+        featuredTryouts.length > 0 && (
+          <section aria-label="Tryout sedang dan segera berlangsung" className="space-y-3">
             <div className="flex items-center">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-border bg-surface text-text text-[12px] font-bold uppercase tracking-wider shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                LIVE
+                SEDANG & SEGERA BERLANGSUNG
               </span>
             </div>
             <div className="space-y-6">
-              {ongoingTryouts.map((tryout) => (
+              {featuredTryouts.map((tryout) => (
                 <LandscapeTryoutCard
                   key={tryout.id}
                   tryout={tryout}

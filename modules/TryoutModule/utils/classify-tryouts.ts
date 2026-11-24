@@ -1,75 +1,21 @@
-import { TryOutData } from "../types";
+import type { TryOutData } from "../types";
 
-export interface ClassifiedTryouts {
-  ongoing: TryOutData[];
-  others: TryOutData[];
-}
+const FEATURED_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-/**
- * Classifies tryouts into ongoing (currently active) and others (upcoming, past, etc.).
- * Guarantees that active/live tryouts get featured at the top in full-width landscape.
- */
-export function classifyTryouts(
-  tryouts: TryOutData[],
-  now = new Date()
-): ClassifiedTryouts {
-  if (tryouts.length === 0) {
-    return { ongoing: [], others: [] };
-  }
-
+export function classifyTryouts(tryouts: TryOutData[], now = new Date()) {
   const currentTime = now.getTime();
-
-  // 1. Strictly ongoing (start in past/now, end in future/now)
-  const strictlyOngoing = tryouts.filter((t) => {
-    if (!t.scheduledStart) return false;
-    const start = new Date(t.scheduledStart).getTime();
-    if (!Number.isFinite(start)) return false;
-    if (currentTime < start) return false;
-    if (t.scheduledEnd) {
-      const end = new Date(t.scheduledEnd).getTime();
-      if (currentTime > end) return false;
-    }
-    return true;
+  const featured = tryouts.filter((tryout) => {
+    if (!tryout.scheduledStart) return false;
+    const start = new Date(tryout.scheduledStart).getTime();
+    if (!Number.isFinite(start) || start > currentTime + FEATURED_WINDOW_MS) return false;
+    if (!tryout.scheduledEnd) return true;
+    const end = new Date(tryout.scheduledEnd).getTime();
+    return Number.isFinite(end) && end >= currentTime;
   });
 
-  if (strictlyOngoing.length > 0) {
-    const featuredOngoing = [...strictlyOngoing].sort(
-      (a, b) =>
-        new Date(b.scheduledStart!).getTime() -
-        new Date(a.scheduledStart!).getTime()
-    )[0];
-    return {
-      ongoing: [featuredOngoing],
-      others: tryouts.filter((t) => t.id !== featuredOngoing.id),
-    };
-  }
-
-  // 2. If no tryout is strictly ongoing (e.g. test database dates or ongoing without end date):
-  // Any tryout whose start date has arrived is active
-  const startedTryouts = tryouts.filter((t) => {
-    if (!t.scheduledStart) return true;
-    return currentTime >= new Date(t.scheduledStart).getTime();
-  });
-
-  if (startedTryouts.length > 0) {
-    const featuredOngoing = [...startedTryouts].sort((a, b) => {
-      const startA = a.scheduledStart
-        ? new Date(a.scheduledStart).getTime()
-        : Number.NEGATIVE_INFINITY;
-      const startB = b.scheduledStart
-        ? new Date(b.scheduledStart).getTime()
-        : Number.NEGATIVE_INFINITY;
-      return startB - startA;
-    })[0];
-    return {
-      ongoing: [featuredOngoing],
-      others: tryouts.filter((t) => t.id !== featuredOngoing.id),
-    };
-  }
-
-  // 3. Otherwise (e.g. all tryouts are in future)
   return {
-    ongoing: [],
-    others: tryouts,
+    featured: featured.sort((a, b) =>
+      new Date(a.scheduledStart!).getTime() - new Date(b.scheduledStart!).getTime()
+    ),
   };
 }

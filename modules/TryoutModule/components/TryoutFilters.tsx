@@ -85,13 +85,13 @@ export function TryoutFilters({
           <SelectTrigger
             aria-label="Urutkan tryout"
             aria-controls={SORT_CONTENT_ID}
-            className="w-full sm:w-[150px]"
+            className="w-full sm:w-[200px]"
           >
             <SelectValue placeholder="Urutkan" />
           </SelectTrigger>
           <SelectContent id={SORT_CONTENT_ID}>
-            <SelectItem value="newest">Terbaru</SelectItem>
-            <SelectItem value="oldest">Terlama</SelectItem>
+            <SelectItem value="newest">Mulai paling akhir</SelectItem>
+            <SelectItem value="oldest">Mulai paling awal</SelectItem>
           </SelectContent>
         </Select>
       </div>
