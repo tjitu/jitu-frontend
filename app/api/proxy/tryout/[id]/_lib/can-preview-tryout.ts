@@ -1,11 +1,10 @@
-import { createHash } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { getDbPool } from "@/lib/db";
 
 export async function canPreviewTryout(
-  request: NextRequest,
+  _request: NextRequest,
   userId: string,
-  tryoutId: string,
+  _tryoutId: string,
 ): Promise<boolean> {
   const pool = getDbPool();
 
@@ -26,20 +25,5 @@ export async function canPreviewTryout(
     if (rows[0]?.role === "ADMIN") return true;
   }
 
-  const token = request.headers.get("x-sandbox-token")?.trim() || "";
-  if (!/^[a-f0-9]{64}$/i.test(token)) return false;
-
-  try {
-    const tokenHash = createHash("sha256").update(token).digest("hex");
-    const { rows } = await pool.query(
-      `SELECT 1 FROM "QcSandboxPreviewSession"
-       WHERE token_hash = $1 AND tryout_id = $2 AND expires_at > NOW()
-       LIMIT 1`,
-      [tokenHash, tryoutId],
-    );
-    return rows.length > 0;
-  } catch {
-    // A preview token is never accepted when its session cannot be verified.
-    return false;
-  }
+  return false;
 }

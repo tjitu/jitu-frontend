@@ -1,4 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { canPreviewTryout } from "../_lib/can-preview-tryout";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
@@ -8,46 +9,6 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 type TryoutParams = { params: Promise<{ id: string }> };
-
-async function canPreviewTryout(
-  request: NextRequest,
-  userId: string,
-  tryoutId: string,
-): Promise<boolean> {
-  const pool = getDbPool();
-
-  try {
-    const { rows } = await pool.query(
-      `SELECT role, COALESCE("isSandbox", false) AS "isSandbox"
-       FROM "user" WHERE id = $1 LIMIT 1`,
-      [userId],
-    );
-    if (rows[0]?.role === "ADMIN" || rows[0]?.isSandbox === true) return true;
-  } catch (error) {
-    if ((error as { code?: string })?.code !== "42703") throw error;
-    const { rows } = await pool.query(
-      `SELECT role FROM "user" WHERE id = $1 LIMIT 1`,
-      [userId],
-    );
-    if (rows[0]?.role === "ADMIN") return true;
-  }
-
-  const token = request.headers.get("x-sandbox-token")?.trim() || "";
-  if (!/^[a-f0-9]{64}$/i.test(token)) return false;
-
-  try {
-    const tokenHash = createHash("sha256").update(token).digest("hex");
-    const { rows } = await pool.query(
-      `SELECT 1 FROM "QcSandboxPreviewSession"
-       WHERE token_hash = $1 AND tryout_id = $2 AND expires_at > NOW()
-       LIMIT 1`,
-      [tokenHash, tryoutId],
-    );
-    return rows.length > 0;
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(request: NextRequest, { params }: TryoutParams) {
   try {

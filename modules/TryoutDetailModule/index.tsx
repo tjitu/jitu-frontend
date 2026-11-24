@@ -129,19 +129,20 @@ const TryoutDetailModule = () => {
       </div>
 
       {/* QC Sandbox Notice */}
-      {(tryoutData.isSandboxPreview ||
-        tryoutData.curationStatus === "QC_SANDBOX") && (
+      {tryoutData.isSandboxAccount && (
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs sm:text-sm text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
           <div>
             <span className="font-bold uppercase tracking-wider text-blue-700 mr-2">
               MODE QC SANDBOX
             </span>
             <span>
-              Tryout ini sedang diuji di Sandbox dan belum dirilis ke siswa umum.
+              {tryoutData.curationStatus === "PUBLISHED"
+                ? "Kamu sedang melakukan simulasi. Hasil akun sandbox tidak masuk peringkat peserta."
+                : "Tryout ini sedang diuji di Sandbox dan belum dirilis ke siswa umum."}
             </span>
           </div>
           <Badge variant="default" className="shrink-0 bg-blue-600 text-white">
-            Antrean QC
+            {tryoutData.curationStatus === "PUBLISHED" ? "Simulasi" : "Antrean QC"}
           </Badge>
         </div>
       )}
