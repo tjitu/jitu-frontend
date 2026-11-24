@@ -12,7 +12,8 @@ import {
   getTryoutLeaderboard,
   LeaderboardData,
 } from "@/lib/api/tryout";
-import { startTryoutAttempt, registerTryout } from "@/lib/api/exam";
+import { startTryoutAttempt, registerTryout, TryoutStartError } from "@/lib/api/exam";
+import { isTryoutBeforeStart } from "@/lib/tryout-start";
 
 export function useTryoutDetail() {
   const router = useRouter();
@@ -32,6 +33,8 @@ export function useTryoutDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
+  const [notStartedOpen, setNotStartedOpen] = useState(false);
+  const [questionsUnavailableOpen, setQuestionsUnavailableOpen] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState("");
 
   const [isRegistering] = useState(false);
@@ -94,6 +97,11 @@ export function useTryoutDetail() {
   useEffect(() => {
     fetchDetail();
   }, [tryoutId]);
+
+  useEffect(() => {
+    if (searchParams.get("belumDimulai") === "1" && tryoutData && isTryoutBeforeStart(tryoutData)) setNotStartedOpen(true);
+    if (searchParams.get("soalBelumTersedia") === "1" && tryoutData?.actualQuestionCount === 0) setQuestionsUnavailableOpen(true);
+  }, [searchParams, tryoutData]);
 
   const ensureAttempt = async (): Promise<string> => {
     if (attemptId) return attemptId;
@@ -206,7 +214,9 @@ export function useTryoutDetail() {
       const orderToStart = tryoutData?.currentSubtestOrder || 1;
       router.push(`/tryout/${tryoutId}/exam/${orderToStart}?attemptId=${id}`);
     } catch (e: any) {
-      setActionError(e?.message || "Gagal memulai tryout.");
+      if (e instanceof TryoutStartError && e.code === "TRYOUT_NOT_STARTED") setNotStartedOpen(true);
+      else if (e instanceof TryoutStartError && e.code === "TRYOUT_QUESTIONS_UNAVAILABLE") setQuestionsUnavailableOpen(true);
+      else setActionError(e?.message || "Gagal memulai tryout.");
     }
   };
 
@@ -267,6 +277,10 @@ export function useTryoutDetail() {
     isLoading,
     error,
     actionError,
+    notStartedOpen,
+    setNotStartedOpen,
+    questionsUnavailableOpen,
+    setQuestionsUnavailableOpen,
     leaderboardError,
     isRegistering,
     isStartingAttempt,

@@ -28,6 +28,8 @@ import {
   X,
 } from "lucide-react";
 import { PracticeQuestionText } from "@/components/practice-question-text";
+import { isTryoutBeforeStart } from "@/lib/tryout-start";
+import { TryoutStartError } from "@/lib/api/exam";
 import { TryoutSolution } from "@/components/tryout-solution";
 import { renderMathContent } from "@/lib/render-math-content";
 import type { QuestionSolutionData } from "@/lib/practice-store";
@@ -203,8 +205,8 @@ export default function TryoutExamModule() {
     );
 
     if (!res.ok) {
-      const msg = await res.text().catch(() => "");
-      throw new Error(msg || "Gagal memulai attempt.");
+      const payload: { code?: string; message?: string } | null = await res.json().catch(() => null);
+      throw new TryoutStartError(payload?.message || "Gagal memulai tryout.", payload?.code);
     }
 
     const data = await res.json();
@@ -268,6 +270,21 @@ export default function TryoutExamModule() {
   useEffect(() => {
     const load = async () => {
       if (!tryoutId || !subtestId) return;
+      if (!isReviewMode && session?.user?.id) {
+        try {
+          const detail = await getTryoutDetail(tryoutId);
+          if (isTryoutBeforeStart(detail)) {
+            router.replace(`/tryout/${encodeURIComponent(tryoutId)}?belumDimulai=1`);
+            return;
+          }
+          if (detail.actualQuestionCount === 0) {
+            router.replace(`/tryout/${encodeURIComponent(tryoutId)}?soalBelumTersedia=1`);
+            return;
+          }
+        } catch {
+          // Let the exam request report any actual access or connection error.
+        }
+      }
       if (!isReviewMode && !attemptId && !attemptIdFromQuery) {
         router.replace(`/tryout/${encodeURIComponent(tryoutId)}`);
         return;
@@ -332,6 +349,14 @@ export default function TryoutExamModule() {
             }
           }
           const payload = await res.json().catch(() => null);
+          if (payload?.code === "TRYOUT_NOT_STARTED") {
+            router.replace(`/tryout/${encodeURIComponent(tryoutId)}?belumDimulai=1`);
+            return;
+          }
+          if (payload?.code === "TRYOUT_QUESTIONS_UNAVAILABLE") {
+            router.replace(`/tryout/${encodeURIComponent(tryoutId)}?soalBelumTersedia=1`);
+            return;
+          }
           const message = payload?.message;
           throw new Error(
             typeof message === "string"
@@ -402,6 +427,14 @@ export default function TryoutExamModule() {
           setTimeRemainingSec(null);
         }
       } catch (e: any) {
+        if (e instanceof TryoutStartError && e.code === "TRYOUT_NOT_STARTED") {
+          router.replace(`/tryout/${encodeURIComponent(tryoutId)}?belumDimulai=1`);
+          return;
+        }
+        if (e instanceof TryoutStartError && e.code === "TRYOUT_QUESTIONS_UNAVAILABLE") {
+          router.replace(`/tryout/${encodeURIComponent(tryoutId)}?soalBelumTersedia=1`);
+          return;
+        }
         setError(e?.message || "Gagal memuat lembar ujian.");
       } finally {
         setLoading(false);

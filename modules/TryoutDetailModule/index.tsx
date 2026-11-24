@@ -16,6 +16,8 @@ import { TryoutResultSummary } from "./components/TryoutResultSummary";
 import { useTryoutDetail } from "./hooks/useTryoutDetail";
 import { parsePtnTargets } from "@/lib/target";
 import { StartTryoutDialog } from "./components/StartTryoutDialog";
+import { NotStartedDialog } from "./components/NotStartedDialog";
+import { isTryoutBeforeStart } from "@/lib/tryout-start";
 
 const TryoutDetailModule = () => {
   const [confirmStart, setConfirmStart] = useState(false);
@@ -27,6 +29,10 @@ const TryoutDetailModule = () => {
     isLoading,
     error,
     actionError,
+    notStartedOpen,
+    setNotStartedOpen,
+    questionsUnavailableOpen,
+    setQuestionsUnavailableOpen,
     leaderboardError,
     isRegistering,
     isStartingAttempt,
@@ -50,6 +56,8 @@ const TryoutDetailModule = () => {
     session,
   } = useTryoutDetail();
   const requestStart = () => {
+    if (tryoutData && isTryoutBeforeStart(tryoutData)) { setNotStartedOpen(true); return; }
+    if (tryoutData?.actualQuestionCount === 0 && tryoutData.latestAttemptStatus !== "FINISHED") { setQuestionsUnavailableOpen(true); return; }
     if (tryoutData?.latestAttemptStatus === "IN_PROGRESS" || tryoutData?.latestAttemptStatus === "FINISHED") {
       void handleStart();
     } else {
@@ -211,6 +219,8 @@ const TryoutDetailModule = () => {
 
       {/* Registration & Unlock Modals */}
       <StartTryoutDialog open={confirmStart} loading={startLoading} onOpenChange={setConfirmStart} onConfirm={confirmAndStart} />
+      <NotStartedDialog open={notStartedOpen} onOpenChange={setNotStartedOpen} startDate={tryoutData.startDate} />
+      <NotStartedDialog open={questionsUnavailableOpen} onOpenChange={setQuestionsUnavailableOpen} startDate={tryoutData.startDate} questionsUnavailable />
       <RegisterModal
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}

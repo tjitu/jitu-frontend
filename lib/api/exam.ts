@@ -1,6 +1,10 @@
 import { BACKEND_URL } from "@/lib/api";
 import { getActiveTryoutSandboxToken } from "@/lib/api/tryout";
 
+export class TryoutStartError extends Error {
+  constructor(message: string, public readonly code?: string) { super(message); }
+}
+
 export const startTryoutAttempt = async (
   tryoutId: string,
   userId: string,
@@ -16,8 +20,9 @@ export const startTryoutAttempt = async (
   });
 
   if (!res.ok) {
-    const msg = await res.text().catch(() => "");
-    throw new Error(msg || "Gagal memulai attempt");
+    const payload: { message?: string | string[]; code?: string } | null = await res.json().catch(() => null);
+    const message = Array.isArray(payload?.message) ? payload.message.join(", ") : payload?.message;
+    throw new TryoutStartError(message || "Gagal memulai tryout.", payload?.code);
   }
 
   const data = await res.json();

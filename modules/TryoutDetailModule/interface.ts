@@ -8,6 +8,7 @@ export interface TryoutDetail {
   description: string;
   duration: number;
   totalQuestions: number;
+  actualQuestionCount?: number;
   startDate: string;
   endDate: string;
   isRegistered: boolean;
@@ -34,6 +35,7 @@ export interface TryoutDetail {
   breakSeconds?: number;
   isSandboxPreview?: boolean;
   isSandboxAccount?: boolean;
+  canBypassSchedule?: boolean;
 }
 
 export interface CategoryDetail {

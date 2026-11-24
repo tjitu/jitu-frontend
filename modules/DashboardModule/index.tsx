@@ -29,6 +29,7 @@ import { ScoreData } from "./interface";
 import { UserWithRole } from "@/lib/types";
 import { useSession, refreshSession } from "@/lib/auth-client";
 import { getPtnTargetSummary } from "@/lib/target";
+import { tryoutStartDetailUrl } from "@/lib/tryout-start";
 import {
   getUserStats,
   getOngoingTryouts,
@@ -650,7 +651,7 @@ const DashboardModule = () => {
                           featuredTryout.status === "IN_PROGRESS" &&
                           featuredTryout.resumeUrl
                             ? featuredTryout.resumeUrl
-                            : `/tryout/${featuredTryout.id}`;
+                            : featuredTryout.status === "FINISHED" ? `/tryout/${featuredTryout.id}` : tryoutStartDetailUrl(featuredTryout.id, featuredTryout.scheduledStart);
                         router.push(target);
                       }}
                       className="sm:min-w-[200px] justify-between"
@@ -949,7 +950,7 @@ const DashboardModule = () => {
                             const target =
                               isProgress && tryout.resumeUrl
                                 ? tryout.resumeUrl
-                                : `/tryout/${tryout.id}`;
+                                : isFinished ? `/tryout/${tryout.id}` : tryoutStartDetailUrl(tryout.id, tryout.scheduledStart);
                             router.push(target);
                           }}
                         >
@@ -1066,7 +1067,7 @@ const DashboardModule = () => {
                           className="w-full justify-between"
                           onClick={() =>
                             tryout.isRegistered
-                              ? router.push(`/tryout/${tryout.id}`)
+                              ? router.push(tryoutStartDetailUrl(tryout.id, tryout.scheduledStart))
                               : handleRegisterClick(tryout as OngoingTryout)
                           }
                         >

@@ -1,4 +1,5 @@
 import type { TryOutData } from "../types";
+import { tryoutStartDetailUrl } from "@/lib/tryout-start";
 
 export interface TryoutCardActionInfo {
   badgeLabel: string;
@@ -47,7 +48,7 @@ export function getTryoutCardActionInfo(tryout: TryOutData): TryoutCardActionInf
       badgeLabel: "Terdaftar",
       badgeVariant: "not_started",
       ctaLabel: "Mulai Tryout",
-      targetUrl: `/tryout/${tryout.id}`,
+      targetUrl: tryoutStartDetailUrl(tryout.id, tryout.scheduledStart),
       isOutline: false,
     };
   }

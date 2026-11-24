@@ -116,6 +116,7 @@ export const getTryoutDetail = async (
 
     participants: data.participants ?? 0,
     totalQuestions: data.totalQuestions ?? 0,
+    actualQuestionCount: typeof data.actualQuestionCount === "number" ? data.actualQuestionCount : undefined,
     duration: data.duration ?? 0,
     startDate: data.startDate,
     endDate: data.endDate,
@@ -150,6 +151,7 @@ export const getTryoutDetail = async (
     curationStatus: data.curationStatus,
     isSandboxPreview: Boolean(data.isSandboxPreview),
     isSandboxAccount: Boolean(data.isSandboxAccount),
+    canBypassSchedule: Boolean(data.canBypassSchedule),
   };
 
   return mappedData;

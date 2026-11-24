@@ -4,6 +4,7 @@ import React from "react";
 import { CheckCircle2, Play, Loader2, BookOpen, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TryoutDetail } from "../interface";
+import { isTryoutBeforeStart } from "@/lib/tryout-start";
 
 interface TryoutActionBarProps {
   tryoutData: TryoutDetail;
@@ -25,6 +26,7 @@ export function TryoutActionBar({
   const questionsReleased =
     tryoutData.questionsReleased !== false || Boolean(tryoutData.isSandboxPreview);
   const isWaitingQuestionRelease = isRegistered && !isInProgress && !questionsReleased;
+  const beforeStart = isTryoutBeforeStart(tryoutData);
 
   return (
     <div
@@ -86,14 +88,14 @@ export function TryoutActionBar({
         {isRegistered ? (
           <Button
             onClick={onStart}
-            disabled={isStartingAttempt || isWaitingQuestionRelease}
+            disabled={isStartingAttempt || (isWaitingQuestionRelease && !beforeStart)}
             variant="primary"
             size="lg"
             className="w-full sm:w-auto h-11 px-6 font-semibold flex items-center justify-center gap-2"
           >
             {isStartingAttempt ? (
               <Loader2 className="w-4 h-4 animate-spin" />
-            ) : isWaitingQuestionRelease ? (
+            ) : isWaitingQuestionRelease && !beforeStart ? (
               <Clock className="w-4 h-4" />
             ) : (
               <Play className="w-4 h-4 fill-current" />
@@ -101,7 +103,7 @@ export function TryoutActionBar({
             <span>
               {isInProgress
                 ? "Lanjutkan Tryout"
-                : isWaitingQuestionRelease
+                : isWaitingQuestionRelease && !beforeStart
                   ? "Menunggu Soal Dibuka"
                   : "Mulai Kerjakan"}
             </span>
