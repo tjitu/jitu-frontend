@@ -856,7 +856,7 @@ const DashboardModule = () => {
           <TabsContent value="my-tryouts">
             {myTryouts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myTryouts.map((tryout) => {
+                {myTryouts.slice(0, 3).map((tryout) => {
                   const isFinished = tryout.status === "FINISHED";
                   const isProgress = tryout.status === "IN_PROGRESS";
 
@@ -990,7 +990,7 @@ const DashboardModule = () => {
           <TabsContent value="explore">
             {marketTryouts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {marketTryouts.map((tryout) => (
+                {marketTryouts.slice(0, 3).map((tryout) => (
                   <article
                     key={tryout.id}
                     className={`bg-surface rounded-lg border border-border overflow-hidden flex flex-col hover:shadow-sm transition-all duration-[120ms] ${
