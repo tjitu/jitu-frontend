@@ -137,11 +137,6 @@ export function renderMathContent(
     .replace(/\\\(([^\n]*?)\\\)/g, (_, math: string) => `$${math}$`);
   if (!content) return "";
 
-  // An answer option that is just a numeric fraction ("41/90") is shown as a stacked fraction.
-  // Only a whole-content match counts, so "km/jam" or "dan/atau" in prose stay untouched.
-  const loneFraction = content.trim().match(/^(-?\d+)\/(\d+)$/);
-  if (loneFraction) return renderInlineMath(`\\dfrac{${loneFraction[1]}}{${loneFraction[2]}}`);
-
   const { animatedHighlights = false } = options;
   const vault = createVault();
 
