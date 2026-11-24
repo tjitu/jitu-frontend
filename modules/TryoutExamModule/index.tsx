@@ -14,6 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
@@ -24,7 +25,7 @@ import {
   XCircle,
   Grid,
   WifiOff,
-  X,
+  BookOpen,
 } from "lucide-react";
 import { PracticeQuestionText } from "@/components/practice-question-text";
 import { isTryoutBeforeStart } from "@/lib/tryout-start";
@@ -802,7 +803,7 @@ export default function TryoutExamModule() {
   const isCurrentRagu = markedQuestions.includes(currentQuestion.id);
   const isUnderFiveMin = (timeRemainingSec ?? 999) < 300;
   const showSolution = isReviewMode && Boolean(currentQuestion.structuredSolution || currentQuestion.solution);
-  const pageWidth = showSolution ? "max-w-[1580px]" : "max-w-6xl";
+  const pageWidth = showSolution ? "max-w-7xl" : isReviewMode ? "max-w-4xl" : "max-w-6xl";
 
   const isQuestionCorrect = (q: UiQuestion) => {
     const ua = answers[q.id];
@@ -891,7 +892,7 @@ export default function TryoutExamModule() {
                 setCurrentQuestionIndex(index);
                 if (closeOnSelect) setMobileSheetOpen(false);
               }}
-              className={`w-[42px] h-[42px] rounded-md border font-mono text-sm font-medium tabular-nums flex items-center justify-center transition-colors cursor-pointer ${cellClass} ${
+              className={`w-full h-10 rounded-md border font-mono text-sm font-medium tabular-nums flex items-center justify-center transition-colors cursor-pointer ${cellClass} ${
                 isCurrent ? "ring-2 ring-primary ring-offset-1" : ""
               } ${!visibleInFilter ? "opacity-25" : ""}`}
             >
@@ -939,8 +940,8 @@ export default function TryoutExamModule() {
   return (
     <div className="min-h-screen bg-bg text-text-body flex flex-col">
       {/* Sticky Top Bar (64px, white, 1px bottom border) */}
-      <header className="sticky top-0 z-10 min-h-16 bg-surface text-text border-b border-border px-3 sm:px-6">
-        <div className={`${pageWidth} mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 py-2 sm:flex-nowrap`}>
+      <header className="sticky top-0 z-10 min-h-16 bg-surface text-text border-b border-border">
+        <div className={`${pageWidth} mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 px-4 py-2 sm:flex-nowrap sm:px-6`}>
           {/* Left: Subtest name + Font size toggle */}
           <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
             {isReviewMode && (
@@ -951,7 +952,7 @@ export default function TryoutExamModule() {
                 className="shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Kembali</span>
+                <span className="sr-only sm:not-sr-only">Kembali</span>
               </Button>
             )}
             <div className="flex items-center gap-2 min-w-0">
@@ -983,11 +984,7 @@ export default function TryoutExamModule() {
             >
               {formatTime(timeRemainingSec)}
             </div>
-          ) : (
-            <div className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold inline-flex items-center">
-              Mode pembahasan
-            </div>
-          )}
+          ) : null}
 
           {/* Right: "Kumpulkan" button or Review subtest switcher */}
           <div className="flex items-center gap-2 shrink-0">
@@ -1050,16 +1047,21 @@ export default function TryoutExamModule() {
       {/* Main Body */}
       <div className={`flex-1 w-full ${pageWidth} mx-auto px-4 sm:px-6 py-6 pb-24`}>
         <div className={`grid grid-cols-1 items-start gap-5 ${showSolution
-          ? "lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)_15rem]"
-          : "lg:grid-cols-[minmax(0,1fr)_15rem]"}`}>
+          ? "lg:grid-cols-2"
+          : isReviewMode ? "" : "lg:grid-cols-[minmax(0,1fr)_15rem]"}`}>
           {/* Left Column: Question + Options */}
-          <section aria-label="Soal tryout" className={`min-w-0 rounded-2xl border border-border bg-surface shadow-xs ${showSolution ? "p-5" : "p-5 sm:p-7"}`}>
+          <section aria-label="Soal tryout" className="min-w-0 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xs">
             {/* Question Number Badge + Mobile Font Size Control */}
             <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b border-ink-100">
               <div className="flex items-center gap-2">
-                <span className="h-6 px-2.5 rounded-full bg-blue-50 text-blue-800 font-mono text-xs font-semibold tabular-nums inline-flex items-center">
-                  Soal {currentQuestionIndex + 1} / {totalQuestions}
-                </span>
+                <h2 className="text-lg font-bold tracking-tight text-text">
+                  Soal {currentQuestionIndex + 1} <span className="text-sm font-normal text-text-muted">dari {totalQuestions}</span>
+                </h2>
+                {isReviewMode && (
+                  <span className="text-xs font-medium text-text-muted">
+                    {answers[currentQuestion.id] ? (isQuestionCorrect(currentQuestion) ? "Dijawab benar" : "Dijawab salah") : "Belum dijawab"}
+                  </span>
+                )}
                 {isCurrentRagu && !isReviewMode && (
                   <span className="h-6 px-2.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold inline-flex items-center">
                     Ragu-ragu
@@ -1120,7 +1122,7 @@ export default function TryoutExamModule() {
                           "bg-rose-600 text-white border-rose-600";
                       } else {
                         rowClass =
-                          "border-border/60 bg-surface/50 opacity-60";
+                          "border-border bg-surface text-text";
                       }
                     } else if (isSelected) {
                       rowClass =
@@ -1206,14 +1208,16 @@ export default function TryoutExamModule() {
 
           {showSolution && (
             <section aria-label="Pembahasan" key={currentQuestion.id}
-              className={currentQuestion.structuredSolution ? "min-w-0" : "min-w-0 rounded-2xl border border-border bg-surface p-5 shadow-xs"}
+              className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface shadow-xs"
               style={{ fontSize }}>
-              {!currentQuestion.structuredSolution && <h2 className="mb-4 font-semibold text-text">Pembahasan</h2>}
-              <TryoutSolution solution={currentQuestion.structuredSolution} explanation={currentQuestion.solution} />
+              <h2 className="mx-5 flex items-center gap-2 border-b border-border py-5 text-lg font-bold tracking-tight text-text sm:mx-6">
+                <BookOpen aria-hidden className="size-5 text-primary" /> Pembahasan
+              </h2>
+              <TryoutSolution embedded solution={currentQuestion.structuredSolution} explanation={currentQuestion.solution} />
             </section>
           )}
 
-          <aside aria-label="Peta soal" className={`hidden ${showSolution ? "xl:block" : "lg:block"} sticky top-20 max-h-[calc(100dvh-10rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-4 shadow-xs`}>
+          {!isReviewMode && <aside aria-label="Peta soal" className={`hidden lg:block sticky top-20 max-h-[calc(100dvh-10rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-4 shadow-xs`}>
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-ink-100">
               <span className="text-label text-text">
                 Nomor soal
@@ -1223,34 +1227,13 @@ export default function TryoutExamModule() {
               </span>
             </div>
             {renderNumberGrid(false)}
-          </aside>
+          </aside>}
         </div>
       </div>
 
-      {/* Mobile Number Grid Bottom Sheet */}
-      {mobileSheetOpen && (
-        <div className={`fixed inset-0 z-30 ${showSolution ? "xl:hidden" : "lg:hidden"} bg-[#121F47]/50 flex flex-col justify-end`}>
-          <div className="bg-surface rounded-t-xl border-t border-border shadow-modal p-5 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-ink-100">
-              <span className="text-label text-text">
-                Daftar nomor soal ({answeredCount}/{totalQuestions})
-              </span>
-              <button
-                type="button"
-                onClick={() => setMobileSheetOpen(false)}
-                className="w-8 h-8 rounded-md border border-border flex items-center justify-center text-text-muted hover:bg-surface-muted transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            {renderNumberGrid(true)}
-          </div>
-        </div>
-      )}
-
       {/* Sticky Bottom Bar */}
-      <footer className="fixed bottom-0 left-0 right-0 z-10 h-16 bg-surface border-t border-border px-3 sm:px-6">
-        <div className={`${pageWidth} mx-auto h-full flex items-center justify-between gap-2`}>
+      <footer className="fixed bottom-0 left-0 right-0 z-10 h-16 bg-surface border-t border-border">
+        <div className={`${pageWidth} mx-auto h-full flex items-center justify-between gap-2 px-4 sm:px-6`}>
           {/* Left: "← Sebelumnya" */}
           <Button
             variant="outline"
@@ -1261,7 +1244,7 @@ export default function TryoutExamModule() {
             }
           >
             <ArrowLeft className="w-4 h-4 mr-1.5" />
-            <span className="hidden sm:inline">Sebelumnya</span>
+            <span className="sr-only sm:not-sr-only">Sebelumnya</span>
           </Button>
 
           {/* Center: "Tandai ragu" toggle + Save status + Mobile "Nomor" trigger */}
@@ -1289,14 +1272,20 @@ export default function TryoutExamModule() {
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={() => setMobileSheetOpen(true)}
-              className={`${showSolution ? "xl:hidden" : "lg:hidden"} h-9 px-3 rounded-md border border-border bg-surface-muted text-text text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-ink-100 transition-colors`}
-            >
-              <Grid className="w-3.5 h-3.5" />
-              <span>Nomor</span>
-            </button>
+            <Dialog open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className={isReviewMode ? "" : "lg:hidden"}>
+                  <Grid className="size-4" /> Peta soal
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[80dvh] overflow-y-auto sm:max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Peta soal</DialogTitle>
+                  <DialogDescription>{answeredCount} dari {totalQuestions} soal dijawab</DialogDescription>
+                </DialogHeader>
+                {renderNumberGrid(true)}
+              </DialogContent>
+            </Dialog>
 
             {!isReviewMode && (
               <span className="hidden md:inline-block text-xs text-text-muted">
