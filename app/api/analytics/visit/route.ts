@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pg from "pg";
+import { attachDatabasePool } from "@vercel/functions";
 import { randomUUID } from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +25,10 @@ function getPool(): pg.Pool {
       connectionString: getDatabaseUrl(),
       ssl: { rejectUnauthorized: false },
       max: 2,
-      idleTimeoutMillis: 10000,
+      idleTimeoutMillis: 5000,
       connectionTimeoutMillis: 10000,
     });
+    attachDatabasePool(poolInstance);
     poolInstance.on("error", () => {
       try {
         poolInstance?.end().catch(() => {});

@@ -1,4 +1,5 @@
 import pg from "pg";
+import { attachDatabasePool } from "@vercel/functions";
 
 // Supabase Root 2021 CA, the trust anchor of every Supabase pooler certificate
 // (chain: *.pooler.supabase.com -> Supabase Intermediate 2021 CA -> this root).
@@ -133,9 +134,10 @@ export function getDbPool(): pg.Pool {
       connectionString,
       ssl,
       max: 5,
-      idleTimeoutMillis: 15000,
+      idleTimeoutMillis: 5000,
       connectionTimeoutMillis: 10000,
     });
+    attachDatabasePool(poolInstance);
   }
   return poolInstance;
 }

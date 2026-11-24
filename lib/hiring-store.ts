@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import pg from "pg";
+import { attachDatabasePool } from "@vercel/functions";
 import {
   ApplicationStatus,
   HiringApplication,
@@ -35,9 +36,10 @@ function getPool(): pg.Pool {
       connectionString: getDatabaseUrl(),
       ssl: { rejectUnauthorized: false },
       max: 2,
-      idleTimeoutMillis: 10000,
+      idleTimeoutMillis: 5000,
       connectionTimeoutMillis: 10000,
     });
+    attachDatabasePool(poolInstance);
     poolInstance.on("error", (err) => {
       console.warn("[pg pool error]", err.message);
       try {
