@@ -395,6 +395,11 @@ const DashboardModule = () => {
   };
 
   const myTryouts = ongoingTryouts.filter((t) => t.isRegistered);
+  // "ongoing" only ever returns tryouts whose scheduledStart has passed, so a
+  // registration for an upcoming tryout never shows up in myTryouts. Count it
+  // from the available list too, or the "Daftar tryout gratis pertamamu"
+  // milestone can never complete for anyone who registers ahead of time.
+  const registeredUpcomingCount = availableTryoutsData.filter((at) => at.isRegistered).length;
   const marketTryouts: OngoingTryout[] = [
     ...ongoingTryouts.filter((t) => !t.isRegistered),
     ...availableTryoutsData
@@ -481,27 +486,6 @@ const DashboardModule = () => {
       </span>
     </span>
   ) : null;
-
-  const onboardingSteps = [
-    {
-      label: "Tentukan target PTN & jurusan",
-      done: Boolean(session.user.target?.trim()),
-      href: "/profile",
-      actionLabel: "Kerjakan",
-    },
-    {
-      label: "Selesaikan pemanasan soal hari ini",
-      done: Boolean(dailyStatus?.isCompleted),
-      href: "/daily-streak",
-      actionLabel: "Kerjakan",
-    },
-    {
-      label: "Daftar tryout gratis pertamamu",
-      done: myTryouts.length > 0,
-      href: "#jadwal-tryout",
-      actionLabel: "Kerjakan",
-    },
-  ];
 
   return (
     <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -729,7 +713,7 @@ const DashboardModule = () => {
           <MilestoneCard
             hasTarget={Boolean(session.user.target?.trim())}
             dailyCompleted={Boolean(dailyStatus?.isCompleted)}
-            registeredTryoutsCount={myTryouts.length}
+            registeredTryoutsCount={myTryouts.length + registeredUpcomingCount}
             finishedTryoutsCount={
               userStats?.totalFinished ?? scoreHistory.length
             }
