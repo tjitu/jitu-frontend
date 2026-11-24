@@ -20,7 +20,6 @@ import {
   ArrowRight,
   Flag,
   Loader2,
-  BookOpen,
   CheckCircle2,
   XCircle,
   Grid,
@@ -802,6 +801,8 @@ export default function TryoutExamModule() {
   const raguCount = markedQuestions.length;
   const isCurrentRagu = markedQuestions.includes(currentQuestion.id);
   const isUnderFiveMin = (timeRemainingSec ?? 999) < 300;
+  const showSolution = isReviewMode && Boolean(currentQuestion.structuredSolution || currentQuestion.solution);
+  const pageWidth = showSolution ? "max-w-[1580px]" : "max-w-6xl";
 
   const isQuestionCorrect = (q: UiQuestion) => {
     const ua = answers[q.id];
@@ -939,7 +940,7 @@ export default function TryoutExamModule() {
     <div className="min-h-screen bg-bg text-text-body flex flex-col">
       {/* Sticky Top Bar (64px, white, 1px bottom border) */}
       <header className="sticky top-0 z-10 min-h-16 bg-surface text-text border-b border-border px-3 sm:px-6">
-        <div className="max-w-[1200px] mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 py-2 sm:flex-nowrap">
+        <div className={`${pageWidth} mx-auto min-h-16 flex flex-wrap items-center justify-between gap-2 py-2 sm:flex-nowrap`}>
           {/* Left: Subtest name + Font size toggle */}
           <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
             {isReviewMode && (
@@ -1047,10 +1048,12 @@ export default function TryoutExamModule() {
       )}
 
       {/* Main Body */}
-      <div className="flex-1 w-full max-w-[1040px] mx-auto px-4 sm:px-6 py-6 pb-24">
-        <div className="flex flex-col lg:flex-row items-start gap-6">
+      <div className={`flex-1 w-full ${pageWidth} mx-auto px-4 sm:px-6 py-6 pb-24`}>
+        <div className={`grid grid-cols-1 items-start gap-5 ${showSolution
+          ? "lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)_15rem]"
+          : "lg:grid-cols-[minmax(0,1fr)_15rem]"}`}>
           {/* Left Column: Question + Options */}
-          <div className="w-full lg:flex-1 lg:max-w-[720px] bg-surface rounded-lg border border-border p-5 sm:p-8">
+          <section aria-label="Soal tryout" className={`min-w-0 rounded-2xl border border-border bg-surface shadow-xs ${showSolution ? "p-5" : "p-5 sm:p-7"}`}>
             {/* Question Number Badge + Mobile Font Size Control */}
             <div className="flex items-center justify-between gap-2 pb-4 mb-6 border-b border-ink-100">
               <div className="flex items-center gap-2">
@@ -1198,26 +1201,19 @@ export default function TryoutExamModule() {
                 </div>
               )}
 
-              {/* Solution Box in Review Mode */}
-              {isReviewMode && (currentQuestion.structuredSolution || currentQuestion.solution) && (
-                <div className="mt-6 p-5 sm:p-6 rounded-lg bg-surface-muted border border-border">
-                  <div className="flex items-center gap-2 text-label text-primary pb-3 mb-3 border-b border-border">
-                    <BookOpen className="w-4 h-4" />
-                    <span>Pembahasan langkah demi langkah</span>
-                  </div>
-                  <div
-                    className="prose prose-sm learning-content max-w-[65ch]"
-                    style={{ fontSize: `${fontSize}px` }}
-                  >
-                    <TryoutSolution solution={currentQuestion.structuredSolution} explanation={currentQuestion.solution} />
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
+          </section>
 
-          {/* Right Column: 260px fixed Question Navigator on desktop */}
-          <aside className="hidden lg:block w-[260px] shrink-0 bg-surface rounded-lg border border-border p-4 sticky top-20">
+          {showSolution && (
+            <section aria-label="Pembahasan" key={currentQuestion.id}
+              className={currentQuestion.structuredSolution ? "min-w-0" : "min-w-0 rounded-2xl border border-border bg-surface p-5 shadow-xs"}
+              style={{ fontSize }}>
+              {!currentQuestion.structuredSolution && <h2 className="mb-4 font-semibold text-text">Pembahasan</h2>}
+              <TryoutSolution solution={currentQuestion.structuredSolution} explanation={currentQuestion.solution} />
+            </section>
+          )}
+
+          <aside aria-label="Peta soal" className={`hidden ${showSolution ? "xl:block" : "lg:block"} sticky top-20 max-h-[calc(100dvh-10rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-4 shadow-xs`}>
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-ink-100">
               <span className="text-label text-text">
                 Nomor soal
@@ -1233,7 +1229,7 @@ export default function TryoutExamModule() {
 
       {/* Mobile Number Grid Bottom Sheet */}
       {mobileSheetOpen && (
-        <div className="fixed inset-0 z-30 lg:hidden bg-[#121F47]/50 flex flex-col justify-end">
+        <div className={`fixed inset-0 z-30 ${showSolution ? "xl:hidden" : "lg:hidden"} bg-[#121F47]/50 flex flex-col justify-end`}>
           <div className="bg-surface rounded-t-xl border-t border-border shadow-modal p-5 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-ink-100">
               <span className="text-label text-text">
@@ -1254,7 +1250,7 @@ export default function TryoutExamModule() {
 
       {/* Sticky Bottom Bar */}
       <footer className="fixed bottom-0 left-0 right-0 z-10 h-16 bg-surface border-t border-border px-3 sm:px-6">
-        <div className="max-w-[1040px] mx-auto h-full flex items-center justify-between gap-2">
+        <div className={`${pageWidth} mx-auto h-full flex items-center justify-between gap-2`}>
           {/* Left: "← Sebelumnya" */}
           <Button
             variant="outline"
@@ -1296,7 +1292,7 @@ export default function TryoutExamModule() {
             <button
               type="button"
               onClick={() => setMobileSheetOpen(true)}
-              className="lg:hidden h-9 px-3 rounded-md border border-border bg-surface-muted text-text text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-ink-100 transition-colors"
+              className={`${showSolution ? "xl:hidden" : "lg:hidden"} h-9 px-3 rounded-md border border-border bg-surface-muted text-text text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-ink-100 transition-colors`}
             >
               <Grid className="w-3.5 h-3.5" />
               <span>Nomor</span>
