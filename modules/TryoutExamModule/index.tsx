@@ -1041,13 +1041,13 @@ export default function TryoutExamModule() {
 
             <div>
               {/* Question Passage / Text Box */}
-              <div className="mb-6 bg-surface-muted rounded-md border border-border p-4 sm:p-5 overflow-x-auto max-h-[420px] overflow-y-auto">
+              <div className="mb-6 space-y-4 text-base sm:text-lg">
                 <div
-                  className="prose max-w-[65ch] text-text whitespace-pre-wrap leading-[1.65]"
+                  className="text-text"
                   style={{ fontSize: `${fontSize}px` }}
                 >
                   <PracticeQuestionText narration={currentQuestion.narration} question={question} />
-                  {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="Ilustrasi soal" className="mt-4 max-h-96 rounded-xl object-contain" />}
+                  {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="Ilustrasi soal" className="mt-4 max-h-96 w-auto rounded-xl border border-border object-contain bg-surface" />}
                 </div>
               </div>
 
@@ -1058,6 +1058,7 @@ export default function TryoutExamModule() {
               {/* Options A–E (Pilihan Ganda) */}
               {currentQuestion.type !== "ISIAN_SINGKAT" && currentQuestion.options.length > 0 && (
                 <div className="space-y-2.5 mb-6">
+                  <div className="text-xs font-semibold text-text-muted">PILIH SALAH SATU JAWABAN:</div>
                   {currentQuestion.options.map((opt, idx) => {
                     const userAnswerId = answers[currentQuestion.id];
                     const isSelected = userAnswerId === opt.id;
@@ -1066,29 +1067,29 @@ export default function TryoutExamModule() {
                     const letter = String.fromCharCode(65 + idx);
 
                     let rowClass =
-                      "bg-surface border border-border hover:bg-surface-muted hover:border-ink-300 text-text";
+                      "border-border bg-surface hover:border-blue-400 hover:bg-blue-50/30";
                     let badgeClass =
-                      "bg-surface-muted border border-border text-text-body";
+                      "bg-surface-muted text-text border-border";
 
                     if (isReviewMode) {
                       if (isCorrectKey) {
                         rowClass =
-                          "bg-success-soft border border-success text-success-text font-semibold";
+                          "border-emerald-500 bg-emerald-50/90 ring-1 ring-emerald-500";
                         badgeClass =
-                          "bg-success border-success text-white";
+                          "bg-emerald-600 text-white border-emerald-600";
                       } else if (isSelected && !isCorrectKey) {
                         rowClass =
-                          "bg-danger-soft border border-danger text-danger-text";
+                          "border-rose-400 bg-rose-50/90 ring-1 ring-rose-400";
                         badgeClass =
-                          "bg-danger border-danger text-white";
+                          "bg-rose-600 text-white border-rose-600";
                       } else {
                         rowClass =
-                          "bg-surface border border-border text-text-muted opacity-60";
+                          "border-border/60 bg-surface/50 opacity-60";
                       }
                     } else if (isSelected) {
                       rowClass =
-                        "bg-blue-50 border border-primary text-text font-medium ring-1 ring-primary/30";
-                      badgeClass = "bg-primary border-primary text-white";
+                        "border-primary bg-blue-50/70 ring-2 ring-primary/20";
+                      badgeClass = "bg-primary text-on-primary border-primary font-bold";
                     }
 
                     return (
@@ -1097,17 +1098,17 @@ export default function TryoutExamModule() {
                         type="button"
                         onClick={() => handleAnswerSelect(opt.id)}
                         disabled={isReviewMode}
-                        className={`w-full min-h-[56px] px-4 py-3 rounded-md text-left flex items-center gap-3.5 transition-colors duration-[120ms] cursor-pointer ${rowClass}`}
+                        className={`w-full text-left rounded-xl border transition-all duration-150 flex items-start cursor-pointer disabled:cursor-default p-3.5 sm:p-4 gap-3.5 ${rowClass}`}
                       >
                         <span
-                          className={`w-8 h-8 rounded-sm shrink-0 font-mono text-sm font-semibold flex items-center justify-center ${badgeClass}`}
+                          className={`flex shrink-0 items-center justify-center rounded-lg border font-bold transition-colors h-7 w-7 text-xs ${badgeClass}`}
                         >
                           {letter}
                         </span>
                         <div
-                          className="flex-1 option-text leading-[1.55]"
+                          className="flex-1 text-text pt-0.5 text-sm sm:text-base"
                           style={{ fontSize: `${fontSize}px` }}
-                          dangerouslySetInnerHTML={{ __html: renderMathContent(opt.text) }}
+                          dangerouslySetInnerHTML={{ __html: renderMathContent(opt.text, { animatedHighlights: false }) }}
                         />
                         {isReviewMode && isCorrectKey && (
                           <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
