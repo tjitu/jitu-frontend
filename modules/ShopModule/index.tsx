@@ -1060,6 +1060,7 @@ const ShopModule = () => {
         >
           {!isModalLoading && !transactionId && (
             <PaymentOptions
+              isPremiumPass={Boolean(selectedPkg?.name.toLowerCase().includes("pass"))}
               tokenAmount={selectedPkg?.tokenAmount ?? 0}
               price={selectedPkg?.price ?? 0}
               voucher={appliedVoucher}

@@ -5,6 +5,7 @@ import { DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/di
 import { PixelCoin } from "@/components/ui/pixel-coin";
 
 interface PaymentOptionsProps {
+  isPremiumPass: boolean;
   tokenAmount: number;
   price: number;
   voucher: {
@@ -23,7 +24,7 @@ interface PaymentOptionsProps {
 }
 
 export default function PaymentOptions({
-  tokenAmount, price, voucher, voucherInput, validatingVoucher,
+  isPremiumPass, tokenAmount, price, voucher, voucherInput, validatingVoucher,
   onVoucherInputChange, onApplyVoucher, onRemoveVoucher, onPay,
 }: PaymentOptionsProps) {
   return (
@@ -31,15 +32,21 @@ export default function PaymentOptions({
       <DialogHeader>
         <DialogTitle>Konfirmasi pembelian</DialogTitle>
         <DialogDescription className="sr-only">
-          Periksa jumlah coin dan nominal sebelum memilih metode pembayaran.
+          Periksa pembelian dan nominal sebelum memilih metode pembayaran.
         </DialogDescription>
       </DialogHeader>
 
       <div className="flex flex-col items-center gap-1 py-1">
-        <div className="flex items-center gap-2 text-3xl font-bold text-text">
+        {isPremiumPass ? (
+          <div className="flex flex-col items-center gap-1 text-center">
+            <Image src="/icons/golden-pass-ticket.png" width={84} height={68} alt="" className="object-contain" />
+            <span className="text-lg font-bold text-text">PTN Premium Pass</span>
+            <span className="text-xs text-text-muted">Berlaku setelah pembayaran berhasil selama 30 hari.</span>
+          </div>
+        ) : <div className="flex items-center gap-2 text-3xl font-bold text-text">
           {tokenAmount} <PixelCoin size={36} />
           <span className="sr-only">coin</span>
-        </div>
+        </div>}
         <div className="text-lg font-semibold text-text">
           {voucher && (
             <span className="mr-2 text-sm font-normal text-text-muted line-through">
