@@ -1289,68 +1289,20 @@ const ShopModule = () => {
               className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-yellow-400/15 blur-3xl pointer-events-none"
             />
 
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-14 sm:w-20 sm:h-16 relative shrink-0 select-none animate-ticket-float">
-                <Image
-                  src="/icons/golden-pass-ticket.png"
-                  alt="Tiket Golden Pass PTN Premium Pass"
-                  fill
-                  className="object-contain drop-shadow-lg"
-                />
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="relative w-20 h-16 select-none">
+                <Image src="/icons/golden-pass-ticket.png" alt="" fill className="object-contain drop-shadow-lg" />
               </div>
-
-              <div className="space-y-1">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFD13B] text-black text-[11px] font-black uppercase tracking-wider">
-                  <Sparkles className="w-3 h-3 fill-black" />
-                  Konfirmasi Aktivasi
-                </span>
-                <DialogTitle className="text-xl sm:text-2xl font-black text-white leading-tight">
-                  Aktivasi PTN Premium Pass
-                </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-blue-200">
-                  Dapatkan akses unlimited latihan soal dan bebas buka pembahasan tryout sekarang.
-                </DialogDescription>
-              </div>
+              <DialogTitle className="text-xl sm:text-2xl font-black text-white">PTN Premium Pass</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-blue-100">
+                4 Tryout Coins + Unlimited Drill Soal + Pembahasan
+              </DialogDescription>
             </div>
 
-            <div className="rounded-2xl bg-white/[0.08] border border-white/15 p-4 sm:p-5 space-y-3 backdrop-blur-xs">
-              <div className="text-xs font-bold uppercase tracking-wider text-yellow-300">
-                Benefit yang Langsung Kamu Dapatkan:
-              </div>
-              <div className="space-y-2.5 text-xs sm:text-[13px] text-blue-100">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                  <span>
-                    <strong>Bonus 4 Coins:</strong> Otomatis masuk ke saldo untuk tryout khusus
-                  </span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                  <span>
-                    <strong>Latihan Soal Unlimited:</strong> Bebas akses ribuan bank soal tanpa limit 10 soal per hari
-                  </span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                  <span>
-                    <strong>Unlimited Materi & Pembahasan:</strong> Bebas buka seluruh materi dan pembahasan tryout tanpa coin
-                  </span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-yellow-400/25 text-yellow-300 flex items-center justify-center shrink-0">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                  <span>
-                    <strong>Analisis Skor IRT & Prediksi Kelulusan:</strong> Pantau target PTN impianmu
-                  </span>
-                </div>
-              </div>
+            <div className="rounded-2xl bg-white/[0.08] border border-white/15 p-4 sm:p-5 space-y-3 text-xs sm:text-[13px] text-blue-100">
+              <div className="flex items-center gap-2"><Check className="w-4 h-4 text-yellow-300 shrink-0" /><span>Free Access Tryout + Pembahasan (4 <PixelCoin size={14} />)</span></div>
+              <div className="flex items-center gap-2"><Check className="w-4 h-4 text-yellow-300 shrink-0" /><span>Unlimited Latihan Soal Tanpa Limit</span></div>
+              <div className="flex items-center gap-2"><Check className="w-4 h-4 text-yellow-300 shrink-0" /><span>Analisis Skor IRT + Ranking Kompetitor Jurusan</span></div>
             </div>
 
             <div className="bg-blue-950/40 rounded-xl p-3.5 border border-white/10 flex items-center justify-between text-xs sm:text-sm">
