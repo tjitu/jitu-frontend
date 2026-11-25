@@ -7,6 +7,37 @@ import type { NextConfig } from "next";
 const FIREBASE_AUTH_HANDLER_ORIGIN =
   process.env.FIREBASE_AUTH_HANDLER_ORIGIN || "https://jitu-ptn-main-auth.firebaseapp.com";
 
+// Content-Security-Policy, shipped as Report-Only first: browsers log violations to the console but
+// block nothing, so a missed origin can't break login or payment. Once production browsing shows no
+// violations (DevTools console, "[Report Only]"), rename the header key below to
+// "Content-Security-Policy" to enforce it.
+// 'unsafe-inline' stays for scripts/styles because Next.js emits inline bootstrap scripts and KaTeX
+// output uses inline styles; moving to nonces would force every page to render dynamically.
+const isDev = process.env.NODE_ENV !== "production";
+const backendOrigin = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_BACKEND_URL ? new URL(process.env.NEXT_PUBLIC_BACKEND_URL).origin : "";
+  } catch {
+    return "";
+  }
+})();
+
+const cspDirectives = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://app.midtrans.com https://app.sandbox.midtrans.com https://apis.google.com https://va.vercel-scripts.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://*.googleusercontent.com https://res.cloudinary.com https://api.dicebear.com https://api.qrserver.com https://*.midtrans.com https://*.veritrans.co.id",
+  "font-src 'self' data:",
+  `connect-src 'self' ${backendOrigin} https://*.googleapis.com https://*.firebaseapp.com https://*.midtrans.com https://vitals.vercel-insights.com`.replace(/\s+/g, " "),
+  "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.midtrans.com https://*.veritrans.co.id",
+  "worker-src 'self' blob:",
+  "media-src 'self' data: blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://*.midtrans.com",
+  "frame-ancestors 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pg"],
   experimental: {
@@ -39,6 +70,7 @@ const nextConfig: NextConfig = {
           // through the /__/auth rewrite below.
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Content-Security-Policy-Report-Only", value: cspDirectives },
         ],
       },
     ];
