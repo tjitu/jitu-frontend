@@ -1305,16 +1305,6 @@ const ShopModule = () => {
               <div className="flex items-center gap-2"><Check className="w-4 h-4 text-yellow-300 shrink-0" /><span>Analisis Skor IRT + Ranking Kompetitor Jurusan</span></div>
             </div>
 
-            <div className="bg-blue-950/40 rounded-xl p-3.5 border border-white/10 flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-blue-200">Biaya Langganan:</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg sm:text-xl font-black text-white">
-                  Rp{premiumPassPkg.price.toLocaleString("id-ID")}
-                </span>
-                <span className="text-xs text-blue-200">/bulan</span>
-              </div>
-            </div>
-
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/10">
               <button
                 type="button"
