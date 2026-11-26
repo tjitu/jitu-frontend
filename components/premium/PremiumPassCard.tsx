@@ -45,8 +45,8 @@ export function PremiumPassCard({
   const discount = savings ?? Math.max(0, (originalPrice ?? price) - price);
   const benefits = [
     PREMIUM_PASS_COPY.monthlyPractice,
-    PREMIUM_PASS_COPY.practiceExplanations,
     PREMIUM_PASS_COPY.tryoutAccess,
+    PREMIUM_PASS_COPY.rankings,
   ];
 
   return (

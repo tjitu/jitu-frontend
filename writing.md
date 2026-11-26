@@ -214,7 +214,7 @@ Contoh: Rp59.000 ÷ 5 = Rp11.800 per tryout
 
 **PTN Premium Pass**
 - Main message: Sebulan latihan soal tanpa batas, lengkap dengan pembahasan.
-- Supporting line: Akses skor IRT & pembahasan tryout mingguan.
+- Banner benefits, in order: Sebulan latihan soal tanpa batas; Akses tryout, Skor IRT & Pembahasan tryout mingguan; Ranking Nasional & jurusan impian.
 - CTA: Aktifkan Premium. Put `/bulan` next to the price; purchase details state 30 days after successful payment.
 - Lead with unlimited practice and its explanations. The four included coin credits fund the month's weekly tryout explanations; do not describe them as a bonus or advertise unlimited tryout explanations. Keep coin mechanics out of the banner.
 - Use the same wording on Landing, Shop, practice upgrade prompts, and payment confirmation. In transaction history, show Premium Pass with 30 days of access instead of presenting it as a coin-only purchase.
