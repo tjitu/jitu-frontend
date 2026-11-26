@@ -3,6 +3,7 @@ import { Loader2, Ticket, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PixelCoin } from "@/components/ui/pixel-coin";
+import { PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
 
 interface PaymentOptionsProps {
   isPremiumPass: boolean;
@@ -40,8 +41,10 @@ export default function PaymentOptions({
         {isPremiumPass ? (
           <div className="flex flex-col items-center gap-1 text-center">
             <Image src="/icons/golden-pass-ticket.png" width={84} height={68} alt="" className="object-contain" />
-            <span className="text-lg font-bold text-text">PTN Premium Pass</span>
-            <span className="text-xs text-text-muted">Berlaku setelah pembayaran berhasil selama 30 hari.</span>
+            <span className="text-lg font-bold text-text">{PREMIUM_PASS_COPY.name}</span>
+            <span className="text-sm leading-relaxed text-text-body">{PREMIUM_PASS_COPY.headline}</span>
+            <span className="text-sm leading-relaxed text-text-body">{PREMIUM_PASS_COPY.tryoutAccess}</span>
+            <span className="text-xs text-text-muted">{PREMIUM_PASS_COPY.activation}</span>
           </div>
         ) : <div className="flex items-center gap-2 text-3xl font-bold text-text">
           {tokenAmount} <PixelCoin size={36} />

@@ -212,6 +212,13 @@ Contoh: Rp59.000 ÷ 5 = Rp11.800 per tryout
 ```
 - Small print: 1 coin buat 1 pembahasan tryout. Coin yang udah dibeli nggak bisa diuangkan lagi.
 
+**PTN Premium Pass**
+- Main message: Sebulan latihan soal tanpa batas, lengkap dengan pembahasan.
+- Supporting line: Akses skor IRT & pembahasan tryout mingguan.
+- CTA: Aktifkan Premium. Put `/bulan` next to the price; purchase details state 30 days after successful payment.
+- Lead with unlimited practice and its explanations. The four included coin credits fund the month's weekly tryout explanations; do not describe them as a bonus or advertise unlimited tryout explanations. Keep coin mechanics out of the banner.
+- Use the same wording on Landing, Shop, practice upgrade prompts, and payment confirmation. In transaction history, show Premium Pass with 30 days of access instead of presenting it as a coin-only purchase.
+
 **Peserta**
 - H2: 300+ siswa dari 14 sekolah.
 - Intro: Dipakai siswa SMA di Jakarta buat persiapan SNBT.
@@ -259,7 +266,8 @@ Contoh: Rp59.000 ÷ 5 = Rp11.800 per tryout
 - 7 subtests, 155 soal.
 - All tryouts are free to take. The free result shows benar, salah, kosong.
 - 1 coin opens the IRT score and explanations for one tryout.
-- Coins are valid until 21 Apr 2027, usable on any tryout. They are not refundable as cash. Never write "tidak pernah hangus".
+- Coins are valid through UTBK 2027, usable on any tryout. They are not refundable as cash. Never write "tidak pernah hangus".
+- PTN Premium Pass provides 30 days of unlimited practice and its explanations, plus access to IRT scores and weekly tryout explanations. Its four coin credits are the tryout access mechanism, not a separate bonus. Keep the displayed price in sync with the active package API.
 - Payment by QRIS. No subscription.
 - Packs: 1 coin Rp15.000 · 3 coin Rp39.000 (Rp13.000 each) · 5 coin Rp59.000 (Rp11.800 each) · 10 coin Rp89.000 (Rp8.900 each).
 - **Not allowed until sourced:** win rate, score-improvement figures, rankings, "terbaik", "resmi" for the IRT score, "populer" badges, tutor or university credentials, quota scarcity, testimonials, any "tryout paling ..." claim.

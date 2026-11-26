@@ -8,6 +8,7 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { PracticeQuestionText } from "@/components/practice-question-text";
 import { AnswerFormatGuide } from "@/components/answer-format-guide";
 import { splitQuestionGuidance } from "@/lib/question-guidance";
+import { PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
 import type { PracticeHistoryItem } from "@/lib/practice-store";
 import InteractiveSolutionDeck, {
   renderMathContent,
@@ -72,7 +73,7 @@ export default function PracticeHistoryDetail({ attemptId }: { attemptId: string
         <div className="rounded-2xl border border-border bg-surface p-8 text-center space-y-4">
           <p className="text-sm text-text-body">{error || "Soal tidak ditemukan."}</p>
           {errorStatus === 401 && <Link href="/login" className="text-sm font-bold text-primary hover:underline">Masuk ke Akun</Link>}
-          {errorStatus === 403 && <Link href="/shop?highlight=premium-pass" className="text-sm font-bold text-primary hover:underline">Lihat PTN Pass</Link>}
+          {errorStatus === 403 && <Link href="/shop?highlight=premium-pass" className="text-sm font-bold text-primary hover:underline">{PREMIUM_PASS_COPY.cta}</Link>}
         </div>
       ) : (
         <>

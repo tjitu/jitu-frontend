@@ -5,6 +5,7 @@ import { Loader2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { PastTransaction } from "../interface";
 import { BACKEND_URL } from "@/lib/api";
+import { getShopPackageAccess, getShopPackageName } from "@/lib/premium-pass-copy";
 
 const PastTransactionList = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +65,7 @@ const PastTransactionList = () => {
                     ID #{String(tx.id).slice(0, 8)}
                   </div>
                   <h3 className="font-bold text-text text-base">
-                    {tx.packageName}
+                    {getShopPackageName(tx.packageName)}
                   </h3>
                 </div>
                 {tx.type === "PAID" || tx.type === "CONFIRMED" ? (
@@ -79,7 +80,7 @@ const PastTransactionList = () => {
               <div className="pt-3 border-t border-border flex items-center justify-between font-mono text-xs">
                 <span className="text-text font-semibold tabular-nums">
                   Rp{Number(tx.totalPrice || 0).toLocaleString("id-ID")} ·{" "}
-                  {tx.amount} coin
+                  {getShopPackageAccess(tx.packageName, tx.amount)}
                 </span>
                 <span className="text-text-muted inline-flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />

@@ -18,6 +18,7 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { BACKEND_URL } from "@/lib/api";
 import { PixelCoin } from "@/components/ui/pixel-coin";
 import { isUserPremiumActive } from "@/lib/premium";
+import { PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
 import { getStudentAvatarUrl } from "@/lib/avatar";
 import BottomNav from "./BottomNav";
 
@@ -217,7 +218,7 @@ const Navbar = () => {
               </span>
               {isPremiumUser && (
                 <span className="hidden md:inline-flex items-center px-1.5 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800 text-[10px] font-semibold leading-none">
-                  Premium
+                  {PREMIUM_PASS_COPY.shortName}
                 </span>
               )}
             </Link>

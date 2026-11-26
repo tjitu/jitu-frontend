@@ -19,7 +19,7 @@ export async function GET(
 
     const history = await getPracticeHistory(appUser.id, { attemptId });
     if (history.locked) {
-      return NextResponse.json({ error: "Riwayat hanya tersedia untuk PTN Pass." }, { status: 403 });
+      return NextResponse.json({ error: "Aktifkan Premium Pass untuk membuka riwayat latihan dan pembahasan." }, { status: 403 });
     }
     const item = history.items[0];
     if (!item) {

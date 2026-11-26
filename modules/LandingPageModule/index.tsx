@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { TryoutSlotCard, TryoutSlotItem } from "@/components/ui/tryout-slot";
 import { PixelCoin } from "@/components/ui/pixel-coin";
+import { PremiumPassCard } from "@/components/premium/PremiumPassCard";
+import { PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Fact Sheet Data (WRITING.md Section 7 & DESIGN.md Sections 2-7)  */
@@ -1120,311 +1122,6 @@ function Metode3PSection() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* PTN Premium Pass Card Component (First-Appearance Animation & Animated Beam)*/
-/* -------------------------------------------------------------------------- */
-
-function PtnPremiumPassCard({
-  isLoggedIn,
-  campaignName,
-  badgeText,
-  badgeStyle,
-  originalPrice,
-  discountedPrice,
-  savings,
-}: {
-  isLoggedIn: boolean;
-  campaignName?: string;
-  badgeText?: string;
-  badgeStyle?: string;
-  originalPrice?: number;
-  discountedPrice?: number;
-  savings?: number;
-}) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isSelected, setIsSelected] = useState(false);
-
-  useEffect(() => {
-    if (!cardRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // First appearance: langsung masuk animasinya
-            setTimeout(() => {
-              setIsSelected(true);
-            }, 100);
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-
-    observer.observe(cardRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div
-      ref={cardRef}
-      className="group relative w-full rounded-2xl bg-gradient-to-r from-[#143485] via-[#1D4ED8] to-[#163372] text-white p-6 sm:p-8 lg:p-9 border border-blue-400/40 shadow-xl shadow-blue-950/20 hover:border-blue-300/70 hover:shadow-2xl hover:shadow-blue-900/30 transition-all duration-300 overflow-hidden"
-    >
-      {/* 1. Sweeping Ambient Shimmer Light Beam Animation */}
-      <div
-        aria-hidden="true"
-        className="absolute -inset-full w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none animate-pass-shimmer"
-      />
-
-      {/* 2. Pulsing Ambient Glowing Orbs */}
-      <div
-        aria-hidden="true"
-        className="absolute -right-16 -bottom-16 w-80 h-80 rounded-full bg-blue-400/20 blur-3xl animate-pulse [animation-duration:4s] pointer-events-none"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute top-0 right-1/3 w-64 h-64 rounded-full bg-yellow-400/10 blur-3xl animate-pulse [animation-duration:6s] pointer-events-none"
-      />
-
-      {/* 3. Hand-drawn Yellow & Light Blue Doodle Accessories (Animated, no collision) */}
-      {/* Doodle 1: Light Blue Loop Swirl (Top-Left corner) */}
-      <svg
-        aria-hidden="true"
-        className="hidden sm:block absolute top-2 left-[2.5%] w-13 h-11 text-blue-300/60 pointer-events-none drop-shadow-xs rotate-[-15deg] animate-doodle-2"
-        viewBox="0 0 68 48"
-        fill="none"
-      >
-        <path
-          d="M6 34C18 18 24 8 14 6C4 4 8 22 24 24C40 26 48 12 62 10"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-
-      {/* Doodle 2: Yellow Ribbon Loop Swirl (Centered horizontally between PTN Premium Pass and Rp55.000) */}
-      <svg
-        aria-hidden="true"
-        className="hidden md:block absolute top-2 left-[57%] -translate-x-1/2 w-14 h-12 text-[#FFD13B]/80 pointer-events-none drop-shadow-xs rotate-[8deg] animate-doodle-1"
-        viewBox="0 0 68 48"
-        fill="none"
-      >
-        <path
-          d="M8 38C22 34 38 18 30 8C22 -2 12 14 30 22C48 30 58 16 66 10"
-          stroke="currentColor"
-          strokeWidth="2.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-
-      {/* Doodle 3: Light Blue Spring Curl (Bottom-Center space) */}
-      <svg
-        aria-hidden="true"
-        className="hidden lg:block absolute -bottom-1.5 left-[42%] w-14 h-12 text-blue-200/50 pointer-events-none drop-shadow-xs rotate-[8deg] animate-doodle-1"
-        viewBox="0 0 68 48"
-        fill="none"
-      >
-        <path
-          d="M6 26C16 12 24 14 26 22C28 30 20 32 18 24C16 14 32 16 44 26C54 34 60 26 64 18"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-
-      {/* Doodle 4: Second Yellow Accessory - Hand-drawn Curl Loop (Bottom-Right empty space, away from text) */}
-      <svg
-        aria-hidden="true"
-        className="hidden md:block absolute -bottom-2 right-[27%] w-15 h-13 text-[#FFD13B]/85 pointer-events-none drop-shadow-xs rotate-[16deg] animate-doodle-2"
-        viewBox="0 0 68 48"
-        fill="none"
-      >
-        <path
-          d="M6 34C18 18 24 8 14 6C4 4 8 22 24 24C40 26 48 12 62 10"
-          stroke="currentColor"
-          strokeWidth="2.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-
-      {/* Doodle 5: Yellow Sparkle Star (Top-Right edge) */}
-      <svg
-        aria-hidden="true"
-        className="absolute top-4 right-10 w-5 h-5 text-[#FFD13B]/75 pointer-events-none animate-pulse [animation-duration:3s]"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
-      </svg>
-
-      {/* Doodle 6: Light Blue Underline Swoop (Bottom-Left) */}
-      <svg
-        aria-hidden="true"
-        className="hidden lg:block absolute bottom-1 left-[3%] w-16 h-8 text-blue-300/40 pointer-events-none"
-        viewBox="0 0 80 36"
-        fill="none"
-      >
-        <path
-          d="M6 18C20 22 34 24 46 16C54 10 52 2 44 6C36 10 42 22 56 20C68 18 72 12 76 10"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8">
-        {/* Left: Info, Floating Golden Pass Ticket & Benefits */}
-        <div className="space-y-4 max-w-2xl">
-          {/* Title with Golden Pass Ticket Icon & Scroll-Driven Selection */}
-          <div className="flex items-center gap-3.5 sm:gap-4">
-            {/* Animated Floating Golden Ticket */}
-            <div className="w-14 h-12 sm:w-16 sm:h-14 lg:w-20 lg:h-16 shrink-0 relative select-none animate-ticket-float transition-transform duration-300 group-hover:scale-105">
-              <Image
-                src="/icons/golden-pass-ticket.png"
-                alt="Tiket Golden Pass PTN Premium Pass"
-                fill
-                sizes="(max-width: 639px) 56px, (max-width: 1023px) 64px, 80px"
-                className="object-contain select-none pointer-events-none drop-shadow-md"
-              />
-            </div>
-
-            <div>
-              {(campaignName || badgeText) && (
-                <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                  {campaignName && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 text-yellow-300 border border-yellow-300/30 text-[11px] font-bold uppercase tracking-wider backdrop-blur-xs">
-                      <Sparkles className="w-3 h-3 fill-yellow-300 text-yellow-300" />
-                      {campaignName}
-                    </span>
-                  )}
-                  {badgeText && (
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs ${
-                        badgeStyle === "RED_FIRE"
-                          ? "bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white"
-                          : badgeStyle === "GOLD_PREMIUM"
-                          ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black"
-                          : badgeStyle === "EMERALD_SAVE"
-                          ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white"
-                          : badgeStyle === "CYAN_ELECTRIC"
-                          ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white"
-                          : badgeStyle === "PURPLE_ROYAL"
-                          ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white"
-                          : "bg-red-600 text-white"
-                      }`}
-                    >
-                      {badgeText}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              <h3 className="text-[28px] sm:text-[34px] lg:text-[38px] xl:text-[42px] font-black text-white tracking-tight leading-tight flex flex-wrap items-center gap-2.5">
-                <span>PTN</span>
-                {/* Scroll-driven selection badge */}
-                <span className="relative inline-block font-black select-none">
-                  {/* Base unselected: crisp white text */}
-                  <span className="text-white px-2.5 sm:px-3 py-0.5 inline-block">
-                    PREMIUM PASS
-                  </span>
-
-                  {/* Selected overlay: yellow badge + black text revealed via wipe animation on first appearance */}
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-[#FFD13B] text-black px-2.5 sm:px-3 py-0.5 rounded-xs inline-block shadow-sm overflow-hidden select-none pointer-events-none transition-[clip-path] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                    style={{
-                      clipPath: isSelected ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
-                    }}
-                  >
-                    PREMIUM PASS
-                  </span>
-                </span>
-              </h3>
-            </div>
-          </div>
-
-          {/* 3 Checkmark Benefits */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 pt-1">
-            <div className="flex items-center gap-2 text-[13px] sm:text-[14px] text-blue-100 font-medium">
-              <div className="w-5 h-5 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </div>
-              <span>Bebas akses pembahasan tryout tanpa coins</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-[13px] sm:text-[14px] text-blue-100 font-medium">
-              <div className="w-5 h-5 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </div>
-              <span>Materi & latihan soal unlimited</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-[13px] sm:text-[14px] text-blue-100 font-medium">
-              <div className="w-5 h-5 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </div>
-              <span>Analisis skor IRT & ranking nasional</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Price & CTA Button with Continuous Spinning Border Beam Animation */}
-        <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-center gap-4 shrink-0 pt-4 lg:pt-0 border-t border-blue-400/30 lg:border-t-0">
-          <div className="text-left lg:text-right">
-            {discountedPrice && savings && savings > 0 && (
-              <div className="flex items-center lg:justify-end gap-2 mb-1">
-                <span className="text-sm line-through text-blue-200/80 font-bold tabular-nums">
-                  Rp{(originalPrice || discountedPrice + savings).toLocaleString("id-ID")}
-                </span>
-                <span className="text-[11px] font-black text-yellow-300 bg-yellow-400/20 px-2 py-0.5 rounded">
-                  Hemat Rp{savings.toLocaleString("id-ID")}
-                </span>
-              </div>
-            )}
-            <div className="inline-flex items-baseline gap-1.5">
-              <span className="text-[32px] sm:text-[38px] lg:text-[40px] font-black text-white leading-none tracking-tight tabular-nums">
-                Rp{(discountedPrice || originalPrice || 55000).toLocaleString("id-ID")}
-              </span>
-              <span className="text-[14px] sm:text-[15px] font-bold text-blue-200">
-                /bulan
-              </span>
-            </div>
-            <div className="text-[12px] text-blue-200/80 font-medium mt-1">
-              Akses penuh tanpa batas
-            </div>
-          </div>
-
-          {/* Button with Continuous Rotating Border Beam */}
-          <div className="relative p-[2.5px] rounded-xl overflow-hidden shadow-lg group/btn hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150">
-            {/* Spinning Border Beam */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-[-200%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,rgba(255,255,255,0.95)_80%,#FFD13B_92%,transparent_100%)] pointer-events-none"
-            />
-
-            <Link
-              href={isLoggedIn ? "/shop" : "/register"}
-              className="relative w-full sm:w-auto min-h-[48px] px-8 py-3 rounded-[10px] bg-[#FFD13B] hover:bg-[#ffc81f] active:bg-[#e6b315] text-black font-extrabold text-[15px] inline-flex items-center justify-center gap-2 transition-colors duration-120"
-            >
-              <span>Ambil Premium Pass</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* FAQ Section Component (2-Column Minimalist Accordion Layout)               */
-/* -------------------------------------------------------------------------- */
-
 interface FaqItem {
   question: string;
   answer: string;
@@ -1434,7 +1131,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Apakah semua tryout di JITU beneran 100% gratis?",
     answer:
-      "Iya, gratis sepenuhnya! Kamu bisa langsung mendaftar dan mengerjakan seluruh 7 subtes pada jadwal tryout mingguan tanpa dipungut biaya sepeser pun. Begitu selesai, jumlah jawaban benar, salah, dan kosong langsung keluar. Coin atau PTN Premium Pass hanya kamu butuhkan jika ingin membuka pembahasan detail tiap soal, video pembahasan, dan analisis skor IRT.",
+      `Tryout gratis dikerjakan. Jumlah jawaban benar, salah, dan kosong langsung tersedia setelah selesai. Coin dipakai untuk membuka skor IRT dan pembahasan per tryout. Dengan ${PREMIUM_PASS_COPY.name}, kamu mendapat sebulan latihan soal tanpa batas, lengkap dengan pembahasan, serta akses skor IRT dan pembahasan tryout mingguan.`,
   },
   {
     question: "Materi dan subtes apa saja yang diujikan dalam tryout JITU?",
@@ -1764,7 +1461,7 @@ const LandingPageModule = () => {
               <div className="text-label text-primary">Pilihan Akses Belajar</div>
               <h2 className="text-h1 text-text">Fleksibel sesuai kebutuhanmu</h2>
               <p className="text-[17px] text-text-body">
-                Pelajari pembahasan tryout pakai coins, materi atau latihan unlimited dengan Monthly pass.
+                Coin untuk pembahasan per tryout. Premium Pass untuk sebulan latihan soal tanpa batas, lengkap dengan pembahasan.
               </p>
             </div>
 
@@ -1868,13 +1565,13 @@ const LandingPageModule = () => {
             </div>
 
             {/* PTN PREMIUM PASS — Animated Blue Gradient Card with Floating Golden Pass Ticket */}
-            <PtnPremiumPassCard
-              isLoggedIn={isLoggedIn}
+            <PremiumPassCard
+              href={isLoggedIn ? "/shop?highlight=premium-pass" : "/register"}
+              price={activePromo?.passDiscountedPrice ?? activePromo?.passOriginalPrice ?? 55000}
               campaignName={activePromo?.campaignName}
               badgeText={activePromo?.badgeText}
               badgeStyle={activePromo?.badgeStyle}
               originalPrice={activePromo?.passOriginalPrice}
-              discountedPrice={activePromo?.passDiscountedPrice}
               savings={activePromo?.passSavings}
             />
           </div>

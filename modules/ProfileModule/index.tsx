@@ -29,6 +29,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { parsePtnTargets, serializePtnTargets, type PtnTargets } from "@/lib/target";
 import { isUserPremiumActive } from "@/lib/premium";
+import { PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
 import { UniversityLogo } from "@/components/UniversityLogo";
 import { ProfileStreakWidget } from "./components/ProfileStreakWidget";
 import {
@@ -391,7 +392,7 @@ export default function ProfileModule() {
                 premiumExpiresAt: user.premiumExpiresAt,
               }) && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800 text-[11px] font-semibold">
-                  Premium
+                  {PREMIUM_PASS_COPY.shortName}
                 </span>
               )}
             </div>

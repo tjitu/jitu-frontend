@@ -1,11 +1,13 @@
 "use client";
+
+import { PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
+import { PracticePremiumDialog } from "./components/PracticePremiumDialog";
 import { PracticeQuestionText } from "@/components/practice-question-text";
 import { AnswerFormatGuide } from "@/components/answer-format-guide";
 import { splitQuestionGuidance } from "@/lib/question-guidance";
 import { SandboxRevisionButton } from "./components/SandboxRevisionButton";
 
 import React, { Suspense, useState, useEffect, useMemo, useCallback, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -18,14 +20,11 @@ import {
   Check,
   ChevronRight,
   ChevronLeft,
-  Zap,
   Clock,
   Flame,
-  X,
   Lightbulb,
   Loader2,
   Crown,
-  HelpCircle,
   History,
   Lock,
   SkipForward,
@@ -35,13 +34,6 @@ import {
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -600,7 +592,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
     ) {
       setPremiumModalReason("LIMIT");
       setIsDailyLimitModalOpen(true);
-      toast.error("Batas limit 10 soal harian tercapai! Upgrade ke Premium Pass untuk lanjut.");
+      toast.error(PREMIUM_PASS_COPY.dailyLimit);
       return;
     }
 
@@ -684,7 +676,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
       ) {
         setPremiumModalReason("LIMIT");
         setIsDailyLimitModalOpen(true);
-        toast.error("Batas limit 10 soal harian tercapai! Upgrade ke Premium Pass.");
+        toast.error(PREMIUM_PASS_COPY.dailyLimit);
         return;
       }
 
@@ -886,7 +878,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                 ) : isPremiumUser ? (
                   <span className="inline-flex items-center gap-1 ml-2 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-300 text-xs font-bold">
                     <Crown className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                    Premium Pass
+                    {PREMIUM_PASS_COPY.shortName}
                   </span>
                 ) : null}
               </div>
@@ -999,11 +991,10 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
 
                       <div className="p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 text-[11px] text-blue-950 space-y-1 mb-3">
                         <div className="font-bold flex items-center gap-1 text-blue-900">
-                          <span>Mau latihan ribuan soal tanpa batas?</span>
+                          <span>{PREMIUM_PASS_COPY.headline}</span>
                         </div>
                         <p className="text-blue-800/90 leading-relaxed">
-                          Upgrade ke <strong>Premium Pass</strong> untuk latihan
-                          unlimited dan akses penuh riwayat pembahasan.
+                          {PREMIUM_PASS_COPY.tryoutAccess}
                         </p>
                       </div>
 
@@ -1011,7 +1002,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                         href="/shop?highlight=premium-pass"
                         className="w-full py-2 px-3 rounded-lg bg-[#FFD13B] hover:bg-[#ffc81f] text-black text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
                       >
-                        <span>Buka Akses Premium Pass</span>
+                        <span>{PREMIUM_PASS_COPY.cta}</span>
                         <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                       </Link>
                     </div>
@@ -1047,10 +1038,12 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                         setPremiumModalReason("UPGRADE");
                         setIsDailyLimitModalOpen(true);
                       }}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2 sm:px-2.5 py-1 rounded-lg border border-amber-300/60 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+                      aria-label={PREMIUM_PASS_COPY.cta}
+                      className="inline-flex min-h-11 items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2 sm:px-2.5 py-1 rounded-lg border border-amber-300/60 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
                     >
                       <Crown className="w-3 h-3 text-amber-700 fill-amber-500 shrink-0" />
-                      <span>Buka Unlimited</span>
+                      <span className="sm:hidden">{PREMIUM_PASS_COPY.ctaCompact}</span>
+                      <span className="hidden sm:inline">{PREMIUM_PASS_COPY.cta}</span>
                     </button>
                   </div>
                 </div>
@@ -1126,7 +1119,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                         onClick={() => handleSubtestClick(sub.id)}
                         title={
                           isLocked
-                            ? `Fitur Premium Pass: Buka akses untuk latihan ${sub.fullName}`
+                            ? `Premium Pass: latihan ${sub.fullName} tanpa batas selama sebulan`
                             : `Filter ${sub.fullName}`
                         }
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
@@ -1471,7 +1464,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                                     setPremiumModalReason("LIMIT");
                                     setIsDailyLimitModalOpen(true);
                                     toast.error(
-                                      "Batas limit 10 soal harian tercapai! Upgrade ke Premium Pass untuk lanjut."
+                                      PREMIUM_PASS_COPY.dailyLimit
                                     );
                                     return;
                                   }
@@ -1546,7 +1539,7 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
                               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-sm shadow-md transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
                             >
                               <Sparkles className="w-4 h-4 fill-white" />
-                              <span>Limit 10 Soal Tercapai · Buka Premium Pass</span>
+                              <span>Batas 10 soal tercapai · Aktifkan Premium</span>
                             </button>
                           ) : (
                             <button
@@ -1707,195 +1700,12 @@ function LatihanModuleContent({ forceSandboxMode = false }: LatihanModuleProps) 
         ) : null}
       </main>
 
-      {/* ------------------------------------------------------------
-          POPUP MODAL: WHITE BACKGROUND (LIMIT vs UPGRADE MODES)
-          ------------------------------------------------------------ */}
-      <Dialog open={isDailyLimitModalOpen} onOpenChange={setIsDailyLimitModalOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border border-slate-200/90 rounded-3xl bg-white text-slate-900 shadow-2xl">
-          {premiumModalReason === "LIMIT" ? (
-            /* ============================================================
-               CASE 1: UDAH BENER-BENER LIMIT (Batas 10 Soal Harian Habis)
-               ============================================================ */
-            <div className="p-6 sm:p-7 space-y-5 bg-white">
-              {/* Header: Limit Status Badge & Icon */}
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Clock className="w-7 h-7 stroke-[2.2]" />
-                </div>
-
-                <div className="space-y-1">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold">
-                    <Clock className="w-3 h-3 text-rose-600" />
-                    Batas 10 Soal Hari Ini Tercapai
-                  </span>
-                  <DialogTitle className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
-                    Kuota Latihan Hari Ini Habis!
-                  </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Kamu telah menyelesaikan jatah 10 soal latihan harian gratis untuk akun Free. Kuota baru akan otomatis direset besok pukul 00:00 WIB.
-                  </DialogDescription>
-                </div>
-              </div>
-
-              {/* Progress Summary Card */}
-              <div className="rounded-2xl bg-slate-50 border border-slate-200/80 p-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 font-mono font-black text-xs flex items-center justify-center shrink-0">
-                    10/10
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-900">10 Soal Selesai Dikerjakan</div>
-                    <div className="text-[11px] text-slate-500">Kuota harian akun Free habis</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[11px] font-semibold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
-                    Reset 00:00 WIB
-                  </span>
-                </div>
-              </div>
-
-              {/* Value Proposition Box: Why Upgrade */}
-              <div className="rounded-2xl bg-amber-50/70 border border-amber-200/80 p-4 space-y-2.5">
-                <div className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                  <span>Mau Lanjut Belajar Tanpa Nunggu Besok?</span>
-                </div>
-                <div className="space-y-2 text-xs text-slate-700">
-                  <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
-                    <span><strong>Latihan Soal Unlimited:</strong> Ribuan soal UTBK tanpa batas 10 soal harian.</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
-                    <span><strong>Bebas Pilih Subtes:</strong> Fokus ke subtes yang ingin kamu pertajam nilainya.</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0 mt-0.5" />
-                    <span><strong>Buka Pembahasan Lengkap:</strong> Akses trik kilat & langkah solusi interaktif.</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Price & CTA Actions */}
-              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-t border-slate-200">
-                <div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp{passPrice.toLocaleString("id-ID")}</span>
-                    <span className="text-xs text-slate-500">/bulan</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">Akses langsung aktif seketika</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsDailyLimitModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
-                  >
-                    Tunggu Besok
-                  </button>
-                  <Link
-                    href="/shop?highlight=premium-pass"
-                    className="px-5 py-2.5 rounded-xl bg-[#FFD13B] hover:bg-[#ffc81f] text-black font-extrabold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95 cursor-pointer"
-                  >
-                    <span>Buka Akses Premium Pass</span>
-                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* ============================================================
-               CASE 2: KETIKA PENGEN UPGRADE (Subtest / History / Unlimited)
-               ============================================================ */
-            <div className="p-6 sm:p-7 space-y-5 bg-white">
-              {/* Header: Ticket & Golden Badge */}
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-14 sm:w-18 sm:h-16 relative shrink-0 select-none">
-                  <Image
-                    src="/icons/golden-pass-ticket.png"
-                    alt="Tiket Premium Pass"
-                    fill
-                    className="object-contain drop-shadow-md"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black uppercase tracking-wider">
-                    <Crown className="w-3 h-3 text-amber-600 fill-amber-500" />
-                    Premium Pass
-                  </span>
-                  <DialogTitle className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
-                    {premiumModalReason === "SUBTEST"
-                      ? "Bebas Latihan Per Subtes"
-                      : premiumModalReason === "HISTORY"
-                      ? "Buka Riwayat & Pembahasan"
-                      : "Latihan Tanpa Batas dengan Premium Pass"}
-                  </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    {premiumModalReason === "SUBTEST"
-                      ? "Aktifkan Premium Pass untuk bebas memilih 7 subtes SNBT."
-                      : premiumModalReason === "HISTORY"
-                      ? "Buka dan pelajari kembali seluruh soal beserta pembahasannya."
-                      : "Latihan ribuan soal SNBT tanpa batas kuota harian."}
-                  </DialogDescription>
-                </div>
-              </div>
-
-              {/* Feature Highlights (Clean & Anti-AI Slop) */}
-              <div className="rounded-2xl bg-amber-50/60 border border-amber-200/90 p-4 space-y-2.5">
-                <div className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                  <span>Fitur Premium Pass:</span>
-                </div>
-                <div className="space-y-2 text-xs text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0" />
-                    <span>Latihan ribuan soal tanpa batas 10 soal harian</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0" />
-                    <span>Bebas pilih 7 subtes SNBT (PU, PK, PM, PBM, PPU, LBI, LBE)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0" />
-                    <span>Akses penuh riwayat pengerjaan & pembahasan interaktif</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Price & CTA Actions */}
-              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-t border-slate-200">
-                <div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-slate-900 tabular-nums">Rp{passPrice.toLocaleString("id-ID")}</span>
-                    <span className="text-xs text-slate-500">/bulan</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">Langganan fleksibel, batalkan kapan saja</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsDailyLimitModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
-                  >
-                    Nanti Saja
-                  </button>
-                  <Link
-                    href="/shop?highlight=premium-pass"
-                    className="px-5 py-2.5 rounded-xl bg-[#FFD13B] hover:bg-[#ffc81f] text-black font-extrabold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-transform active:scale-95 cursor-pointer"
-                  >
-                    <span>Ambil Premium Pass</span>
-                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PracticePremiumDialog
+        open={isDailyLimitModalOpen}
+        onOpenChange={setIsDailyLimitModalOpen}
+        reason={premiumModalReason}
+        price={passPrice}
+      />
     </div>
   );
 }

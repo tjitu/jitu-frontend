@@ -13,13 +13,13 @@ const PastTransactionsModule = () => {
             TRANSAKSI COIN
           </p>
           <h1 className="text-h2 font-bold text-text">
-            Riwayat pembelian coin
+            Riwayat pembelian
           </h1>
         </div>
         <Button asChild variant="outline" size="sm">
           <Link href="/shop">
             <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Kembali ke paket coin
+            Kembali ke Shop
           </Link>
         </Button>
       </div>

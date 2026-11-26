@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { contactInfos } from "../../ShopModule/payload";
 import { PendingTransaction, TransactionData } from "../interface";
 import { BACKEND_URL } from "@/lib/api";
+import { getShopPackageAccess, getShopPackageName } from "@/lib/premium-pass-copy";
 import SnapQrisEmbed from "@/components/payment/SnapQrisEmbed";
 
 interface PendingTransactionListProps {
@@ -169,7 +170,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
                     ID #{String(tx.id).slice(0, 8)}
                   </div>
                   <h3 className="font-bold text-text text-base">
-                    {tx.packageName}
+                    {getShopPackageName(tx.packageName)}
                   </h3>
                 </div>
                 <Badge variant="warn">Menunggu</Badge>
@@ -178,7 +179,7 @@ const PendingTransactionList = ({ onCountChange }: PendingTransactionListProps) 
               <div className="pt-3 border-t border-border flex items-center justify-between font-mono text-xs">
                 <span className="text-text font-semibold tabular-nums">
                   Rp{Number(tx.totalPrice || 0).toLocaleString("id-ID")} ·{" "}
-                  {tx.amount} coin
+                  {getShopPackageAccess(tx.packageName, tx.amount)}
                 </span>
                 <span className="text-text-muted inline-flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />

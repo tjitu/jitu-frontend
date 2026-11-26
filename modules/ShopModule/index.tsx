@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -14,17 +13,15 @@ import {
   AlertCircleIcon,
   Loader2,
   XCircle,
-  Check,
-  Sparkles,
-  ArrowRight,
-  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import TokenCard from "./components/TokenCard";
 import PaymentOptions from "./components/PaymentOptions";
-import { PixelCoin } from "@/components/ui/pixel-coin";
+import { PremiumPassCard } from "@/components/premium/PremiumPassCard";
+import { PremiumPassPurchaseDialog } from "@/components/premium/PremiumPassPurchaseDialog";
+import { getShopPackageAccess, getShopPackageName, PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
 import { contactInfos, tokenPackages as fallbackTokenPackages } from "./payload";
 import { BACKEND_URL } from "@/lib/api";
 import { getUserStats, getCachedDashboardData } from "@/lib/api/DashboardApi";
@@ -40,6 +37,7 @@ interface TokenPackage {
   originalPrice?: number;
   badgeText?: string;
   badgeStyle?: string;
+  campaignName?: string;
 }
 
 let cachedShopPackages: TokenPackage[] | null = null;
@@ -228,7 +226,7 @@ const ShopModule = () => {
     (p) => p.name.toLowerCase().includes("pass"),
   ) || {
     id: "f5f69e7c-9a5f-4214-917e-213a3cb000d9",
-    name: "PTN Premium Pass",
+    name: PREMIUM_PASS_COPY.name,
     tokenAmount: 4,
     price: 55000,
   };
@@ -597,275 +595,17 @@ const ShopModule = () => {
         </TabsList>
 
         <TabsContent value="buy" className="space-y-8">
-          {/* PTN Premium Pass Hero Card (Matches Landing Page PtnPremiumPassCard Design) */}
-          <div
+          <PremiumPassCard
             id="ptn-premium-pass-card"
-            ref={passCardRef}
-            className={`group relative w-full rounded-2xl bg-gradient-to-r from-[#143485] via-[#1D4ED8] to-[#163372] text-white p-6 sm:p-8 lg:p-9 border border-blue-400/40 shadow-xl shadow-blue-950/20 hover:border-blue-300/70 hover:shadow-2xl hover:shadow-blue-900/30 transition-all duration-300 overflow-hidden ${
-              isHighlightPass
-                ? "ring-4 ring-yellow-400 ring-offset-4 ring-offset-bg shadow-2xl scale-[1.01]"
-                : ""
-            }`}
-          >
-            {/* 1. Sweeping Ambient Shimmer Light Beam Animation */}
-            <div
-              aria-hidden="true"
-              className="absolute -inset-full w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none animate-pass-shimmer"
-            />
-
-            {/* 2. Pulsing Ambient Glowing Orbs */}
-            <div
-              aria-hidden="true"
-              className="absolute -right-16 -bottom-16 w-80 h-80 rounded-full bg-blue-400/20 blur-3xl animate-pulse [animation-duration:4s] pointer-events-none"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute top-0 right-1/3 w-64 h-64 rounded-full bg-yellow-400/10 blur-3xl animate-pulse [animation-duration:6s] pointer-events-none"
-            />
-
-            {/* 3. Hand-drawn Yellow & Light Blue Doodle Accessories (Animated, no collision) */}
-            {/* Doodle 1: Light Blue Loop Swirl (Top-Left corner) */}
-            <svg
-              aria-hidden="true"
-              className="hidden sm:block absolute top-2 left-[2.5%] w-13 h-11 text-blue-300/60 pointer-events-none drop-shadow-xs rotate-[-15deg] animate-doodle-2"
-              viewBox="0 0 68 48"
-              fill="none"
-            >
-              <path
-                d="M6 34C18 18 24 8 14 6C4 4 8 22 24 24C40 26 48 12 62 10"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            {/* Doodle 2: Yellow Ribbon Loop Swirl (Centered horizontally between PTN Premium Pass and Rp55.000) */}
-            <svg
-              aria-hidden="true"
-              className="hidden md:block absolute top-2 left-[57%] -translate-x-1/2 w-14 h-12 text-[#FFD13B]/80 pointer-events-none drop-shadow-xs rotate-[8deg] animate-doodle-1"
-              viewBox="0 0 68 48"
-              fill="none"
-            >
-              <path
-                d="M8 38C22 34 38 18 30 8C22 -2 12 14 30 22C48 30 58 16 66 10"
-                stroke="currentColor"
-                strokeWidth="2.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            {/* Doodle 3: Light Blue Spring Curl (Bottom-Center space) */}
-            <svg
-              aria-hidden="true"
-              className="hidden lg:block absolute -bottom-1.5 left-[42%] w-14 h-12 text-blue-200/50 pointer-events-none drop-shadow-xs rotate-[8deg] animate-doodle-1"
-              viewBox="0 0 68 48"
-              fill="none"
-            >
-              <path
-                d="M6 26C16 12 24 14 26 22C28 30 20 32 18 24C16 14 32 16 44 26C54 34 60 26 64 18"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            {/* Doodle 4: Second Yellow Accessory - Hand-drawn Curl Loop (Bottom-Right empty space, away from text) */}
-            <svg
-              aria-hidden="true"
-              className="hidden md:block absolute -bottom-2 right-[27%] w-15 h-13 text-[#FFD13B]/85 pointer-events-none drop-shadow-xs rotate-[16deg] animate-doodle-2"
-              viewBox="0 0 68 48"
-              fill="none"
-            >
-              <path
-                d="M6 34C18 18 24 8 14 6C4 4 8 22 24 24C40 26 48 12 62 10"
-                stroke="currentColor"
-                strokeWidth="2.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            {/* Doodle 5: Yellow Sparkle Star (Top-Right edge) */}
-            <svg
-              aria-hidden="true"
-              className="absolute top-4 right-10 w-5 h-5 text-[#FFD13B]/75 pointer-events-none animate-pulse [animation-duration:3s]"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
-            </svg>
-
-            {/* Doodle 6: Light Blue Underline Swoop (Bottom-Left) */}
-            <svg
-              aria-hidden="true"
-              className="hidden lg:block absolute bottom-1 left-[3%] w-16 h-8 text-blue-300/40 pointer-events-none"
-              viewBox="0 0 80 36"
-              fill="none"
-            >
-              <path
-                d="M6 18C20 22 34 24 46 16C54 10 52 2 44 6C36 10 42 22 56 20C68 18 72 12 76 10"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-
-            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8">
-              {/* Left: Info, Floating Golden Pass Ticket & Benefits */}
-              <div className="space-y-4 max-w-2xl">
-                {/* Title with Golden Pass Ticket Icon & Scroll-Driven Selection */}
-                <div className="flex items-center gap-3.5 sm:gap-4">
-                  {/* Animated Floating Golden Ticket */}
-                  <div className="w-14 h-12 sm:w-16 sm:h-14 lg:w-20 lg:h-16 shrink-0 relative select-none animate-ticket-float transition-transform duration-300 group-hover:scale-105">
-                    <Image
-                      src="/icons/golden-pass-ticket.png"
-                      alt="Tiket Golden Pass PTN Premium Pass"
-                      fill
-                      className="object-contain select-none pointer-events-none drop-shadow-md"
-                      priority
-                    />
-                  </div>
-
-                  <div>
-                    {((premiumPassPkg as any).campaignName || premiumPassPkg.badgeText || isPremiumUser) && (
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        {(premiumPassPkg as any).campaignName && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 text-yellow-300 border border-yellow-300/30 text-[11px] font-bold uppercase tracking-wider backdrop-blur-xs">
-                            <Sparkles className="w-3 h-3 fill-yellow-300 text-yellow-300" />
-                            {(premiumPassPkg as any).campaignName}
-                          </span>
-                        )}
-                        {premiumPassPkg.badgeText && (
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs ${
-                              premiumPassPkg.badgeStyle === "RED_FIRE"
-                                ? "bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white"
-                                : premiumPassPkg.badgeStyle === "GOLD_PREMIUM"
-                                ? "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black"
-                                : premiumPassPkg.badgeStyle === "EMERALD_SAVE"
-                                ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600 text-white"
-                                : premiumPassPkg.badgeStyle === "CYAN_ELECTRIC"
-                                ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white"
-                                : premiumPassPkg.badgeStyle === "PURPLE_ROYAL"
-                                ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white"
-                                : "bg-red-600 text-white"
-                            }`}
-                          >
-                            {premiumPassPkg.badgeText}
-                          </span>
-                        )}
-                        {isPremiumUser && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 text-[11px] font-bold">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Pass Aktif
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    <h2 className="text-[28px] sm:text-[34px] lg:text-[38px] xl:text-[42px] font-black text-white tracking-tight leading-tight flex flex-wrap items-center gap-2.5">
-                      <span>PTN</span>
-                      {/* Scroll-driven selection badge */}
-                      <span className="relative inline-block font-black select-none">
-                        {/* Base unselected: crisp white text */}
-                        <span className="text-white px-2.5 sm:px-3 py-0.5 inline-block">
-                          PREMIUM PASS
-                        </span>
-
-                        {/* Selected overlay: yellow badge + black text revealed via wipe animation on first appearance */}
-                        <span
-                          aria-hidden="true"
-                          className="absolute inset-0 bg-[#FFD13B] text-black px-2.5 sm:px-3 py-0.5 rounded-xs inline-block shadow-sm overflow-hidden select-none pointer-events-none transition-[clip-path] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                          style={{
-                            clipPath: isPassSelected ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
-                          }}
-                        >
-                          PREMIUM PASS
-                        </span>
-                      </span>
-                    </h2>
-                  </div>
-                </div>
-
-                {/* 3 Checkmark Benefits (Exact match with Landing Page) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 pt-1">
-                  <div className="flex items-center gap-2 text-[13px] sm:text-[14px] text-blue-100 font-medium">
-                    <div className="w-5 h-5 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center shrink-0">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                    <span>Bebas akses pembahasan tryout tanpa coins</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[13px] sm:text-[14px] text-blue-100 font-medium">
-                    <div className="w-5 h-5 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center shrink-0">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                    <span>Materi & latihan soal unlimited</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[13px] sm:text-[14px] text-blue-100 font-medium">
-                    <div className="w-5 h-5 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center shrink-0">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                    <span>Analisis skor IRT & ranking nasional</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right: Price & CTA Button with Continuous Spinning Border Beam Animation */}
-              <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-center gap-4 shrink-0 pt-4 lg:pt-0 border-t border-blue-400/30 lg:border-t-0">
-                <div className="text-left lg:text-right">
-                  {premiumPassPkg.originalPrice && premiumPassPkg.originalPrice > premiumPassPkg.price && (
-                    <div className="flex items-center lg:justify-end gap-2 mb-1">
-                      <span className="text-sm line-through text-blue-200/80 font-bold tabular-nums">
-                        Rp{premiumPassPkg.originalPrice.toLocaleString("id-ID")}
-                      </span>
-                      <span className="text-[11px] font-black text-yellow-300 bg-yellow-400/20 px-2 py-0.5 rounded">
-                        Hemat Rp{(premiumPassPkg.originalPrice - premiumPassPkg.price).toLocaleString("id-ID")}
-                      </span>
-                    </div>
-                  )}
-                  <div className="inline-flex items-baseline gap-1.5">
-                    <span className="text-[32px] sm:text-[38px] lg:text-[40px] font-black text-white leading-none tracking-tight tabular-nums">
-                      Rp{premiumPassPkg.price.toLocaleString("id-ID")}
-                    </span>
-                    <span className="text-[14px] sm:text-[15px] font-bold text-blue-200">
-                      /bulan
-                    </span>
-                  </div>
-                  <div className="text-[12px] text-blue-200/80 font-medium mt-1">
-                    Akses penuh tanpa batas
-                  </div>
-                </div>
-
-                {isPremiumUser ? (
-                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 font-bold text-[14px]">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    <span>PTN Premium Pass Kamu Aktif</span>
-                  </div>
-                ) : (
-                  <div className="relative p-[2.5px] rounded-xl overflow-hidden shadow-lg group/btn hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150">
-                    {/* Spinning Border Beam */}
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-[-200%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,rgba(255,255,255,0.95)_80%,#FFD13B_92%,transparent_100%)] pointer-events-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setIsPremiumModalOpen(true)}
-                      className="relative w-full sm:w-auto min-h-[48px] px-8 py-3 rounded-[10px] bg-[#FFD13B] hover:bg-[#ffc81f] active:bg-[#e6b315] text-black font-extrabold text-[15px] inline-flex items-center justify-center gap-2 transition-colors duration-120 cursor-pointer"
-                    >
-                      <span>Ambil Premium Pass</span>
-                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+            price={premiumPassPkg.price}
+            originalPrice={premiumPassPkg.originalPrice}
+            campaignName={premiumPassPkg.campaignName}
+            badgeText={premiumPassPkg.badgeText}
+            badgeStyle={premiumPassPkg.badgeStyle}
+            highlighted={isHighlightPass}
+            isActive={isPremiumUser}
+            onActivate={() => setIsPremiumModalOpen(true)}
+          />
 
           {/* Section Divider: Atau Beli Paket Coin */}
           <div className="flex items-center gap-3">
@@ -987,8 +727,8 @@ const ShopModule = () => {
                 <div className="flex justify-between">
                   <span className="text-text-muted">Paket</span>
                   <span className="font-semibold text-text">
-                    {pendingPackageName} (
-                    {pendingPayment.tokenAmount} coin)
+                    {getShopPackageName(pendingPackageName)} ·{" "}
+                    {getShopPackageAccess(pendingPackageName, pendingPayment.tokenAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -1244,7 +984,7 @@ const ShopModule = () => {
                 Pembayaran diproses
               </h2>
               <p className="text-[14px] text-text-body">
-                Jika dalam 1x24 jam coin belum masuk, hubungi kontak bantuan:
+                Jika dalam 1x24 jam manfaat paket belum aktif, hubungi kontak bantuan:
               </p>
               {contactInfos.map((contact) => (
                 <Alert key={contact.name}>
@@ -1277,65 +1017,13 @@ const ShopModule = () => {
         </DialogContent>
       </Dialog>
 
-      {/* PTN Premium Pass Purchase Modal */}
-      <Dialog open={isPremiumModalOpen} onOpenChange={setIsPremiumModalOpen}>
-        <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden bg-gradient-to-br from-[#1C4ED8] via-[#2563EB] to-[#1E40AF] border-blue-400/30 text-white shadow-2xl">
-          <div className="relative p-6 sm:p-7 space-y-5">
-            <div
-              aria-hidden="true"
-              className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-blue-400/20 blur-3xl pointer-events-none"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-yellow-400/15 blur-3xl pointer-events-none"
-            />
-
-            <div className="flex flex-col items-center text-center gap-2">
-              <div className="relative w-20 h-16 select-none">
-                <Image src="/icons/golden-pass-ticket.png" alt="" fill className="object-contain drop-shadow-lg" />
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black text-white">PTN Premium Pass</DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-blue-100">
-                4 Tryout Coins + Unlimited Drill Soal + Pembahasan
-              </DialogDescription>
-            </div>
-
-            <div className="rounded-2xl bg-white/[0.08] border border-white/15 p-4 sm:p-5 space-y-3 text-xs sm:text-[13px] text-blue-100">
-              <div className="flex items-center gap-2"><Check className="w-4 h-4 text-yellow-300 shrink-0" /><span>Free Access Tryout + Pembahasan (4 <PixelCoin size={14} />)</span></div>
-              <div className="flex items-center gap-2"><Check className="w-4 h-4 text-yellow-300 shrink-0" /><span>Unlimited Latihan Soal Tanpa Limit</span></div>
-              <div className="flex items-center gap-2"><Check className="w-4 h-4 text-yellow-300 shrink-0" /><span>Analisis Skor IRT + Ranking Kompetitor Jurusan</span></div>
-            </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/10">
-              <button
-                type="button"
-                onClick={() => setIsPremiumModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-white/20 hover:bg-white/10 text-xs font-semibold text-white transition-colors cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleActivatePremiumPass}
-                disabled={isActivatingPass}
-                className="px-6 py-2.5 rounded-xl bg-[#FFD13B] hover:bg-[#ffc81f] text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95 cursor-pointer disabled:opacity-50"
-              >
-                {isActivatingPass ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-black" />
-                    <span>Mengaktifkan Pass...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 fill-black" />
-                    <span>Bayar & Aktifkan Sekarang (Rp{premiumPassPkg.price.toLocaleString("id-ID")})</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PremiumPassPurchaseDialog
+        open={isPremiumModalOpen}
+        onOpenChange={setIsPremiumModalOpen}
+        onActivate={handleActivatePremiumPass}
+        price={premiumPassPkg.price}
+        loading={isActivatingPass}
+      />
     </div>
   );
 };

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { PracticeHistoryItem } from "@/lib/practice-store";
 import { PracticeHistoryRow } from "./components/PracticeHistoryRow";
+import { PREMIUM_PASS_COPY } from "@/lib/premium-pass-copy";
 
 type PracticeHistoryTabProps = {
   isPremium: boolean;
@@ -120,7 +121,7 @@ export function PracticeHistoryTab({
 
         <div className="space-y-2 max-w-lg mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
-            <Crown className="w-3.5 h-3.5" /> Fitur Khusus Premium Pass
+            <Crown className="w-3.5 h-3.5" /> {PREMIUM_PASS_COPY.name}
           </div>
           <h3 className="text-xl font-black text-text">
             {totalAnswered > 0
@@ -128,7 +129,7 @@ export function PracticeHistoryTab({
               : "Arsip Riwayat & Pembahasan Soal Terkunci"}
           </h3>
           <p className="text-sm text-text-body leading-relaxed">
-            Aktifkan <strong>Premium Pass</strong> untuk membuka kembali seluruh riwayat soal dan pembahasan interaktif kapan saja.
+            {PREMIUM_PASS_COPY.headline} Riwayat latihan dan pembahasan bisa dibuka selama Premium aktif.
           </p>
         </div>
 
@@ -138,7 +139,7 @@ export function PracticeHistoryTab({
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-on-primary text-sm font-bold shadow-xs transition-all"
           >
             <Sparkles className="w-4 h-4" />
-            Buka Riwayat dengan Premium Pass
+            {PREMIUM_PASS_COPY.cta}
           </Link>
         </div>
       </div>
