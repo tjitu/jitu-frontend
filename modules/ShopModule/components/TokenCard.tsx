@@ -90,7 +90,7 @@ const TokenCard = ({
           </li>
           <li className="flex items-start gap-2">
             <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-            <span>Berlaku sampai 21 Apr 2027</span>
+            <span>Berlaku sampai dengan UTBK 2027</span>
           </li>
         </ul>
       </div>

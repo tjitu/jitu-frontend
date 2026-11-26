@@ -203,7 +203,7 @@ Approved wording. Change facts only through §9.
 **Harga**
 - H2: Bayarnya gimana?
 - Intro: Tryout gratis. Coin cuma buat pembahasan. Makin banyak coin, makin murah per tryout.
-- Short box: 1 coin = 1 pembahasan tryout (skor IRT dan pembahasan 155 soal). Berlaku sampai 21 Apr 2027. Bayar pakai QRIS, tanpa langganan.
+- Short box: 1 coin = 1 pembahasan tryout (skor IRT dan pembahasan 155 soal). Berlaku sampai dengan UTBK 2027. Bayar pakai QRIS, tanpa langganan.
 - Packs: 1 coin Rp15.000 · 3 coin Rp39.000 (Rp13.000 per tryout) · 5 coin Rp59.000 (Rp11.800 per tryout) · 10 coin Rp89.000 (Rp8.900 per tryout), badge "Paling hemat". Pack button: "Pilih paket".
 - Formula block:
 ```
@@ -220,7 +220,7 @@ Contoh: Rp59.000 ÷ 5 = Rp11.800 per tryout
 
 **FAQ** (optional; only questions §9 can answer)
 - Beneran gratis? — Beneran. Semua tryout gratis dikerjakan, dan jumlah benar, salah, kosongmu langsung keluar. Coin cuma kepakai kalau kamu mau skor IRT dan pembahasan.
-- Coin bisa hangus nggak? — Berlaku sampai 21 Apr 2027. Selama itu coin bisa dipakai di tryout mana aja.
+- Coin bisa hangus nggak? — Berlaku sampai dengan UTBK 2027. Selama itu coin bisa dipakai di tryout mana aja.
 - Bayarnya lewat apa? — QRIS.
 
 **Closing CTA**
