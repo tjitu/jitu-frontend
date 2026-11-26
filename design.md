@@ -155,6 +155,8 @@ Max line length 68ch. Headings use `text-wrap: balance`; paragraphs use `text-wr
 
 **Card:** `--surface`, `1px --border`, radius 16, 24px padding. Interactive cards: border becomes `blue-300` on hover, no lift, no scale.
 
+**Premium Pass banner:** Follow the approved blue-and-gold reference: large white PTN wordmark with a yellow Premium Pass highlight, golden ticket, restrained hand-drawn doodles, three checkmarked benefits, and price/CTA aligned right on desktop. `components/premium/PremiumPassCard.module.css` owns the scoped brand colors and responsive layout. Stack benefits and purchase controls on mobile; preserve the monthly practice and weekly tryout wording from `lib/premium-pass-copy.ts`.
+
 **Badge / chip:** 24px tall, radius full, 12px/600 text, status soft backgrounds from 2.1. Accent chip: `yellow-100` bg, `yellow-700` text.
 
 **Link:** `--primary`, underline on hover and always underlined inside running text.
