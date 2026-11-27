@@ -1,7 +1,9 @@
 import crypto from "crypto";
 import { getDbPool } from "./db";
+import { affiliateGatewayExpiry, type CheckoutTiming } from './affiliate-midtrans-expiry';
 
 export interface MidtransSnapParams {
+  checkoutTiming?: CheckoutTiming;
   orderId: string;
   grossAmount: number;
   itemDetails: Array<{
@@ -70,6 +72,7 @@ export async function createSnapTransaction(params: MidtransSnapParams) {
   const config = getMidtransConfig();
 
   const payload = {
+    expiry: affiliateGatewayExpiry(params.checkoutTiming).expiry,
     transaction_details: {
       order_id: params.orderId,
       gross_amount: Math.round(params.grossAmount),
@@ -124,6 +127,7 @@ export async function createQrisTransaction(params: MidtransSnapParams) {
       item_details: params.itemDetails,
       customer_details: params.customerDetails,
       gopay: { enable_callback: false },
+      custom_expiry: affiliateGatewayExpiry(params.checkoutTiming).custom_expiry,
     }),
   });
 

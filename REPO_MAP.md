@@ -43,6 +43,10 @@ jitu-frontend/
 
 ## 2. Key Routing & Architecture Patterns
 
+* **Affiliate checkout**: `lib/shop-pricing.ts` shares active package/campaign/voucher validation between server routes and reserves Main DB `AffiliateCheckout` snapshots. Payment is persisted before gateway creation. `lib/affiliate-midtrans-expiry.ts` aligns gateway expiry with the snapshot; `lib/affiliate-refund.ts` reconciles verified cumulative refunds.
+* **Affiliate lifecycle**: Main DB payment triggers journal commission once, for both Nest and Next confirmations. Verified terminal gateway states release uncertain transaction-cap reservations. Unassigned promotions retain their previous rates and limits.
+* **Affiliate verification**: `tests/affiliate-checkout.test.cjs` uses temporary localhost PostgreSQL records and a test gateway adapter. `docs/affiliate-program.md` links the migration/deployment requirements and records the worktree Webpack build limitation.
+
 * **Proxied Backend Requests**: Requests to `/api/proxy/*` are handled first by local Next.js route handlers (such as `/api/proxy/tryout`, `/api/proxy/tryout/[id]`, `/api/proxy/tryout/[id]/leaderboard`, `/api/proxy/tryout/[id]/register`, `/api/proxy/tryout/[id]/unlock`, `/api/proxy/dashboard/*`, `/api/proxy/profile/*`, `/api/proxy/shop/*`, `/api/proxy/auth/*`) and fall back to `http://localhost:3000` via `next.config.ts` rewrites.
 * **Styling & Design**: Tailwind CSS v4 (`@theme inline` in `app/globals.css`) wired to semantic variables defined in [design.md](file:///C:/JITU-ECOSYSTEM/jitu-frontend/design.md). Copy follows [writing.md](file:///C:/JITU-ECOSYSTEM/jitu-frontend/writing.md).
 * **State & Data Fetching**: React Server Components where possible; client components use `fetch` or hooks for dynamic polling.

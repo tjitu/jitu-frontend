@@ -12,6 +12,7 @@ export async function createFreePayment(pool: Pool, input: {
   voucherId: string | null;
   voucherCode: string | null;
   tokenAmount: number;
+  affiliateCheckoutId?: string | null;
 }) {
   const client = await pool.connect();
   try {
@@ -24,7 +25,13 @@ export async function createFreePayment(pool: Pool, input: {
       );
       const v = voucher.rows[0];
       const percentageDiscount = v ? Math.round(input.price * Number(v.discountPercent) / 100) : 0;
-      const actualDiscount = v?.maxDiscount ? Math.min(percentageDiscount, Number(v.maxDiscount)) : percentageDiscount;
+      let actualDiscount = v?.maxDiscount ? Math.min(percentageDiscount, Number(v.maxDiscount)) : percentageDiscount;
+      if (input.affiliateCheckoutId) {
+        const { rows: [snapshot] } = await client.query(`SELECT "discountAmount","paidAmount" FROM "AffiliateCheckout" WHERE id=$1
+          AND "voucherId"=$2 AND "originalAmount"=$3 AND "expiresAt">NOW()`,[input.affiliateCheckoutId,input.voucherId,input.price]);
+        if (!snapshot || snapshot.paidAmount !== 0) throw new Error('Affiliate checkout expired.');
+        actualDiscount = snapshot.discountAmount;
+      }
       if (!v || !v.isActive || (v.expiresAt && new Date(v.expiresAt) < new Date())
           || (v.maxUsage != null && Number(v.usedCount) >= Number(v.maxUsage))
           || Number(v.minPurchase || 0) > input.price
@@ -34,11 +41,11 @@ export async function createFreePayment(pool: Pool, input: {
       await client.query(`UPDATE "Voucher" SET "usedCount" = "usedCount" + 1, "updatedAt" = NOW() WHERE id = $1`, [input.voucherId]);
     }
     await client.query(
-      `INSERT INTO "Payment" (id, "userId", "tokenPackageId", "orderId", amount, "originalAmount", "discountAmount", "voucherId", "voucherCode", "tokenAmount", status, "paymentMethod", "createdAt", "updatedAt", metadata)
-       VALUES ($1, $2, $3, $4, 0, $5, $6, $7, $8, $9, 'CONFIRMED', 'FREE_VOUCHER', NOW(), NOW(), $10)`,
+      `INSERT INTO "Payment" (id, "userId", "tokenPackageId", "orderId", amount, "originalAmount", "discountAmount", "voucherId", "voucherCode", "tokenAmount", status, "paymentMethod", "createdAt", "updatedAt", metadata,"affiliateCheckoutId")
+       VALUES ($1, $2, $3, $4, 0, $5, $6, $7, $8, $9, 'CONFIRMED', 'FREE_VOUCHER', NOW(), NOW(), $10,$11)`,
       [input.paymentId, input.userId, input.packageId, input.orderId, input.price, input.discount,
         input.voucherId, input.voucherCode, input.tokenAmount,
-        JSON.stringify({ package_name: input.packageName, created_via: "free_voucher" })],
+        JSON.stringify({ package_name: input.packageName, created_via: "free_voucher" }),input.affiliateCheckoutId ?? null],
     );
     if (input.packageName.toLowerCase().includes("pass")) {
       await client.query(

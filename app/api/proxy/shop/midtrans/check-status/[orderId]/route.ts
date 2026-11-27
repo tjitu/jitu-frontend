@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { getMidtransStatus, confirmPaymentInDb } from "@/lib/midtrans-server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { reconcileAffiliateRefund } from '@/lib/affiliate-refund';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -37,6 +38,7 @@ export async function POST(
     }
 
     const txStatus = midtransData.transaction_status || "";
+    if (await reconcileAffiliateRefund(orderId,midtransData)) return NextResponse.json({ status: 'CONFIRMED',refunded: true });
     const fraudStatus = midtransData.fraud_status || "";
 
     if (
@@ -63,7 +65,7 @@ export async function POST(
       fraudStatus === "deny"
     ) {
       const result = await pool.query(
-        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW() WHERE "orderId" = $1 AND status != 'CONFIRMED' RETURNING status`,
+        `UPDATE "Payment" SET status = 'CANCELLED', "updatedAt" = NOW(),metadata=COALESCE(metadata,'{}'::jsonb)||'{"affiliate_terminal":true}'::jsonb WHERE "orderId" = $1 AND status != 'CONFIRMED' RETURNING status`,
         [orderId]
       );
       if (!result.rowCount) {

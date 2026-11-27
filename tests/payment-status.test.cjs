@@ -37,6 +37,7 @@ const pool = {
   },
 };
 const aliases = {
+  "@/lib/affiliate-refund": { reconcileAffiliateRefund: async () => false },
   "@/lib/db": { getDbPool: () => pool },
   "@/lib/server-auth": { getAuthenticatedAppUser: async () => user },
   "@/lib/midtrans-server": {

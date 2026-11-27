@@ -74,7 +74,7 @@ export async function POST(
         await confirmPaymentInDb(payment.orderId, midtransData);
       } else if (newStatus !== payment.status && newStatus !== "PENDING") {
         const updated = await pool.query(
-          `UPDATE "Payment" SET status = $1, "updatedAt" = NOW() WHERE id = $2 AND status <> 'CONFIRMED' RETURNING status`,
+          `UPDATE "Payment" SET status = $1, "updatedAt" = NOW(),metadata=COALESCE(metadata,'{}'::jsonb)||'{"affiliate_terminal":true}'::jsonb WHERE id = $2 AND status <> 'CONFIRMED' RETURNING status`,
           [newStatus, payment.id]
         );
         if (!updated.rowCount) newStatus = "CONFIRMED";
