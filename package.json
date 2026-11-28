@@ -4,6 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "scripts": {
+    "test:tryout-counts": "node --test tests/tryout-result-counts.test.cjs",
     "test:affiliate": "node --test tests/affiliate-checkout.test.cjs",
     "dev": "next dev -p 5173",
     "build": "next build",

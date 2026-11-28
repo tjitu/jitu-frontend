@@ -182,17 +182,17 @@ export function TryoutHeroHeader({
               </div>
             </div>
 
-            {!summaryOnly && <>
             <div className="flex-1 sm:w-28 md:w-32 text-center px-2 sm:px-5 space-y-1">
               <div className="text-xs font-semibold text-text-muted">
                 Kosong
               </div>
               <div className="font-mono text-3xl sm:text-4xl font-extrabold text-zinc-600 dark:text-zinc-400 tabular-nums">
-                {isFinished && isUnlocked ? (tryoutData.emptyCount ?? 0) : "-"}
+                {isFinished && (isUnlocked || summaryOnly) ? (tryoutData.emptyCount ?? 0) : "-"}
               </div>
             </div>
 
             {/* 4. Skor IRT */}
+            {!summaryOnly && (
             <div className="flex-1 sm:w-28 md:w-32 text-center px-2 sm:px-5 space-y-1">
               <div className="text-xs font-semibold text-text-muted">
                 Skor IRT
@@ -201,7 +201,7 @@ export function TryoutHeroHeader({
                 {isFinished && tryoutData.resultsAvailable ? (isUnlocked ? finalScore : "???") : "?"}
               </div>
             </div>
-            </>}
+            )}
           </div>
 
           {/* Right: Lihat Pembahasan Lengkap Button */}

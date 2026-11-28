@@ -91,12 +91,10 @@ export function SubtestListCard({
                         <span className="text-rose-600 font-semibold">
                           {category.wrongCount ?? 0} Salah
                         </span>
-                        {!summaryOnly && <>
-                          <span className="text-border">·</span>
-                          <span className="text-zinc-700 dark:text-zinc-300 font-semibold">
-                            {category.emptyCount ?? 0} Kosong
-                          </span>
-                        </>}
+                        <span className="text-border">·</span>
+                        <span className="text-zinc-700 dark:text-zinc-300 font-semibold">
+                          {category.emptyCount ?? 0} Kosong
+                        </span>
                       </>
                     )}
                   </div>
