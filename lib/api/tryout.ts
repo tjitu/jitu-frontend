@@ -122,6 +122,7 @@ export const getTryoutDetail = async (
     endDate: data.endDate,
 
     isRegistered: !!data.isRegistered,
+    verificationStatus: data.verificationStatus ?? null,
     unlockedSolutions: data.unlockedSolutions || [],
 
     benefits: data.benefits || [],

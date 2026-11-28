@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { ATTEMPT_TIMESTAMPS, TRYOUT_SCHEDULE } from "@/lib/tryout-timing-sql";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { growthStatuses } from '@/lib/server/growth-statuses';
 import {
   computeAttemptProgress,
   triggerAutoFinishIfNeeded,
@@ -134,7 +135,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(results);
+    const statuses = await growthStatuses(pool, user.id, results.map(row => String(row.id)));
+    return NextResponse.json(results.map(row => ({ ...row, verificationStatus: statuses.get(String(row.id)) ?? null })));
   } catch (err) {
     console.error("GET /api/proxy/dashboard/tryouts/ongoing error:", err);
     return NextResponse.json([]);

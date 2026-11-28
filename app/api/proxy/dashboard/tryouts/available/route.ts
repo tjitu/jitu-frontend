@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { TRYOUT_SCHEDULE } from "@/lib/tryout-timing-sql";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { growthStatuses } from '@/lib/server/growth-statuses';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -57,7 +58,8 @@ export async function GET(request: NextRequest) {
            LIMIT 10`,
         );
 
-    return NextResponse.json(rows);
+    const statuses = await growthStatuses(pool, user?.id, rows.map(row => String(row.id)));
+    return NextResponse.json(rows.map(row => ({ ...row, verificationStatus: statuses.get(String(row.id)) ?? null })));
   } catch (err) {
     console.error("GET /api/proxy/dashboard/tryouts/available error:", err);
     return NextResponse.json([]);

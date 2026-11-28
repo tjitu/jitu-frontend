@@ -62,6 +62,16 @@ export function useTryoutRegistration(
   };
 
   return {
+    onGrowthChanged: async () => {
+      if (!selectedTryout) return;
+      invalidateDashboardCache();
+      const detail = await getTryoutDetail(selectedTryout.id);
+      setTryouts(previous => {
+        const next = previous.map(item => item.id === selectedTryout.id ? { ...item, isRegistered: detail.isRegistered,
+          verificationStatus: detail.verificationStatus, participants: detail.participants } : item);
+        onSuccessRegistered?.(next); return next;
+      });
+    },
     registerModalOpen,
     setRegisterModalOpen,
     selectedTryout,

@@ -1,4 +1,9 @@
+"use client";
 import React from "react";
+import { useSession } from '@/lib/auth-client';
+import { useRegistrationGrowth } from '@/components/registration-growth/use-registration-growth';
+import { SocialEngagementModal } from '@/components/registration-growth/social-engagement-modal';
+import { RegistrationOutcomeModal } from '@/components/registration-growth/registration-outcome-modal';
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -19,6 +24,8 @@ import { PixelCoin } from "@/components/ui/pixel-coin";
 import { TryoutScheduleTimeline } from "@/components/ui/tryout-schedule-timeline";
 
 interface RegisterModalProps {
+  tryoutId: string;
+  onGrowthChanged?: () => void;
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (mode: "FREE" | "PREMIUM") => void;
@@ -32,6 +39,8 @@ interface RegisterModalProps {
 }
 
 export function RegisterModal({
+  tryoutId,
+  onGrowthChanged,
   isOpen,
   onClose,
   onConfirm,
@@ -43,6 +52,9 @@ export function RegisterModal({
   isLoading,
   error,
 }: RegisterModalProps) {
+  const { data: session } = useSession();
+  const flow = useRegistrationGrowth({ tryoutId, userId: session?.user?.id, open: isOpen, cost: tokenCost ?? 0, onClose, onChanged: onGrowthChanged });
+  const displayError = error || flow.error;
   const displayDuration =
     typeof duration === "number"
       ? `${duration} menit`
@@ -54,8 +66,11 @@ export function RegisterModal({
 
   const displayCost = tokenCost ?? 0;
 
+  if (flow.state?.tryoutId === tryoutId && flow.stage === 'social') return <SocialEngagementModal flow={flow} open={isOpen} />;
+  if (flow.state?.tryoutId === tryoutId && flow.stage === 'outcome') return <RegistrationOutcomeModal flow={flow} open={isOpen} />;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={value => { if (!value) flow.close(); }}>
       <DialogContent className="sm:max-w-[440px] p-6 rounded-2xl shadow-modal">
         {/* Ilustrasi icon pixelated tanpa border */}
         <div className="flex justify-center pt-2 pb-1">
@@ -137,14 +152,15 @@ export function RegisterModal({
             </div>
           </div>
 
-          {error && (
+          {displayError && (
             <div
               role="alert"
               className="p-3 rounded-lg border border-danger/30 bg-danger-soft text-danger-text text-xs flex items-start gap-2"
             >
               <AlertCircle className="w-4 h-4 stroke-[1.75] text-danger mt-0.5 shrink-0" aria-hidden="true" />
-              <span>{error}</span>
-              {error.toLowerCase().includes("coin tidak cukup") && (
+              <span>{displayError}</span>
+              {flow.error && <button type="button" className="underline" onClick={flow.reload}>Muat ulang</button>}
+              {displayError.toLowerCase().includes("coin tidak cukup") && (
                 <Link href="/shop" className="font-semibold underline">Buka Shop</Link>
               )}
             </div>
@@ -174,8 +190,8 @@ export function RegisterModal({
           )}
           <Button
             variant={displayCost > 0 ? "outline" : "primary"}
-            onClick={() => onConfirm("FREE")}
-            disabled={isLoading}
+            onClick={() => flow.free(() => onConfirm("FREE"))}
+            disabled={isLoading || flow.busy || flow.stage === 'loading' || flow.stage === 'error'}
             className="w-full h-10 text-xs px-5 font-semibold"
           >
             {isLoading ? (

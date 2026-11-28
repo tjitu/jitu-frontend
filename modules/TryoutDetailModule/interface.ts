@@ -1,4 +1,5 @@
 export interface TryoutDetail {
+  verificationStatus?: 'PENDING_VERIFICATION' | 'APPROVED' | 'REJECTED' | null;
   unlockedSolutions: any;
   id: string;
   title: string;

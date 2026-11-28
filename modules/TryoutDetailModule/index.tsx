@@ -19,6 +19,9 @@ import { StartTryoutDialog } from "./components/StartTryoutDialog";
 import { SandboxRestartButton } from "./components/SandboxRestartButton";
 import { NotStartedDialog } from "./components/NotStartedDialog";
 import { isTryoutBeforeStart } from "@/lib/tryout-start";
+import { RegistrationStatus } from '@/components/registration-growth/registration-status';
+import { invalidateDashboardCache } from '@/lib/api/DashboardApi';
+import { invalidateTryoutCatalogCache } from '@/modules/TryoutModule';
 
 const TryoutDetailModule = () => {
   const [confirmStart, setConfirmStart] = useState(false);
@@ -139,6 +142,7 @@ const TryoutDetailModule = () => {
       </div>
 
       {/* QC Sandbox Notice */}
+      <RegistrationStatus tryoutId={tryoutData.id} onOpen={handleRegister} onChanged={() => void fetchDetail()} />
       {tryoutData.isSandboxAccount && (
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs sm:text-sm text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
           <div>
@@ -227,6 +231,8 @@ const TryoutDetailModule = () => {
       <NotStartedDialog open={notStartedOpen} onOpenChange={setNotStartedOpen} startDate={tryoutData.startDate} />
       <NotStartedDialog open={questionsUnavailableOpen} onOpenChange={setQuestionsUnavailableOpen} startDate={tryoutData.startDate} questionsUnavailable />
       <RegisterModal
+        tryoutId={tryoutData.id}
+        onGrowthChanged={() => { invalidateDashboardCache(); invalidateTryoutCatalogCache(); void fetchDetail(); }}
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         onConfirm={onConfirmRegister}

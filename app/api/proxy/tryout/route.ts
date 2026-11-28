@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDbPool } from "@/lib/db";
 import { ATTEMPT_TIMESTAMPS, TRYOUT_SCHEDULE } from "@/lib/tryout-timing-sql";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
+import { growthStatuses } from '@/lib/server/growth-statuses';
 import {
   type AttemptSummaryRow,
   computeAttemptProgress,
@@ -106,6 +107,7 @@ export async function GET(request: NextRequest) {
     }
 
     const toFinishIds: string[] = [];
+    const verifications = await growthStatuses(pool, user?.id, rows.map(row => String(row.id)));
     const result = rows.map((t, idx) => {
       const tryoutId = String(t.id);
       const userAttempts = attemptsByTryout.get(tryoutId) || [];
@@ -143,6 +145,7 @@ export async function GET(request: NextRequest) {
           ? new Date(t.scheduledEnd).toISOString()
           : null,
         isRegistered: Boolean(t.is_registered),
+        verificationStatus: verifications.get(String(t.id)) ?? null,
         latestAttemptStatus: progress?.status ?? null,
         latestAttemptId: progress?.latestAttemptId ?? null,
         latestFinishedAttemptId: progress?.latestFinishedAttemptId ?? null,

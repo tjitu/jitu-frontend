@@ -41,6 +41,7 @@ const TryoutModule = () => {
     registerError,
     handleRegisterClick,
     onConfirmRegister,
+    onGrowthChanged,
   } = useTryoutRegistration(setTryouts, (updated) => {
     cachedTryouts = updated;
   });
@@ -94,6 +95,7 @@ const TryoutModule = () => {
           scheduledEnd: item.scheduledEnd,
           duration: item.duration || 195,
           isRegistered: item.isRegistered ?? false,
+          verificationStatus: item.verificationStatus ?? null,
           latestAttemptStatus: item.latestAttemptStatus ?? null,
           latestAttemptId: item.latestAttemptId ?? null,
           latestFinishedAttemptId: item.latestFinishedAttemptId ?? null,
@@ -240,6 +242,8 @@ const TryoutModule = () => {
       )}
 
       <RegisterModal
+        tryoutId={selectedTryout?.id ?? ''}
+        onGrowthChanged={() => { void onGrowthChanged().catch(() => {}); }}
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         onConfirm={onConfirmRegister}

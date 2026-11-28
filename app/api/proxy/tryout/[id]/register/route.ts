@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
 import { isUserPremiumActive } from "@/lib/premium";
+import { GrowthError, growthQuery, submitGrowthRegistration } from '@/lib/server/growth-registration';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -98,6 +99,13 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
         );
       }
 
+      if (curationStatus === 'PUBLISHED' && (mode !== 'PREMIUM' || price <= 0)) {
+        const registration = await submitGrowthRegistration(client, tryoutId, user.id, body?.growth);
+        if (registration) {
+          await client.query('COMMIT');
+          return NextResponse.json(registration, { status: registration.verificationStatus === 'PENDING_VERIFICATION' ? 202 : 200 });
+        }
+      }
       const existingResult = await client.query(
         `SELECT id FROM "TryOutAttempt" WHERE "userId" = $1 AND try_out_id = $2 LIMIT 1`,
         [user.id, tryoutId],
@@ -141,6 +149,7 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
         }
       }
 
+      if (mode === 'PREMIUM' && price > 0) await growthQuery(client, 'SELECT growth_finalize_paid($1,$2)', [tryoutId, user.id]);
       await client.query("COMMIT");
       return NextResponse.json({
         message: isPremium ? "Berhasil daftar dengan pembahasan." : "Berhasil mendaftar tryout",
@@ -156,6 +165,7 @@ export async function POST(request: NextRequest, { params }: TryoutParams) {
       client.release();
     }
   } catch (error) {
+    if (error instanceof GrowthError) return NextResponse.json({ code: error.code, message: error.message }, { status: error.status });
     console.error("POST /api/proxy/tryout/[id]/register error:", error);
     return NextResponse.json(
       { message: "Gagal mendaftar tryout." },

@@ -4,6 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "scripts": {
+    "test:growth": "node --test tests/growth-registration.test.cjs tests/growth-ui.test.cjs",
     "test:tryout-counts": "node --test tests/tryout-result-counts.test.cjs",
     "test:affiliate": "node --test tests/affiliate-checkout.test.cjs",
     "dev": "next dev -p 5173",

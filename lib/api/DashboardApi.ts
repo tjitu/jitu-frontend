@@ -13,6 +13,7 @@ export interface UserStats {
 }
 
 export interface OngoingTryout {
+  verificationStatus?: 'PENDING_VERIFICATION' | 'APPROVED' | 'REJECTED' | null;
   id: string;
   title: string;
   description: string | null;
@@ -34,6 +35,7 @@ export interface OngoingTryout {
 }
 
 export interface AvailableTryout {
+  verificationStatus?: 'PENDING_VERIFICATION' | 'APPROVED' | 'REJECTED' | null;
   id: string;
   title: string;
   description: string | null;

@@ -58,3 +58,5 @@ jitu-frontend/
 * Practice questions use `PracticeQuestionText` for passages, stanzas and stems. Shared list rendering and short-answer guidance live in `lib/content-lists.ts` and `lib/question-guidance.ts`.
 * Dashboard stats are aggregated in `lib/dashboard-stats.ts` from submitted practice, daily and tryout answers. Streak days follow Asia/Jakarta and IRT scores come from finished tryouts.
 * Shop payment reconciliation uses `lib/midtrans-server.ts`; `lib/free-voucher-payment.ts` handles atomic free-voucher redemption.
+
+* **Registration growth**: `components/registration-growth/` owns shared social/outcome modals, state polling and form hook. `lib/growth/` owns contracts/client events/labels; `lib/server/growth-*` owns private PostgreSQL access/status. Next `tryout/[id]/growth` and `/events` routes integrate with existing registration and Dashboard/catalog/detail. See `docs/registration-growth.md` and `npm run test:growth`.

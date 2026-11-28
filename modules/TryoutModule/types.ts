@@ -1,4 +1,5 @@
 export interface TryOutData {
+  verificationStatus?: 'PENDING_VERIFICATION' | 'APPROVED' | 'REJECTED' | null;
   id: string;
   title: string;
   description?: string | null;

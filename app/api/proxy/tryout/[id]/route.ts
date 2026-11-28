@@ -1,6 +1,7 @@
 import { areTryoutResultsAvailable } from "@/lib/tryout-results";
 import { canPreviewTryout } from "./_lib/can-preview-tryout";
 import { NextRequest, NextResponse } from "next/server";
+import { growthStatuses } from '@/lib/server/growth-statuses';
 import { getAuthenticatedAppUser } from "@/lib/server-auth";
 import { getDbPool } from "@/lib/db";
 import { ATTEMPT_TIMESTAMPS, TRYOUT_SCHEDULE } from "@/lib/tryout-timing-sql";
@@ -238,7 +239,9 @@ export async function GET(request: NextRequest, { params }: TryoutParams) {
       }
     }
 
+    const verification = await growthStatuses(pool, user.id, [id]);
     return NextResponse.json({
+      verificationStatus: verification.get(id) ?? null,
       id: tryout.id,
       title: tryout.title,
       number: tryout.code == null ? "0" : String(tryout.code),

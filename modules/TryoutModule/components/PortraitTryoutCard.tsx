@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { registrationLabel } from '@/lib/growth/registration-label';
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Clock, Sparkles, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -120,7 +121,7 @@ export function PortraitTryoutCard({
                 }
               }}
             >
-              <span className="font-bold">Daftar tryout</span>
+              <span className="font-bold">{registrationLabel(tryout.verificationStatus, tryout.solutionPrice > 0 ? 'Daftar tryout' : 'Daftar Gratis')}</span>
               <ArrowRight
                 className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                 aria-hidden="true"

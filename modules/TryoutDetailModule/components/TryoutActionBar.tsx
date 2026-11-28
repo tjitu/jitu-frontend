@@ -3,6 +3,7 @@
 import React from "react";
 import { CheckCircle2, Play, Loader2, BookOpen, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { registrationLabel } from '@/lib/growth/registration-label';
 import { TryoutDetail } from "../interface";
 import { isTryoutBeforeStart } from "@/lib/tryout-start";
 
@@ -108,7 +109,7 @@ export function TryoutActionBar({
             {isRegistering ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <span>Daftar Tryout</span>
+              <span>{registrationLabel(tryoutData.verificationStatus)}</span>
             )}
           </Button>
         )}

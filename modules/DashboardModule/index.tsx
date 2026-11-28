@@ -49,6 +49,7 @@ import {
 } from "@/lib/api/DashboardApi";
 import { toast } from "sonner";
 import { RegisterModal } from "./components/RegisterModal";
+import { registrationLabel } from '@/lib/growth/registration-label';
 import { invalidateTryoutCatalogCache } from "../TryoutModule";
 import { BACKEND_URL } from "@/lib/api";
 import { getTryoutDetail } from "@/lib/api/tryout";
@@ -663,7 +664,7 @@ const DashboardModule = () => {
                           aria-hidden="true"
                           className="animate-pass-shimmer pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-blue-200/35 to-transparent"
                         />
-                        <span className="relative z-10">Daftar tryout</span>
+                        <span className="relative z-10">{registrationLabel(featuredTryout.verificationStatus)}</span>
                         <ArrowRight
                           className="relative z-10 w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
                           aria-hidden="true"
@@ -1056,7 +1057,7 @@ const DashboardModule = () => {
                           }
                         >
                           <span className="font-bold">
-                            {tryout.isRegistered ? "Mulai Tryout" : "Daftar tryout"}
+                            {tryout.isRegistered ? "Mulai Tryout" : registrationLabel(tryout.verificationStatus)}
                           </span>
                           <ArrowRight
                             className="w-4 h-4 stroke-[1.75] transition-transform duration-150 ease-out group-hover/btn:translate-x-1 group-active/btn:translate-x-0"
@@ -1234,6 +1235,8 @@ const DashboardModule = () => {
       )}
 
       <RegisterModal
+        tryoutId={selectedTryout?.id ?? ''}
+        onGrowthChanged={() => { invalidateDashboardCache(); invalidateTryoutCatalogCache(); void loadDashboardData(false); }}
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         onConfirm={onConfirmRegister}
